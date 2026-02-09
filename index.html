@@ -1,126 +1,43 @@
-unibeatzproduction.com
-unibeatzproduction™
-Powering the Culture.
-
-UniBeatWorld
-Uni Freestyle Battle
-
-One Big Family.
-Beats. Battles. Community.
-
-[ Enter in App ]   [ Enter on Desktop ]
-
-Coming Soon.
-Contact: info@unibeatzproduction.com
-
-© 2026 unibeatzproduction. All Rights Reserved.
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>unibeatzproduction™</title>
-<style>
-  /* --- Global Styles --- */
-  body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background-color: #0B0B0B;
-    color: #FFFFFF;
-    text-align: center;
-  }
-  h1 { color: #D4AF37; font-size: 3em; margin-top: 1em; }
-  h2 { color: #FFFFFF; font-size: 1.5em; margin-top: 0.5em; }
-  p { color: #CCCCCC; font-size: 1.1em; line-height: 1.5em; margin: 0.5em auto 1.5em auto; max-width: 700px; }
-
-  /* --- Button Style --- */
-  .main-button {
-    display: inline-block;
-    background-color: #0B0B0B;
-    color: #D4AF37;
-    border: 2px solid #D4AF37;
-    padding: 15px 35px;
-    margin: 10px;
-    font-size: 1.2em;
-    font-weight: bold;
-    border-radius: 12px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    cursor: pointer;
-  }
-  .main-button:hover {
-    background-color: #D4AF37;
-    color: #0B0B0B;
-    box-shadow: 0 0 15px #00BFFF, 0 0 25px #00BFFF;
-    transform: scale(1.03);
-  }
-
-  /* --- Section Spacing --- */
-  section {
-    padding: 60px 20px;
-  }
-
-  /* --- Footer --- */
-  footer {
-    background-color: #0B0B0B;
-    border-top: 2px solid #D4AF37;
-    padding: 20px;
-    font-size: 0.9em;
-    color: #CCCCCC;
-  }
-  footer a { color: #D4AF37; text-decoration: none; margin: 0 10px; }
-  footer a:hover { color: #00BFFF; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unibeatz Production</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <style>
+        .electric-streak {
+            animation: electric 1s infinite;
+        }
+        @keyframes electric {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .button-animation {
+            transition: all 0.3s ease;
+        }
+        .button-animation:hover {
+            transform: scale(1.1);
+            background-color: #ffcc00;
+        }
+    </style>
 </head>
 <body>
-
-<!-- HERO SECTION -->
-<section>
-  <h1>unibeatzproduction™</h1>
-  <h2>Powering the Culture.</h2>
-  <p>Beats. Battles. Community. One Digital Empire.</p>
-  <a href="#unibeatworld" class="main-button">Explore UniBeatWorld</a>
-  <a href="#freestylebattle" class="main-button">Enter Uni Freestyle Battle</a>
-</section>
-
-<!-- DIVISIONS SECTION -->
-<section id="unibeatworld">
-  <h1>UniBeatWorld</h1>
-  <p>Elite beats, drum kits, producer tools, and sound innovation for the next generation of creators.</p>
-  <a href="#" class="main-button">Visit UniBeatWorld</a>
-</section>
-
-<section id="freestylebattle">
-  <h1>Uni Freestyle Battle</h1>
-  <p>The Official Digital Arena for Bars & Competition.<br>Compete. Rank up. Earn respect.</p>
-  <a href="#" class="main-button">Enter in App</a>
-  <a href="#" class="main-button">Enter on Desktop</a>
-  <p style="font-size:0.9em; color:#AAAAAA;">Available on all platforms. Powered by unibeatzproduction™</p>
-</section>
-
-<!-- VISION SECTION -->
-<section>
-  <h1>The Movement</h1>
-  <p>unibeatzproduction is building a unified ecosystem where producers, emcees, and creators thrive. Through innovation and competition, we empower the culture and elevate the standard.</p>
-  <a href="#" class="main-button">Join the Movement</a>
-</section>
-
-<!-- EMAIL CAPTURE (Optional) -->
-<section>
-  <h1>Stay Connected</h1>
-  <p>Be first to know about battles, drops, and exclusive releases.</p>
-  <form>
-    <input type="email" placeholder="Your email" style="padding:12px; border-radius:8px; border:2px solid #D4AF37; background:#0B0B0B; color:#FFFFFF; outline:none; width:250px;">
-    <button type="submit" class="main-button">Subscribe</button>
-  </form>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  unibeatzproduction™ &nbsp;|&nbsp; UniBeatWorld &nbsp;|&nbsp; Uni Freestyle Battle<br>
-  Contact: <a href="mailto:info@unibeatzproduction.com">info@unibeatzproduction.com</a><br>
-  © 2026 unibeatzproduction. All Rights Reserved.
-</footer>
-
+    <div id="particles-js"></div>
+    <header>
+        <h1 class="electric-streak">Welcome to Unibeatz Production</h1>
+        <button class="button-animation">Explore</button>
+    </header>
+    <section>
+        <h2>Coming Soon</h2>
+        <div class="coming-soon-badge">Stay Tuned!</div>
+    </section>
+    <script>
+        particlesJS.load('particles-js', 'particles.json', function() {
+            console.log('callback - particles.js config loaded');
+        });
+    </script>
 </body>
 </html>
