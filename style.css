@@ -1,0 +1,28 @@
+.hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffefba, #ffffff);
+    padding: 100px 0;
+    text-align: center;
+}
+
+.hero:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0) 100%);
+    opacity: 0.5;
+    animation: lightning 1.5s infinite ease-in-out;
+}
+
+@keyframes lightning {
+    0%, 100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+}
