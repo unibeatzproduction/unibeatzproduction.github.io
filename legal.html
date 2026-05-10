@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Legal & Contact | UniBeatz Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#020202;--deep:#06060f;
+  --gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;
+  --blue:#00AAFF;--blue-bright:#40D0FF;
+  --white:#F0EDE8;--gray:#777;--red:#FF3333;--green:#00CC66;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.1;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:64px;background:linear-gradient(90deg,#08080f,#0d0d1a);border-bottom:2px solid var(--gold);box-shadow:0 4px 30px rgba(0,0,0,0.8),0 0 20px rgba(201,168,76,0.15);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{height:40px;width:40px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,170,255,0.7));}
+.nav-logo-text{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-back{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);text-decoration:none;border:1px solid rgba(201,168,76,0.35);padding:7px 16px;transition:all 0.2s;white-space:nowrap;}
+.nav-back:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);}
+
+/* HERO */
+.page-hero{padding:100px 24px 50px;text-align:center;position:relative;border-bottom:1px solid rgba(201,168,76,0.15);}
+.page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 40%,rgba(201,168,76,0.06) 0%,transparent 70%);}
+.page-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:10px;position:relative;}
+.page-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,8vw,5rem);letter-spacing:4px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;position:relative;}
+.page-sub{font-size:0.9rem;color:rgba(240,237,232,0.5);margin-top:10px;letter-spacing:1px;position:relative;}
+
+/* QUICK NAV */
+.quick-nav{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:24px;border-bottom:1px solid rgba(201,168,76,0.1);position:relative;z-index:1;}
+.quick-link{padding:7px 16px;border:1px solid rgba(201,168,76,0.25);background:transparent;color:rgba(240,237,232,0.65);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;cursor:pointer;text-decoration:none;transition:all 0.2s;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);white-space:nowrap;}
+.quick-link:hover{border-color:var(--gold);color:var(--gold-light);background:rgba(201,168,76,0.07);}
+
+/* MAIN LAYOUT */
+.page-layout{display:grid;grid-template-columns:240px 1fr;gap:0;max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+
+/* SIDEBAR */
+.sidebar{padding:32px 24px;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;border-right:1px solid rgba(201,168,76,0.1);}
+.sidebar::-webkit-scrollbar{display:none;}
+.sidebar-title{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:4px;color:var(--gold);margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.15);}
+.sidebar-link{display:block;padding:9px 12px;font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;color:rgba(240,237,232,0.5);text-decoration:none;border-left:2px solid transparent;transition:all 0.2s;margin-bottom:2px;line-height:1.4;}
+.sidebar-link:hover,.sidebar-link.active{color:var(--gold-light);border-left-color:var(--gold);background:rgba(201,168,76,0.05);}
+.sidebar-divider{height:1px;background:rgba(201,168,76,0.1);margin:12px 0;}
+
+/* CONTENT */
+.page-content{padding:40px 48px 80px;}
+
+/* SECTION */
+.legal-section{margin-bottom:60px;scroll-margin-top:80px;}
+.legal-section-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid rgba(201,168,76,0.15);}
+.legal-section-icon{font-size:2rem;flex-shrink:0;}
+.legal-section-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.legal-section-sub{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-top:2px;}
+
+/* LICENSE CARDS */
+.license-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px;}
+.license-card{border:1px solid rgba(201,168,76,0.2);background:linear-gradient(135deg,#0a0a14,#060610);padding:24px;position:relative;overflow:hidden;transition:all 0.3s;}
+.license-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.license-card.exclusive::before{background:linear-gradient(90deg,var(--gold-dark),var(--gold-light));}
+.license-card.unlimited::before{background:linear-gradient(90deg,var(--blue),var(--blue-bright));}
+.license-card.premium::before{background:linear-gradient(90deg,var(--green),var(--blue));}
+.license-card.basic::before{background:linear-gradient(90deg,var(--gray),var(--blue));}
+.license-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.4);}
+.lc-badge{display:inline-block;padding:3px 12px;font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;font-weight:700;margin-bottom:10px;}
+.lc-badge.exclusive{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);}
+.lc-badge.unlimited{background:rgba(0,170,255,0.15);border:1px solid rgba(0,170,255,0.4);color:var(--blue-bright);}
+.lc-badge.premium{background:rgba(0,204,102,0.12);border:1px solid rgba(0,204,102,0.35);color:var(--green);}
+.lc-badge.basic{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:var(--white);}
+.lc-title{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;margin-bottom:6px;}
+.lc-price{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--gold-light);margin-bottom:14px;}
+.lc-includes{margin-bottom:14px;}
+.lc-includes-title{font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;color:var(--green);margin-bottom:8px;}
+.lc-includes ul,.lc-restrictions ul{list-style:none;}
+.lc-includes li,.lc-restrictions li{font-size:0.85rem;color:rgba(240,237,232,0.72);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:flex-start;gap:7px;line-height:1.4;}
+.lc-includes li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px;}
+.lc-restrictions{margin-bottom:14px;}
+.lc-restrictions-title{font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;color:var(--red);margin-bottom:8px;}
+.lc-restrictions li::before{content:'✕';color:var(--red);font-weight:700;flex-shrink:0;margin-top:1px;}
+.lc-credit{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);padding:8px 12px;font-size:0.78rem;color:rgba(240,237,232,0.7);margin-bottom:10px;}
+.lc-credit strong{color:var(--gold-light);}
+.lc-final{font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;color:var(--red);text-align:center;padding:6px;background:rgba(255,51,51,0.06);border:1px solid rgba(255,51,51,0.2);}
+
+/* LEGAL PROSE */
+.legal-prose{font-size:0.9rem;color:rgba(240,237,232,0.7);line-height:1.8;}
+.legal-prose p{margin-bottom:14px;}
+.legal-prose h4{font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:3px;color:var(--gold);margin-bottom:8px;margin-top:20px;}
+.legal-prose ul,.legal-prose ol{margin-left:20px;margin-bottom:14px;}
+.legal-prose li{margin-bottom:6px;line-height:1.6;}
+.legal-prose strong{color:var(--white);font-weight:700;}
+.legal-prose .highlight{background:rgba(201,168,76,0.08);border-left:3px solid var(--gold);padding:12px 16px;margin-bottom:14px;font-size:0.85rem;}
+.legal-prose .warning{background:rgba(255,51,51,0.06);border-left:3px solid var(--red);padding:12px 16px;margin-bottom:14px;font-size:0.85rem;color:rgba(240,237,232,0.8);}
+.legal-num-item{display:flex;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.legal-num-item:last-child{border-bottom:none;}
+.legal-num{font-family:'Orbitron',sans-serif;font-size:0.7rem;font-weight:900;color:var(--gold);min-width:28px;flex-shrink:0;padding-top:2px;}
+.legal-num-content h4{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;color:var(--white);margin-bottom:6px;}
+.legal-num-content p{font-size:0.88rem;color:rgba(240,237,232,0.68);line-height:1.7;}
+.legal-num-content ul{margin-left:16px;margin-top:6px;}
+.legal-num-content li{font-size:0.85rem;color:rgba(240,237,232,0.65);margin-bottom:4px;line-height:1.5;}
+
+/* CONTACT */
+.contact-box{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.25);padding:36px;max-width:600px;}
+.contact-item{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.contact-item:last-child{border-bottom:none;}
+.contact-icon{width:44px;height:44px;border-radius:50%;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.contact-label{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--gold);margin-bottom:4px;}
+.contact-value{font-size:1rem;color:var(--white);font-weight:600;}
+.contact-value a{color:var(--blue-bright);text-decoration:none;}
+.contact-value a:hover{text-decoration:underline;}
+.contact-note{font-size:0.78rem;color:var(--gray);margin-top:2px;}
+.response-box{background:rgba(0,170,255,0.05);border:1px solid rgba(0,170,255,0.18);padding:14px 18px;margin-top:20px;display:flex;align-items:center;gap:12px;}
+.response-icon{font-size:1.4rem;}
+.response-txt{font-size:0.85rem;color:rgba(240,237,232,0.65);line-height:1.5;}
+
+/* EFFECTIVE DATE */
+.effective-box{background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.2);padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:10px;}
+.eff-icon{font-size:1.1rem;}
+.eff-txt{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:2px;color:var(--gold);}
+
+/* COMPARE TABLE */
+.compare-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:0.85rem;}
+.compare-table th{font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;color:var(--gold);padding:10px 14px;border-bottom:2px solid rgba(201,168,76,0.2);text-align:left;background:rgba(201,168,76,0.05);}
+.compare-table td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(240,237,232,0.72);vertical-align:middle;}
+.compare-table tr:hover td{background:rgba(255,255,255,0.02);}
+.ct-yes{color:var(--green);font-weight:700;}
+.ct-no{color:var(--red);}
+.ct-ltd{color:var(--gold);}
+
+/* FOOTER */
+footer{padding:40px 24px 20px;background:#030305;border-top:1px solid rgba(201,168,76,0.12);position:relative;z-index:1;}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-brand{display:flex;align-items:center;gap:10px;}
+.footer-brand img{height:40px;filter:drop-shadow(0 0 6px rgba(0,170,255,0.4));}
+.footer-brand-text{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.footer-links{display:flex;gap:16px;flex-wrap:wrap;}
+.footer-links a{color:rgba(240,237,232,0.38);text-decoration:none;font-size:0.8rem;transition:color 0.2s;}
+.footer-links a:hover{color:var(--gold-light);}
+.footer-bottom{text-align:center;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);font-size:0.7rem;color:rgba(240,237,232,0.2);max-width:1200px;margin:16px auto 0;}
+.footer-bottom span{color:var(--gold);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid var(--gold);padding:12px 20px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.88rem;z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.4s;box-shadow:0 0 25px rgba(201,168,76,0.2);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .page-layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .page-content{padding:24px 18px 60px;}
+  .license-grid{grid-template-columns:1fr;}
+  .footer-inner{flex-direction:column;align-items:flex-start;}
+}
+@media(max-width:600px){
+  .quick-nav{gap:6px;}
+  .quick-link{font-size:0.44rem;padding:6px 11px;}
+}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+    <span class="nav-logo-text">UNIBEATZ</span>
+  </a>
+  <a href="index.html" class="nav-back">← Back to Home</a>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <p class="page-eyebrow">UniBeatz Production</p>
+  <h1 class="page-title">Legal & Contact</h1>
+  <p class="page-sub">License agreements, terms, policies, and how to reach us</p>
+</div>
+
+<!-- QUICK NAV -->
+<div class="quick-nav">
+  <a href="#contact" class="quick-link">📧 Contact</a>
+  <a href="#licenses" class="quick-link">🎵 License Types</a>
+  <a href="#beat-agreement" class="quick-link">📄 Beat Agreement</a>
+  <a href="#refund" class="quick-link">↩️ Refund Policy</a>
+  <a href="#terms" class="quick-link">⚖️ Terms & Conditions</a>
+  <a href="#disclaimer" class="quick-link">⚠️ Disclaimer</a>
+</div>
+
+<!-- LAYOUT -->
+<div class="page-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Contents</div>
+    <a href="#contact" class="sidebar-link">📧 Contact Information</a>
+    <div class="sidebar-divider"></div>
+    <a href="#licenses" class="sidebar-link">🎵 License Types Overview</a>
+    <a href="#exclusive" class="sidebar-link" style="padding-left:20px;">→ Exclusive License</a>
+    <a href="#unlimited" class="sidebar-link" style="padding-left:20px;">→ Unlimited Lease</a>
+    <a href="#premium" class="sidebar-link" style="padding-left:20px;">→ Premium Lease</a>
+    <a href="#basic" class="sidebar-link" style="padding-left:20px;">→ Basic Lease</a>
+    <a href="#compare" class="sidebar-link" style="padding-left:20px;">→ License Comparison</a>
+    <div class="sidebar-divider"></div>
+    <a href="#beat-agreement" class="sidebar-link">📄 Beat License Agreement</a>
+    <a href="#refund" class="sidebar-link">↩️ Refund & Return Policy</a>
+    <a href="#privacy" class="sidebar-link">🔒 Privacy Policy</a>
+    <a href="#terms" class="sidebar-link">⚖️ Terms & Conditions</a>
+    <a href="#disclaimer" class="sidebar-link">⚠️ Disclaimer</a>
+    <div class="sidebar-divider"></div>
+    <a href="index.html" class="sidebar-link">← Back to Main Site</a>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="page-content">
+
+    <!-- CONTACT -->
+    <div class="legal-section" id="contact">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">📧</div>
+        <div>
+          <div class="legal-section-title">Contact Information</div>
+          <div class="legal-section-sub">Get in touch with UniBeatz Production</div>
+        </div>
+      </div>
+      <div class="contact-box">
+        <div class="contact-item">
+          <div class="contact-icon">📧</div>
+          <div>
+            <div class="contact-label">Email Address</div>
+            <div class="contact-value"><a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a></div>
+            <div class="contact-note">For licensing, bookings, custom beats, and general inquiries</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🎵</div>
+          <div>
+            <div class="contact-label">Beat Licensing Inquiries</div>
+            <div class="contact-value"><a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a></div>
+            <div class="contact-note">Include beat name and desired license type in subject line</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">🎙️</div>
+          <div>
+            <div class="contact-label">Studio Booking</div>
+            <div class="contact-value"><a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a></div>
+            <div class="contact-note">Include preferred date, time, and session type</div>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">⚖️</div>
+          <div>
+            <div class="contact-label">Legal / License Disputes</div>
+            <div class="contact-value"><a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a></div>
+            <div class="contact-note">Subject: LEGAL INQUIRY — [Your Name]</div>
+          </div>
+        </div>
+        <div class="response-box">
+          <div class="response-icon">⏱️</div>
+          <div class="response-txt">We typically respond within <strong>24–48 business hours</strong>. For faster response, include your order number and specific subject in your email.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LICENSE TYPES -->
+    <div class="legal-section" id="licenses">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">🎵</div>
+        <div>
+          <div class="legal-section-title">Beat License Types</div>
+          <div class="legal-section-sub">Choose the right license for your project</div>
+        </div>
+      </div>
+      <div class="legal-prose">
+        <div class="highlight">All purchases are final. By purchasing any license, you agree to the terms outlined below and in the Beat License Agreement section. Credit "Prod. by UniBeatz Production" is required on all distributed works unless otherwise agreed in writing.</div>
+      </div>
+
+      <!-- EXCLUSIVE -->
+      <div id="exclusive" style="scroll-margin-top:80px;">
+        <div class="license-grid" style="grid-template-columns:1fr;">
+          <div class="license-card exclusive">
+            <span class="lc-badge exclusive">👑 Exclusive License</span>
+            <div class="lc-title">EXCLUSIVE LICENSE AGREEMENT</div>
+            <div class="lc-price">$300 – $1,000+ <span style="font-size:0.65rem;color:var(--gray);font-weight:400;">(price set per beat)</span></div>
+            <div class="lc-includes">
+              <div class="lc-includes-title">This License Grants:</div>
+              <ul>
+                <li>Exclusive rights to the beat — no one else can purchase it</li>
+                <li>Unlimited audio streams</li>
+                <li>Unlimited music video distribution</li>
+                <li>Full commercial rights — monetize everywhere</li>
+                <li>Unlimited live performances</li>
+                <li>Distribution on all platforms worldwide</li>
+              </ul>
+            </div>
+            <div class="lc-restrictions">
+              <div class="lc-restrictions-title">Terms & Restrictions:</div>
+              <ul>
+                <li>Beat will be removed from the store immediately after purchase</li>
+                <li>Previous non-exclusive licenses sold remain valid — they do not expire</li>
+                <li>Buyer cannot resell the beat as their own production</li>
+                <li>Ownership of the master beat file remains with UniBeatz Production</li>
+              </ul>
+            </div>
+            <div class="lc-credit"><strong>Credit Required:</strong> "Prod. by UniBeatz Production" on all distributed works unless a written waiver is agreed upon separately.</div>
+            <div class="lc-final">⚠ ALL SALES ARE FINAL — NO REFUNDS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- UNLIMITED LEASE -->
+      <div id="unlimited" style="scroll-margin-top:80px;margin-top:20px;">
+        <div class="license-grid" style="grid-template-columns:1fr;">
+          <div class="license-card unlimited">
+            <span class="lc-badge unlimited">💎 Unlimited Lease License</span>
+            <div class="lc-title">UNLIMITED LEASE LICENSE</div>
+            <div class="lc-price">$100 – $200</div>
+            <div class="lc-includes">
+              <div class="lc-includes-title">This License Includes:</div>
+              <ul>
+                <li>Unlimited audio streams on all platforms</li>
+                <li>Unlimited music video distribution</li>
+                <li>Full monetization allowed on all platforms</li>
+                <li>Unlimited live performances</li>
+                <li>Distribution on all major streaming platforms</li>
+              </ul>
+            </div>
+            <div class="lc-restrictions">
+              <div class="lc-restrictions-title">Restrictions:</div>
+              <ul>
+                <li>Non-exclusive — others may still purchase the same beat</li>
+                <li>No resale or redistribution of the beat files</li>
+                <li>Ownership remains with UniBeatz Production</li>
+              </ul>
+            </div>
+            <div class="lc-credit"><strong>Credit Required:</strong> "Prod. by UniBeatz Production"</div>
+            <div class="lc-final">⚠ ALL SALES ARE FINAL — NO REFUNDS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREMIUM LEASE -->
+      <div id="premium" style="scroll-margin-top:80px;margin-top:20px;">
+        <div class="license-grid" style="grid-template-columns:1fr;">
+          <div class="license-card premium">
+            <span class="lc-badge premium">⭐ Premium Lease License</span>
+            <div class="lc-title">PREMIUM LEASE LICENSE</div>
+            <div class="lc-price">$50 – $80</div>
+            <div class="lc-includes">
+              <div class="lc-includes-title">This License Includes:</div>
+              <ul>
+                <li>Up to 50,000 audio streams</li>
+                <li>Up to 2 music video distributions</li>
+                <li>Monetized streaming allowed</li>
+                <li>Live performances allowed</li>
+                <li>Distribution on all major streaming platforms</li>
+              </ul>
+            </div>
+            <div class="lc-restrictions">
+              <div class="lc-restrictions-title">Restrictions:</div>
+              <ul>
+                <li>Non-exclusive license — others may purchase the same beat</li>
+                <li>No resale of the beat file</li>
+                <li>Ownership remains with UniBeatz Production</li>
+                <li>Must upgrade if streams exceed 50,000</li>
+              </ul>
+            </div>
+            <div class="lc-credit"><strong>Credit Required:</strong> "Prod. by UniBeatz Production"</div>
+            <div class="lc-final">⚠ ALL SALES ARE FINAL — NO REFUNDS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BASIC LEASE -->
+      <div id="basic" style="scroll-margin-top:80px;margin-top:20px;">
+        <div class="license-grid" style="grid-template-columns:1fr;">
+          <div class="license-card basic">
+            <span class="lc-badge basic">🎵 Basic Lease License</span>
+            <div class="lc-title">BASIC LEASE LICENSE</div>
+            <div class="lc-price">$20 – $30</div>
+            <div class="lc-includes">
+              <div class="lc-includes-title">This License Grants:</div>
+              <ul>
+                <li>Up to 5,000 audio streams</li>
+                <li>Up to 1 music video distribution</li>
+                <li>Non-profit live performances allowed</li>
+                <li>Right to record and distribute music using the purchased beat</li>
+              </ul>
+            </div>
+            <div class="lc-restrictions">
+              <div class="lc-restrictions-title">Restrictions:</div>
+              <ul>
+                <li>No resale or redistribution of the beat file</li>
+                <li>No ownership is transferred</li>
+                <li>License is non-exclusive</li>
+                <li>Cannot be used for commercial monetization beyond 5,000 streams</li>
+                <li>Must upgrade license if stream limits are exceeded</li>
+              </ul>
+            </div>
+            <div class="lc-credit"><strong>Credit Required:</strong> "Prod. by UniBeatz Production"</div>
+            <div class="lc-final">⚠ ALL SALES ARE FINAL — NO REFUNDS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLE -->
+      <div id="compare" style="scroll-margin-top:80px;margin-top:32px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:4px;color:var(--blue-bright);margin-bottom:14px;">LICENSE COMPARISON CHART</div>
+        <div style="overflow-x:auto;">
+          <table class="compare-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Basic</th>
+                <th>Premium</th>
+                <th>Unlimited</th>
+                <th>Exclusive</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Price Range</td><td>$20–$30</td><td>$50–$80</td><td>$100–$200</td><td>$300–$1,000+</td></tr>
+              <tr><td>Audio Streams</td><td class="ct-ltd">5,000</td><td class="ct-ltd">50,000</td><td class="ct-yes">Unlimited</td><td class="ct-yes">Unlimited</td></tr>
+              <tr><td>Music Videos</td><td class="ct-ltd">1</td><td class="ct-ltd">2</td><td class="ct-yes">Unlimited</td><td class="ct-yes">Unlimited</td></tr>
+              <tr><td>Commercial Monetization</td><td class="ct-no">✕</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
+              <tr><td>Live Performances</td><td class="ct-ltd">Non-profit only</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
+              <tr><td>Exclusive Rights</td><td class="ct-no">✕</td><td class="ct-no">✕</td><td class="ct-no">✕</td><td class="ct-yes">✓</td></tr>
+              <tr><td>Beat Removed from Store</td><td class="ct-no">✕</td><td class="ct-no">✕</td><td class="ct-no">✕</td><td class="ct-yes">✓</td></tr>
+              <tr><td>Credit Required</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BEAT LICENSE AGREEMENT -->
+    <div class="legal-section" id="beat-agreement">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">📄</div>
+        <div>
+          <div class="legal-section-title">Beat License Agreement</div>
+          <div class="legal-section-sub">UniBeatz Production — Full Terms</div>
+        </div>
+      </div>
+      <div class="effective-box"><span class="eff-icon">📅</span><span class="eff-txt">Effective upon purchase — applies to all beats bought from UniBeatz Production</span></div>
+      <div class="legal-prose">
+        <div class="highlight">By purchasing any beat from UniBeatz Production, you agree to the following terms and conditions in full. Please read carefully before completing your purchase.</div>
+        <div class="legal-num-item">
+          <div class="legal-num">01</div>
+          <div class="legal-num-content">
+            <h4>License Grant</h4>
+            <p>You are granted a non-exclusive, non-transferable license to use the purchased beat for personal or commercial recording purposes, subject to the specific terms of the license type purchased (Basic, Premium, Unlimited, or Exclusive). The scope of use is defined by your selected license tier.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">02</div>
+          <div class="legal-num-content">
+            <h4>Ownership</h4>
+            <p>All beats remain the intellectual property of UniBeatz Production. Purchasing a beat does <strong>NOT</strong> grant ownership of the beat, its composition, or any underlying elements. UniBeatz Production retains all producer rights and master ownership unless explicitly stated otherwise in a separate written agreement.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">03</div>
+          <div class="legal-num-content">
+            <h4>Restrictions</h4>
+            <p>Regardless of license type, you may NOT:</p>
+            <ul>
+              <li>Resell, redistribute, sublicense, or re-lease the beat to any third party</li>
+              <li>Claim ownership or authorship of the beat or its production</li>
+              <li>Use the beat for illegal, defamatory, or hate-based content</li>
+              <li>Remove or alter producer tags embedded in the beat file</li>
+              <li>Transfer the license to another artist or entity</li>
+            </ul>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">04</div>
+          <div class="legal-num-content">
+            <h4>Credit Requirement</h4>
+            <p>All users must credit <strong>"Prod. by UniBeatz Production"</strong> in all distributed works where applicable — including streaming platforms, music videos, social media posts, and physical releases. Failure to credit is a violation of this agreement.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">05</div>
+          <div class="legal-num-content">
+            <h4>Refund Policy — Digital Products</h4>
+            <div class="warning" style="margin-top:8px;">ALL BEAT SALES ARE FINAL. Due to the digital nature of the product: No refunds. No exchanges. No cancellations. Once a beat is delivered, the transaction is complete and non-reversible.</div>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">06</div>
+          <div class="legal-num-content">
+            <h4>License Violations</h4>
+            <p>Failure to comply with any of these terms may result in:</p>
+            <ul>
+              <li>Immediate revocation of your license rights</li>
+              <li>Legal action for copyright infringement</li>
+              <li>DMCA takedown requests on all distributed works using the beat</li>
+              <li>Financial penalties as allowed under applicable copyright law</li>
+            </ul>
+            <p style="margin-top:8px;">To report a violation, contact: <a href="mailto:unibeatzproduction@gmail.com" style="color:var(--blue-bright);">unibeatzproduction@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REFUND POLICY -->
+    <div class="legal-section" id="refund">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">↩️</div>
+        <div>
+          <div class="legal-section-title">Refund & Return Policy</div>
+          <div class="legal-section-sub">Merchandise & Digital Products</div>
+        </div>
+      </div>
+      <div class="legal-prose">
+        <div class="warning">Digital products (beats, audio files) are NON-REFUNDABLE under all circumstances. No exceptions.</div>
+        <div class="legal-num-item">
+          <div class="legal-num">01</div>
+          <div class="legal-num-content">
+            <h4>Eligibility — Merchandise Only</h4>
+            <p>Physical merchandise may be eligible for a refund or exchange only under the following conditions:</p>
+            <ul>
+              <li>Item is defective or damaged upon delivery</li>
+              <li>Incorrect item was received</li>
+            </ul>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">02</div>
+          <div class="legal-num-content">
+            <h4>Time Frame</h4>
+            <p>All refund or exchange requests must be submitted within <strong>14 days</strong> of confirmed delivery. Requests made after this window will not be considered.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">03</div>
+          <div class="legal-num-content">
+            <h4>Item Conditions</h4>
+            <p>To be eligible for return, items must be:</p>
+            <ul>
+              <li>Unworn and unwashed</li>
+              <li>In original condition with all tags attached</li>
+              <li>In original or equivalent packaging</li>
+            </ul>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">04</div>
+          <div class="legal-num-content">
+            <h4>Non-Refundable Items</h4>
+            <p>The following are <strong>not eligible</strong> for refund or exchange under any circumstances:</p>
+            <ul>
+              <li>All digital products (beats, audio files, stems, trackouts)</li>
+              <li>Items that have been worn, washed, or altered</li>
+              <li>Sale or discounted items</li>
+              <li>Custom or personalized orders</li>
+            </ul>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">05</div>
+          <div class="legal-num-content">
+            <h4>How to Request a Refund</h4>
+            <p>To request a refund or exchange, email: <a href="mailto:unibeatzproduction@gmail.com" style="color:var(--blue-bright);">unibeatzproduction@gmail.com</a></p>
+            <p style="margin-top:8px;">Subject line: <strong>REFUND REQUEST — [Order Number]</strong></p>
+            <p style="margin-top:8px;">Your email must include:</p>
+            <ul>
+              <li>Order number or transaction ID</li>
+              <li>Full description of the issue</li>
+              <li>Photo evidence of damage or incorrect item (if applicable)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">06</div>
+          <div class="legal-num-content">
+            <h4>Approval Process</h4>
+            <p>All refund requests are subject to review and approval by UniBeatz Production. Approved refunds will be processed within 5–10 business days. UniBeatz Production reserves the right to deny any refund request that does not meet the above criteria.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIVACY POLICY -->
+    <div class="legal-section" id="privacy">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">🔒</div>
+        <div>
+          <div class="legal-section-title">Privacy Policy</div>
+          <div class="legal-section-sub">UniBeatz Production — How We Handle Your Data</div>
+        </div>
+      </div>
+      <p style="color:rgba(240,237,232,0.55);font-size:0.85rem;margin-bottom:16px;">Last Updated: May 2026</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">1. Information We Collect</h4>
+      <p>We collect information you provide directly when you:</p>
+      <ul style="margin-left:20px;line-height:1.9;color:rgba(240,237,232,0.78);">
+        <li>Create an account (name, email, username, password, city)</li>
+        <li>Make a purchase or subscribe (handled securely by Stripe — we don't store full credit card numbers)</li>
+        <li>Upload content (beats, sample packs, profile photos)</li>
+        <li>Participate in battles or interact with other users</li>
+        <li>Contact our support team</li>
+      </ul>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">2. How We Use Your Information</h4>
+      <ul style="margin-left:20px;line-height:1.9;color:rgba(240,237,232,0.78);">
+        <li>To provide and maintain our services</li>
+        <li>To process transactions and send receipts</li>
+        <li>To send service-related emails (account verification, password reset, updates)</li>
+        <li>To improve our products and develop new features</li>
+        <li>To prevent fraud and protect our community</li>
+        <li>To comply with legal obligations</li>
+      </ul>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">3. Third-Party Services We Use</h4>
+      <p>We work with trusted services to operate our platform:</p>
+      <ul style="margin-left:20px;line-height:1.9;color:rgba(240,237,232,0.78);">
+        <li><strong>Firebase (Google):</strong> Authentication and account management</li>
+        <li><strong>Stripe:</strong> Payment processing — we never see or store your full card details</li>
+        <li><strong>Vercel:</strong> Website hosting</li>
+        <li><strong>GitHub:</strong> Code hosting</li>
+      </ul>
+      <p style="margin-top:10px;">Each service has its own privacy policy. We only share the minimum data required for them to function.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">4. Data Storage & Security</h4>
+      <p>Your data is stored securely with encrypted connections (HTTPS). Passwords are hashed and never stored in plain text. While no system is 100% secure, we use industry-standard practices to protect your information.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">5. Your Rights</h4>
+      <p>You have the right to:</p>
+      <ul style="margin-left:20px;line-height:1.9;color:rgba(240,237,232,0.78);">
+        <li>Access the personal data we hold about you</li>
+        <li>Request correction of inaccurate data</li>
+        <li>Request deletion of your account and data</li>
+        <li>Opt out of marketing communications at any time</li>
+        <li>Export your data</li>
+      </ul>
+      <p>To exercise these rights, email <a href="mailto:unibeatzproduction@gmail.com" style="color:var(--gold);">unibeatzproduction@gmail.com</a>.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">6. Cookies & Tracking</h4>
+      <p>We use minimal cookies and localStorage to keep you logged in and remember your preferences. We do not currently use third-party advertising trackers.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">7. Children's Privacy</h4>
+      <p>UniBeatz Production is not intended for users under 13. We do not knowingly collect data from children under 13. If you believe we have collected such data, contact us immediately and we will delete it.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">8. Changes to This Policy</h4>
+      <p>We may update this privacy policy from time to time. Significant changes will be communicated via email or a prominent notice on our website.</p>
+
+      <h4 style="color:var(--gold-light);font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;margin:18px 0 8px;">9. Contact Us</h4>
+      <p>For privacy questions or concerns, contact:<br/>
+      <strong>UniBeatz Production</strong><br/>
+      Email: <a href="mailto:unibeatzproduction@gmail.com" style="color:var(--gold);">unibeatzproduction@gmail.com</a><br/>
+      Website: <a href="https://unibeatzproduction.com" style="color:var(--gold);">unibeatzproduction.com</a></p>
+    </div>
+
+    <!-- TERMS & CONDITIONS -->
+    <div class="legal-section" id="terms">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">⚖️</div>
+        <div>
+          <div class="legal-section-title">Terms & Conditions</div>
+          <div class="legal-section-sub">UniBeatz Production — Full Terms of Use</div>
+        </div>
+      </div>
+      <div class="effective-box"><span class="eff-icon">📅</span><span class="eff-txt">Effective Date: 2025 — By using this site, you agree to all terms listed below</span></div>
+      <div class="legal-prose">
+        <p>Welcome to UniBeatz Production. By accessing or purchasing from this website, you agree to the following terms and conditions in full.</p>
+        <div class="legal-num-item">
+          <div class="legal-num">01</div>
+          <div class="legal-num-content">
+            <h4>General Use</h4>
+            <p>This website and all of its content are owned and operated by UniBeatz Production. By using this site, you agree not to misuse, copy, reproduce, or distribute any content — including beats, audio, images, branding, or text — without prior written permission from UniBeatz Production.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">02</div>
+          <div class="legal-num-content">
+            <h4>Products & Services</h4>
+            <p>UniBeatz Production provides digital music products ("Beats"), physical merchandise ("Merch"), studio booking services, and related entertainment services. All products and services are subject to availability and may be modified or discontinued at any time without notice.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">03</div>
+          <div class="legal-num-content">
+            <h4>Payments</h4>
+            <p>All payments must be completed in full at checkout via our secure payment processor (Stripe). We reserve the right to refuse or cancel any order at our sole discretion. Prices are subject to change without notice. All transactions are processed in U.S. dollars.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">04</div>
+          <div class="legal-num-content">
+            <h4>Intellectual Property</h4>
+            <p>All beats, audio files, designs, branding, logos, and website content remain the exclusive property of UniBeatz Production unless explicitly stated otherwise in a signed license agreement. Unauthorized use of any intellectual property from this website may result in legal action.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">05</div>
+          <div class="legal-num-content">
+            <h4>Limitation of Liability</h4>
+            <p>UniBeatz Production is not liable for any direct, indirect, incidental, or consequential damages resulting from the use or misuse of purchased products or services. This includes but is not limited to: loss of revenue, loss of data, or any other financial loss resulting from use of our content.</p>
+          </div>
+        </div>
+        <div class="legal-num-item">
+          <div class="legal-num">06</div>
+          <div class="legal-num-content">
+            <h4>Modifications</h4>
+            <p>UniBeatz Production reserves the right to update, modify, or replace these terms at any time without prior notice. Continued use of the website following any changes constitutes your acceptance of the updated terms. It is your responsibility to review these terms periodically.</p>
+          </div>
+        </div>
+        <div class="highlight">By using this site, purchasing any product, or accessing any service, you confirm that you have read, understood, and agreed to all terms listed above.</div>
+      </div>
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div class="legal-section" id="disclaimer">
+      <div class="legal-section-header">
+        <div class="legal-section-icon">⚠️</div>
+        <div>
+          <div class="legal-section-title">Disclaimer</div>
+          <div class="legal-section-sub">General Disclaimer — UniBeatz Production</div>
+        </div>
+      </div>
+      <div class="legal-prose">
+        <div class="warning">
+          All content provided on this website is for informational and commercial purposes only. UniBeatz Production makes no guarantees regarding specific results from the use of its products or services.
+        </div>
+        <p>Use of any beats or merchandise purchased from UniBeatz Production is at the user's own risk. While we strive to provide high-quality products and accurate information, we make no warranties, express or implied, regarding the suitability of our products for any particular purpose.</p>
+        <p>UniBeatz Production is not responsible for how purchased products are used once delivered. Users are solely responsible for ensuring their use of any purchased product complies with applicable laws, regulations, and platform terms of service.</p>
+        <p>Any third-party links or services referenced on this website are provided for convenience only. UniBeatz Production does not endorse and is not responsible for the content, privacy practices, or terms of any third-party websites or services.</p>
+        <div class="highlight">Questions about any of these policies? Contact us at: <a href="mailto:unibeatzproduction@gmail.com" style="color:var(--blue-bright);">unibeatzproduction@gmail.com</a></div>
+      </div>
+    </div>
+
+  </div><!-- end page-content -->
+</div><!-- end page-layout -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <span class="footer-brand-text">UNIBEATZ PRODUCTION</span>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="index.html#beats">Beat Store</a>
+      <a href="unifreestyle.html">Battle App</a>
+      <a href="unibeatzworld.html">UB World</a>
+      <a href="mailto:unibeatzproduction@gmail.com">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 <span>UniBeatz Production</span>. All rights reserved. | unibeatzproduction@gmail.com</div>
+</footer>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script>
+// Active sidebar on scroll
+const sections=['contact','licenses','exclusive','unlimited','premium','basic','compare','beat-agreement','refund','terms','disclaimer'];
+window.addEventListener('scroll',()=>{
+  let current='';
+  sections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.getBoundingClientRect().top<=100) current=id;
+  });
+  document.querySelectorAll('.sidebar-link').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')==='#'+current);
+  });
+});
+
+// Toast
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+
+// Lightning
+const cv=document.getElementById('bg-canvas'),cx=cv.getContext('2d');
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}rsz();window.addEventListener('resize',rsz);
+function bolt(x1,y1,x2,y2,o,d){if(!d){cx.moveTo(x1,y1);cx.lineTo(x2,y2);return;}const mx=(x1+x2)/2+(Math.random()-0.5)*o,my=(y1+y2)/2+(Math.random()-0.5)*o;bolt(x1,y1,mx,my,o/2,d-1);bolt(mx,my,x2,y2,o/2,d-1);}
+function flash(){cx.clearRect(0,0,cv.width,cv.height);for(let i=0;i<2;i++){cx.beginPath();cx.strokeStyle=i%2===0?`rgba(0,170,255,${0.2+Math.random()*0.3})`:`rgba(201,168,76,${0.15+Math.random()*0.2})`;cx.lineWidth=i===0?1:0.6;const sx=Math.random()*cv.width;bolt(sx,0,sx+(Math.random()-0.5)*300,cv.height*0.8,200,7);cx.stroke();}}
+(function loop(){if(Math.random()<0.025){flash();setTimeout(()=>cx.clearRect(0,0,cv.width,cv.height),80+Math.random()*120);}requestAnimationFrame(loop);})();
+</script>
+</body>
+</html>
