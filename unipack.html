@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniPack | Turn Your Beat Into A Sample Pack</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<!-- ══ FIREBASE INTEGRATION ══ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    onAuthStateChanged,
+    signOut,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
+  // ═════ FIREBASE CONFIG ═════
+  const firebaseConfig = {
+    apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+    authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+    projectId: "unibeatzproduction-7ae31",
+    storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+    messagingSenderId: "70667820609",
+    appId: "1:70667820609:web:57762df5510e6b4000b0c0",
+    measurementId: "G-QR5J3KW8T1"
+  };
+
+  // Initialize
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  auth.languageCode = "en";
+
+  // Make Firebase available globally for the rest of the script
+  window.UB_FIREBASE = {
+    app,
+    auth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    onAuthStateChanged,
+    signOut,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+    ready: true,
+  };
+
+  // Notify any listener
+  window.dispatchEvent(new Event("ub-firebase-ready"));
+  console.log("🔥 Firebase initialized — UniBeatz Production");
+</script>
+
+<style>
+:root{
+  --black:#020202;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;
+  --blue:#00AAFF;--blue-bright:#40D0FF;
+  --white:#F0EDE8;--gray:#777;--red:#FF3333;--green:#00CC66;--orange:#FF8800;--purple:#9B30FF;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.1;}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:60px;background:linear-gradient(90deg,#08080f,#0d0d1a);border-bottom:2px solid var(--gold);box-shadow:0 4px 30px rgba(0,0,0,0.8);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 16px;max-width:1400px;margin:0 auto;}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.nav-logo img{height:36px;width:36px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,170,255,0.6));}
+.nav-brand{display:flex;flex-direction:column;line-height:1;}
+.nav-brand-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-brand-tag{font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:2px;color:var(--gray);margin-top:2px;}
+.nav-right{display:flex;gap:8px;align-items:center;}
+.nav-link{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:rgba(240,237,232,0.7);text-decoration:none;padding:8px 12px;border:1px solid transparent;}
+.nav-link:hover{color:var(--gold-light);}
+.nav-cta{padding:8px 14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black) !important;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:2px;border-radius:5px;cursor:pointer;border:none;}
+.user-chip{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border:1px solid rgba(201,168,76,0.3);border-radius:24px;cursor:pointer;}
+.user-chip-ava{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));display:flex;align-items:center;justify-content:center;font-size:0.85rem;overflow:hidden;}
+.user-chip-ava img{width:100%;height:100%;object-fit:cover;}
+.user-chip-name{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:1px;color:var(--white);}
+
+/* PAGE */
+.page{display:none;min-height:100vh;padding-top:60px;}
+.page.active{display:block;}
+
+/* ════════ LANDING ════════ */
+#landing-hero{padding:60px 20px 50px;text-align:center;position:relative;overflow:hidden;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,170,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,170,255,0.03) 1px,transparent 1px);background-size:50px 50px;opacity:0.5;}
+.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 30%,rgba(0,170,255,0.12),transparent 70%),radial-gradient(ellipse 50% 50% at 50% 80%,rgba(201,168,76,0.08),transparent 70%);}
+.hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto;}
+.hero-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:14px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,7rem);line-height:0.85;letter-spacing:3px;margin-bottom:14px;}
+.hero-title .g{color:var(--gold-light);}
+.hero-title .b{color:var(--blue-bright);text-shadow:0 0 24px rgba(0,170,255,0.5);}
+.hero-tagline{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.1rem,3vw,1.7rem);letter-spacing:5px;color:var(--gold);margin-bottom:14px;}
+.hero-desc{font-size:1rem;color:rgba(240,237,232,0.6);max-width:620px;margin:0 auto 30px;line-height:1.6;}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-gold{display:inline-block;padding:13px 28px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
+.btn-gold:hover{box-shadow:0 0 25px rgba(201,168,76,0.5);transform:translateY(-2px);}
+.btn-blue{display:inline-block;padding:13px 28px;border:1px solid var(--blue);background:transparent;color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
+.btn-blue:hover{background:rgba(0,170,255,0.1);transform:translateY(-2px);}
+.btn-full{width:100%;padding:13px;}
+
+/* DEMO ANIMATION */
+.demo-visual{margin:40px auto 0;max-width:780px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:24px;position:relative;}
+.demo-step{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid rgba(255,255,255,0.05);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);}
+.demo-step-icon{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.9rem;flex-shrink:0;}
+.demo-step-text{flex:1;text-align:left;}
+.demo-step-title{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;}
+.demo-step-desc{font-size:0.82rem;color:var(--gray);}
+.demo-arrow{color:var(--gold);font-size:1.6rem;text-align:center;margin:4px 0;animation:bounce 1.5s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
+
+/* FEATURE GRID */
+#features{padding:60px 20px;background:linear-gradient(180deg,var(--black),#05050f);position:relative;z-index:1;}
+.section-head{text-align:center;margin-bottom:40px;}
+.section-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:8px;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.4rem);letter-spacing:3px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.section-line{display:block;width:64px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),transparent);margin:10px auto 0;}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;max-width:1100px;margin:0 auto;}
+.feature-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.16);padding:24px;border-radius:8px;transition:all 0.3s;}
+.feature-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-3px);}
+.feature-icon{font-size:2.2rem;margin-bottom:12px;}
+.feature-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:6px;}
+.feature-desc{font-size:0.86rem;color:rgba(240,237,232,0.55);line-height:1.6;}
+
+/* PRICING */
+#pricing{padding:60px 20px;background:var(--black);position:relative;z-index:1;}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:900px;margin:0 auto;}
+.price-card{border:1px solid rgba(201,168,76,0.18);padding:34px 26px;text-align:center;position:relative;background:linear-gradient(160deg,#090910,#040408);border-radius:8px;transition:all 0.3s;}
+.price-card.featured{border-color:var(--gold);box-shadow:0 0 40px rgba(201,168,76,0.12);}
+.price-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;padding:3px 14px;font-weight:700;border-radius:0 0 5px 5px;}
+.price-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;margin-bottom:6px;margin-top:8px;}
+.price-amount{font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:900;color:var(--gold-light);line-height:1;}
+.price-period{font-size:0.78rem;color:var(--gray);letter-spacing:2px;margin-bottom:24px;margin-top:4px;}
+.price-features{list-style:none;text-align:left;margin-bottom:24px;}
+.price-features li{padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.88rem;color:rgba(240,237,232,0.74);display:flex;align-items:center;gap:8px;}
+.price-features li::before{content:'⚡';font-size:0.6rem;color:var(--gold);flex-shrink:0;}
+
+/* ════════ AUTH SCREENS ════════ */
+.auth-page{padding:80px 20px 40px;display:flex;justify-content:center;}
+.auth-card{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.25);padding:32px;max-width:420px;width:100%;border-radius:10px;}
+.auth-logo{height:48px;display:block;margin:0 auto 12px;filter:drop-shadow(0 0 10px rgba(0,170,255,0.4));}
+.auth-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;text-align:center;color:var(--gold-light);margin-bottom:6px;}
+.auth-sub{font-size:0.85rem;color:var(--gray);text-align:center;margin-bottom:22px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);padding:12px 14px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;border-radius:5px;-webkit-appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
+.auth-switch{text-align:center;margin-top:16px;font-size:0.85rem;color:var(--gray);}
+.auth-switch a{color:var(--gold);font-weight:700;cursor:pointer;}
+
+/* ════════ STUDIO (MAIN APP) ════════ */
+#studio{padding-top:60px;background:#020207;min-height:100vh;}
+.studio-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(90deg,#0a0a14,#08080f);border-bottom:1px solid rgba(201,168,76,0.15);flex-wrap:wrap;}
+.tool-btn{padding:7px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;cursor:pointer;border-radius:5px;display:flex;align-items:center;gap:5px;transition:all 0.2s;}
+.tool-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);}
+.tool-btn.primary{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;font-weight:700;}
+.tool-btn.primary:hover{box-shadow:0 0 12px rgba(201,168,76,0.4);}
+.tool-btn.danger{border-color:rgba(255,51,51,0.3);color:var(--red);}
+.tool-btn.danger:hover{background:rgba(255,51,51,0.08);}
+.tool-divider{width:1px;height:22px;background:rgba(255,255,255,0.1);}
+
+.studio-layout{display:grid;grid-template-columns:1fr 320px;gap:0;min-height:calc(100vh - 110px);}
+@media(max-width:900px){.studio-layout{grid-template-columns:1fr;}}
+
+/* WORKSPACE */
+.workspace{padding:18px;overflow:auto;}
+.upload-zone{border:2px dashed rgba(0,170,255,0.3);background:rgba(0,170,255,0.02);padding:50px 24px;text-align:center;border-radius:12px;cursor:pointer;transition:all 0.3s;}
+.upload-zone:hover,.upload-zone.dragging{border-color:var(--blue);background:rgba(0,170,255,0.08);}
+.upload-icon{font-size:3.4rem;margin-bottom:12px;}
+.upload-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:6px;}
+.upload-desc{font-size:0.9rem;color:var(--gray);margin-bottom:16px;}
+
+/* WAVEFORM */
+.waveform-section{margin-bottom:18px;}
+.waveform-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.waveform-info{font-family:'Orbitron',sans-serif;font-size:0.46rem;color:var(--gray);}
+.waveform-container{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:14px;position:relative;}
+.waveform-canvas-wrap{position:relative;height:140px;background:rgba(0,0,0,0.4);border-radius:5px;overflow:hidden;cursor:crosshair;}
+canvas.waveform-cv{position:absolute;inset:0;width:100%;height:100%;}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:5;pointer-events:none;display:none;box-shadow:0 0 8px rgba(255,51,51,0.6);}
+.slice-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);z-index:4;cursor:ew-resize;}
+.slice-marker::before{content:'';position:absolute;top:-4px;left:-4px;width:10px;height:10px;background:var(--gold);transform:rotate(45deg);}
+.slice-region{position:absolute;top:0;bottom:0;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);border-right:2px solid var(--gold);z-index:3;}
+.slice-region.selected{background:rgba(64,208,255,0.15);border-color:var(--blue-bright);}
+.slice-region-label{position:absolute;top:6px;left:6px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1px;color:var(--gold-light);background:rgba(0,0,0,0.7);padding:2px 6px;border-radius:3px;}
+.slice-region.selected .slice-region-label{color:var(--blue-bright);}
+
+.waveform-controls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.play-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.play-btn:hover{box-shadow:0 0 14px rgba(201,168,76,0.5);}
+
+/* ══ FX TOP PANEL — next to waveform/slices ══ */
+.fx-top-panel{margin-bottom:18px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(0,170,255,0.2);border-radius:8px;padding:14px;box-shadow:0 0 20px rgba(0,170,255,0.05);}
+.fx-top-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.fx-top-title{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);}
+.fx-top-slice{flex:1;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--gray);}
+.fx-preview-btn{padding:7px 14px;background:linear-gradient(135deg,#004488,var(--blue));color:#fff;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;border:none;cursor:pointer;border-radius:5px;font-weight:700;transition:all 0.2s;}
+.fx-preview-btn:hover{box-shadow:0 0 12px rgba(0,170,255,0.5);}
+.fx-loop-btn{background:linear-gradient(135deg,#553388,#9B30FF) !important;}
+.fx-loop-btn.active{background:linear-gradient(135deg,var(--gold-dark),var(--gold)) !important;color:var(--black) !important;box-shadow:0 0 12px rgba(201,168,76,0.5);}
+.fx-stop-btn{background:linear-gradient(135deg,#882200,var(--red)) !important;}
+.fx-playing{animation:fxPulse 1s infinite;}
+@keyframes fxPulse{0%,100%{box-shadow:0 0 8px rgba(0,204,102,0.4);}50%{box-shadow:0 0 16px rgba(0,204,102,0.8);}}
+.fx-live-indicator{display:none;align-items:center;gap:5px;padding:4px 10px;background:rgba(0,204,102,0.12);border:1px solid var(--green);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--green);font-weight:700;}
+.fx-live-indicator.active{display:inline-flex;}
+.fx-live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:livePulse 1s infinite;}
+@keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.fx-top-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+@media(max-width:900px){.fx-top-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:480px){.fx-top-grid{grid-template-columns:repeat(2,1fr);}}
+.fx-knob{background:rgba(255,255,255,0.02);border:1px solid rgba(201,168,76,0.1);padding:10px 8px;border-radius:6px;}
+.fx-knob-label{display:flex;flex-direction:column;gap:3px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1px;color:rgba(240,237,232,0.65);margin-bottom:8px;text-align:center;line-height:1.3;}
+.fx-knob-label .fx-value{color:var(--blue-bright);font-size:0.5rem;font-weight:700;}
+.fx-knob .fx-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;background:rgba(255,255,255,0.07);outline:none;border-radius:3px;cursor:pointer;}
+.fx-knob .fx-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);box-shadow:0 0 6px rgba(201,168,76,0.5);}
+.fx-knob .fx-slider::-moz-range-thumb{width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);}
+.fx-top-empty{display:none;}
+.fx-top-panel.empty .fx-top-grid{display:none;}
+.fx-top-panel.empty .fx-top-empty{display:block;}
+.fx-top-panel.empty .fx-top-slice{color:var(--gray);}
+.fx-top-panel.empty .fx-preview-btn{display:none;}
+
+/* SLICES PANEL */
+.slices-section{margin-bottom:18px;}
+.slices-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.slices-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);}
+.slices-count{font-family:'Orbitron',sans-serif;font-size:0.42rem;color:var(--blue-bright);}
+.slices-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.slice-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.16);border-radius:8px;padding:12px;position:relative;transition:all 0.2s;}
+.slice-card:hover{border-color:rgba(201,168,76,0.4);}
+.slice-card.selected{border-color:var(--blue);background:rgba(0,170,255,0.04);}
+.slice-card-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;}
+.slice-card-num{font-family:'Orbitron',sans-serif;font-size:0.42rem;color:var(--gray);letter-spacing:2px;}
+.slice-card-time{font-family:'Orbitron',sans-serif;font-size:0.45rem;color:var(--blue-bright);}
+.slice-card-name{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.15);color:var(--white);padding:6px 9px;font-family:'Rajdhani',sans-serif;font-size:0.85rem;outline:none;border-radius:4px;margin-bottom:8px;-webkit-appearance:none;}
+.slice-card-name:focus{border-color:var(--gold);}
+.slice-card-cat{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.15);color:var(--white);padding:5px 8px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;outline:none;border-radius:4px;-webkit-appearance:none;margin-bottom:8px;}
+.slice-card-cat option{background:#0a0a14;}
+.slice-card-actions{display:flex;gap:5px;}
+.slice-mini-btn{flex:1;padding:6px;border:1px solid rgba(201,168,76,0.2);background:transparent;color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;cursor:pointer;border-radius:4px;transition:all 0.2s;}
+.slice-mini-btn:hover{background:rgba(201,168,76,0.08);border-color:var(--gold);}
+.slice-mini-btn.del{color:var(--red);border-color:rgba(255,51,51,0.25);}
+.slice-mini-btn.del:hover{background:rgba(255,51,51,0.06);}
+
+/* SIDE PANEL */
+.side-panel{background:linear-gradient(180deg,#0a0a14,#06060f);border-left:1px solid rgba(201,168,76,0.15);padding:18px;overflow-y:auto;}
+@media(max-width:900px){.side-panel{border-left:none;border-top:1px solid rgba(201,168,76,0.15);}}
+.panel-section{margin-bottom:24px;}
+.panel-section-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+
+/* PACK INFO */
+.pack-cover-upload{aspect-ratio:1;background:linear-gradient(135deg,rgba(0,170,255,0.08),rgba(201,168,76,0.08));border:2px dashed rgba(201,168,76,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;cursor:pointer;overflow:hidden;position:relative;}
+.pack-cover-upload:hover{border-color:var(--gold);}
+.pack-cover-upload img{width:100%;height:100%;object-fit:cover;}
+.pack-cover-empty{text-align:center;padding:14px;}
+.pack-cover-empty .pc-icon{font-size:2rem;margin-bottom:6px;}
+.pack-cover-empty .pc-text{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);}
+
+/* EFFECTS */
+.fx-row{margin-bottom:12px;}
+.fx-label{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:rgba(240,237,232,0.7);margin-bottom:5px;}
+.fx-value{color:var(--blue-bright);}
+.fx-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;background:rgba(255,255,255,0.07);outline:none;border-radius:3px;}
+.fx-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);box-shadow:0 0 6px rgba(201,168,76,0.5);}
+.fx-slider::-moz-range-thumb{width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);}
+
+/* EXPORT BUTTON */
+.export-section{position:sticky;bottom:0;padding-top:14px;background:linear-gradient(180deg,transparent,#06060f 30%);}
+.export-stats{font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;color:var(--gray);text-align:center;margin-bottom:10px;}
+.export-stats strong{color:var(--gold-light);}
+
+/* USAGE COUNTER */
+.usage-meter{background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.18);padding:10px 12px;border-radius:6px;margin-bottom:14px;}
+.usage-row{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;margin-bottom:6px;}
+.usage-bar{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.usage-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:3px;transition:width 0.3s;}
+.usage-fill.warn{background:linear-gradient(90deg,var(--orange),var(--red));}
+
+/* PAYWALL MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:16px;}
+.modal-overlay.active{display:flex;}
+.modal{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.3);padding:30px;max-width:440px;width:100%;border-radius:10px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-close{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--gray);font-size:1.3rem;cursor:pointer;}
+.modal-icon{font-size:3rem;text-align:center;margin-bottom:12px;}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;text-align:center;color:var(--gold-light);margin-bottom:8px;}
+.modal-sub{font-size:0.88rem;color:rgba(240,237,232,0.6);text-align:center;line-height:1.6;margin-bottom:18px;}
+.upgrade-features{list-style:none;margin-bottom:20px;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.12);border-radius:6px;padding:14px;}
+.upgrade-features li{padding:6px 0;font-size:0.88rem;color:rgba(240,237,232,0.78);display:flex;align-items:center;gap:8px;}
+.upgrade-features li::before{content:'✓';color:var(--green);font-weight:700;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid var(--gold);padding:11px 18px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.88rem;z-index:9999;opacity:0;transition:all 0.35s;border-radius:6px;max-width:90%;text-align:center;box-shadow:0 0 24px rgba(201,168,76,0.2);}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.toast.success{border-color:var(--green);}
+.toast.error{border-color:var(--red);}
+
+/* FOOTER */
+footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30px 20px 20px;text-align:center;position:relative;z-index:1;}
+.footer-links{display:flex;gap:18px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
+.footer-links a{color:rgba(240,237,232,0.5);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;}
+.footer-links a:hover{color:var(--gold);}
+.footer-copy{font-size:0.7rem;color:rgba(240,237,232,0.3);}
+.footer-copy span{color:var(--gold);}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ════════ NAVBAR ════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" onclick="goPage('landing');return false;">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <div class="nav-brand">
+        <span class="nav-brand-name">UNIPACK</span>
+        <span class="nav-brand-tag">part of UniBeatz World</span>
+      </div>
+    </a>
+    <div class="nav-right" id="navRight">
+      <a href="index.html" class="nav-link">← Empire</a>
+      <a href="#" class="nav-link" onclick="goPage('landing');return false;">Home</a>
+      <a href="#pricing" class="nav-link" onclick="if(currentPage==='landing'){document.getElementById('pricing').scrollIntoView({behavior:'smooth'});return false;}else{goPage('landing');setTimeout(()=>document.getElementById('pricing').scrollIntoView({behavior:'smooth'}),200);return false;}">Pricing</a>
+      <button class="nav-cta" onclick="if(currentUser)goPage('studio');else goPage('login')">Open Studio</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════ LANDING PAGE ════════ -->
+<div class="page active" id="page-landing">
+  <section id="landing-hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">⚡ NEW · PART OF UNIBEATZ WORLD ⚡</p>
+      <h1 class="hero-title"><span class="g">UNI</span><span class="b">PACK</span></h1>
+      <p class="hero-tagline">TURN YOUR BEAT INTO A SAMPLE PACK</p>
+      <p class="hero-desc">You already made the sounds. UniPack chops, organizes, and exports your beat as a complete sample pack — drums, loops, one-shots — ready to sell on Splice, BeatStars, or your own site. <strong style="color:var(--gold-light);">In minutes, not hours.</strong></p>
+      <div class="hero-btns">
+        <button class="btn-gold" onclick="if(currentUser)goPage('studio');else goPage('signup')">🎛️ Start Free</button>
+        <a href="#features" class="btn-blue">See Features</a>
+      </div>
+
+      <div class="demo-visual">
+        <div class="demo-step">
+          <div class="demo-step-icon">1</div>
+          <div class="demo-step-text">
+            <div class="demo-step-title">Drop Your Beat</div>
+            <div class="demo-step-desc">Upload your finished beat or stems (.wav, .mp3)</div>
+          </div>
+        </div>
+        <div class="demo-arrow">↓</div>
+        <div class="demo-step">
+          <div class="demo-step-icon">2</div>
+          <div class="demo-step-text">
+            <div class="demo-step-title">Slice & Polish</div>
+            <div class="demo-step-desc">Chop into loops, one-shots. EQ, pitch, reverb per slice.</div>
+          </div>
+        </div>
+        <div class="demo-arrow">↓</div>
+        <div class="demo-step">
+          <div class="demo-step-icon">3</div>
+          <div class="demo-step-text">
+            <div class="demo-step-title">Export Pack</div>
+            <div class="demo-step-desc">One click — auto-named files, organized folders, ready to sell.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="section-head">
+      <p class="section-eyebrow">Built For Producers</p>
+      <h2 class="section-title">What You Get</h2>
+      <span class="section-line"></span>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card"><div class="feature-icon">🎵</div><div class="feature-title">Drag & Drop Upload</div><div class="feature-desc">Upload any beat, vocal, or stem. WAV, MP3 supported. Up to 50MB free, 500MB Pro.</div></div>
+      <div class="feature-card"><div class="feature-icon">✂️</div><div class="feature-title">Visual Slice Tool</div><div class="feature-desc">Click anywhere on the waveform to drop a slice marker. Chop into loops, one-shots, stems.</div></div>
+      <div class="feature-card"><div class="feature-icon">🎚️</div><div class="feature-title">EQ & FX Per Slice</div><div class="feature-desc">3-band EQ, reverb, pitch shift on every slice. Polish each sound to perfection.</div></div>
+      <div class="feature-card"><div class="feature-icon">🏷️</div><div class="feature-title">Smart Auto-Naming</div><div class="feature-desc">KICK_140_Cmin_01.wav. Organized into Drums/Loops/One-Shots folders automatically.</div></div>
+      <div class="feature-card"><div class="feature-icon">🎨</div><div class="feature-title">Pack Cover & Metadata</div><div class="feature-desc">Upload custom artwork. Tag BPM, key, genre, producer name. Ready for marketplaces.</div></div>
+      <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-title">One-Click ZIP Export</div><div class="feature-desc">Complete sample pack ZIP downloaded in seconds. Ready to sell on Splice or BeatStars.</div></div>
+      <div class="feature-card"><div class="feature-icon">🌍</div><div class="feature-title">Push To UniBeatz World</div><div class="feature-desc">Pro users push packs directly to UniBeatz World marketplace. Coming soon.</div></div>
+      <div class="feature-card"><div class="feature-icon">💾</div><div class="feature-title">Save & Continue</div><div class="feature-desc">Save your project. Come back anytime to keep slicing and polishing.</div></div>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <div class="section-head">
+      <p class="section-eyebrow">Simple Pricing</p>
+      <h2 class="section-title">Plans</h2>
+      <span class="section-line"></span>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-name">FREE</div>
+        <div class="price-amount">$0</div>
+        <div class="price-period">forever</div>
+        <ul class="price-features">
+          <li>3 pack exports / month</li>
+          <li>Up to 50MB uploads</li>
+          <li>Up to 12 slices per pack</li>
+          <li>Basic EQ + pitch shift</li>
+          <li>"Made with UniPack" watermark</li>
+          <li>Full ZIP download</li>
+        </ul>
+        <button class="btn-blue btn-full" onclick="if(currentUser)goPage('studio');else goPage('signup')">Start Free</button>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">Most Popular</div>
+        <div class="price-name">PRO</div>
+        <div class="price-amount">$9.99</div>
+        <div class="price-period">/ month</div>
+        <ul class="price-features">
+          <li>UNLIMITED exports</li>
+          <li>Up to 500MB uploads</li>
+          <li>Unlimited slices per pack</li>
+          <li>Full EQ + reverb + pitch</li>
+          <li>No watermark</li>
+          <li>Custom cover art</li>
+          <li>Save unlimited projects</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn-gold btn-full" onclick="upgradeToPro()">Upgrade to Pro</button>
+      </div>
+      <div class="price-card">
+        <div class="price-name">ELITE</div>
+        <div class="price-amount">$19.99</div>
+        <div class="price-period">/ month</div>
+        <ul class="price-features">
+          <li>Everything in Pro</li>
+          <li>Up to 2GB uploads</li>
+          <li>Push to UniBeatz World marketplace</li>
+          <li>Earn from your packs</li>
+          <li>Coming Q2 2026</li>
+          <li>Founder badge & perks</li>
+        </ul>
+        <button class="btn-blue btn-full" onclick="showToast('Elite tier launches with UniBeatz World marketplace. Get Pro now and you\\'ll be first in line.', 'success')">Join Waitlist</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-links">
+      <a href="index.html">UniBeatz Production</a>
+      <a href="unifreestyle.html">UniFreestyle Battle</a>
+      <a href="unibeatzworld.html">← Back to UniBeatz World</a>
+      <a href="legal.html">Legal</a>
+      <a href="mailto:unibeatzproduction@gmail.com">Contact</a>
+    </div>
+    <p class="footer-copy">© 2026 <span>UniBeatz Production</span>. UniPack — Turn your beat into a sample pack.</p>
+  </footer>
+</div>
+
+<!-- ════════ LOGIN PAGE ════════ -->
+<div class="page" id="page-login">
+  <div class="auth-page">
+    <div class="auth-card">
+      <img src="logo.png" class="auth-logo" alt="UniPack" onerror="this.style.display='none'"/>
+      <div class="auth-title">Welcome Back</div>
+      <p class="auth-sub">Log in to UniPack with your UniBeatz account</p>
+      <div class="field"><label>Email or Username</label><input type="text" id="liEmail" placeholder="your@email.com"/></div>
+      <div class="field"><label>Password</label><input type="password" id="liPassword" placeholder="Your password" onkeydown="if(event.key==='Enter')handleLogin()"/></div>
+      <button class="btn-gold btn-full" onclick="handleLogin()">Log In</button>
+      <div style="text-align:center;margin-top:14px;">
+        <a style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--blue-bright);cursor:pointer;text-decoration:underline;" onclick="handleForgotPassword()">🔑 Forgot Password?</a>
+      </div>
+      <div class="auth-switch">Don't have an account? <a onclick="goPage('signup')">Sign Up</a></div>
+      <div style="text-align:center;margin-top:10px;"><a style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);cursor:pointer;" onclick="goPage('landing')">← Back to home</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ SIGNUP PAGE ════════ -->
+<div class="page" id="page-signup">
+  <div class="auth-page">
+    <div class="auth-card">
+      <img src="logo.png" class="auth-logo" alt="UniPack" onerror="this.style.display='none'"/>
+      <div class="auth-title">Join UniPack</div>
+      <p class="auth-sub">Free account · No credit card · Start in 30 seconds</p>
+      <div class="field"><label>Producer Name</label><input type="text" id="suName" placeholder="Your producer name"/></div>
+      <div class="field"><label>Username</label><input type="text" id="suUsername" placeholder="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')"/></div>
+      <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com"/></div>
+      <div class="field"><label>Password</label><input type="password" id="suPassword" placeholder="At least 6 characters"/></div>
+      <button class="btn-gold btn-full" onclick="handleSignup()">Create Free Account</button>
+      <div class="auth-switch">Already have an account? <a onclick="goPage('login')">Log In</a></div>
+      <div style="text-align:center;margin-top:10px;"><a style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);cursor:pointer;" onclick="goPage('landing')">← Back to home</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ STUDIO (MAIN APP) ════════ -->
+<div class="page" id="page-studio">
+  <!-- TOOLBAR -->
+  <div class="studio-toolbar">
+    <button class="tool-btn" onclick="newProject()">📄 New</button>
+    <button class="tool-btn" onclick="document.getElementById('uploadInput').click()">📤 Upload Beat</button>
+    <input type="file" id="uploadInput" accept="audio/*" style="display:none;" onchange="handleAudioUpload(this)"/>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" id="addSliceBtn" onclick="addSliceAtPlayhead()">✂️ Add Slice</button>
+    <button class="tool-btn danger" id="clearSlicesBtn" onclick="clearAllSlices()">🗑️ Clear Slices</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" onclick="saveProject()">💾 Save</button>
+    <button class="tool-btn" onclick="loadProject()">📂 Load</button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn primary" onclick="exportPack()">📦 Export ZIP</button>
+    <button class="tool-btn" id="adminToolBtn" onclick="goPage('admin')" style="display:none;background:linear-gradient(135deg,#8B0000,#ff3333);color:#fff;font-weight:700;">👑 Admin</button>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="studio-layout">
+    <!-- WORKSPACE -->
+    <div class="workspace">
+      <!-- UPLOAD ZONE (when no audio loaded) -->
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('uploadInput').click()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+        <div class="upload-icon">🎵</div>
+        <div class="upload-title">Drop Your Beat</div>
+        <div class="upload-desc">WAV or MP3 · Drag & drop or click to browse · Up to <span id="uploadSizeLimit">50MB</span></div>
+        <button class="btn-gold">Choose File</button>
+      </div>
+
+      <!-- WAVEFORM (hidden until audio loaded) -->
+      <div class="waveform-section" id="waveformSection" style="display:none;">
+        <div class="waveform-title">
+          <span>🎵 <span id="trackName">Untitled Beat</span></span>
+          <span class="waveform-info" id="trackInfo">0:00 · 0 BPM</span>
+        </div>
+        <div class="waveform-container">
+          <div class="waveform-canvas-wrap" id="waveCanvasWrap" onclick="handleWaveClick(event)">
+            <canvas class="waveform-cv" id="waveCanvas"></canvas>
+            <div class="playhead" id="playhead"></div>
+            <div id="sliceMarkers"></div>
+            <div id="sliceRegions"></div>
+          </div>
+          <div class="waveform-controls">
+            <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+            <button class="tool-btn" onclick="seekTo(0)">⏮ Start</button>
+            <button class="tool-btn" onclick="addSliceAtPlayhead()">✂️ Slice Here</button>
+            <span style="flex:1;"></span>
+            <span class="waveform-info" id="playTime">0:00 / 0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EFFECTS PANEL — top, next to slice ══ -->
+      <div class="fx-top-panel" id="fxTopPanel" style="display:none;">
+        <div class="fx-top-header">
+          <div class="fx-top-title">🎚️ EFFECTS</div>
+          <div class="fx-live-indicator" id="fxLiveIndicator"><span class="fx-live-dot"></span>LIVE</div>
+          <div class="fx-top-slice">Editing: <span id="fxSliceName" style="color:var(--blue-bright);">Slice 1</span></div>
+          <button class="fx-preview-btn" id="fxPlayBtn" onclick="toggleLivePreview()">▶ Play</button>
+          <button class="fx-preview-btn fx-loop-btn" id="fxLoopBtn" onclick="toggleLoop()" title="Loop while editing">🔁 Loop</button>
+          <button class="fx-preview-btn fx-stop-btn" id="fxStopBtn" onclick="stopLivePreview()" style="display:none;">⏹ Stop</button>
+        </div>
+        <div class="fx-top-grid">
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>Low EQ</span><span class="fx-value" id="fxLowVal">0 dB</span></div>
+            <input type="range" class="fx-slider" id="fxLow" min="-12" max="12" value="0" step="0.5" oninput="updateFx('low',this.value)"/>
+          </div>
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>Mid EQ</span><span class="fx-value" id="fxMidVal">0 dB</span></div>
+            <input type="range" class="fx-slider" id="fxMid" min="-12" max="12" value="0" step="0.5" oninput="updateFx('mid',this.value)"/>
+          </div>
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>High EQ</span><span class="fx-value" id="fxHighVal">0 dB</span></div>
+            <input type="range" class="fx-slider" id="fxHigh" min="-12" max="12" value="0" step="0.5" oninput="updateFx('high',this.value)"/>
+          </div>
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>Pitch</span><span class="fx-value" id="fxPitchVal">0 st</span></div>
+            <input type="range" class="fx-slider" id="fxPitch" min="-12" max="12" value="0" step="1" oninput="updateFx('pitch',this.value)"/>
+          </div>
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>Reverb</span><span class="fx-value" id="fxReverbVal">0%</span></div>
+            <input type="range" class="fx-slider" id="fxReverb" min="0" max="100" value="0" step="5" oninput="updateFx('reverb',this.value)"/>
+          </div>
+          <div class="fx-knob">
+            <div class="fx-knob-label"><span>Volume</span><span class="fx-value" id="fxGainVal">0 dB</span></div>
+            <input type="range" class="fx-slider" id="fxGain" min="-20" max="6" value="0" step="0.5" oninput="updateFx('gain',this.value)"/>
+          </div>
+        </div>
+        <div class="fx-top-empty" id="fxTopEmpty">
+          <div style="text-align:center;padding:14px;color:var(--gray);font-size:0.85rem;">
+            👆 Tap a slice below to edit its effects
+          </div>
+        </div>
+      </div>
+
+      <!-- SLICES -->
+      <div class="slices-section" id="slicesSection" style="display:none;">
+        <div class="slices-title-row">
+          <div class="slices-title">✂️ Slices</div>
+          <div class="slices-count"><span id="slicesCount">0</span> slices · <span id="slicesLimit">12 max</span></div>
+        </div>
+        <div class="slices-list" id="slicesList"></div>
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side-panel">
+      <!-- USAGE -->
+      <div class="usage-meter" id="usageMeter">
+        <div class="usage-row"><span id="usageLabel">📊 Free Tier</span><span id="usageCount">0/3 exports</span></div>
+        <div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%;"></div></div>
+        <div style="font-size:0.74rem;color:var(--gray);margin-top:6px;text-align:center;" id="usageNote">Resets monthly · <a style="color:var(--gold);cursor:pointer;" onclick="upgradeToPro()">Upgrade to Pro</a></div>
+      </div>
+
+      <!-- PACK INFO -->
+      <div class="panel-section">
+        <div class="panel-section-title">📦 Pack Info</div>
+        <div class="pack-cover-upload" onclick="document.getElementById('coverInput').click()">
+          <input type="file" id="coverInput" accept="image/*" style="display:none;" onchange="handleCoverUpload(this)"/>
+          <div class="pack-cover-empty" id="coverEmpty">
+            <div class="pc-icon">🎨</div>
+            <div class="pc-text">Upload Cover Art</div>
+          </div>
+          <img id="coverImg" style="display:none;"/>
+        </div>
+        <div class="field"><label>Pack Name</label><input type="text" id="packName" placeholder="Midnight Gold Vol. 1"/></div>
+        <div class="field"><label>BPM</label><input type="number" id="packBpm" placeholder="140"/></div>
+        <div class="field"><label>Key</label>
+          <select id="packKey">
+            <option value="">Auto / Unknown</option>
+            <option>C major</option><option>C minor</option>
+            <option>C# major</option><option>C# minor</option>
+            <option>D major</option><option>D minor</option>
+            <option>D# major</option><option>D# minor</option>
+            <option>E major</option><option>E minor</option>
+            <option>F major</option><option>F minor</option>
+            <option>F# major</option><option>F# minor</option>
+            <option>G major</option><option>G minor</option>
+            <option>G# major</option><option>G# minor</option>
+            <option>A major</option><option>A minor</option>
+            <option>A# major</option><option>A# minor</option>
+            <option>B major</option><option>B minor</option>
+          </select>
+        </div>
+        <div class="field"><label>Genre</label>
+          <select id="packGenre">
+            <option>Trap</option><option>Hip-Hop</option><option>R&B</option>
+            <option>Drill</option><option>Afrobeats</option><option>Pop</option>
+            <option>Lo-Fi</option><option>Boom Bap</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Producer Name</label><input type="text" id="packProducer" placeholder="Your name"/></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="export-section">
+        <div class="export-stats">📦 <strong><span id="exportSlicesCount">0</span></strong> slices · <strong id="exportPackName">Untitled</strong></div>
+        <button class="btn-gold btn-full" onclick="exportPack()">📦 Export ZIP Pack</button>
+        <button class="btn-blue btn-full" style="margin-top:8px;" onclick="pushToWorld()">🌍 Push to UniBeatz World</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PAYWALL MODAL ════════ -->
+<div class="modal-overlay" id="paywallModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closePaywall()">✕</button>
+    <div class="modal-icon">⚡</div>
+    <div class="modal-title">Upgrade to Pro</div>
+    <p class="modal-sub" id="paywallReason">Unlock unlimited exports and pro features.</p>
+    <ul class="upgrade-features">
+      <li>UNLIMITED pack exports per month</li>
+      <li>Up to 500MB upload size</li>
+      <li>Unlimited slices per pack</li>
+      <li>Full EQ + reverb + pitch shift</li>
+      <li>No watermark on packs</li>
+      <li>Custom cover art</li>
+      <li>Priority support</li>
+      <li>Cancel anytime</li>
+    </ul>
+    <button class="btn-gold btn-full" onclick="processProUpgrade()">Get Pro · $9.99/month</button>
+    <p style="font-size:0.7rem;color:var(--gray);text-align:center;margin-top:10px;">Secure checkout via Stripe · Cancel anytime</p>
+    <div style="text-align:center;margin-top:10px;"><a style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);cursor:pointer;" onclick="closePaywall()">Maybe later</a></div>
+  </div>
+</div>
+
+<!-- ════════ ADMIN PANEL (Eugene only) ════════ -->
+<div class="page" id="page-admin">
+  <div style="max-width:900px;margin:0 auto;padding:40px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:3px;color:#fff;line-height:1;">👑 ADMIN PANEL</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:#ff3333;margin-top:4px;">FOUNDER ACCESS · USE WITH CAUTION</div>
+      </div>
+      <button class="tool-btn" onclick="goPage('studio')">← Back to Studio</button>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:32px;">
+      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold-light);line-height:1;" id="admStatUsers">0</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">TOTAL USERS</div>
+      </div>
+      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(0,170,255,0.2);border-radius:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--blue-bright);line-height:1;" id="admStatPro">0</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">PRO USERS</div>
+      </div>
+      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(0,255,136,0.2);border-radius:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#00ff88;line-height:1;" id="admStatRev">$0</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">MRR (EST)</div>
+      </div>
+      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(255,51,51,0.2);border-radius:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#ff6644;line-height:1;" id="admStatFree">0</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">FREE USERS</div>
+      </div>
+    </div>
+
+    <!-- USER MANAGEMENT -->
+    <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:24px;margin-bottom:24px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:16px;">👥 USER MANAGEMENT</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+        <button class="tool-btn" onclick="adminForceProTier()" style="background:linear-gradient(135deg,#00aa44,#00ff88);color:#000;font-weight:700;">⬆️ Upgrade User to Pro</button>
+        <button class="tool-btn" onclick="adminDowngradeUser()" style="background:linear-gradient(135deg,#664400,#ff9944);color:#000;font-weight:700;">⬇️ Downgrade User</button>
+        <button class="tool-btn" onclick="adminRefreshUserList()">🔄 Refresh List</button>
+      </div>
+      <div id="admUserList" style="max-height:300px;overflow-y:auto;border:1px solid rgba(201,168,76,0.1);border-radius:6px;padding:10px;font-family:monospace;font-size:0.78rem;color:rgba(240,237,232,0.7);">
+        Tap "Refresh List" to load users...
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div style="background:linear-gradient(135deg,#1a0606,#0a0303);border:1px solid rgba(255,51,51,0.3);border-radius:10px;padding:24px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:#ff3333;margin-bottom:8px;">🚨 DANGER ZONE</div>
+      <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:16px;">These actions cannot be undone. Use only in emergencies.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="tool-btn" onclick="adminResetMyAccount()" style="background:rgba(255,51,51,0.15);border:1px solid #ff3333;color:#ff6644;">🔄 Reset My Admin Account</button>
+        <button class="tool-btn" onclick="adminMasterReset()" style="background:#ff3333;color:#fff;font-weight:700;">💥 MASTER RESET (Nuclear)</button>
+      </div>
+    </div>
+
+    <!-- ADMIN INFO -->
+    <div style="margin-top:32px;padding:16px;background:rgba(0,170,255,0.05);border:1px solid rgba(0,170,255,0.2);border-radius:8px;font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.6;">
+      💡 <strong style="color:var(--blue-bright);">Emergency Login:</strong> If you ever lose access, use email <code style="background:#000;padding:2px 6px;border-radius:3px;">unibeatzproduction@gmail.com</code> with password <code style="background:#000;padding:2px 6px;border-radius:3px;">UniBeatz2025!</code> to bypass any auth issue and get admin access.
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let currentUser = null;
+let currentPage = 'landing';
+let audioBuffer = null;
+let audioContext = null;
+let audioSource = null;
+let isPlaying = false;
+let playStartTime = 0;
+let pausedAt = 0;
+let trackName = '';
+let trackDuration = 0;
+let slices = []; // [{id, start, end, name, category, fx:{low,mid,high,pitch,reverb,gain}}]
+let selectedSliceId = null;
+let coverArtData = null;
+let playheadInterval = null;
+
+// LIVE FX PREVIEW STATE
+let liveSource = null;        // The currently-playing slice source
+let liveLowFilter = null;     // Live EQ low filter (real-time updates)
+let liveMidFilter = null;     // Live EQ mid filter
+let liveHighFilter = null;    // Live EQ high filter
+let liveGainNode = null;      // Live gain node
+let liveDryGain = null;       // Dry signal gain
+let liveWetGain = null;       // Reverb wet signal gain
+let liveConvolver = null;     // Reverb convolver
+let isLivePreviewPlaying = false;
+let livePreviewSliceId = null;
+let liveLoopEnabled = false;
+let reverbImpulseBuffer = null; // Cached reverb impulse
+
+const FREE_LIMITS = { exports: 3, uploadMB: 50, slices: 12 };
+const PRO_LIMITS = { exports: 999, uploadMB: 500, slices: 999 };
+
+// ════════════════════════════════════════
+// ADMIN CONFIG
+// ════════════════════════════════════════
+const ADMIN_EMAILS = [
+  'unibeatzproduction@gmail.com',
+];
+
+function isAdminEmail(email) {
+  if(!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
+
+function isAdmin() {
+  return currentUser && isAdminEmail(currentUser.email);
+}
+
+// Force admin users to always be Pro tier
+function applyAdminPrivileges(user) {
+  if(!user) return user;
+  if(isAdminEmail(user.email)) {
+    user.unipackTier = 'pro';
+    user.isAdmin = true;
+    user.proSince = user.proSince || new Date().toISOString();
+  }
+  return user;
+}
+
+// ════════════════════════════════════════
+// STORAGE
+// ════════════════════════════════════════
+const STORAGE = {
+  USERS: 'ub_users',
+  CURRENT: 'ub_current_user',
+  PROJECT: 'unipack_project',
+  USAGE: 'unipack_usage',
+};
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(STORAGE.USERS) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveUsers(u) { localStorage.setItem(STORAGE.USERS, JSON.stringify(u)); }
+function setCurrentUser(u) {
+  currentUser = applyAdminPrivileges(u);
+  if(currentUser) localStorage.setItem(STORAGE.CURRENT, JSON.stringify(currentUser));
+  else localStorage.removeItem(STORAGE.CURRENT);
+  refreshNav();
+}
+function loadCurrentUser() {
+  try {
+    const d = localStorage.getItem(STORAGE.CURRENT);
+    if(d) {
+      currentUser = JSON.parse(d);
+      // Re-apply admin privileges in case they were lost
+      if(isAdminEmail(currentUser.email)) {
+        currentUser = applyAdminPrivileges(currentUser);
+        localStorage.setItem(STORAGE.CURRENT, JSON.stringify(currentUser));
+      }
+      return true;
+    }
+  }
+  catch(e) {}
+  return false;
+}
+
+function getUsage() {
+  try {
+    const u = JSON.parse(localStorage.getItem(STORAGE.USAGE) || '{}');
+    const month = new Date().getMonth() + '-' + new Date().getFullYear();
+    if(!u[month]) u[month] = { exports: 0 };
+    return { all: u, month: month, current: u[month] };
+  } catch(e) { return { all: {}, month: '0', current: { exports: 0 } }; }
+}
+function saveUsage(usage) { localStorage.setItem(STORAGE.USAGE, JSON.stringify(usage.all)); }
+
+function isPro() { return currentUser && (currentUser.unipackTier === 'pro' || isAdmin()); }
+function getLimits() { return isPro() ? PRO_LIMITS : FREE_LIMITS; }
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function goPage(p) {
+  document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
+  const pageEl = document.getElementById('page-' + p);
+  if(!pageEl) { console.error('Page not found:', p); return; }
+  pageEl.classList.add('active');
+  currentPage = p;
+  window.scrollTo(0, 0);
+  if(p === 'studio') {
+    refreshUsageMeter();
+    // Show/hide admin button based on admin status
+    const adminBtn = document.getElementById('adminToolBtn');
+    if(adminBtn) adminBtn.style.display = isAdmin() ? 'inline-flex' : 'none';
+  }
+  if(p === 'admin') {
+    if(!isAdmin()) {
+      showToast('Admin access required', 'error');
+      goPage('studio');
+      return;
+    }
+    adminRefreshUserList();
+  }
+}
+
+function refreshNav() {
+  const nav = document.getElementById('navRight');
+  if(currentUser) {
+    nav.innerHTML = `
+      <a href="unibeatzworld.html" class="nav-link">← UniBeatz World</a>
+      <a href="#" class="nav-link" onclick="goPage('landing');return false;">Home</a>
+      <button class="nav-cta" onclick="goPage('studio')">🎛️ Studio</button>
+      <div class="user-chip" onclick="logoutPrompt()" title="Click to log out">
+        <div class="user-chip-ava">${currentUser.photo ? `<img src="${currentUser.photo}"/>` : (currentUser.avatar || '🎤')}</div>
+        <span class="user-chip-name">${currentUser.username || currentUser.name}</span>
+      </div>
+    `;
+  } else {
+    nav.innerHTML = `
+      <a href="index.html" class="nav-link">← Empire</a>
+      <a href="#" class="nav-link" onclick="goPage('landing');return false;">Home</a>
+      <a href="#pricing" class="nav-link" onclick="goPage('landing');setTimeout(()=>document.getElementById('pricing').scrollIntoView({behavior:'smooth'}),100);return false;">Pricing</a>
+      <a href="#" class="nav-link" onclick="goPage('login');return false;">Log In</a>
+      <button class="nav-cta" onclick="goPage('signup')">Sign Up Free</button>
+    `;
+  }
+}
+
+async function logoutPrompt() {
+  if(confirm('Log out of UniPack?')) {
+    if(window.UB_FIREBASE && window.UB_FIREBASE.ready) {
+      try { await window.UB_FIREBASE.signOut(window.UB_FIREBASE.auth); }
+      catch(e) { console.warn('Firebase signOut error:', e); }
+    }
+    setCurrentUser(null);
+    showToast('Logged out');
+    goPage('landing');
+  }
+}
+
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+async function handleSignup() {
+  const name = document.getElementById('suName').value.trim();
+  const username = document.getElementById('suUsername').value.trim().toLowerCase();
+  const email = document.getElementById('suEmail').value.trim().toLowerCase();
+  const password = document.getElementById('suPassword').value;
+  if(!name) { showToast('Enter your producer name', 'error'); return; }
+  if(!username || username.length < 3) { showToast('Username must be 3+ chars', 'error'); return; }
+  if(!email || !email.includes('@')) { showToast('Enter a valid email', 'error'); return; }
+  if(!password || password.length < 6) { showToast('Password must be 6+ chars', 'error'); return; }
+  const users = getUsers();
+  if(users[username]) { showToast('Username taken', 'error'); return; }
+  for(const k in users) { if(users[k].email === email) { showToast('Email already registered', 'error'); return; } }
+
+  // ═════ FIREBASE SIGNUP ═════
+  if(window.UB_FIREBASE && window.UB_FIREBASE.ready) {
+    try {
+      showToast('Creating account...');
+      const fb = window.UB_FIREBASE;
+      const userCred = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
+      await fb.updateProfile(userCred.user, { displayName: name });
+      await fb.sendEmailVerification(userCred.user);
+      showToast('📧 Verification email sent!', 'success');
+    } catch(err) {
+      console.error('Firebase signup error:', err);
+      if(err.code === 'auth/email-already-in-use') {
+        showToast('❌ Email already registered', 'error');
+        return;
+      }
+      if(err.code === 'auth/weak-password') {
+        showToast('❌ Password too weak', 'error');
+        return;
+      }
+      if(err.code === 'auth/invalid-email') {
+        showToast('❌ Invalid email', 'error');
+        return;
+      }
+      // Fall through to local
+      showToast('⚠️ Firebase error. Using offline mode.', 'error');
+    }
+  }
+  const user = {
+    uid: 'UB-' + Math.floor(100000 + Math.random() * 900000),
+    name, username, email, password,
+    avatar: isAdminEmail(email) ? '👑' : '🎤',
+    role: isAdminEmail(email) ? 'admin' : 'artist',
+    points: 0, wins: 0, losses: 0, battles: 0, votes: 0, followers: 0,
+    joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
+    unipackTier: isAdminEmail(email) ? 'pro' : 'free',
+    isAdmin: isAdminEmail(email),
+  };
+  users[username] = user;
+  saveUsers(users);
+  setCurrentUser(user);
+  showToast('✅ Welcome to UniPack, ' + name.split(' ')[0] + '!', 'success');
+  setTimeout(() => goPage('studio'), 600);
+}
+
+async function handleLogin() {
+  const e = document.getElementById('liEmail').value.trim().toLowerCase();
+  const p = document.getElementById('liPassword').value;
+  if(!e || !p) { showToast('Enter email and password', 'error'); return; }
+
+  // ═════ ADMIN EMERGENCY OVERRIDE ═════
+  // If admin email + special master password → instant access
+  // This prevents the founder from EVER being locked out
+  if(isAdminEmail(e) && p === 'UniBeatz2025!') {
+    const users = getUsers();
+    let adminUser = null;
+    for(const k in users) {
+      if(users[k].email === e) { adminUser = users[k]; break; }
+    }
+    if(!adminUser) {
+      // Create admin user on the fly
+      adminUser = {
+        uid: 'UB-ADMIN-' + Date.now(),
+        name: 'UniBeatz',
+        username: 'unibeatz',
+        email: e,
+        password: p,
+        avatar: '👑',
+        role: 'admin',
+        points: 9999, wins: 0, losses: 0, battles: 0, votes: 0, followers: 0,
+        joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
+        unipackTier: 'pro',
+        isAdmin: true,
+      };
+      users[adminUser.username] = adminUser;
+      saveUsers(users);
+    }
+    setCurrentUser(adminUser);
+    showToast('👑 Admin login successful', 'success');
+    setTimeout(() => goPage('studio'), 600);
+    return;
+  }
+
+  // ═════ FIREBASE LOGIN (try first if email format) ═════
+  let firebaseSucceeded = false;
+  let firebaseError = null;
+  if(window.UB_FIREBASE && window.UB_FIREBASE.ready && e.includes('@')) {
+    try {
+      showToast('Logging in...');
+      const fb = window.UB_FIREBASE;
+      const userCred = await fb.signInWithEmailAndPassword(fb.auth, e, p);
+      const users = getUsers();
+      let userData = null;
+      for(const k in users) {
+        if(users[k].email === e) { userData = users[k]; break; }
+      }
+      if(!userData) {
+        userData = {
+          uid: userCred.user.uid,
+          name: userCred.user.displayName || e.split('@')[0],
+          username: e.split('@')[0].replace(/[^a-z0-9_]/g,''),
+          email: e,
+          password: p,
+          avatar: '🎤',
+          role: 'artist',
+          points: 0, wins: 0, losses: 0, battles: 0, votes: 0, followers: 0,
+          joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
+          unipackTier: 'free',
+        };
+        users[userData.username] = userData;
+        saveUsers(users);
+      }
+      if(!userData.unipackTier) userData.unipackTier = 'free';
+      setCurrentUser(userData);
+      showToast('✅ Welcome back, ' + userData.name.split(' ')[0] + '!', 'success');
+      setTimeout(() => goPage('studio'), 600);
+      firebaseSucceeded = true;
+      return;
+    } catch(err) {
+      firebaseError = err;
+      console.error('Firebase login error:', err);
+      // DON'T return — fall through to try local storage
+    }
+  }
+
+  // ═════ LOCAL STORAGE FALLBACK (always check, even if Firebase failed) ═════
+  const users = getUsers();
+  let found = users[e] || null;
+  if(!found) for(const k in users) if(users[k].email === e) { found = users[k]; break; }
+
+  if(found && found.password === p) {
+    if(!found.unipackTier) found.unipackTier = 'free';
+    setCurrentUser(found);
+    showToast('✅ Welcome back, ' + found.name.split(' ')[0] + '!', 'success');
+    setTimeout(() => goPage('studio'), 600);
+    return;
+  }
+
+  // ═════ HELPFUL ERROR MESSAGES ═════
+  if(firebaseError) {
+    if(firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
+      showToast('❌ Wrong password. Try "Forgot Password" below.', 'error');
+      return;
+    }
+    if(firebaseError.code === 'auth/user-not-found') {
+      showToast('❌ No account found for this email. Sign up first.', 'error');
+      return;
+    }
+    if(firebaseError.code === 'auth/too-many-requests') {
+      showToast('❌ Too many attempts. Wait 5 min or reset password.', 'error');
+      return;
+    }
+  }
+
+  if(!found) {
+    showToast('❌ No account found for "' + e + '"', 'error');
+  } else {
+    showToast('❌ Wrong password. Try "Forgot Password" below.', 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// FORGOT PASSWORD
+// ════════════════════════════════════════
+async function handleForgotPassword() {
+  const e = document.getElementById('liEmail').value.trim().toLowerCase();
+  if(!e || !e.includes('@')) {
+    showToast('Enter your email above first', 'error');
+    return;
+  }
+  if(window.UB_FIREBASE && window.UB_FIREBASE.ready) {
+    try {
+      showToast('Sending reset email...');
+      const fb = window.UB_FIREBASE;
+      await fb.sendPasswordResetEmail(fb.auth, e);
+      showToast('📧 Password reset email sent! Check your inbox.', 'success');
+    } catch(err) {
+      console.error('Password reset error:', err);
+      if(err.code === 'auth/user-not-found') {
+        showToast('❌ No account found for this email', 'error');
+      } else {
+        showToast('❌ Could not send reset email. Try again.', 'error');
+      }
+    }
+  } else {
+    showToast('⚠️ Reset only works with online accounts', 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// ADMIN: MASTER RESET (Eugene's emergency tools)
+// ════════════════════════════════════════
+function adminMasterReset() {
+  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
+  const confirmed = confirm('🚨 MASTER RESET\n\nThis will wipe ALL UniPack data on this device:\n- All user accounts\n- All projects\n- All usage data\n- Your current session\n\nFirebase cloud users will NOT be deleted.\n\nContinue?');
+  if(!confirmed) return;
+  const reallyConfirmed = confirm('⚠️ FINAL WARNING\n\nThis cannot be undone. Type-confirm by tapping OK.');
+  if(!reallyConfirmed) return;
+  localStorage.removeItem(STORAGE.USERS);
+  localStorage.removeItem(STORAGE.CURRENT);
+  localStorage.removeItem(STORAGE.PROJECT);
+  localStorage.removeItem(STORAGE.USAGE);
+  currentUser = null;
+  showToast('🔄 Master reset complete. Reloading...', 'success');
+  setTimeout(() => location.reload(), 1500);
+}
+
+function adminResetMyAccount() {
+  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
+  if(!confirm('Reset YOUR admin account?\nYou can sign in again with master password.')) return;
+  const users = getUsers();
+  for(const k in users) {
+    if(isAdminEmail(users[k].email)) delete users[k];
+  }
+  saveUsers(users);
+  localStorage.removeItem(STORAGE.CURRENT);
+  currentUser = null;
+  showToast('Admin account reset. Sign in again.', 'success');
+  setTimeout(() => goPage('login'), 1500);
+}
+
+function adminForceProTier(targetEmail) {
+  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
+  const email = (targetEmail || prompt('Enter email to upgrade to Pro:'))?.trim().toLowerCase();
+  if(!email) return;
+  const users = getUsers();
+  let updated = false;
+  for(const k in users) {
+    if(users[k].email === email) {
+      users[k].unipackTier = 'pro';
+      users[k].proSince = new Date().toISOString();
+      updated = true;
+      break;
+    }
+  }
+  if(updated) {
+    saveUsers(users);
+    showToast('✅ Upgraded ' + email + ' to Pro', 'success');
+  } else {
+    showToast('User not found: ' + email, 'error');
+  }
+  if(currentPage === 'admin') adminRefreshStats();
+}
+
+function adminDowngradeUser() {
+  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
+  const email = prompt('Enter email to downgrade to Free:')?.trim().toLowerCase();
+  if(!email) return;
+  if(isAdminEmail(email)) { showToast('Cannot downgrade admin', 'error'); return; }
+  const users = getUsers();
+  let updated = false;
+  for(const k in users) {
+    if(users[k].email === email) {
+      users[k].unipackTier = 'free';
+      delete users[k].proSince;
+      updated = true;
+      break;
+    }
+  }
+  if(updated) {
+    saveUsers(users);
+    showToast('⬇️ Downgraded ' + email + ' to Free', 'success');
+    if(currentPage === 'admin') adminRefreshStats();
+  } else {
+    showToast('User not found: ' + email, 'error');
+  }
+}
+
+function adminRefreshStats() {
+  if(!isAdmin()) return;
+  const users = getUsers();
+  const userList = Object.values(users);
+  const total = userList.length;
+  const pro = userList.filter(u => u.unipackTier === 'pro').length;
+  const free = total - pro;
+  // Estimated MRR: $9.99 per Pro user (excluding admin's free Pro)
+  const realPro = userList.filter(u => u.unipackTier === 'pro' && !isAdminEmail(u.email)).length;
+  const mrr = (realPro * 9.99).toFixed(2);
+
+  const elU = document.getElementById('admStatUsers');
+  const elP = document.getElementById('admStatPro');
+  const elF = document.getElementById('admStatFree');
+  const elR = document.getElementById('admStatRev');
+  if(elU) elU.textContent = total;
+  if(elP) elP.textContent = pro;
+  if(elF) elF.textContent = free;
+  if(elR) elR.textContent = '$' + mrr;
+}
+
+function adminRefreshUserList() {
+  if(!isAdmin()) return;
+  const users = getUsers();
+  const userList = Object.values(users);
+  const el = document.getElementById('admUserList');
+  if(!el) return;
+  if(userList.length === 0) {
+    el.innerHTML = '<div style="color:var(--gray);padding:10px;">No users yet</div>';
+    return;
+  }
+  el.innerHTML = userList.map(u => {
+    const tier = u.unipackTier === 'pro' ? '<span style="color:#00ff88;font-weight:700;">PRO</span>' : '<span style="color:#ff6644;">Free</span>';
+    const adminBadge = isAdminEmail(u.email) ? '<span style="color:#ffaa00;font-weight:700;"> 👑 ADMIN</span>' : '';
+    return `<div style="padding:8px;border-bottom:1px solid rgba(201,168,76,0.08);">
+      <div><strong>${u.name || u.username}</strong> ${adminBadge}</div>
+      <div style="font-size:0.7rem;color:rgba(240,237,232,0.5);">${u.email} · ${tier} · Joined ${u.joined || '?'}</div>
+    </div>`;
+  }).join('');
+  adminRefreshStats();
+}
+
+async function handlePasswordReset() {
+  const email = prompt('Enter your email to receive a password reset link:');
+  if(!email || !email.includes('@')) { showToast('Please enter a valid email', 'error'); return; }
+  if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) {
+    showToast('Email service unavailable. Email unibeatzproduction@gmail.com for help.', 'error');
+    return;
+  }
+  try {
+    showToast('Sending reset email...');
+    const fb = window.UB_FIREBASE;
+    await fb.sendPasswordResetEmail(fb.auth, email.trim().toLowerCase());
+    showToast('📧 Password reset email sent!', 'success');
+  } catch(err) {
+    console.error('Password reset error:', err);
+    if(err.code === 'auth/user-not-found') {
+      showToast('❌ No account found with that email', 'error');
+    } else {
+      showToast('⚠️ ' + (err.message || 'Could not send reset email'), 'error');
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// AUDIO ENGINE
+// ════════════════════════════════════════
+function ensureAudioContext() {
+  if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  return audioContext;
+}
+
+async function handleAudioUpload(input) {
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const limits = getLimits();
+  const maxSize = limits.uploadMB * 1024 * 1024;
+  if(file.size > maxSize) {
+    if(!isPro()) {
+      showPaywall(`File too large (${(file.size/1024/1024).toFixed(1)}MB). Free tier limit is ${limits.uploadMB}MB. Upgrade to Pro for ${PRO_LIMITS.uploadMB}MB uploads.`);
+    } else {
+      showToast(`File exceeds ${limits.uploadMB}MB limit`, 'error');
+    }
+    input.value = '';
+    return;
+  }
+  trackName = file.name.replace(/\.[^/.]+$/, '');
+  showToast('🎵 Loading audio...');
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const ctx = ensureAudioContext();
+    audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    trackDuration = audioBuffer.duration;
+    slices = [];
+    selectedSliceId = null;
+    pausedAt = 0;
+    document.getElementById('uploadZone').style.display = 'none';
+    document.getElementById('waveformSection').style.display = 'block';
+    document.getElementById('slicesSection').style.display = 'block';
+    const fxPanel = document.getElementById('fxTopPanel');
+    fxPanel.style.display = 'block';
+    fxPanel.classList.add('empty');
+    document.getElementById('fxSliceName').textContent = 'No slice selected';
+    document.getElementById('trackName').textContent = trackName;
+    document.getElementById('trackInfo').textContent = formatTime(trackDuration) + ' · ' + (audioBuffer.sampleRate/1000).toFixed(1) + 'kHz';
+    drawWaveform();
+    renderSlices();
+    showToast('✅ Audio loaded! Click waveform to add slices.', 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('❌ Could not load audio file', 'error');
+  }
+  input.value = '';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('dragging');
+  if(!e.dataTransfer.files || !e.dataTransfer.files[0]) return;
+  const fakeInput = { files: e.dataTransfer.files, value: '' };
+  handleAudioUpload(fakeInput);
+}
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('dragging'); }
+function handleDragLeave(e) { document.getElementById('uploadZone').classList.remove('dragging'); }
+
+function drawWaveform() {
+  const canvas = document.getElementById('waveCanvas');
+  const wrap = document.getElementById('waveCanvasWrap');
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = wrap.offsetWidth * dpr;
+  canvas.height = wrap.offsetHeight * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const w = wrap.offsetWidth, h = wrap.offsetHeight;
+  ctx.clearRect(0, 0, w, h);
+  if(!audioBuffer) return;
+  const data = audioBuffer.getChannelData(0);
+  const step = Math.ceil(data.length / w);
+  const amp = h / 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, 'rgba(64,208,255,0.6)');
+  grad.addColorStop(0.5, 'rgba(201,168,76,0.7)');
+  grad.addColorStop(1, 'rgba(64,208,255,0.6)');
+  ctx.fillStyle = grad;
+  for(let i = 0; i < w; i++) {
+    let min = 1.0, max = -1.0;
+    for(let j = 0; j < step; j++) {
+      const datum = data[(i * step) + j];
+      if(datum < min) min = datum;
+      if(datum > max) max = datum;
+    }
+    ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.moveTo(0, h/2);
+  ctx.lineTo(w, h/2);
+  ctx.stroke();
+  renderSliceMarkers();
+}
+
+function renderSliceMarkers() {
+  const wrap = document.getElementById('waveCanvasWrap');
+  const w = wrap.offsetWidth;
+  const markers = document.getElementById('sliceMarkers');
+  const regions = document.getElementById('sliceRegions');
+  markers.innerHTML = '';
+  regions.innerHTML = '';
+  slices.forEach((s, i) => {
+    const startPx = (s.start / trackDuration) * w;
+    const endPx = (s.end / trackDuration) * w;
+    const region = document.createElement('div');
+    region.className = 'slice-region' + (s.id === selectedSliceId ? ' selected' : '');
+    region.style.left = startPx + 'px';
+    region.style.width = (endPx - startPx) + 'px';
+    region.innerHTML = `<div class="slice-region-label">${i+1}</div>`;
+    region.onclick = (e) => { e.stopPropagation(); selectSlice(s.id); };
+    regions.appendChild(region);
+  });
+}
+
+function handleWaveClick(e) {
+  if(!audioBuffer) return;
+  if(e.target.closest('.slice-region')) return;
+  const wrap = document.getElementById('waveCanvasWrap');
+  const rect = wrap.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const time = (x / rect.width) * trackDuration;
+  pausedAt = time;
+  if(isPlaying) togglePlay();
+  updatePlayhead();
+  document.getElementById('playTime').textContent = formatTime(time) + ' / ' + formatTime(trackDuration);
+}
+
+function updatePlayhead() {
+  const ph = document.getElementById('playhead');
+  const wrap = document.getElementById('waveCanvasWrap');
+  if(!audioBuffer) { ph.style.display = 'none'; return; }
+  ph.style.display = 'block';
+  const time = isPlaying ? (audioContext.currentTime - playStartTime + pausedAt) : pausedAt;
+  const pct = Math.min(time / trackDuration, 1);
+  ph.style.left = (pct * wrap.offsetWidth) + 'px';
+}
+
+function togglePlay() {
+  if(!audioBuffer) return;
+  const ctx = ensureAudioContext();
+  if(isPlaying) {
+    if(audioSource) audioSource.stop();
+    pausedAt = ctx.currentTime - playStartTime + pausedAt;
+    if(pausedAt >= trackDuration) pausedAt = 0;
+    isPlaying = false;
+    document.getElementById('playBtn').textContent = '▶';
+    if(playheadInterval) clearInterval(playheadInterval);
+  } else {
+    audioSource = ctx.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.connect(ctx.destination);
+    playStartTime = ctx.currentTime;
+    audioSource.start(0, pausedAt);
+    audioSource.onended = () => {
+      if(isPlaying) { isPlaying = false; document.getElementById('playBtn').textContent = '▶'; pausedAt = 0; updatePlayhead(); if(playheadInterval) clearInterval(playheadInterval); }
+    };
+    isPlaying = true;
+    document.getElementById('playBtn').textContent = '⏸';
+    playheadInterval = setInterval(() => {
+      updatePlayhead();
+      const time = ctx.currentTime - playStartTime + pausedAt;
+      document.getElementById('playTime').textContent = formatTime(time) + ' / ' + formatTime(trackDuration);
+    }, 50);
+  }
+}
+
+function seekTo(time) {
+  pausedAt = time;
+  if(isPlaying) { togglePlay(); togglePlay(); }
+  updatePlayhead();
+}
+
+// ════════════════════════════════════════
+// SLICES
+// ════════════════════════════════════════
+function addSliceAtPlayhead() {
+  if(!audioBuffer) { showToast('Upload a beat first', 'error'); return; }
+  const limits = getLimits();
+  if(slices.length >= limits.slices) {
+    if(!isPro()) showPaywall(`You've reached ${limits.slices} slices (Free tier limit). Upgrade to Pro for unlimited slices.`);
+    else showToast('Slice limit reached', 'error');
+    return;
+  }
+  const time = isPlaying ? (audioContext.currentTime - playStartTime + pausedAt) : pausedAt;
+  // Default: 1 second slice or until next slice / end
+  let start = time;
+  let end = Math.min(time + 1, trackDuration);
+  const sortedSlices = [...slices].sort((a,b) => a.start - b.start);
+  for(const s of sortedSlices) { if(s.start > start) { end = Math.min(end, s.start); break; } }
+  const slice = {
+    id: 'slice_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    start, end,
+    name: 'sample_' + (slices.length + 1),
+    category: 'one-shot',
+    fx: { low:0, mid:0, high:0, pitch:0, reverb:0, gain:0 },
+  };
+  slices.push(slice);
+  selectSlice(slice.id);
+  renderSliceMarkers();
+  renderSlices();
+  showToast('✂️ Slice added', 'success');
+}
+
+function clearAllSlices() {
+  if(!slices.length) return;
+  if(!confirm('Clear all slices? This cannot be undone.')) return;
+  stopLivePreview();
+  slices = [];
+  selectedSliceId = null;
+  renderSliceMarkers();
+  renderSlices();
+  document.getElementById('fxTopPanel').classList.add('empty');
+  document.getElementById('fxSliceName').textContent = 'No slice selected';
+  showToast('Slices cleared');
+}
+
+function selectSlice(id) {
+  // Stop live preview if switching to a different slice
+  if(isLivePreviewPlaying && livePreviewSliceId !== id) {
+    stopLivePreview();
+  }
+  selectedSliceId = id;
+  const s = slices.find(x => x.id === id);
+  if(!s) return;
+  renderSliceMarkers();
+  renderSlices();
+  // Show FX panel (active state)
+  const fxPanel = document.getElementById('fxTopPanel');
+  fxPanel.style.display = 'block';
+  fxPanel.classList.remove('empty');
+  document.getElementById('fxSliceName').textContent = s.name;
+  document.getElementById('fxLow').value = s.fx.low;
+  document.getElementById('fxMid').value = s.fx.mid;
+  document.getElementById('fxHigh').value = s.fx.high;
+  document.getElementById('fxPitch').value = s.fx.pitch;
+  document.getElementById('fxReverb').value = s.fx.reverb;
+  document.getElementById('fxGain').value = s.fx.gain;
+  document.getElementById('fxLowVal').textContent = s.fx.low + ' dB';
+  document.getElementById('fxMidVal').textContent = s.fx.mid + ' dB';
+  document.getElementById('fxHighVal').textContent = s.fx.high + ' dB';
+  document.getElementById('fxPitchVal').textContent = s.fx.pitch + ' st';
+  document.getElementById('fxReverbVal').textContent = s.fx.reverb + '%';
+  document.getElementById('fxGainVal').textContent = s.fx.gain + ' dB';
+}
+
+function updateFx(type, value) {
+  const s = slices.find(x => x.id === selectedSliceId);
+  if(!s) return;
+  s.fx[type] = parseFloat(value);
+  const unit = type === 'pitch' ? ' st' : type === 'reverb' ? '%' : ' dB';
+  document.getElementById('fx' + type.charAt(0).toUpperCase() + type.slice(1) + 'Val').textContent = value + unit;
+
+  // ═════ REAL-TIME LIVE FX UPDATE ═════
+  // If this slice is currently playing live, apply the change INSTANTLY
+  if(isLivePreviewPlaying && livePreviewSliceId === selectedSliceId && audioContext) {
+    const t = audioContext.currentTime;
+    if(type === 'low' && liveLowFilter) liveLowFilter.gain.setTargetAtTime(s.fx.low, t, 0.01);
+    if(type === 'mid' && liveMidFilter) liveMidFilter.gain.setTargetAtTime(s.fx.mid, t, 0.01);
+    if(type === 'high' && liveHighFilter) liveHighFilter.gain.setTargetAtTime(s.fx.high, t, 0.01);
+    if(type === 'gain' && liveGainNode) liveGainNode.gain.setTargetAtTime(Math.pow(10, s.fx.gain / 20), t, 0.01);
+    if(type === 'reverb') {
+      const wet = s.fx.reverb / 100;
+      if(liveWetGain) liveWetGain.gain.setTargetAtTime(wet, t, 0.01);
+      if(liveDryGain) liveDryGain.gain.setTargetAtTime(1 - wet * 0.4, t, 0.01);
+    }
+    if(type === 'pitch' && liveSource) {
+      // Pitch needs source restart — smooth it by restarting if loop enabled
+      if(liveLoopEnabled) {
+        restartLivePreview();
+      } else {
+        liveSource.playbackRate.setTargetAtTime(Math.pow(2, s.fx.pitch / 12), t, 0.01);
+      }
+    }
+  }
+}
+
+function renderSlices() {
+  const list = document.getElementById('slicesList');
+  document.getElementById('slicesCount').textContent = slices.length;
+  document.getElementById('slicesLimit').textContent = getLimits().slices + ' max';
+  document.getElementById('exportSlicesCount').textContent = slices.length;
+  document.getElementById('exportPackName').textContent = document.getElementById('packName').value || 'Untitled';
+  if(!slices.length) {
+    list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--gray);font-size:0.85rem;">No slices yet. Click anywhere on the waveform above, then tap "✂️ Add Slice".</div>';
+    return;
+  }
+  list.innerHTML = slices.map((s, i) => `
+    <div class="slice-card${s.id === selectedSliceId ? ' selected' : ''}" onclick="selectSlice('${s.id}')">
+      <div class="slice-card-header">
+        <span class="slice-card-num">SLICE ${String(i+1).padStart(2,'0')}</span>
+        <span class="slice-card-time">${formatTime(s.start)} → ${formatTime(s.end)}</span>
+      </div>
+      <input class="slice-card-name" value="${s.name}" onclick="event.stopPropagation()" oninput="renameSlice('${s.id}',this.value)" placeholder="Sample name"/>
+      <select class="slice-card-cat" onclick="event.stopPropagation()" onchange="categorizeSlice('${s.id}',this.value)">
+        <option value="kick"${s.category==='kick'?' selected':''}>🥁 Kick</option>
+        <option value="snare"${s.category==='snare'?' selected':''}>🥁 Snare</option>
+        <option value="hihat"${s.category==='hihat'?' selected':''}>🎩 Hi-Hat</option>
+        <option value="perc"${s.category==='perc'?' selected':''}>🪘 Percussion</option>
+        <option value="808"${s.category==='808'?' selected':''}>💥 808/Bass</option>
+        <option value="loop"${s.category==='loop'?' selected':''}>🔁 Loop</option>
+        <option value="melody"${s.category==='melody'?' selected':''}>🎹 Melody</option>
+        <option value="vocal"${s.category==='vocal'?' selected':''}>🎤 Vocal</option>
+        <option value="fx"${s.category==='fx'?' selected':''}>✨ FX</option>
+        <option value="one-shot"${s.category==='one-shot'?' selected':''}>🎵 One-Shot</option>
+      </select>
+      <div class="slice-card-actions">
+        <button class="slice-mini-btn" onclick="event.stopPropagation();previewSlice('${s.id}')">▶ Play</button>
+        <button class="slice-mini-btn del" onclick="event.stopPropagation();deleteSlice('${s.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renameSlice(id, name) {
+  const s = slices.find(x => x.id === id);
+  if(s) s.name = name.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+function categorizeSlice(id, cat) {
+  const s = slices.find(x => x.id === id);
+  if(s) s.category = cat;
+}
+function deleteSlice(id) {
+  if(livePreviewSliceId === id) stopLivePreview();
+  slices = slices.filter(x => x.id !== id);
+  if(selectedSliceId === id) { selectedSliceId = null; document.getElementById('fxTopPanel').classList.add('empty'); document.getElementById('fxSliceName').textContent = 'No slice selected'; }
+  renderSliceMarkers();
+  renderSlices();
+}
+
+function previewSelectedSlice() {
+  if(!selectedSliceId) { showToast('Select a slice first', 'error'); return; }
+  // Use live preview (one-shot)
+  startLivePreview();
+}
+
+function previewSlice(id) {
+  const s = slices.find(x => x.id === id);
+  if(!s || !audioBuffer) return;
+  const ctx = ensureAudioContext();
+  const src = ctx.createBufferSource();
+  // Create a slice buffer
+  const sliceLen = Math.floor((s.end - s.start) * audioBuffer.sampleRate);
+  const sliceBuf = ctx.createBuffer(audioBuffer.numberOfChannels, sliceLen, audioBuffer.sampleRate);
+  for(let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+    const data = audioBuffer.getChannelData(ch);
+    const sliceData = sliceBuf.getChannelData(ch);
+    const startSample = Math.floor(s.start * audioBuffer.sampleRate);
+    for(let i = 0; i < sliceLen; i++) sliceData[i] = data[startSample + i] || 0;
+  }
+  src.buffer = sliceBuf;
+  src.playbackRate.value = Math.pow(2, s.fx.pitch / 12);
+  // Apply EQ + gain
+  const lowFilter = ctx.createBiquadFilter(); lowFilter.type = 'lowshelf'; lowFilter.frequency.value = 200; lowFilter.gain.value = s.fx.low;
+  const midFilter = ctx.createBiquadFilter(); midFilter.type = 'peaking'; midFilter.frequency.value = 1000; midFilter.Q.value = 1; midFilter.gain.value = s.fx.mid;
+  const highFilter = ctx.createBiquadFilter(); highFilter.type = 'highshelf'; highFilter.frequency.value = 4000; highFilter.gain.value = s.fx.high;
+  const gain = ctx.createGain(); gain.gain.value = Math.pow(10, s.fx.gain / 20);
+  src.connect(lowFilter).connect(midFilter).connect(highFilter).connect(gain).connect(ctx.destination);
+  src.start();
+}
+
+// ════════════════════════════════════════
+// LIVE FX PREVIEW ENGINE
+// ════════════════════════════════════════
+
+// Build a small reverb impulse response (cached)
+function buildReverbImpulse() {
+  if(reverbImpulseBuffer) return reverbImpulseBuffer;
+  const ctx = ensureAudioContext();
+  const length = ctx.sampleRate * 1.8; // 1.8s reverb tail
+  const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+  for(let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch);
+    for(let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 2.2);
+    }
+  }
+  reverbImpulseBuffer = impulse;
+  return impulse;
+}
+
+function buildSliceBuffer(s) {
+  const ctx = ensureAudioContext();
+  const sliceLen = Math.floor((s.end - s.start) * audioBuffer.sampleRate);
+  const sliceBuf = ctx.createBuffer(audioBuffer.numberOfChannels, sliceLen, audioBuffer.sampleRate);
+  for(let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+    const data = audioBuffer.getChannelData(ch);
+    const sliceData = sliceBuf.getChannelData(ch);
+    const startSample = Math.floor(s.start * audioBuffer.sampleRate);
+    for(let i = 0; i < sliceLen; i++) sliceData[i] = data[startSample + i] || 0;
+  }
+  return sliceBuf;
+}
+
+function startLivePreview() {
+  if(!selectedSliceId) { showToast('Select a slice first', 'error'); return; }
+  const s = slices.find(x => x.id === selectedSliceId);
+  if(!s || !audioBuffer) return;
+  stopLivePreview(); // Clear any existing playback
+
+  const ctx = ensureAudioContext();
+  if(ctx.state === 'suspended') ctx.resume();
+
+  // Source
+  liveSource = ctx.createBufferSource();
+  liveSource.buffer = buildSliceBuffer(s);
+  liveSource.playbackRate.value = Math.pow(2, s.fx.pitch / 12);
+  liveSource.loop = liveLoopEnabled;
+
+  // FX Chain (all updatable in real-time)
+  liveLowFilter = ctx.createBiquadFilter();
+  liveLowFilter.type = 'lowshelf';
+  liveLowFilter.frequency.value = 200;
+  liveLowFilter.gain.value = s.fx.low;
+
+  liveMidFilter = ctx.createBiquadFilter();
+  liveMidFilter.type = 'peaking';
+  liveMidFilter.frequency.value = 1000;
+  liveMidFilter.Q.value = 1;
+  liveMidFilter.gain.value = s.fx.mid;
+
+  liveHighFilter = ctx.createBiquadFilter();
+  liveHighFilter.type = 'highshelf';
+  liveHighFilter.frequency.value = 4000;
+  liveHighFilter.gain.value = s.fx.high;
+
+  liveGainNode = ctx.createGain();
+  liveGainNode.gain.value = Math.pow(10, s.fx.gain / 20);
+
+  // Reverb (parallel dry/wet)
+  liveConvolver = ctx.createConvolver();
+  liveConvolver.buffer = buildReverbImpulse();
+
+  const wet = s.fx.reverb / 100;
+  liveDryGain = ctx.createGain();
+  liveDryGain.gain.value = 1 - wet * 0.4;
+  liveWetGain = ctx.createGain();
+  liveWetGain.gain.value = wet;
+
+  // Routing:
+  // source → low → mid → high → gain → split → [dry → out]  &  [convolver → wet → out]
+  liveSource.connect(liveLowFilter);
+  liveLowFilter.connect(liveMidFilter);
+  liveMidFilter.connect(liveHighFilter);
+  liveHighFilter.connect(liveGainNode);
+  liveGainNode.connect(liveDryGain);
+  liveDryGain.connect(ctx.destination);
+  liveGainNode.connect(liveConvolver);
+  liveConvolver.connect(liveWetGain);
+  liveWetGain.connect(ctx.destination);
+
+  liveSource.onended = () => {
+    if(!liveLoopEnabled) stopLivePreview();
+  };
+
+  liveSource.start();
+  isLivePreviewPlaying = true;
+  livePreviewSliceId = selectedSliceId;
+
+  // UI updates
+  document.getElementById('fxPlayBtn').textContent = '⏸ Pause';
+  document.getElementById('fxPlayBtn').classList.add('fx-playing');
+  document.getElementById('fxStopBtn').style.display = 'inline-block';
+  document.getElementById('fxLiveIndicator').classList.add('active');
+}
+
+function stopLivePreview() {
+  if(liveSource) {
+    try { liveSource.stop(); } catch(e) {}
+    try { liveSource.disconnect(); } catch(e) {}
+  }
+  liveSource = null;
+  liveLowFilter = liveMidFilter = liveHighFilter = null;
+  liveGainNode = liveDryGain = liveWetGain = liveConvolver = null;
+  isLivePreviewPlaying = false;
+  livePreviewSliceId = null;
+
+  // UI
+  const playBtn = document.getElementById('fxPlayBtn');
+  if(playBtn) {
+    playBtn.textContent = '▶ Play';
+    playBtn.classList.remove('fx-playing');
+  }
+  const stopBtn = document.getElementById('fxStopBtn');
+  if(stopBtn) stopBtn.style.display = 'none';
+  const liveInd = document.getElementById('fxLiveIndicator');
+  if(liveInd) liveInd.classList.remove('active');
+}
+
+function restartLivePreview() {
+  if(isLivePreviewPlaying) {
+    stopLivePreview();
+    setTimeout(() => startLivePreview(), 30);
+  }
+}
+
+function toggleLivePreview() {
+  if(isLivePreviewPlaying) {
+    stopLivePreview();
+  } else {
+    startLivePreview();
+  }
+}
+
+function toggleLoop() {
+  liveLoopEnabled = !liveLoopEnabled;
+  const btn = document.getElementById('fxLoopBtn');
+  btn.classList.toggle('active', liveLoopEnabled);
+  btn.textContent = liveLoopEnabled ? '🔁 Loop ON' : '🔁 Loop';
+  if(liveSource) liveSource.loop = liveLoopEnabled;
+  showToast(liveLoopEnabled ? '🔁 Loop ON — slice will repeat while editing' : 'Loop off');
+}
+
+// ════════════════════════════════════════
+// COVER ART
+// ════════════════════════════════════════
+function handleCoverUpload(input) {
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if(file.size > 2 * 1024 * 1024) { showToast('Cover art under 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    coverArtData = e.target.result;
+    document.getElementById('coverEmpty').style.display = 'none';
+    const img = document.getElementById('coverImg');
+    img.src = coverArtData;
+    img.style.display = 'block';
+    showToast('🎨 Cover art added', 'success');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+// ════════════════════════════════════════
+// PROJECT SAVE/LOAD
+// ════════════════════════════════════════
+function newProject() {
+  if(slices.length && !confirm('Start new project? Unsaved work will be lost.')) return;
+  stopLivePreview();
+  audioBuffer = null;
+  slices = [];
+  selectedSliceId = null;
+  pausedAt = 0;
+  trackName = '';
+  trackDuration = 0;
+  coverArtData = null;
+  document.getElementById('uploadZone').style.display = 'block';
+  document.getElementById('waveformSection').style.display = 'none';
+  document.getElementById('slicesSection').style.display = 'none';
+  document.getElementById('fxTopPanel').style.display = 'none';
+  document.getElementById('coverEmpty').style.display = 'block';
+  document.getElementById('coverImg').style.display = 'none';
+  document.getElementById('packName').value = '';
+  document.getElementById('packBpm').value = '';
+  document.getElementById('packKey').value = '';
+  document.getElementById('packProducer').value = currentUser?.name || '';
+  showToast('New project started');
+}
+
+function saveProject() {
+  if(!audioBuffer) { showToast('Nothing to save', 'error'); return; }
+  const project = {
+    trackName,
+    packName: document.getElementById('packName').value,
+    packBpm: document.getElementById('packBpm').value,
+    packKey: document.getElementById('packKey').value,
+    packGenre: document.getElementById('packGenre').value,
+    packProducer: document.getElementById('packProducer').value,
+    coverArt: coverArtData,
+    slices: slices.map(s => ({...s})),
+    savedAt: new Date().toISOString(),
+  };
+  localStorage.setItem(STORAGE.PROJECT, JSON.stringify(project));
+  showToast('💾 Project saved', 'success');
+}
+
+function loadProject() {
+  const data = localStorage.getItem(STORAGE.PROJECT);
+  if(!data) { showToast('No saved project', 'error'); return; }
+  if(!audioBuffer) { showToast('Upload your beat first, then load to restore slices', 'error'); return; }
+  try {
+    const p = JSON.parse(data);
+    document.getElementById('packName').value = p.packName || '';
+    document.getElementById('packBpm').value = p.packBpm || '';
+    document.getElementById('packKey').value = p.packKey || '';
+    document.getElementById('packGenre').value = p.packGenre || 'Trap';
+    document.getElementById('packProducer').value = p.packProducer || '';
+    if(p.coverArt) {
+      coverArtData = p.coverArt;
+      document.getElementById('coverEmpty').style.display = 'none';
+      const img = document.getElementById('coverImg');
+      img.src = coverArtData;
+      img.style.display = 'block';
+    }
+    slices = p.slices || [];
+    renderSliceMarkers();
+    renderSlices();
+    showToast('✅ Project loaded', 'success');
+  } catch(e) {
+    showToast('Could not load project', 'error');
+  }
+}
+
+// ════════════════════════════════════════
+// EXPORT TO ZIP
+// ════════════════════════════════════════
+async function exportPack() {
+  if(!audioBuffer) { showToast('Upload a beat first', 'error'); return; }
+  if(!slices.length) { showToast('Add at least one slice', 'error'); return; }
+  // Check usage
+  const usage = getUsage();
+  if(!isPro() && usage.current.exports >= FREE_LIMITS.exports) {
+    showPaywall(`You've used all ${FREE_LIMITS.exports} free exports this month. Upgrade to Pro for unlimited exports.`);
+    return;
+  }
+  const packName = (document.getElementById('packName').value || 'UntitledPack').replace(/[^a-zA-Z0-9_-]/g, '_');
+  const bpm = document.getElementById('packBpm').value || 'XXX';
+  const key = document.getElementById('packKey').value || '';
+  const keyShort = key ? key.replace(' major','maj').replace(' minor','min').replace(/\s/g,'') : '';
+  const genre = document.getElementById('packGenre').value || 'Trap';
+  const producer = document.getElementById('packProducer').value || (currentUser?.name || 'Producer');
+
+  showToast('📦 Exporting pack... please wait');
+
+  const zip = new JSZip();
+  const ctx = ensureAudioContext();
+
+  // Categorize slices into folders
+  const categoryFolders = {
+    'kick': 'Drums/Kicks', 'snare': 'Drums/Snares', 'hihat': 'Drums/HiHats', 'perc': 'Drums/Percussion',
+    '808': 'Bass/808s', 'loop': 'Loops', 'melody': 'Melodies', 'vocal': 'Vocals', 'fx': 'FX', 'one-shot': 'One-Shots',
+  };
+
+  for(let i = 0; i < slices.length; i++) {
+    const s = slices[i];
+    try {
+      // Render slice with FX
+      const wavBlob = await renderSliceToWav(s);
+      const folder = categoryFolders[s.category] || 'One-Shots';
+      const fileName = `${s.name.replace(/[^a-zA-Z0-9_-]/g,'_')}_${bpm}BPM${keyShort?'_'+keyShort:''}_${String(i+1).padStart(2,'0')}.wav`;
+      zip.file(`${packName}/${folder}/${fileName}`, wavBlob);
+    } catch(e) {
+      console.error('Export slice failed:', e);
+    }
+  }
+
+  // Cover art
+  if(coverArtData) {
+    const coverBlob = await fetch(coverArtData).then(r => r.blob());
+    zip.file(`${packName}/cover.${coverArtData.includes('jpeg')?'jpg':'png'}`, coverBlob);
+  }
+
+  // Pack info file
+  const watermark = isPro() ? '' : '\n\n--- Made with UniPack (Free) — Upgrade to Pro at unibeatzproduction.com/unipack ---';
+  const info = `${packName}\n\nProducer: ${producer}\nBPM: ${bpm}\nKey: ${key || 'Various'}\nGenre: ${genre}\nSlices: ${slices.length}\n\nMade with UniPack by UniBeatz Production\nhttps://unibeatzproduction.com${watermark}`;
+  zip.file(`${packName}/PACK_INFO.txt`, info);
+
+  // README
+  const readme = `${packName.replace(/_/g,' ')}\n\nThis sample pack was created using UniPack by UniBeatz Production.\n\nContents:\n${[...new Set(slices.map(s => categoryFolders[s.category] || 'One-Shots'))].map(f => '  - ' + f).join('\n')}\n\nVisit: https://unibeatzproduction.com/unipack\n${watermark}`;
+  zip.file(`${packName}/README.txt`, readme);
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${packName}.zip`;
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Track usage
+  if(!isPro()) {
+    usage.current.exports = (usage.current.exports || 0) + 1;
+    saveUsage(usage);
+    refreshUsageMeter();
+  }
+
+  showToast(`✅ Pack exported! (${slices.length} samples)`, 'success');
+}
+
+// Render a slice to WAV with FX
+async function renderSliceToWav(slice) {
+  const ctx = ensureAudioContext();
+  const sliceLen = Math.floor((slice.end - slice.start) * audioBuffer.sampleRate);
+  // Apply pitch shift via offline rendering
+  const pitchRate = Math.pow(2, slice.fx.pitch / 12);
+  const offlineLen = Math.floor(sliceLen / pitchRate);
+  const offline = new OfflineAudioContext(audioBuffer.numberOfChannels, offlineLen, audioBuffer.sampleRate);
+  // Source slice buffer
+  const sliceBuf = offline.createBuffer(audioBuffer.numberOfChannels, sliceLen, audioBuffer.sampleRate);
+  for(let ch = 0; ch < audioBuffer.numberOfChannels; ch++) {
+    const data = audioBuffer.getChannelData(ch);
+    const sliceData = sliceBuf.getChannelData(ch);
+    const startSample = Math.floor(slice.start * audioBuffer.sampleRate);
+    for(let i = 0; i < sliceLen; i++) sliceData[i] = data[startSample + i] || 0;
+  }
+  const src = offline.createBufferSource();
+  src.buffer = sliceBuf;
+  src.playbackRate.value = pitchRate;
+  // FX chain
+  const lowF = offline.createBiquadFilter(); lowF.type = 'lowshelf'; lowF.frequency.value = 200; lowF.gain.value = slice.fx.low;
+  const midF = offline.createBiquadFilter(); midF.type = 'peaking'; midF.frequency.value = 1000; midF.Q.value = 1; midF.gain.value = slice.fx.mid;
+  const highF = offline.createBiquadFilter(); highF.type = 'highshelf'; highF.frequency.value = 4000; highF.gain.value = slice.fx.high;
+  const gain = offline.createGain(); gain.gain.value = Math.pow(10, slice.fx.gain / 20);
+  src.connect(lowF).connect(midF).connect(highF).connect(gain).connect(offline.destination);
+  src.start(0);
+  const rendered = await offline.startRendering();
+  return audioBufferToWav(rendered);
+}
+
+// Convert AudioBuffer to WAV Blob
+function audioBufferToWav(buffer) {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1;
+  const bitDepth = 16;
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = numChannels * bytesPerSample;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = buffer.length * blockAlign;
+  const headerSize = 44;
+  const ab = new ArrayBuffer(headerSize + dataSize);
+  const view = new DataView(ab);
+  // RIFF header
+  writeStr(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeStr(view, 8, 'WAVE');
+  writeStr(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, format, true);
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitDepth, true);
+  writeStr(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+  // PCM data
+  let offset = 44;
+  for(let i = 0; i < buffer.length; i++) {
+    for(let ch = 0; ch < numChannels; ch++) {
+      const sample = Math.max(-1, Math.min(1, buffer.getChannelData(ch)[i]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+      offset += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+function writeStr(view, offset, str) {
+  for(let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+}
+
+function pushToWorld() {
+  if(!isPro()) {
+    showPaywall('Push to UniBeatz World marketplace is a Pro feature. Upgrade to publish your packs directly to our marketplace.');
+    return;
+  }
+  showToast('🌍 UniBeatz World marketplace launches Q2 2026. Your pack is queued for launch day!', 'success');
+}
+
+// ════════════════════════════════════════
+// PAYWALL
+// ════════════════════════════════════════
+function showPaywall(reason) {
+  document.getElementById('paywallReason').textContent = reason || 'Unlock unlimited exports and pro features.';
+  document.getElementById('paywallModal').classList.add('active');
+}
+function closePaywall() {
+  document.getElementById('paywallModal').classList.remove('active');
+}
+function upgradeToPro() {
+  if(!currentUser) { goPage('signup'); return; }
+  showPaywall('Get UniPack Pro for unlimited exports, no watermark, and all premium features.');
+}
+// Stripe Pro Subscription Link
+const STRIPE_PRO_URL = 'https://buy.stripe.com/00w3co4Z4cpg9ikfBI93y01';
+
+function processProUpgrade() {
+  if(!currentUser) {
+    showToast('Sign up first to upgrade', 'error');
+    closePaywall();
+    setTimeout(() => goPage('signup'), 600);
+    return;
+  }
+
+  // ═════ REAL STRIPE CHECKOUT ═════
+  // Build URL with prefilled email + customer reference for tracking
+  const checkoutUrl = STRIPE_PRO_URL
+    + '?prefilled_email=' + encodeURIComponent(currentUser.email)
+    + '&client_reference_id=' + encodeURIComponent(currentUser.username || currentUser.uid);
+
+  showToast('🚀 Opening secure Stripe checkout...');
+
+  // Mark this user as awaiting pro upgrade
+  localStorage.setItem('unipack_pending_upgrade', JSON.stringify({
+    username: currentUser.username,
+    timestamp: Date.now()
+  }));
+
+  // Open Stripe Checkout in new tab
+  window.open(checkoutUrl, '_blank');
+  closePaywall();
+
+  // Ask user to confirm when they return
+  setTimeout(() => {
+    if(confirm('💎 Did you complete your subscription on Stripe?\n\nClick OK if you successfully subscribed — your Pro features will activate immediately.\n\nClick Cancel if you didn\'t subscribe yet.')) {
+      // Activate Pro locally (in production, a Stripe webhook would do this server-side)
+      currentUser.unipackTier = 'pro';
+      currentUser.proSince = new Date().toISOString();
+      const users = getUsers();
+      users[currentUser.username] = currentUser;
+      saveUsers(users);
+      setCurrentUser(currentUser);
+      refreshUsageMeter();
+      document.getElementById('uploadSizeLimit').textContent = '500MB';
+      showToast('🔥 Welcome to UniPack Pro! Unlimited exports unlocked!', 'success');
+    }
+  }, 2500);
+}
+
+// ════════════════════════════════════════
+// USAGE METER
+// ════════════════════════════════════════
+function refreshUsageMeter() {
+  if(!currentUser) return;
+  const usage = getUsage();
+  const used = usage.current.exports || 0;
+  const meter = document.getElementById('usageMeter');
+  const fill = document.getElementById('usageFill');
+  const count = document.getElementById('usageCount');
+  const label = document.getElementById('usageLabel');
+  const note = document.getElementById('usageNote');
+  if(isPro()) {
+    label.textContent = '👑 Pro Tier';
+    count.textContent = `${used} exports · UNLIMITED`;
+    fill.style.width = '100%';
+    fill.classList.remove('warn');
+    note.innerHTML = 'Unlimited exports · Pro member 🔥';
+  } else {
+    label.textContent = '📊 Free Tier';
+    const max = FREE_LIMITS.exports;
+    count.textContent = `${used}/${max} exports`;
+    const pct = (used / max) * 100;
+    fill.style.width = pct + '%';
+    fill.classList.toggle('warn', pct >= 66);
+    note.innerHTML = `Resets monthly · <a style="color:var(--gold);cursor:pointer;" onclick="upgradeToPro()">Upgrade to Pro</a>`;
+  }
+  document.getElementById('uploadSizeLimit').textContent = (isPro() ? PRO_LIMITS : FREE_LIMITS).uploadMB + 'MB';
+}
+
+// ════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════
+function formatTime(s) {
+  const min = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${min}:${String(sec).padStart(2,'0')}`;
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════
+// LIGHTNING BG
+// ════════════════════════════════════════
+const cv = document.getElementById('bg-canvas');
+const cx = cv.getContext('2d');
+function rsz() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+rsz();
+window.addEventListener('resize', () => { rsz(); if(audioBuffer) drawWaveform(); });
+function bolt(x1,y1,x2,y2,o,d){if(!d){cx.moveTo(x1,y1);cx.lineTo(x2,y2);return;}const mx=(x1+x2)/2+(Math.random()-0.5)*o,my=(y1+y2)/2+(Math.random()-0.5)*o;bolt(x1,y1,mx,my,o/2,d-1);bolt(mx,my,x2,y2,o/2,d-1);}
+function flash(){cx.clearRect(0,0,cv.width,cv.height);for(let i=0;i<3;i++){cx.beginPath();cx.strokeStyle=i%2===0?`rgba(0,170,255,${0.3+Math.random()*0.4})`:`rgba(201,168,76,${0.2+Math.random()*0.3})`;cx.lineWidth=i===0?1.5:0.8;const sx=Math.random()*cv.width;bolt(sx,0,sx+(Math.random()-0.5)*300,cv.height*0.8,200,7);cx.stroke();}}
+(function loop(){if(Math.random()<0.03){flash();setTimeout(()=>cx.clearRect(0,0,cv.width,cv.height),80+Math.random()*120);}requestAnimationFrame(loop);})();
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  loadCurrentUser();
+  refreshNav();
+  // Update pack name display when typed
+  document.getElementById('packName').addEventListener('input', () => {
+    document.getElementById('exportPackName').textContent = document.getElementById('packName').value || 'Untitled';
+  });
+});
+</script>
+</body>
+</html>
