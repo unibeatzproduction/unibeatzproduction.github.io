@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniBeatz World | Beats · Sound Packs · Merch</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--black:#020202;--deep:#06060f;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#777;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+#lightning-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:12px 32px;background:rgba(2,2,2,0.96);border-bottom:1px solid rgba(201,168,76,0.2);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo img{height:44px;width:44px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,170,255,0.6));}
+.nav-logo-text{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-back{font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:3px;color:var(--gold);text-decoration:none;border:1px solid rgba(201,168,76,0.3);padding:7px 16px;transition:all 0.2s;}
+.nav-back:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+.hamburger span{display:block;width:24px;height:2px;background:var(--gold);}
+.nav-links{display:flex;gap:20px;list-style:none;align-items:center;}
+.nav-links a{color:var(--white);text-decoration:none;font-size:0.8rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--gold-light);}
+
+/* HERO */
+#hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 20px 60px;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 50% at 50% 40%,rgba(201,168,76,0.1) 0%,transparent 70%),
+  radial-gradient(ellipse 50% 40% at 80% 20%,rgba(0,170,255,0.07) 0%,transparent 60%),
+  radial-gradient(ellipse 40% 50% at 10% 80%,rgba(201,168,76,0.05) 0%,transparent 60%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.03) 1px,transparent 1px);background-size:60px 60px;}
+.hero-content{position:relative;z-index:2;max-width:900px;}
+.hero-logo{width:160px;height:160px;object-fit:contain;margin-bottom:20px;filter:drop-shadow(0 0 30px rgba(201,168,76,0.7)) drop-shadow(0 0 60px rgba(0,170,255,0.3));animation:pulse 3s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+.hero-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.62rem;letter-spacing:6px;color:var(--gold);margin-bottom:12px;opacity:0;animation:fu 0.8s 0.3s forwards;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,10vw,7.5rem);line-height:0.9;letter-spacing:5px;margin-bottom:8px;opacity:0;animation:fu 0.8s 0.5s forwards;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(1rem,3vw,2rem);letter-spacing:8px;color:var(--white);margin-bottom:16px;opacity:0;animation:fu 0.8s 0.7s forwards;}
+.hero-desc{font-size:1rem;color:rgba(240,237,232,0.6);max-width:560px;margin:0 auto 36px;line-height:1.7;opacity:0;animation:fu 0.8s 0.9s forwards;}
+@keyframes fu{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+
+/* CATEGORY TABS */
+.cat-tabs{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;opacity:0;animation:fu 0.8s 1s forwards;}
+.cat-tab{padding:10px 24px;border:1px solid rgba(201,168,76,0.3);background:transparent;color:rgba(240,237,232,0.6);font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:3px;cursor:pointer;transition:all 0.2s;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.cat-tab:hover,.cat-tab.active{border-color:var(--gold);color:var(--gold-light);background:rgba(201,168,76,0.08);box-shadow:0 0 20px rgba(201,168,76,0.15);}
+.cat-tab-unipack{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(0,170,255,0.15));border:1px solid var(--gold) !important;color:var(--gold-light) !important;position:relative;}
+.cat-tab-unipack::after{content:'NEW';position:absolute;top:-7px;right:-7px;background:linear-gradient(135deg,var(--red),#ff6644);color:#fff;font-size:0.42rem;letter-spacing:1px;padding:2px 6px;border-radius:8px;font-weight:900;clip-path:none;box-shadow:0 0 10px rgba(255,51,51,0.4);animation:pulseTag 2s infinite;}
+@keyframes pulseTag{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+.cat-tab-unipack:hover{box-shadow:0 0 24px rgba(201,168,76,0.4);transform:translateY(-2px);}
+
+/* SECTION */
+section{position:relative;z-index:1;}
+.section-header{text-align:center;margin-bottom:48px;}
+.section-label{font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:6px;color:var(--blue-bright);text-transform:uppercase;margin-bottom:10px;display:block;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.8rem);letter-spacing:3px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.section-line{display:block;width:70px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),transparent);margin:12px auto 0;}
+
+/* FEATURED */
+#featured{padding:90px 32px;background:linear-gradient(180deg,var(--black) 0%,#05050f 100%);}
+.featured-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1200px;margin:0 auto;}
+.product-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.15);overflow:hidden;position:relative;transition:all 0.3s;cursor:pointer;}
+.product-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--blue-bright));transform:scaleX(0);transition:transform 0.3s;}
+.product-card:hover::after{transform:scaleX(1);}
+.product-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-5px);box-shadow:0 24px 60px rgba(0,0,0,0.5),0 0 30px rgba(201,168,76,0.08);}
+.product-img{height:180px;background:linear-gradient(135deg,#0f0f20,#080815);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.product-img-icon{font-size:4rem;filter:drop-shadow(0 0 20px rgba(201,168,76,0.4));}
+.product-img-glow{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,0.08) 0%,transparent 70%);}
+.product-badge{position:absolute;top:12px;right:12px;padding:4px 10px;font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;font-weight:700;}
+.badge-new{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);}
+.badge-hot{background:linear-gradient(135deg,#cc2200,#ff4400);color:var(--white);}
+.badge-excl{background:linear-gradient(135deg,#004488,var(--blue));color:var(--white);}
+.product-body{padding:20px;}
+.product-cat{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:6px;}
+.product-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--white);margin-bottom:4px;}
+.product-desc{font-size:0.82rem;color:rgba(240,237,232,0.5);margin-bottom:14px;line-height:1.5;}
+.product-footer{display:flex;align-items:center;justify-content:space-between;}
+.product-price{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--gold-light);}
+.product-price .old{font-size:0.75rem;color:var(--gray);text-decoration:line-through;margin-right:6px;}
+.btn-buy{padding:8px 18px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.52rem;font-weight:700;letter-spacing:2px;border:none;cursor:pointer;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);transition:all 0.2s;}
+.btn-buy:hover{background:linear-gradient(135deg,var(--gold),var(--gold-light));box-shadow:0 0 20px rgba(201,168,76,0.4);}
+
+/* SOUND PACKS */
+#packs{padding:90px 32px;background:var(--black);}
+.packs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+.pack-card{background:linear-gradient(135deg,#08081a,#050510);border:1px solid rgba(0,170,255,0.15);padding:28px;position:relative;overflow:hidden;transition:all 0.3s;}
+.pack-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue-bright),transparent);}
+.pack-card:hover{border-color:rgba(0,170,255,0.4);transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,0.5),0 0 30px rgba(0,170,255,0.08);}
+.pack-icon{font-size:2.5rem;margin-bottom:12px;display:block;}
+.pack-cat{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:6px;}
+.pack-name{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:2px;color:var(--white);margin-bottom:8px;}
+.pack-includes{list-style:none;margin-bottom:16px;}
+.pack-includes li{font-size:0.82rem;color:rgba(240,237,232,0.6);padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;gap:8px;}
+.pack-includes li::before{content:'⚡';font-size:0.65rem;color:var(--blue-bright);flex-shrink:0;}
+.pack-footer{display:flex;align-items:center;justify-content:space-between;}
+.pack-price{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--gold-light);}
+.btn-pack{padding:8px 18px;background:rgba(0,170,255,0.1);border:1px solid var(--blue);color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:2px;cursor:pointer;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);transition:all 0.2s;}
+.btn-pack:hover{background:rgba(0,170,255,0.2);box-shadow:0 0 20px rgba(0,170,255,0.3);}
+
+/* MERCH */
+#merch{padding:90px 32px;background:linear-gradient(180deg,#05050f,var(--black));}
+.merch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+.merch-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.15);overflow:hidden;transition:all 0.3s;position:relative;}
+.merch-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-5px);box-shadow:0 24px 60px rgba(0,0,0,0.5);}
+.merch-img{height:200px;background:linear-gradient(135deg,#0f0f1e,#080812);display:flex;align-items:center;justify-content:center;font-size:5rem;position:relative;}
+.merch-img-glow{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(201,168,76,0.06) 0%,transparent 70%);}
+.merch-body{padding:18px;}
+.merch-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--white);margin-bottom:4px;}
+.merch-desc{font-size:0.8rem;color:rgba(240,237,232,0.5);margin-bottom:12px;}
+.merch-footer{display:flex;align-items:center;justify-content:space-between;}
+.merch-price{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:var(--gold-light);}
+.merch-cs{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--blue-bright);border:1px solid rgba(0,170,255,0.3);padding:5px 12px;}
+
+/* MEMBERSHIP */
+#membership{padding:90px 32px;background:var(--black);}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:20px;max-width:980px;margin:0 auto;}
+.plan-card{border:1px solid rgba(201,168,76,0.2);padding:36px 28px;text-align:center;position:relative;background:linear-gradient(160deg,#090910,#040408);transition:all 0.3s;}
+.plan-card.featured{border-color:var(--gold);background:linear-gradient(160deg,#0f0f1a,#080812);box-shadow:0 0 40px rgba(201,168,76,0.12),0 0 80px rgba(0,170,255,0.06);}
+.plan-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;padding:4px 18px;font-weight:700;white-space:nowrap;}
+.plan-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--white);margin-bottom:4px;margin-top:14px;}
+.plan-price{font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:900;color:var(--gold-light);line-height:1;}
+.plan-period{font-size:0.82rem;color:var(--gray);letter-spacing:2px;margin-bottom:24px;}
+.plan-features{list-style:none;margin-bottom:28px;text-align:left;}
+.plan-features li{padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.9rem;color:rgba(240,237,232,0.75);display:flex;align-items:center;gap:8px;}
+.plan-features li::before{content:'⚡';font-size:0.65rem;color:var(--gold);flex-shrink:0;}
+.plan-card:hover{transform:translateY(-5px);box-shadow:0 30px 60px rgba(0,0,0,0.4);}
+.btn-plan{display:block;width:100%;padding:13px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:3px;border:none;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all 0.3s;}
+.btn-plan:hover{box-shadow:0 0 30px rgba(201,168,76,0.5);}
+
+/* COMING SOON OVERLAY */
+.cs-overlay{position:absolute;inset:0;background:rgba(2,2,2,0.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;backdrop-filter:blur(2px);z-index:2;}
+.cs-overlay-text{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:4px;color:var(--gold-light);}
+.cs-overlay-sub{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--blue-bright);}
+.notify-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.notify-input{flex:1;min-width:170px;max-width:230px;background:rgba(255,255,255,0.06);border:1px solid rgba(201,168,76,0.3);color:var(--white);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:0.88rem;outline:none;}
+.notify-btn{padding:9px 18px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;border:none;cursor:pointer;font-weight:700;white-space:nowrap;}
+
+/* FOOTER */
+footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,168,76,0.12);}
+.footer-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;}
+.footer-brand{display:flex;align-items:center;gap:12px;}
+.footer-brand img{height:44px;filter:drop-shadow(0 0 8px rgba(0,170,255,0.4));}
+.footer-brand-text{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.footer-links{display:flex;gap:20px;flex-wrap:wrap;}
+.footer-links a{color:rgba(240,237,232,0.4);text-decoration:none;font-size:0.8rem;transition:color 0.2s;}
+.footer-links a:hover{color:var(--gold-light);}
+.footer-bottom{text-align:center;padding-top:20px;border-top:1px solid rgba(255,255,255,0.04);font-size:0.7rem;color:rgba(240,237,232,0.2);letter-spacing:1px;margin-top:20px;}
+.footer-bottom span{color:var(--gold);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.modal-overlay.active{display:flex;}
+.modal{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.3);padding:36px;max-width:420px;width:90%;position:relative;box-shadow:0 0 80px rgba(0,0,0,0.8);}
+.modal-close{position:absolute;top:12px;right:16px;background:none;border:none;color:var(--gray);font-size:1.3rem;cursor:pointer;}
+.modal-close:hover{color:var(--gold);}
+.modal h2{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:5px;}
+.modal-sub{font-size:0.8rem;color:var(--gray);margin-bottom:20px;}
+.form-group{margin-bottom:12px;}
+.form-group label{display:block;font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--gold);margin-bottom:5px;}
+.form-group input,.form-group select{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);padding:10px 13px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;outline:none;}
+.form-group input:focus{border-color:var(--gold);}
+.submit-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:3px;border:none;cursor:pointer;margin-top:6px;}
+.stripe-note{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:0.7rem;color:var(--gray);}
+.stripe-note .lock{color:var(--blue-bright);}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;right:22px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid var(--gold);padding:13px 20px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.88rem;z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.4s;box-shadow:0 0 30px rgba(201,168,76,0.2);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity 0.6s,transform 0.6s;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* BTN */
+.btn-gold{display:inline-block;padding:11px 28px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all 0.3s;}
+.btn-gold:hover{box-shadow:0 0 30px rgba(201,168,76,0.5);transform:translateY(-2px);}
+
+@media(max-width:900px){
+  nav{padding:12px 18px;}
+  .nav-links{display:none;flex-direction:column;position:fixed;inset:0;background:rgba(2,2,2,0.98);align-items:center;justify-content:center;gap:26px;z-index:200;}
+  .nav-links.open{display:flex;}
+  .hamburger{display:flex;}
+  #featured,#packs,#merch,#membership{padding:60px 18px;}
+  .plans-grid{grid-template-columns:1fr;}
+  .footer-inner{flex-direction:column;align-items:flex-start;}
+}
+@media(max-width:600px){.merch-grid,.featured-grid{grid-template-columns:1fr;}}
+/* UNIPACK PROMO SECTION */
+#unipack-promo{padding:80px 28px;background:linear-gradient(180deg,#020205,#06060f);position:relative;overflow:hidden;}
+#unipack-promo::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 30% 50%,rgba(0,170,255,0.08),transparent 70%),radial-gradient(ellipse 50% 50% at 80% 60%,rgba(201,168,76,0.08),transparent 70%);}
+.unipack-wrap{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center;position:relative;z-index:2;}
+@media(max-width:900px){.unipack-wrap{grid-template-columns:1fr;gap:30px;}}
+.unipack-text{position:relative;}
+.unipack-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.unipack-eyebrow::after{content:'';display:inline-block;width:60px;height:1px;background:linear-gradient(90deg,var(--blue),transparent);}
+.unipack-badge-new{display:inline-block;padding:3px 10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.45rem;letter-spacing:2px;font-weight:700;border-radius:4px;margin-left:8px;}
+.unipack-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.4rem,6vw,4rem);line-height:0.9;letter-spacing:3px;margin-bottom:14px;}
+.unipack-title .g{color:var(--gold-light);}
+.unipack-title .b{color:var(--blue-bright);text-shadow:0 0 18px rgba(0,170,255,0.4);}
+.unipack-tag{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:5px;color:var(--gold);margin-bottom:14px;}
+.unipack-desc{font-size:1rem;color:rgba(240,237,232,0.65);line-height:1.7;margin-bottom:22px;max-width:480px;}
+.unipack-features-mini{list-style:none;margin-bottom:24px;}
+.unipack-features-mini li{padding:6px 0;font-size:0.92rem;color:rgba(240,237,232,0.78);display:flex;align-items:center;gap:10px;}
+.unipack-features-mini li::before{content:'⚡';color:var(--gold);}
+.unipack-cta-row{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-unipack{display:inline-block;padding:14px 28px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
+.btn-unipack:hover{box-shadow:0 0 25px rgba(201,168,76,0.5);transform:translateY(-2px);}
+.btn-unipack-blue{display:inline-block;padding:14px 28px;border:1px solid var(--blue);background:transparent;color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
+.btn-unipack-blue:hover{background:rgba(0,170,255,0.1);transform:translateY(-2px);}
+.unipack-pricing{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gray);margin-top:14px;}
+.unipack-pricing strong{color:var(--gold-light);font-size:1.05rem;}
+.unipack-visual{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.2);border-radius:12px;padding:24px;}
+.unipack-visual-step{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid rgba(255,255,255,0.05);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);}
+.unipack-visual-step:last-of-type{margin-bottom:0;}
+.unipack-step-num{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.95rem;flex-shrink:0;font-family:'Orbitron',sans-serif;}
+.unipack-step-text{flex:1;}
+.unipack-step-title{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;}
+.unipack-step-desc{font-size:0.8rem;color:var(--gray);}
+.unipack-arrow{text-align:center;color:var(--gold);font-size:1.4rem;margin:4px 0;animation:bounceArrow 1.5s infinite;}
+@keyframes bounceArrow{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
+
+
+/* ADMIN LOCK */
+.admin-lock-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.86);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.admin-lock-overlay.active{display:flex;}
+.admin-lock-card{width:min(760px,88vw);background:linear-gradient(135deg,rgba(15,15,28,0.96),rgba(5,5,10,0.96));border:1px solid rgba(201,168,76,0.35);box-shadow:0 0 60px rgba(0,0,0,0.7),0 0 25px rgba(201,168,76,0.08);padding:54px 44px 46px;text-align:center;position:relative;}
+.admin-lock-close{position:absolute;right:22px;top:18px;background:none;border:none;color:rgba(240,237,232,0.65);font-size:2.1rem;cursor:pointer;line-height:1;}
+.admin-lock-close:hover{color:var(--gold-light);}
+.admin-lock-icon{font-size:3.5rem;margin-bottom:16px;filter:drop-shadow(0 0 12px rgba(201,168,76,0.45));}
+.admin-lock-title{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:7px;color:var(--gold-light);margin-bottom:12px;text-shadow:0 0 18px rgba(201,168,76,0.22);}
+.admin-lock-sub{font-size:1rem;color:var(--blue-bright);margin-bottom:20px;}
+.admin-lock-input{width:100%;height:58px;background:rgba(255,255,255,0.05);border:2px solid var(--gold);color:var(--white);font-family:'Rajdhani',sans-serif;font-size:1.25rem;text-align:center;letter-spacing:8px;outline:none;margin-bottom:16px;}
+.admin-lock-input:focus{box-shadow:0 0 18px rgba(201,168,76,0.35);}
+.admin-lock-btn{width:100%;height:58px;border:none;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:.68rem;font-weight:900;letter-spacing:6px;text-transform:lowercase;cursor:pointer;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);}
+.admin-lock-btn:hover{box-shadow:0 0 24px rgba(201,168,76,.45);}
+.admin-lock-error{display:none;color:#ff5555;font-family:'Orbitron',sans-serif;font-size:.65rem;letter-spacing:2px;margin-top:12px;}
+.admin-lock-error.show{display:block;}
+
+</style>
+</head>
+<body>
+
+<div class="admin-lock-overlay" id="adminLockOverlay">
+  <div class="admin-lock-card">
+    <button class="admin-lock-close" onclick="closeAdminLock()" aria-label="Close">×</button>
+    <div class="admin-lock-icon">🔐</div>
+    <div class="admin-lock-title">ADMIN ACCESS</div>
+    <div class="admin-lock-sub">Enter your secure passcode.</div>
+    <input class="admin-lock-input" id="adminLockInput" type="password" autocomplete="off" />
+    <button class="admin-lock-btn" onclick="unlockAdminPanel()">unlock</button>
+    <div class="admin-lock-error" id="adminLockError">Wrong passcode. Try again.</div>
+  </div>
+</div>
+
+<canvas id="lightning-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+    <span class="nav-logo-text">UNIBEATZ</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#unipack-promo">🎛️ UniPack</a></li>
+    <li><a href="#featured">Beats</a></li>
+    <li><a href="#packs">Sound Packs</a></li>
+    <li><a href="https://unibeatzproduction.myshopify.com" target="_blank" rel="noopener">🛍️ Merch Store</a></li>
+    <li><a href="#membership">Membership</a></li>
+    <li><a href="#" onclick="openAdmin();return false;" id="adminNavLink" style="display:none;color:var(--gold-light);">⚙️ Admin</a></li>
+    <li><a href="index.html" class="nav-back">← Home</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <img src="logo.png" class="hero-logo" alt="UniBeatz World" onerror="this.style.display='none'"/>
+    <p class="hero-eyebrow">The Universe of Sound & Style</p>
+    <h1 class="hero-title">UNIBEATZ WORLD</h1>
+    <p class="hero-sub">Beats · Sound Packs · Merch · Culture</p>
+    <p class="hero-desc">Everything you need to create, perform, and represent. One world. Infinite possibilities.</p>
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="scrollTo('#featured')">🎵 Beats</button>
+      <button class="cat-tab" onclick="scrollTo('#packs')">📦 Sound Packs</button>
+      <button class="cat-tab" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')">👕 Merch <span style="display:inline-block;width:6px;height:6px;background:#ff3333;border-radius:50%;margin-left:4px;animation:pulseTag 1.5s infinite;vertical-align:middle;"></span></button>
+      <button class="cat-tab" onclick="scrollTo('#membership')">💎 Membership</button>
+      <button class="cat-tab cat-tab-unipack" onclick="window.location.href='unipack.html'">🎛️ UniPack</button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURED BEATS -->
+
+<!-- ══════════ UNIPACK PROMO ══════════ -->
+<section id="unipack-promo">
+  <div class="unipack-wrap">
+    <div class="unipack-text">
+      <p class="unipack-eyebrow">⚡ NEW PRODUCER TOOL <span class="unipack-badge-new">LIVE</span></p>
+      <h2 class="unipack-title"><span class="g">UNI</span><span class="b">PACK</span></h2>
+      <p class="unipack-tag">TURN YOUR BEAT INTO A PACK</p>
+      <p class="unipack-desc">You already made the sounds. UniPack chops, polishes, and exports your beat as a complete sample pack — drums, loops, one-shots — ready to sell. <strong style="color:var(--gold-light);">In minutes, not hours.</strong></p>
+      <ul class="unipack-features-mini">
+        <li>Drag, drop, slice, export — all in browser</li>
+        <li>EQ, pitch shift, reverb on every slice</li>
+        <li>Auto-named files, organized folders</li>
+        <li>Download ZIP or push to UniBeatz World</li>
+      </ul>
+      <div class="unipack-cta-row">
+        <a href="unipack.html" class="btn-unipack">🎛️ Open Studio</a>
+        <a href="unipack.html#pricing" class="btn-unipack-blue">View Pricing</a>
+      </div>
+      <div class="unipack-pricing">FREE FOREVER · PRO <strong>$9.99/mo</strong></div>
+    </div>
+    <div class="unipack-visual">
+      <div class="unipack-visual-step">
+        <div class="unipack-step-num">1</div>
+        <div class="unipack-step-text">
+          <div class="unipack-step-title">Drop Your Beat</div>
+          <div class="unipack-step-desc">Upload finished beat or stems</div>
+        </div>
+      </div>
+      <div class="unipack-arrow">↓</div>
+      <div class="unipack-visual-step">
+        <div class="unipack-step-num">2</div>
+        <div class="unipack-step-text">
+          <div class="unipack-step-title">Slice & Polish</div>
+          <div class="unipack-step-desc">Chop into loops + one-shots, add FX</div>
+        </div>
+      </div>
+      <div class="unipack-arrow">↓</div>
+      <div class="unipack-visual-step">
+        <div class="unipack-step-num">3</div>
+        <div class="unipack-step-text">
+          <div class="unipack-step-title">Export Pack</div>
+          <div class="unipack-step-desc">Auto-organized ZIP, ready to sell</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="featured">
+  <div class="section-header reveal">
+    <span class="section-label">Premium Instrumentals</span>
+    <h2 class="section-title">Featured Beats</h2>
+    <span class="section-line"></span>
+  </div>
+  <div class="featured-grid" id="worldBeatsGrid"></div>
+  <div style="text-align:center;margin-top:36px;" class="reveal">
+    <a href="index.html#beats" class="btn-gold">View Full Beat Store</a>
+  </div>
+</section>
+
+<!-- SOUND PACKS -->
+<section id="packs">
+  <div class="section-header reveal">
+    <span class="section-label">Curated by UniBeatz · or Make Your Own with UniPack</span>
+    <h2 class="section-title">Sound Packs</h2>
+    <span class="section-line"></span>
+    <p style="text-align:center;font-size:0.92rem;color:rgba(240,237,232,0.55);max-width:600px;margin:14px auto 0;line-height:1.6;">Browse our curated packs below — or <a href="unipack.html" style="color:var(--gold-light);text-decoration:underline;">create your own with UniPack Studio</a> and sell them right here.</p>
+  </div>
+  <div class="packs-grid" id="worldPacksGrid"></div>
+  <div class="reveal" id="packsEmptyMsg" style="display:none;text-align:center;padding:40px 20px;color:rgba(240,237,232,0.4);font-family:'Rajdhani',sans-serif;font-style:italic;">No sound packs yet. Check back soon — packs drop weekly.</div>
+</section>
+
+<!-- MERCH -->
+<section id="merch">
+  <div class="section-header reveal">
+    <span class="section-label">UBW Apparel — Built From Pressure</span>
+    <h2 class="section-title">Merch Store</h2>
+    <span class="section-line"></span>
+  </div>
+
+  <!-- LIVE NOW Hero Card -->
+  <div style="max-width:900px;margin:0 auto 40px;padding:40px 28px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(0,170,255,0.3);border-radius:16px;text-align:center;position:relative;overflow:hidden;" class="reveal">
+    
+    <!-- Lightning accent corners -->
+    <div style="position:absolute;top:0;left:0;width:60px;height:2px;background:linear-gradient(90deg,var(--blue-bright),transparent);"></div>
+    <div style="position:absolute;top:0;right:0;width:60px;height:2px;background:linear-gradient(-90deg,var(--blue-bright),transparent);"></div>
+    <div style="position:absolute;bottom:0;left:0;width:60px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);"></div>
+    <div style="position:absolute;bottom:0;right:0;width:60px;height:2px;background:linear-gradient(-90deg,var(--gold),transparent);"></div>
+
+    <!-- Live badge -->
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(255,51,51,0.1);border:1px solid #ff3333;border-radius:20px;margin-bottom:20px;">
+      <span style="width:8px;height:8px;background:#ff3333;border-radius:50%;animation:pulse 1.5s infinite;display:inline-block;"></span>
+      <span style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:#ff3333;font-weight:700;">SHOP NOW · LIVE</span>
+    </div>
+
+    <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2.6rem;letter-spacing:4px;color:var(--white);margin:0 0 8px;line-height:1;">THE PRESSURE COLLECTION</h3>
+    <p style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:4px;color:var(--blue-bright);margin:0 0 24px;">SERIES 001 · UNIBEATZWORLD APPAREL</p>
+
+    <p style="max-width:600px;margin:0 auto 28px;font-size:0.95rem;line-height:1.6;color:rgba(240,237,232,0.75);">
+      Heavyweight hoodies. Premium tees. Embroidered snapbacks. Each piece designed in the UBW universe — dark mythology, electric lightning, built from pressure.
+    </p>
+
+    <!-- Stats row -->
+    <div style="display:flex;justify-content:center;gap:32px;margin-bottom:28px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold-light);line-height:1;">5+</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:4px;">PIECES</div>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold-light);line-height:1;">420</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:4px;">GSM HOODIES</div>
+      </div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold-light);line-height:1;">$40+</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:4px;">FROM</div>
+      </div>
+    </div>
+
+    <!-- BIG SHOP NOW BUTTON -->
+    <a href="https://unibeatzproduction.myshopify.com" target="_blank" rel="noopener" style="display:inline-block;padding:18px 48px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:4px;font-weight:900;text-decoration:none;border-radius:8px;text-transform:uppercase;box-shadow:0 8px 32px rgba(201,168,76,0.3);transition:all 0.3s;">
+      🛍️ SHOP UBW APPAREL →
+    </a>
+
+    <p style="margin-top:18px;font-family:'Orbitron',sans-serif;font-size:0.45rem;letter-spacing:2px;color:var(--gray);">
+      🚚 SHIPS WORLDWIDE · POWERED BY SHOPIFY
+    </p>
+  </div>
+
+  <!-- Mini product previews -->
+  <div class="merch-grid">
+    <div class="merch-card reveal" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')" style="cursor:pointer;">
+      <div class="merch-img" style="font-size:3rem;"><div class="merch-img-glow"></div>🌑</div>
+      <div class="merch-body">
+        <div class="merch-name">THE VOID</div>
+        <div class="merch-desc">Disappear to dominate. Heavyweight oversized hoodie.</div>
+        <div class="merch-footer">
+          <div class="merch-price">From $90</div>
+          <span class="merch-cs" style="background:rgba(0,170,255,0.1);color:var(--blue-bright);border-color:var(--blue-bright);">SHOP →</span>
+        </div>
+      </div>
+    </div>
+    <div class="merch-card reveal" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')" style="cursor:pointer;">
+      <div class="merch-img" style="font-size:3rem;"><div class="merch-img-glow"></div>⚔️</div>
+      <div class="merch-body">
+        <div class="merch-name">WRATH</div>
+        <div class="merch-desc">Calm is a weapon. Lightning storm hoodie.</div>
+        <div class="merch-footer">
+          <div class="merch-price">From $85</div>
+          <span class="merch-cs" style="background:rgba(0,170,255,0.1);color:var(--blue-bright);border-color:var(--blue-bright);">SHOP →</span>
+        </div>
+      </div>
+    </div>
+    <div class="merch-card reveal" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')" style="cursor:pointer;">
+      <div class="merch-img" style="font-size:3rem;"><div class="merch-img-glow"></div>👁️</div>
+      <div class="merch-body">
+        <div class="merch-name">EPOCH</div>
+        <div class="merch-desc">You are the era. Premium structured tee.</div>
+        <div class="merch-footer">
+          <div class="merch-price">From $40</div>
+          <span class="merch-cs" style="background:rgba(0,170,255,0.1);color:var(--blue-bright);border-color:var(--blue-bright);">SHOP →</span>
+        </div>
+      </div>
+    </div>
+    <div class="merch-card reveal" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')" style="cursor:pointer;">
+      <div class="merch-img" style="font-size:3rem;"><div class="merch-img-glow"></div>👑</div>
+      <div class="merch-body">
+        <div class="merch-name">CROWN PRESSURE</div>
+        <div class="merch-desc">Heavy is the head. Embroidered snapback.</div>
+        <div class="merch-footer">
+          <div class="merch-price">From $45</div>
+          <span class="merch-cs" style="background:rgba(0,170,255,0.1);color:var(--blue-bright);border-color:var(--blue-bright);">SHOP →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:40px;" class="reveal">
+    <a href="https://unibeatzproduction.myshopify.com" target="_blank" rel="noopener" style="display:inline-block;padding:14px 32px;background:transparent;border:1px solid var(--gold);color:var(--gold-light);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;font-weight:700;text-decoration:none;border-radius:6px;text-transform:uppercase;transition:all 0.3s;">
+      VIEW FULL STORE →
+    </a>
+  </div>
+</section>
+
+<!-- MEMBERSHIP -->
+<section id="membership">
+  <div class="section-header reveal">
+    <span class="section-label">Unlimited Access</span>
+    <h2 class="section-title">World Membership</h2>
+    <span class="section-line"></span>
+  </div>
+  <div class="plans-grid">
+    <div class="plan-card reveal">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$29</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>5 Beat Downloads / Month</li>
+        <li>MP3 Format Only</li>
+        <li>Non-Exclusive License</li>
+        <li>1 Sound Pack / Month</li>
+        <li>Email Support</li>
+      </ul>
+      <button class="btn-plan" onclick="openModal('Starter Membership','$29/month')">Get Started</button>
+    </div>
+    <div class="plan-card featured reveal">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$79</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Downloads</li>
+        <li>WAV + Trackouts</li>
+        <li>Non-Exclusive License</li>
+        <li>All Sound Packs Included</li>
+        <li>Priority Support</li>
+        <li>Early Beat Access</li>
+        <li>10% Off Merch</li>
+      </ul>
+      <button class="btn-plan" onclick="openModal('Pro Membership','$79/month')">Go Pro</button>
+    </div>
+    <div class="plan-card reveal">
+      <div class="plan-name">Elite</div>
+      <div class="plan-price">$149</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Everything</li>
+        <li>WAV + Trackouts + Stems</li>
+        <li>Exclusive Licensing Options</li>
+        <li>All Sound Packs + Future Drops</li>
+        <li>VIP Direct Access</li>
+        <li>Free Monthly Studio Hour</li>
+        <li>20% Off Merch</li>
+        <li>Custom Beat Discounts</li>
+      </ul>
+      <button class="btn-plan" onclick="openModal('Elite Membership','$149/month')">Go Elite</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <span class="footer-brand-text">UNIBEATZ WORLD</span>
+    </div>
+    <div class="footer-links">
+      <a href="index.html">← Back to HQ</a>
+      <a href="index.html#beats">Beat Store</a>
+      <a href="index.html#videos">Battle Highlights</a>
+      <a href="unifreestyle.html">Freestyle App</a></li>
+        <li><a href="unipack.html">🎛️ UniPack Studio</a>
+      <a href="mailto:contact@unibeatzproduction.com">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 <span>UniBeatz Production</span>. All rights reserved. | unibeatzproduction.com</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Membership</h2>
+    <p class="modal-sub" id="modal-sub">Secure checkout via Stripe</p>
+    <div class="form-group"><label>Full Name</label><input type="text" id="mName" placeholder="Your name"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="mEmail" placeholder="your@email.com"/></div>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.2);padding:14px;margin-bottom:12px;text-align:center;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:5px;">STRIPE PAYMENT</div>
+      <p style="font-size:0.76rem;color:var(--gray);">Add your Stripe recurring payment link to activate memberships.</p>
+    </div>
+    <button class="submit-btn" onclick="processPayment()">Start Membership</button>
+    <div class="stripe-note"><span class="lock">🔒</span>Secured by Stripe · Cancel anytime</div>
+  </div>
+</div>
+
+<!-- ═══════ EMAIL CAPTURE MODAL (Free Pack Download) ═══════ -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal" style="max-width:480px;">
+    <button class="modal-close" onclick="closeEmailModal()">✕</button>
+    <h2 id="emailModalTitle">🎁 Get Your Free Pack</h2>
+    <p class="modal-sub" id="emailModalSub">Enter your email to download instantly. We'll send you new pack alerts.</p>
+    <div class="form-group"><label>Email Address</label><input type="email" id="capEmail" placeholder="your@email.com" onkeydown="if(event.key==='Enter')submitEmailCapture()"/></div>
+    <button class="submit-btn" onclick="submitEmailCapture()">⬇️ Download Pack</button>
+    <p style="font-size:0.7rem;color:var(--gray);text-align:center;margin-top:14px;">By downloading, you agree to receive occasional pack updates. Unsubscribe anytime.</p>
+  </div>
+</div>
+
+<!-- ═══════ ADMIN PANEL — Upload Beats & Packs ═══════ -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal" style="max-width:680px;max-height:92vh;overflow-y:auto;">
+    <button class="modal-close" onclick="closeAdmin()">✕</button>
+    <h2>⚙️ Admin Panel</h2>
+    <p class="modal-sub">Upload beats and sample packs directly to Firebase Storage. Listings save to Firestore.</p>
+
+    <!-- ADMIN TABS -->
+    <div style="display:flex;gap:6px;margin:18px 0 16px;border-bottom:1px solid rgba(201,168,76,0.18);">
+      <button class="admin-tab active" data-tab="addBeat" onclick="adminTab('addBeat')">➕ Add Beat</button>
+      <button class="admin-tab" data-tab="addPack" onclick="adminTab('addPack')">➕ Add Pack</button>
+      <button class="admin-tab" data-tab="manage" onclick="adminTab('manage')">📋 Manage</button>
+      <button class="admin-tab" data-tab="emails" onclick="adminTab('emails')">📧 Emails</button>
+    </div>
+
+    <!-- ADD BEAT FORM -->
+    <div class="admin-section" id="adminSec-addBeat">
+      <div class="form-group"><label>Beat Name *</label><input type="text" id="bf_name" placeholder="Midnight Gold"/></div>
+      <div class="form-group"><label>Genre/Tag *</label><input type="text" id="bf_tag" placeholder="Trap / R&B / Drill"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>BPM</label><input type="number" id="bf_bpm" placeholder="140"/></div>
+        <div class="form-group"><label>Key</label><input type="text" id="bf_key" placeholder="Am"/></div>
+      </div>
+      <div class="form-group">
+  <label>Upload Beat Audio (MP3/WAV) *</label>
+  <input type="file" id="bf_audioFile" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/>
+  <input type="text" id="bf_audio" placeholder="Optional fallback URL — leave blank if uploading file" style="margin-top:8px;"/>
+</div>
+      <div class="form-group">
+  <label>Upload Beat Cover (optional)</label>
+  <input type="file" id="bf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/>
+  <input type="text" id="bf_cover" placeholder="Optional fallback cover URL" style="margin-top:8px;"/>
+</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Basic License $</label><input type="number" id="bf_basic" placeholder="25" value="25"/></div>
+        <div class="form-group"><label>Premium License $</label><input type="number" id="bf_premium" placeholder="75" value="75"/></div>
+        <div class="form-group"><label>Exclusive $</label><input type="number" id="bf_exclusive" placeholder="300" value="300"/></div>
+      </div>
+      <div class="form-group"><label>Stripe Payment Link (Basic license) — optional</label><input type="text" id="bf_stripeBasic" placeholder="https://buy.stripe.com/..."/></div>
+      <button class="submit-btn" onclick="saveBeat()">💾 Save Beat to Marketplace</button>
+    </div>
+
+    <!-- ADD PACK FORM -->
+    <div class="admin-section" id="adminSec-addPack" style="display:none;">
+      <div class="form-group"><label>Pack Name *</label><input type="text" id="pf_name" placeholder="UniBeatz Percussion Loops Vol. 1"/></div>
+      <div class="form-group"><label>Category/Genre *</label><input type="text" id="pf_cat" placeholder="Hip-Hop / Trap / R&B"/></div>
+      <div class="form-group"><label>Icon (emoji)</label><input type="text" id="pf_icon" placeholder="🔥" maxlength="4"/></div>
+      <div class="form-group"><label>Contents (one per line) *</label><textarea id="pf_includes" rows="5" placeholder="10 Percussion Loops&#10;1 Snare Hit&#10;WAV format&#10;90 BPM"></textarea></div>
+      <div class="form-group">
+  <label>Upload Sound Pack ZIP *</label>
+  <input type="file" id="pf_zipFile" accept=".zip,application/zip"/>
+  <input type="text" id="pf_zip" placeholder="Optional fallback ZIP URL — leave blank if uploading file" style="margin-top:8px;"/>
+</div>
+      <div class="form-group">
+  <label>Upload Pack Cover (optional)</label>
+  <input type="file" id="pf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/>
+  <input type="text" id="pf_cover" placeholder="Optional fallback cover URL" style="margin-top:8px;"/>
+</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group"><label>Price ($)</label><input type="number" id="pf_price" placeholder="0 (free) or 29" value="0"/></div>
+        <div class="form-group"><label>Type</label><select id="pf_type" style="width:100%;padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;"><option value="free">🎁 Free (Email Required)</option><option value="paid">💳 Paid (Stripe)</option></select></div>
+      </div>
+      <div class="form-group"><label>Stripe Payment Link (if paid)</label><input type="text" id="pf_stripe" placeholder="https://buy.stripe.com/..."/></div>
+      <button class="submit-btn" onclick="savePack()">💾 Save Pack to Marketplace</button>
+    </div>
+
+    <!-- MANAGE LISTINGS -->
+    <div class="admin-section" id="adminSec-manage" style="display:none;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px;">🎵 BEATS</div>
+      <div id="adminBeatsList" style="margin-bottom:20px;"></div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px;">📦 SAMPLE PACKS</div>
+      <div id="adminPacksList"></div>
+    </div>
+
+    <!-- EMAILS -->
+    <div class="admin-section" id="adminSec-emails" style="display:none;">
+      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:14px;">Email subscribers from free pack downloads. Export to CSV for your mailing list.</p>
+      <button class="submit-btn" onclick="exportEmails()" style="margin-bottom:14px;">📥 Export to CSV</button>
+      <div id="adminEmailsList" style="max-height:300px;overflow-y:auto;border:1px solid rgba(201,168,76,0.15);padding:10px;background:#040408;"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+.admin-tab{padding:8px 14px;background:transparent;border:none;color:var(--gray);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;cursor:pointer;border-bottom:2px solid transparent;font-weight:700;}
+.admin-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.admin-section textarea{width:100%;padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;border-radius:0;resize:vertical;}
+.admin-section textarea:focus{outline:none;border-color:var(--gold);}
+.admin-list-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#0a0a14;border:1px solid rgba(255,255,255,0.06);margin-bottom:5px;}
+.admin-list-row-info{flex:1;font-family:'Rajdhani',sans-serif;font-size:0.88rem;}
+.admin-list-row-info b{color:var(--gold-light);}
+.admin-list-row-info small{color:var(--gray);display:block;font-size:0.72rem;}
+.admin-del-btn{background:rgba(255,60,60,0.15);border:1px solid rgba(255,60,60,0.4);color:#ff6666;padding:5px 10px;font-size:0.72rem;cursor:pointer;border-radius:3px;font-family:'Orbitron',sans-serif;letter-spacing:1px;}
+.admin-del-btn:hover{background:rgba(255,60,60,0.3);}
+.email-row{padding:6px 8px;font-family:'Rajdhani',sans-serif;font-size:0.86rem;color:#fff;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;justify-content:space-between;}
+.email-row small{color:var(--gray);font-size:0.7rem;}
+.btn-free-pack{background:linear-gradient(135deg,var(--green,#00C85A),#00a04a);}
+.product-preview-row{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.preview-btn{flex:1;padding:6px;background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.4);color:var(--blue-bright);font-size:0.7rem;font-family:'Orbitron',sans-serif;letter-spacing:1.5px;cursor:pointer;border-radius:3px;}
+.preview-btn:hover{background:rgba(0,170,255,0.25);}
+.preview-btn.playing{background:var(--blue-bright);color:#000;}
+</style>
+<div class="toast" id="toast"><span id="toast-msg"></span></div>
+
+<script type="module">
+// ═════════════════════════════════════════
+// 🔥 FIREBASE INTEGRATION
+// ═════════════════════════════════════════
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js';
+
+const UB_ADMIN_PASSCODE = 'empire2026';
+const firebaseConfig = {
+  apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+  authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+  projectId: "unibeatzproduction-7ae31",
+  storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+  messagingSenderId: "70667820609",
+  appId: "1:70667820609:web:57762df5510e6b4000b0c0",
+  measurementId: "G-QR5J3KW8T1"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Expose globally for non-module use below
+window._fb = { db, storage, collection, doc, setDoc, getDocs, deleteDoc, query, orderBy, addDoc, serverTimestamp, ref, uploadBytes, getDownloadURL };
+</script>
+
+<script>
+// ═════════════════════════════════════════
+// STATE
+// ═════════════════════════════════════════
+let beats = [];
+let packs = [];
+let currentAudio = null;
+let _currentPlayingId = null;
+
+const ADMIN_EMAILS = ['unibeatzproduction@gmail.com', 'syncere862@gmail.com'];
+
+// Check who's logged in (from UniPack's localStorage)
+function getCurrentUser() {
+  try {
+    const stored = localStorage.getItem('ub_current_user');
+    return stored ? JSON.parse(stored) : null;
+  } catch(e) { return null; }
+}
+function isAdmin() {
+  const u = getCurrentUser();
+  return u && ADMIN_EMAILS.includes((u.email || '').toLowerCase());
+}
+
+// ═════════════════════════════════════════
+// LOAD BEATS & PACKS FROM FIRESTORE
+// ═════════════════════════════════════════
+async function loadMarketplace() {
+  try {
+    if(!window._fb) { setTimeout(loadMarketplace, 200); return; }
+    const { db, collection, getDocs, query, orderBy } = window._fb;
+    // Load beats
+    const beatsSnap = await getDocs(query(collection(db, 'marketplace_beats'), orderBy('createdAt', 'desc')));
+    beats = beatsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Load packs
+    const packsSnap = await getDocs(query(collection(db, 'marketplace_packs'), orderBy('createdAt', 'desc')));
+    packs = packsSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderWorldBeats();
+    renderWorldPacks();
+  } catch(e) {
+    console.error('Marketplace load failed:', e);
+    // Fall back to empty arrays
+    beats = [];
+    packs = [];
+    renderWorldBeats();
+    renderWorldPacks();
+  }
+}
+
+// ═════════════════════════════════════════
+// RENDER BEATS
+// ═════════════════════════════════════════
+function waveform(){
+  const h=[20,38,55,72,48,80,60,42,75,50,35,65,80,44,30,70,54,40,62,76];
+  return h.map((v,i)=>`<span style="display:block;width:3px;height:${v}%;background:linear-gradient(180deg,var(--blue-bright),var(--gold));border-radius:2px;animation:wave 1.2s ease-in-out ${i*0.05}s infinite;opacity:0.5;"></span>`).join('');
+}
+
+function renderWorldBeats(){
+  const grid = document.getElementById('worldBeatsGrid');
+  grid.innerHTML = '';
+  if(!beats.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(240,237,232,0.4);font-family:\'Rajdhani\',sans-serif;font-style:italic;">No beats listed yet. Check back soon — fire drops weekly. 🔥</div>';
+    return;
+  }
+  beats.slice(0,6).forEach(b => {
+    const card = document.createElement('div');
+    card.className = 'product-card reveal';
+    const hasAudio = b.audioUrl && b.audioUrl.startsWith('http');
+    const hasCover = b.coverUrl && b.coverUrl.startsWith('http');
+    card.innerHTML = `
+      <div class="product-img" style="${hasCover ? `background-image:url('${b.coverUrl}');background-size:cover;background-position:center;` : ''}">
+        ${!hasCover ? `<div class="product-img-glow"></div><div style="display:flex;align-items:center;gap:2px;height:50px;">${waveform()}</div>` : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-cat">${escapeHtml(b.tag || 'Hip-Hop')}</div>
+        <div class="product-name">${escapeHtml(b.name)}</div>
+        <div class="product-desc">${b.bpm || '?'} BPM · Key: ${escapeHtml(b.key || '?')}</div>
+        ${hasAudio ? `
+        <div class="product-preview-row">
+          <button class="preview-btn" id="preview-${b.id}" onclick="togglePreview('${b.id}','${escapeAttr(b.audioUrl)}')">▶ Preview</button>
+        </div>` : ''}
+        <div class="product-footer" style="margin-top:10px;">
+          <div class="product-price">$${b.basicPrice || 25}</div>
+          <button class="btn-buy" onclick="openBeatModal('${b.id}')">LICENSE</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add('visible'), 50);
+  });
+}
+
+// ═════════════════════════════════════════
+// RENDER PACKS
+// ═════════════════════════════════════════
+function renderWorldPacks(){
+  const grid = document.getElementById('worldPacksGrid');
+  const empty = document.getElementById('packsEmptyMsg');
+  grid.innerHTML = '';
+  if(!packs.length) {
+    if(empty) empty.style.display = 'block';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+  packs.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'pack-card reveal';
+    const includes = (p.includes || '').split('\n').filter(x => x.trim()).map(x => `<li>${escapeHtml(x)}</li>`).join('');
+    const isFree = p.type === 'free' || !p.price || p.price === 0 || p.price === '0';
+    const priceDisplay = isFree ? '<span style="color:var(--green,#00C85A);">FREE</span>' : `$${p.price}`;
+    const btnLabel = isFree ? '🎁 Get FREE' : 'Get Pack';
+    const btnClass = isFree ? 'btn-pack btn-free-pack' : 'btn-pack';
+    const cover = p.coverUrl && p.coverUrl.startsWith('http') ? `<img src="${p.coverUrl}" style="width:100%;height:140px;object-fit:cover;margin-bottom:14px;border-radius:4px;"/>` : '';
+    card.innerHTML = `
+      ${cover}
+      <span class="pack-icon">${p.icon || '🎵'}</span>
+      <div class="pack-cat">${escapeHtml(p.category || 'Hip-Hop')}</div>
+      <div class="pack-name">${escapeHtml(p.name)}</div>
+      <ul class="pack-includes">${includes}</ul>
+      <div class="pack-footer"><div class="pack-price">${priceDisplay}</div><button class="${btnClass}" onclick="getPack('${p.id}')">${btnLabel}</button></div>
+    `;
+    grid.appendChild(card);
+    setTimeout(() => card.classList.add('visible'), 50);
+  });
+}
+
+// ═════════════════════════════════════════
+// PREVIEW AUDIO
+// ═════════════════════════════════════════
+function togglePreview(beatId, audioUrl) {
+  if(_currentPlayingId === beatId && currentAudio) {
+    // Pause
+    currentAudio.pause();
+    document.getElementById('preview-' + beatId).innerHTML = '▶ Preview';
+    document.getElementById('preview-' + beatId).classList.remove('playing');
+    _currentPlayingId = null;
+    return;
+  }
+  // Stop any other playing
+  if(currentAudio) {
+    currentAudio.pause();
+    if(_currentPlayingId) {
+      const oldBtn = document.getElementById('preview-' + _currentPlayingId);
+      if(oldBtn) { oldBtn.innerHTML = '▶ Preview'; oldBtn.classList.remove('playing'); }
+    }
+  }
+  currentAudio = new Audio(audioUrl);
+  currentAudio.play().catch(e => showToast('Preview failed: ' + e.message));
+  _currentPlayingId = beatId;
+  const btn = document.getElementById('preview-' + beatId);
+  btn.innerHTML = '⏸ Pause';
+  btn.classList.add('playing');
+  currentAudio.addEventListener('ended', () => {
+    btn.innerHTML = '▶ Preview';
+    btn.classList.remove('playing');
+    _currentPlayingId = null;
+  });
+}
+
+// ═════════════════════════════════════════
+// BUY BEAT MODAL
+// ═════════════════════════════════════════
+function openBeatModal(beatId) {
+  const b = beats.find(x => x.id === beatId);
+  if(!b) return;
+  // Repurpose existing modal — show pricing tiers
+  const title = b.name;
+  const html = `
+    <div style="text-align:center;padding:10px 0;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);margin-bottom:4px;">${escapeHtml(b.tag || 'Hip-Hop')} · ${b.bpm || '?'} BPM</div>
+      <p style="color:var(--gray);font-size:0.86rem;">Choose your license tier</p>
+    </div>
+    <div style="display:grid;gap:10px;margin:14px 0;">
+      <a href="${b.stripeBasic || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#0a1c2e,#0a0a14);border:1px solid var(--blue);color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:var(--blue-bright);">🥉 BASIC LICENSE</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.basicPrice || 25}</div>
+        <div style="font-size:0.78rem;color:var(--gray);">MP3 · 10K streams · 1 video · Non-exclusive</div>
+      </a>
+      <a href="${b.stripePremium || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#1a1308,#0a0a14);border:1px solid var(--gold);color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:var(--gold);">🥈 PREMIUM LICENSE</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.premiumPrice || 75}</div>
+        <div style="font-size:0.78rem;color:var(--gray);">WAV + Stems · 100K streams · 2 videos · Non-exclusive</div>
+      </a>
+      <a href="${b.stripeExclusive || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#1a0822,#0a0a14);border:1.5px solid #9B30FF;color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:#9B30FF;">🥇 EXCLUSIVE LICENSE</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.exclusivePrice || 300}</div>
+        <div style="font-size:0.78rem;color:var(--gray);">WAV + Stems · UNLIMITED · Exclusive ownership</div>
+      </a>
+    </div>
+    <p style="font-size:0.7rem;color:var(--gray);text-align:center;margin-top:14px;">All licenses include "Prod. UniBeatz" credit requirement · <a href="legal.html#beat-licenses" style="color:var(--gold-light);">View full terms</a></p>
+  `;
+  // Inject into existing modal body
+  document.getElementById('modal-title').textContent = title;
+  const modalEl = document.querySelector('#modal .modal');
+  // Replace modal contents
+  modalEl.innerHTML = `<button class="modal-close" onclick="closeModal()">✕</button><h2>${escapeHtml(title)}</h2>${html}`;
+  document.getElementById('modal').classList.add('active');
+  // Add click handlers to license buttons to warn if not configured
+  setTimeout(() => {
+    document.querySelectorAll('.license-btn').forEach(el => {
+      if(el.getAttribute('href') === '#' || !el.getAttribute('href')) {
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          showToast('💳 Stripe link not set up for this tier yet. Contact unibeatzproduction@gmail.com');
+        });
+      }
+    });
+  }, 50);
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+// ═════════════════════════════════════════
+// GET PACK (Free with email OR Paid)
+// ═════════════════════════════════════════
+let _currentPackId = null;
+function getPack(packId) {
+  const p = packs.find(x => x.id === packId);
+  if(!p) return;
+  _currentPackId = packId;
+  const isFree = p.type === 'free' || !p.price || p.price === 0 || p.price === '0';
+  if(isFree) {
+    // Show email capture modal
+    document.getElementById('emailModalTitle').textContent = `🎁 Get "${p.name}" FREE`;
+    document.getElementById('emailModalSub').textContent = `Enter your email to download "${p.name}" instantly.`;
+    document.getElementById('emailModal').classList.add('active');
+    setTimeout(() => document.getElementById('capEmail').focus(), 100);
+  } else {
+    // Paid pack — redirect to Stripe
+    if(p.stripeLink) { window.location.href = p.stripeLink; }
+    else { showToast('💳 Stripe link not set up yet for this pack'); }
+  }
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('active');
+}
+
+async function submitEmailCapture() {
+  const email = document.getElementById('capEmail').value.trim();
+  if(!email || !email.includes('@') || !email.includes('.')) {
+    showToast('Please enter a valid email');
+    return;
+  }
+  const p = packs.find(x => x.id === _currentPackId);
+  if(!p) { showToast('Pack not found'); return; }
+  // Save email to Firestore
+  try {
+    const { db, collection, addDoc, serverTimestamp } = window._fb;
+    await addDoc(collection(db, 'email_subscribers'), {
+      email,
+      packId: _currentPackId,
+      packName: p.name,
+      source: 'unibeatzworld_free_pack',
+      createdAt: serverTimestamp(),
+    });
+  } catch(e) { console.warn('Email save failed:', e); }
+  // Trigger download
+  showToast('✅ Email saved! Downloading pack...');
+  closeEmailModal();
+  document.getElementById('capEmail').value = '';
+  if(p.zipUrl) {
+    // Direct download
+    const a = document.createElement('a');
+    a.href = p.zipUrl;
+    a.download = (p.name || 'pack').replace(/[^a-zA-Z0-9_-]/g, '_') + '.zip';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    showToast('❌ Download link not configured');
+  }
+}
+
+// ═════════════════════════════════════════
+// ADMIN PANEL — TABS
+// ═════════════════════════════════════════
+function openAdmin() {
+  if (!ubAdminUnlocked) { openAdminLocked(); return; }
+  if(!isAdmin()) {
+    showToast('⛔ Admin access required. Log in at UniPack first.');
+    return;
+  }
+  document.getElementById('adminModal').classList.add('active');
+  adminTab('addBeat');
+  refreshAdminLists();
+}
+function closeAdmin() {
+  document.getElementById('adminModal').classList.remove('active');
+}
+function adminTab(name) {
+  document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+  const sec = document.getElementById('adminSec-' + name);
+  if(sec) sec.style.display = 'block';
+  if(name === 'manage') refreshAdminLists();
+  if(name === 'emails') refreshAdminEmails();
+}
+
+// ═════════════════════════════════════════
+// SAVE BEAT TO FIRESTORE
+// ═════════════════════════════════════════
+
+async function uploadAdminFile(inputId, folder) {
+  const input = document.getElementById(inputId);
+  if (!input || !input.files || !input.files[0]) return '';
+
+  const file = input.files[0];
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${folder}/${Date.now()}_${safeName}`;
+
+  const { storage, ref, uploadBytes, getDownloadURL } = window._fb;
+  const storageRef = ref(storage, path);
+
+  showToast('⬆️ Uploading ' + file.name + '...');
+  await uploadBytes(storageRef, file);
+
+  const url = await getDownloadURL(storageRef);
+  showToast('✅ Uploaded ' + file.name);
+  return url;
+}
+
+
+async function saveBeat() {
+  const name = document.getElementById('bf_name').value.trim();
+  const tag = document.getElementById('bf_tag').value.trim();
+
+  let audioUrl = document.getElementById('bf_audio').value.trim();
+  let coverUrl = document.getElementById('bf_cover').value.trim();
+
+  try {
+    const uploadedAudio = await uploadAdminFile('bf_audioFile', 'marketplace/beats/audio');
+    const uploadedCover = await uploadAdminFile('bf_coverFile', 'marketplace/beats/covers');
+
+    if (uploadedAudio) audioUrl = uploadedAudio;
+    if (uploadedCover) coverUrl = uploadedCover;
+  } catch (e) {
+    showToast('❌ Upload failed: ' + e.message);
+    console.error(e);
+    return;
+  }
+
+  if(!name || !tag || !audioUrl) {
+    showToast('Name, Tag, and Beat Audio required');
+    return;
+  }
+
+  const beat = {
+    name,
+    tag,
+    bpm: document.getElementById('bf_bpm').value || '',
+    key: document.getElementById('bf_key').value.trim() || '',
+    audioUrl,
+    coverUrl,
+    basicPrice: parseInt(document.getElementById('bf_basic').value) || 25,
+    premiumPrice: parseInt(document.getElementById('bf_premium').value) || 75,
+    exclusivePrice: parseInt(document.getElementById('bf_exclusive').value) || 300,
+    stripeBasic: document.getElementById('bf_stripeBasic').value.trim() || '',
+    createdAt: window._fb.serverTimestamp(),
+  };
+
+  try {
+    const { db, collection, addDoc } = window._fb;
+    await addDoc(collection(db, 'marketplace_beats'), beat);
+    showToast('✅ Beat uploaded to Firebase and saved!');
+    ['bf_name','bf_tag','bf_bpm','bf_key','bf_audio','bf_cover','bf_stripeBasic'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['bf_audioFile','bf_coverFile'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    await loadMarketplace();
+    refreshAdminLists();
+  } catch(e) {
+    showToast('❌ Save failed: ' + e.message);
+    console.error(e);
+  }
+}
+
+
+// ═════════════════════════════════════════
+// SAVE PACK TO FIRESTORE
+// ═════════════════════════════════════════
+
+async function savePack() {
+  const name = document.getElementById('pf_name').value.trim();
+  const category = document.getElementById('pf_cat').value.trim();
+  const includes = document.getElementById('pf_includes').value.trim();
+
+  let zipUrl = document.getElementById('pf_zip').value.trim();
+  let coverUrl = document.getElementById('pf_cover').value.trim();
+
+  try {
+    const uploadedZip = await uploadAdminFile('pf_zipFile', 'marketplace/packs/zips');
+    const uploadedCover = await uploadAdminFile('pf_coverFile', 'marketplace/packs/covers');
+
+    if (uploadedZip) zipUrl = uploadedZip;
+    if (uploadedCover) coverUrl = uploadedCover;
+  } catch (e) {
+    showToast('❌ Upload failed: ' + e.message);
+    console.error(e);
+    return;
+  }
+
+  if(!name || !category || !zipUrl || !includes) {
+    showToast('Name, Category, Contents, and ZIP file required');
+    return;
+  }
+
+  const pack = {
+    name,
+    category,
+    icon: document.getElementById('pf_icon').value.trim() || '🎵',
+    includes,
+    zipUrl,
+    coverUrl,
+    price: parseInt(document.getElementById('pf_price').value) || 0,
+    type: document.getElementById('pf_type').value,
+    stripeLink: document.getElementById('pf_stripe').value.trim() || '',
+    createdAt: window._fb.serverTimestamp(),
+  };
+
+  try {
+    const { db, collection, addDoc } = window._fb;
+    await addDoc(collection(db, 'marketplace_packs'), pack);
+    showToast('✅ Pack uploaded to Firebase and saved!');
+    ['pf_name','pf_cat','pf_icon','pf_includes','pf_zip','pf_cover','pf_stripe'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['pf_zipFile','pf_coverFile'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const price = document.getElementById('pf_price');
+    if (price) price.value = '0';
+    await loadMarketplace();
+    refreshAdminLists();
+  } catch(e) {
+    showToast('❌ Save failed: ' + e.message);
+    console.error(e);
+  }
+}
+
+
+// ═════════════════════════════════════════
+// MANAGE LISTINGS
+// ═════════════════════════════════════════
+function refreshAdminLists() {
+  const beatsDiv = document.getElementById('adminBeatsList');
+  beatsDiv.innerHTML = beats.length ? beats.map(b => `
+    <div class="admin-list-row">
+      <div class="admin-list-row-info"><b>${escapeHtml(b.name)}</b> · ${escapeHtml(b.tag||'')} · ${b.bpm||'?'} BPM<small>$${b.basicPrice || 25} / $${b.premiumPrice || 75} / $${b.exclusivePrice || 300}</small></div>
+      <button class="admin-del-btn" onclick="deleteBeat('${b.id}','${escapeAttr(b.name)}')">🗑️</button>
+    </div>`).join('') : '<div style="padding:14px;color:var(--gray);font-size:0.84rem;">No beats yet.</div>';
+  const packsDiv = document.getElementById('adminPacksList');
+  packsDiv.innerHTML = packs.length ? packs.map(p => `
+    <div class="admin-list-row">
+      <div class="admin-list-row-info"><b>${p.icon||'🎵'} ${escapeHtml(p.name)}</b> · ${escapeHtml(p.category||'')}<small>${p.type === 'free' ? 'FREE' : '$' + p.price}</small></div>
+      <button class="admin-del-btn" onclick="deletePack('${p.id}','${escapeAttr(p.name)}')">🗑️</button>
+    </div>`).join('') : '<div style="padding:14px;color:var(--gray);font-size:0.84rem;">No packs yet.</div>';
+}
+
+async function deleteBeat(id, name) {
+  if(!confirm('Delete "' + name + '"?')) return;
+  try {
+    const { db, doc, deleteDoc } = window._fb;
+    await deleteDoc(doc(db, 'marketplace_beats', id));
+    showToast('🗑️ Beat deleted');
+    await loadMarketplace();
+    refreshAdminLists();
+  } catch(e) { showToast('Delete failed: ' + e.message); }
+}
+async function deletePack(id, name) {
+  if(!confirm('Delete "' + name + '"?')) return;
+  try {
+    const { db, doc, deleteDoc } = window._fb;
+    await deleteDoc(doc(db, 'marketplace_packs', id));
+    showToast('🗑️ Pack deleted');
+    await loadMarketplace();
+    refreshAdminLists();
+  } catch(e) { showToast('Delete failed: ' + e.message); }
+}
+
+// ═════════════════════════════════════════
+// EMAIL EXPORT
+// ═════════════════════════════════════════
+async function refreshAdminEmails() {
+  const list = document.getElementById('adminEmailsList');
+  list.innerHTML = '<div style="color:var(--gray);padding:10px;">Loading...</div>';
+  try {
+    const { db, collection, getDocs, query, orderBy } = window._fb;
+    const snap = await getDocs(query(collection(db, 'email_subscribers'), orderBy('createdAt', 'desc')));
+    const emails = snap.docs.map(d => d.data());
+    if(!emails.length) {
+      list.innerHTML = '<div style="color:var(--gray);padding:10px;font-style:italic;">No email signups yet.</div>';
+      return;
+    }
+    list.innerHTML = emails.map(e => {
+      const d = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toLocaleString() : '';
+      return `<div class="email-row"><span>${escapeHtml(e.email)}<small>${escapeHtml(e.packName || '')}</small></span><small>${d}</small></div>`;
+    }).join('');
+    list._emails = emails; // cache for CSV
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--red,#ff3c3c);padding:10px;">Load failed: ' + e.message + '</div>';
+  }
+}
+
+async function exportEmails() {
+  try {
+    const { db, collection, getDocs, query, orderBy } = window._fb;
+    const snap = await getDocs(query(collection(db, 'email_subscribers'), orderBy('createdAt', 'desc')));
+    const emails = snap.docs.map(d => d.data());
+    if(!emails.length) { showToast('No emails to export'); return; }
+    const csv = 'Email,Pack,Source,Date\n' + emails.map(e => {
+      const d = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toISOString() : '';
+      return [e.email, e.packName, e.source, d].map(v => `"${(v || '').replace(/"/g, '""')}"`).join(',');
+    }).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'unibeatz_subscribers_' + Date.now() + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('📥 ' + emails.length + ' emails exported');
+  } catch(e) { showToast('Export failed: ' + e.message); }
+}
+
+// ═════════════════════════════════════════
+// UTILITIES
+// ═════════════════════════════════════════
+function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escapeAttr(s) { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function scrollTo(selector){ document.querySelector(selector)?.scrollIntoView({behavior:'smooth'}); }
+function notifyMe(inputId,platform){
+  const email=document.getElementById(inputId).value.trim();
+  if(!email||!email.includes('@')){showToast('Please enter a valid email');return;}
+  showToast(`✅ You'll be notified when ${platform} launches!`);
+  document.getElementById(inputId).value='';
+}
+function processPayment(){
+  const n=document.getElementById('mName')?.value,e=document.getElementById('mEmail')?.value;
+  if(!n||!e){showToast('Please fill in name and email');return;}
+  showToast('Stripe link not configured yet.');
+}
+function showToast(msg){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
+
+// Click outside modal to close
+document.getElementById('modal').addEventListener('click', e => { if(e.target === document.getElementById('modal')) closeModal(); });
+document.getElementById('emailModal').addEventListener('click', e => { if(e.target === document.getElementById('emailModal')) closeEmailModal(); });
+document.getElementById('adminModal').addEventListener('click', e => { if(e.target === document.getElementById('adminModal')) closeAdmin(); });
+
+// Reveal animations
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// Lightning background (boosted visibility)
+const cv=document.getElementById('lightning-canvas'),cx=cv.getContext('2d');
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}rsz();window.addEventListener('resize',rsz);
+function bolt(x1,y1,x2,y2,o,d){if(!d){cx.moveTo(x1,y1);cx.lineTo(x2,y2);return;}const mx=(x1+x2)/2+(Math.random()-0.5)*o,my=(y1+y2)/2+(Math.random()-0.5)*o;bolt(x1,y1,mx,my,o/2,d-1);bolt(mx,my,x2,y2,o/2,d-1);}
+function flash(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<5;i++){
+    cx.beginPath();
+    const isGold = i%2===1;
+    cx.shadowBlur = 24;
+    cx.shadowColor = isGold?'rgba(201,168,76,0.7)':'rgba(0,170,255,0.85)';
+    cx.strokeStyle = isGold?`rgba(240,192,64,${0.7+Math.random()*0.3})`:`rgba(64,208,255,${0.85+Math.random()*0.15})`;
+    cx.lineWidth = i===0?3.2:(i===1?2.2:1.5);
+    const sx=Math.random()*cv.width;
+    bolt(sx,0,sx+(Math.random()-0.5)*320,cv.height*(0.7+Math.random()*0.25),220,7);
+    cx.stroke();
+  }
+  cx.shadowBlur=0;
+}
+(function loop(){if(Math.random()<0.06){flash();setTimeout(()=>cx.clearRect(0,0,cv.width,cv.height),150+Math.random()*200);}requestAnimationFrame(loop);})();
+
+// Waveform CSS
+const style=document.createElement('style');
+style.textContent='@keyframes wave{0%,100%{transform:scaleY(0.3);}50%{transform:scaleY(1);}}';
+document.head.appendChild(style);
+
+// ═════════════════════════════════════════
+// BOOT
+// ═════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Show admin link if logged in as admin
+  if(isAdmin()) {
+    const link = document.getElementById('adminNavLink');
+    if(link) link.style.display = 'inline';
+  }
+  loadMarketplace();
+});
+
+// Expose globals for inline onclick handlers
+window.togglePreview = togglePreview;
+window.openBeatModal = openBeatModal;
+window.closeModal = closeModal;
+window.getPack = getPack;
+window.closeEmailModal = closeEmailModal;
+window.submitEmailCapture = submitEmailCapture;
+window.openAdmin = openAdmin;
+window.closeAdmin = closeAdmin;
+window.adminTab = adminTab;
+window.saveBeat = saveBeat;
+window.savePack = savePack;
+window.deleteBeat = deleteBeat;
+window.deletePack = deletePack;
+window.exportEmails = exportEmails;
+window.scrollTo = scrollTo;
+window.notifyMe = notifyMe;
+window.processPayment = processPayment;
+window.toggleNav = toggleNav;
+</script>
+
+<script>
+let ubAdminUnlocked = false;
+
+function openAdminLocked() {
+  if (ubAdminUnlocked) {
+    const adminPanel = document.getElementById('adminPanel');
+    const adminModal = document.getElementById('adminModal');
+    if (adminPanel) adminPanel.classList.add('active');
+    else if (adminModal) adminModal.classList.add('active');
+    else {
+      const panel = document.querySelector('.admin-panel, .admin-modal, #adminDashboard');
+      if (panel) panel.classList.add('active');
+    }
+    return;
+  }
+  const overlay = document.getElementById('adminLockOverlay');
+  const input = document.getElementById('adminLockInput');
+  const error = document.getElementById('adminLockError');
+  if (error) error.classList.remove('show');
+  if (overlay) overlay.classList.add('active');
+  setTimeout(() => input && input.focus(), 100);
+}
+
+function closeAdminLock() {
+  const overlay = document.getElementById('adminLockOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+async function unlockAdminPanel() {
+  const input = document.getElementById('adminLockInput');
+  const error = document.getElementById('adminLockError');
+  const code = (input && input.value ? input.value : '').trim().toLowerCase();
+
+  if (code === 'empire2026') {
+    ubAdminUnlocked = true;
+    closeAdminLock();
+    if (input) input.value = '';
+
+    // Sign into Firebase Auth so Storage/Firestore rules pass
+    try {
+      const { getAuth, signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+      const auth = getAuth(app);
+      await signInWithEmailAndPassword(auth, 'unibeatzproduction@gmail.com', 'empire2026');
+    } catch(e) {
+      console.warn('Admin Firebase Auth failed:', e.message);
+    }
+
+    const adminPanel = document.getElementById('adminPanel');
+    const adminModal = document.getElementById('adminModal');
+    if (adminPanel) adminPanel.classList.add('active');
+    else if (adminModal) adminModal.classList.add('active');
+    else {
+      const panel = document.querySelector('.admin-panel, .admin-modal, #adminDashboard');
+      if (panel) panel.classList.add('active');
+    }
+
+    if (typeof refreshAdminLists === 'function') refreshAdminLists();
+    if (typeof showToast === 'function') showToast('🔓 Admin unlocked');
+  } else {
+    if (error) error.classList.add('show');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }
+}
+
+document.addEventListener('keydown', function(e) {
+  const overlay = document.getElementById('adminLockOverlay');
+  if (!overlay || !overlay.classList.contains('active')) return;
+  if (e.key === 'Enter') unlockAdminPanel();
+  if (e.key === 'Escape') closeAdminLock();
+});
+</script>
+
+</body>
+</html>
