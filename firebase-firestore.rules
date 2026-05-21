@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() && request.auth.token.admin == true;
+    }
+
+    function isValidStatus(value) {
+      return value in ['pending', 'approved', 'rejected'];
+    }
+
+    function allowedGenre(value) {
+      return value in ['Hip-Hop', 'R&B', 'Trap', 'Afrobeats', 'Drill', 'Lo-Fi', 'Podcast / Radio Talk'];
+    }
+
+    match /radio_submissions/{submissionId} {
+      allow create: if request.resource.data.keys().hasOnly([
+          'artistName','email','trackTitle','genre','copyrightDeclaration','audioUrl','storagePath',
+          'status','reviewNotes','approvedFor','createdAt','reviewedAt'
+        ])
+        && request.resource.data.artistName is string
+        && request.resource.data.email is string
+        && request.resource.data.trackTitle is string
+        && request.resource.data.genre is string
+        && allowedGenre(request.resource.data.genre)
+        && request.resource.data.copyrightDeclaration is string
+        && request.resource.data.audioUrl is string
+        && request.resource.data.storagePath is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.reviewNotes == ''
+        && request.resource.data.approvedFor is list
+        && request.resource.data.approvedFor.size() == 0
+        && request.resource.data.reviewedAt == null;
+
+      allow read: if resource.data.status == 'approved' || isAdmin();
+
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'status','reviewNotes','approvedFor','reviewedAt'
+        ])
+        && isValidStatus(request.resource.data.status)
+        && request.resource.data.reviewNotes is string
+        && request.resource.data.approvedFor is list;
+
+      allow delete: if isAdmin();
+    }
+  }
+}
