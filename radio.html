@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Uni Radio Station · UniBeatz Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{--black:#020202;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#7f7f88;--red:#ff3c3c;--green:#00cc66}
+*{box-sizing:border-box;margin:0;padding:0} body{background:radial-gradient(circle at 10% 10%,#0b1420,#020202 60%);color:var(--white);font-family:'Rajdhani',sans-serif;min-height:100vh}
+a{text-decoration:none}
+.nav{position:sticky;top:0;z-index:99;background:linear-gradient(90deg,#08080f,#0d0d1a);border-bottom:2px solid var(--gold)}
+.nav-inner{max-width:1180px;margin:auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;color:var(--gold-light);font-size:1.5rem}
+.links{display:flex;gap:12px;flex-wrap:wrap}.links a{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;color:#d7d7d7;text-transform:uppercase}
+.hero,.section{max-width:1180px;margin:auto;padding:32px 16px}
+.hero-card,.card{border:1px solid rgba(201,168,76,.25);background:linear-gradient(150deg,#0c0d16,#06060e);border-radius:10px;padding:20px}
+.eyebrow{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:4px;color:var(--blue-bright)}
+h1,h2{font-family:'Bebas Neue',sans-serif;letter-spacing:3px}.title{font-size:3rem;line-height:.95;margin:8px 0}.title span{color:var(--gold-light)}
+.subtitle{color:#c7c7c7;max-width:760px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:14px}
+.input,select,textarea{width:100%;background:#060611;border:1px solid rgba(201,168,76,.2);color:var(--white);padding:12px;border-radius:7px;font-family:'Rajdhani',sans-serif}
+textarea{min-height:98px;resize:vertical}
+.btn{padding:12px 18px;border:none;border-radius:8px;font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:2px;cursor:pointer;text-transform:uppercase}
+.btn-gold{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:#0a0a0a}.btn-blue{background:transparent;border:1px solid var(--blue);color:var(--blue-bright)}
+.badge{display:inline-block;font-family:'Orbitron',sans-serif;font-size:.5rem;letter-spacing:2px;padding:4px 10px;border-radius:999px;border:1px solid rgba(0,170,255,.4);color:var(--blue-bright);margin-top:8px}
+.player{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.list{display:grid;gap:10px;margin-top:12px}.track{border:1px solid rgba(201,168,76,.18);padding:12px;border-radius:8px;background:rgba(255,255,255,.02)}
+.track h4{font-size:1.1rem;letter-spacing:1px}.meta{color:var(--gray);font-size:.9rem}.status{font-size:.72rem;font-family:'Orbitron',sans-serif;letter-spacing:1.6px}
+.notice{margin-top:10px;font-size:.95rem}
+footer{max-width:1180px;margin:30px auto;padding:20px 16px;color:#9a9a9a;border-top:1px solid rgba(201,168,76,.2)}
+</style>
+</head>
+<body>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Uni Radio</a><a href="admin-radio.html">Admin Radio</a></div></div></nav>
+
+<header class="hero"><div class="hero-card"><div class="eyebrow">UNIBEATWORLD • INDIE SPOTLIGHT</div><h1 class="title">Uni <span>Radio</span> Station</h1><p class="subtitle">Submit your records for rotation. Every submission is reviewed for originality, copyright safety, and community fit before publishing across genre channels, podcasts, and live radio blocks.</p><span class="badge">Moderated Before Broadcast</span></div></header>
+
+<section class="section">
+  <div class="grid">
+    <article class="card">
+      <h2>Artist Submission Form</h2>
+      <p class="meta">Upload your track and metadata for moderator review.</p>
+      <form id="artistForm" style="display:grid;gap:10px;margin-top:12px">
+        <input class="input" name="artistName" placeholder="Artist Name" required/>
+        <input class="input" name="email" type="email" placeholder="Contact Email" required/>
+        <input class="input" name="trackTitle" placeholder="Track Title" required/>
+        <select name="genre" required><option value="">Select Genre Channel</option><option>Hip-Hop</option><option>R&B</option><option>Trap</option><option>Afrobeats</option><option>Drill</option><option>Lo-Fi</option><option>Podcast / Radio Talk</option></select>
+        <textarea name="copyrightDeclaration" placeholder="Confirm you own or control all rights for vocals, beat, and samples. Include producer credits." required></textarea>
+        <input class="input" name="audioFile" type="file" accept="audio/*" required/>
+        <button class="btn btn-gold" type="submit">Submit to Uni Radio Review</button>
+      </form>
+      <div id="formNotice" class="notice"></div>
+    </article>
+
+    <article class="card">
+      <h2>Radio Player</h2>
+      <p class="meta">Approved records and podcast episodes only.</p>
+      <div class="player" style="margin-top:12px">
+        <audio id="radioPlayer" controls style="width:100%"></audio>
+        <button id="refreshApproved" class="btn btn-blue" type="button">Refresh</button>
+      </div>
+      <div id="approvedList" class="list"></div>
+    </article>
+  </div>
+</section>
+
+<footer>© 2026 UniBeatz Production · Uni Radio moderation-first system for indie creators.</footer>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+  authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+  projectId: "unibeatzproduction-7ae31",
+  storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+  messagingSenderId: "70667820609",
+  appId: "1:70667820609:web:57762df5510e6b4000b0c0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const auth = getAuth(app);
+
+const form = document.getElementById('artistForm');
+const notice = document.getElementById('formNotice');
+const approvedList = document.getElementById('approvedList');
+const radioPlayer = document.getElementById('radioPlayer');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  notice.textContent = 'Uploading track for moderation...';
+  notice.style.color = '#40D0FF';
+  const formData = new FormData(form);
+  const file = formData.get('audioFile');
+
+  if (file.size > 25 * 1024 * 1024) {
+    notice.textContent = 'File too large. Max upload size is 25MB.';
+    notice.style.color = '#ff3c3c';
+    return;
+  }
+
+  try {
+    if (!auth.currentUser) {
+      await signInAnonymously(auth);
+    }
+    const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_')}`;
+    const fileRef = ref(storage, `radio-submissions/${safeName}`);
+    await uploadBytes(fileRef, file, { contentType: file.type || 'audio/mpeg' });
+    const downloadURL = await getDownloadURL(fileRef);
+
+    await addDoc(collection(db, 'radio_submissions'), {
+      artistName: formData.get('artistName'),
+      email: formData.get('email'),
+      trackTitle: formData.get('trackTitle'),
+      genre: formData.get('genre'),
+      copyrightDeclaration: formData.get('copyrightDeclaration'),
+      audioUrl: downloadURL,
+      storagePath: fileRef.fullPath,
+      status: 'pending',
+      reviewNotes: '',
+      approvedFor: [],
+      createdAt: serverTimestamp(),
+      reviewedAt: null
+    });
+
+    form.reset();
+    notice.textContent = 'Submitted. Your track is now pending admin review.';
+    notice.style.color = '#00cc66';
+  } catch (error) {
+    console.error(error);
+    notice.textContent = 'Submission failed. Verify Firebase config and rules.';
+    notice.style.color = '#ff3c3c';
+  }
+});
+
+async function loadApproved() {
+  approvedList.innerHTML = '<div class="meta">Loading approved tracks...</div>';
+  const q = query(collection(db, 'radio_submissions'), where('status', '==', 'approved'), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    approvedList.innerHTML = '<div class="meta">No approved tracks yet.</div>';
+    return;
+  }
+
+  approvedList.innerHTML = '';
+  snapshot.forEach((doc) => {
+    const track = doc.data();
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'track';
+    el.style.textAlign = 'left';
+    el.innerHTML = `<h4>${track.trackTitle}</h4><div class="meta">${track.artistName} · ${track.genre}</div><div class="status">APPROVED FOR RADIO</div>`;
+    el.addEventListener('click', () => {
+      radioPlayer.src = track.audioUrl;
+      radioPlayer.play();
+    });
+    approvedList.appendChild(el);
+  });
+}
+
+document.getElementById('refreshApproved').addEventListener('click', loadApproved);
+loadApproved();
+</script>
+</body>
+</html>

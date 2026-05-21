@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin Radio Review · UniBeatz Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--black:#05050a;--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--white:#F0EDE8;--red:#ff3c3c;--green:#00cc66}
+*{box-sizing:border-box;margin:0;padding:0}body{background:linear-gradient(160deg,#090912,#05050a);color:var(--white);font-family:'Rajdhani',sans-serif}
+.wrap{max-width:1200px;margin:auto;padding:24px 16px 40px}.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:2px;color:var(--gold-light)}.sub{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:#9dc}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:18px}
+.card{border:1px solid rgba(201,168,76,.25);background:#070710;border-radius:10px;padding:16px;display:grid;gap:8px}
+.badge{font-family:'Orbitron',sans-serif;font-size:.53rem;letter-spacing:2px;padding:4px 9px;border-radius:999px;display:inline-block}.pending{border:1px solid #f0c040;color:#f0c040}.approved{border:1px solid var(--green);color:var(--green)}.rejected{border:1px solid var(--red);color:var(--red)}
+.btn{padding:10px 12px;border-radius:7px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:1px;text-transform:uppercase}.ok{background:linear-gradient(135deg,#1a421f,#00cc66);color:#fff}.no{background:linear-gradient(135deg,#401010,#ff3c3c);color:#fff}
+textarea,select{width:100%;padding:10px;background:#05050a;border:1px solid rgba(201,168,76,.25);color:var(--white);border-radius:7px}
+.small{font-size:.86rem;color:#bbb}.link{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div><div class="brand">Uni Radio Admin Dashboard</div><div class="sub">Moderation • Copyright Safety • Genre Channel Routing</div></div><a class="link" href="radio.html">← Back to radio</a></div>
+  <div id="moderationList" class="grid"></div>
+</div>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
+import { getFirestore, collection, query, orderBy, getDocs, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+  authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+  projectId: "unibeatzproduction-7ae31",
+  storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+  messagingSenderId: "70667820609",
+  appId: "1:70667820609:web:57762df5510e6b4000b0c0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const moderationList = document.getElementById('moderationList');
+
+function renderDenied(message) {
+  moderationList.innerHTML = `<article class="card"><h3>Access denied</h3><p class="small">${message}</p><p class="small">Only approved admin Firebase accounts can moderate submissions.</p></article>`;
+}
+
+
+function badge(status){ return `<span class="badge ${status}">${status.toUpperCase()}</span>`; }
+
+async function setStatus(id, status, notes, channels) {
+  await updateDoc(doc(db, 'radio_submissions', id), {
+    status,
+    reviewNotes: notes || '',
+    approvedFor: status === 'approved' ? channels : [],
+    reviewedAt: serverTimestamp()
+  });
+  await loadModeration();
+}
+
+async function loadModeration() {
+  moderationList.innerHTML = '<div class="small">Loading submissions...</div>';
+  const snapshot = await getDocs(query(collection(db, 'radio_submissions'), orderBy('createdAt', 'desc')));
+  if (snapshot.empty) { moderationList.innerHTML = '<div class="small">No submissions yet.</div>'; return; }
+  moderationList.innerHTML = '';
+  snapshot.forEach((entry) => {
+    const d = entry.data();
+    const wrapper = document.createElement('article');
+    wrapper.className = 'card';
+    wrapper.innerHTML = `
+      <div>${badge(d.status || 'pending')}</div>
+      <h3>${d.trackTitle || 'Untitled'} — ${d.artistName || 'Unknown Artist'}</h3>
+      <div class="small">Genre: ${d.genre || 'N/A'} · Contact: ${d.email || 'N/A'}</div>
+      <audio controls src="${d.audioUrl || ''}"></audio>
+      <div class="small"><strong>Rights Declaration:</strong> ${d.copyrightDeclaration || 'N/A'}</div>
+      <label class="small">Route to channels (for approved tracks)</label>
+      <select class="channelSelect" multiple>
+        <option>Uni Radio Live</option><option>Podcast Replay</option><option>Genre Spotlight</option><option>Night Rotation</option>
+      </select>
+      <textarea class="notes" placeholder="Review notes (copyright concerns, mix feedback, etc.)">${d.reviewNotes || ''}</textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ok approve">Approve</button>
+        <button class="btn no reject">Reject</button>
+      </div>`;
+
+    const notesEl = wrapper.querySelector('.notes');
+    const channelSelect = wrapper.querySelector('.channelSelect');
+
+    wrapper.querySelector('.approve').addEventListener('click', async () => {
+      const selected = Array.from(channelSelect.selectedOptions).map((o) => o.value);
+      await setStatus(entry.id, 'approved', notesEl.value, selected);
+    });
+
+    wrapper.querySelector('.reject').addEventListener('click', async () => {
+      await setStatus(entry.id, 'rejected', notesEl.value, []);
+    });
+
+    moderationList.appendChild(wrapper);
+  });
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    renderDenied('Please sign in with an approved admin account in Firebase Auth first.');
+    return;
+  }
+  const token = await user.getIdTokenResult();
+  const isAdmin = token?.claims?.admin === true;
+  if (!isAdmin) {
+    renderDenied('Your account is authenticated but missing admin permissions.');
+    return;
+  }
+  await loadModeration();
+});
+</script>
+</body>
+</html>
