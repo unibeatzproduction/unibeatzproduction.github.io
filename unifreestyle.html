@@ -1,7 +1,3 @@
-# UniFreestyle patch blocks (copy/paste into `unifreestyle.html`)
-
-## 1) livebattle-layout-v2 CSS
-
 <style id="livebattle-layout-v2">
 .live-stage{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
 .live-dj-row{display:flex;justify-content:center;}
@@ -21,7 +17,6 @@
 </style>
 
 
-## 2) live battle HTML layout
 
 <div class="page" id="page-livebattle">
   <div class="top-bar">
@@ -94,7 +89,6 @@
 </div>
 
 
-## 3) battle category cards
 
 <div style="margin:0 14px 14px;padding:14px;border:1px solid rgba(201,168,76,0.22);border-radius:10px;background:linear-gradient(135deg,#0a0a14,#050510);">
   <div style="font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;">BATTLE CATEGORIES</div>
@@ -108,8 +102,7 @@
 </div>
 
 
-## 4) JavaScript functions
-
+<script>
 function clearLiveVideos() {
   resetLiveBox("djVideoBox", "DJ feed waiting...");
   resetLiveBox("artist1VideoBox", "Artist 1 camera waiting...");
@@ -189,3 +182,4 @@ async function detectDJEquipmentStatus() {
     inEl.textContent = inputs+" detected";
   }
 }
+<script>
