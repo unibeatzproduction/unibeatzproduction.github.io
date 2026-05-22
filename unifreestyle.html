@@ -1,185 +1,257 @@
-<style id="livebattle-layout-v2">
-.live-stage{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
-.live-dj-row{display:flex;justify-content:center;}
-.live-video-card.dj-mini{min-height:140px;max-width:380px;width:100%;border-color:rgba(201,168,76,.45);}
-.live-artists-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.live-video-card.artist-main,.live-video-card.artist-main video{min-height:260px;}
-.live-chat-vote-bar{display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin:10px 0 12px;}
-.live-inline-card{border:1px solid rgba(0,170,255,.2);background:linear-gradient(135deg,#0a0a14,#050510);border-radius:10px;padding:10px;}
-.live-inline-title{font-family:'Orbitron',sans-serif;font-size:.48rem;letter-spacing:2px;color:var(--blue-bright);margin-bottom:6px;}
-.live-inline-note{font-size:.78rem;color:rgba(240,237,232,.66);line-height:1.45;}
-.live-viewer-mode .live-video-card.local{display:none;}
-.live-viewer-mode .live-controls .artist-only{display:none;}
-.dj-equipment{margin-top:10px;padding:10px;border:1px dashed rgba(201,168,76,.35);border-radius:8px;background:rgba(201,168,76,.04);}
-.dj-eq-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px;}
-.dj-eq-pill{padding:8px;border:1px solid rgba(0,170,255,.25);border-radius:7px;font-size:.72rem;color:rgba(240,237,232,.8);background:rgba(0,170,255,.04);}
-@media(max-width:860px){.live-artists-grid{grid-template-columns:1fr;}.live-chat-vote-bar{grid-template-columns:1fr;}}
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uni Freestyle Battle</title>
+
+<style>
+body{
+    margin:0;
+    background:#050505;
+    color:white;
+    font-family:Orbitron,sans-serif;
+    overflow:hidden;
+}
+
+#page-livebattle{
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:10px;
+    box-sizing:border-box;
+    background:
+    radial-gradient(circle at top,#0f1725 0%,#050505 60%);
+}
+
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.top-bar h1{
+    color:#00aaff;
+    font-size:28px;
+    margin:0;
+}
+
+.live-room-shell{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.live-status-card{
+    background:#111827;
+    border:1px solid rgba(0,170,255,.3);
+    border-radius:12px;
+    padding:12px;
+}
+
+.live-room-title{
+    font-size:20px;
+    margin-bottom:5px;
+}
+
+.live-stage{
+    flex:1;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:10px;
+}
+
+.dj-section{
+    display:flex;
+    justify-content:center;
+}
+
+.dj-video{
+    width:420px;
+    height:220px;
+    background:#111;
+    border:2px solid #00aaff;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+}
+
+.artist-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.artist-box{
+    background:#111;
+    border:2px solid #00aaff;
+    border-radius:12px;
+    min-height:320px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+}
+
+.artist-label{
+    position:absolute;
+    top:10px;
+    left:10px;
+    color:#00aaff;
+    font-size:18px;
+}
+
+.bottom-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.panel{
+    background:#111827;
+    border:1px solid rgba(0,170,255,.25);
+    border-radius:10px;
+    padding:10px;
+    min-height:100px;
+}
+
+.live-controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.btn{
+    border:none;
+    padding:12px 18px;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    color:white;
+}
+
+.btn-gold{
+    background:#c99700;
+}
+
+.btn-blue{
+    background:#0077ff;
+}
+
+.btn-red{
+    background:#d62828;
+}
+
+video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:10px;
+}
+
+@media(max-width:900px){
+    .artist-grid{
+        grid-template-columns:1fr;
+    }
+
+    .bottom-row{
+        grid-template-columns:1fr;
+    }
+
+    body{
+        overflow:auto;
+    }
+}
 </style>
+</head>
 
+<body>
 
+<div id="page-livebattle">
 
-<div class="page" id="page-livebattle">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="leaveBattleRoom();goToPage('queue')">←</button>
-    <h1>🔴 Live Battle</h1>
-    <button class="icon-btn" onclick="leaveBattleRoom()">⏹</button>
-  </div>
-  <div class="page-body no-nav">
-    <div class="live-room-shell">
-      <div class="live-status-card">
-        <div class="live-room-title"><span class="live-red-dot"></span>Face-To-Face Battle Room</div>
-        <div class="live-room-sub">Artist cameras, mics, DJ/judge control, and viewer watching powered by LiveKit + Firebase.</div>
-        <div class="live-room-meta">
-          <span class="live-pill">Room: <strong id="liveRoomName">battle-room</strong></span>
-          <span class="live-pill">You: <strong id="liveUsername">guest</strong></span>
-          <span class="live-pill">Status: <strong id="liveStatus">Not connected</strong></span>
-        </div>
-        <div class="live-error" id="liveError"></div>
-      </div>
+<div class="top-bar">
+<h1>🔥 Live Battle</h1>
 
-      <div class="beat-vault-card" id="djBeatSelectorCard">
-        <div class="beat-vault-title">🎧 DJ Beat Selector</div>
-        <div class="beat-vault-sub">DJs choose the platform beat for this battle. Artists and viewers see/hear the selected beat.</div>
-        <div class="current-beat-box">
-          <div>
-            <div class="current-beat-name" id="currentBattleBeatName">No beat selected</div>
-            <div class="current-beat-meta" id="currentBattleBeatMeta">Waiting for DJ selection</div>
-          </div>
-          <button class="btn btn-blue" style="width:auto;clip-path:none;border-radius:7px;" onclick="playSelectedBattleBeat()">▶ Play</button>
-        </div>
-        <audio id="battleBeatAudio" controls style="width:100%;margin-top:10px;display:none;"></audio>
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
-          <button class="btn btn-gold" onclick="goToPage('beatadmin')">Admin Upload</button>
-        </div>
-        <div id="djBeatList" style="margin-top:10px;"></div>
-        <div class="dj-equipment">
-          <div class="live-inline-title">DJ EQUIPMENT SETUP (PLACEHOLDER)</div>
-          <div class="dj-eq-row">
-            <div class="dj-eq-pill">🎹 MIDI Controller: <strong id="djMidiStatus">Detecting...</strong></div>
-            <div class="dj-eq-pill">🎛 DJ Controller: <strong id="djControllerStatus">Detecting...</strong></div>
-            <div class="dj-eq-pill">🎤 Input Devices: <strong id="djInputStatus">Checking...</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="live-stage" id="liveVideoGrid">
-        <div class="live-dj-row">
-          <div class="live-video-card dj-mini" id="djVideoBox"><div class="live-label">DJ CAMERA</div><div class="live-placeholder">DJ feed waiting...</div></div>
-        </div>
-        <div class="live-artists-grid">
-          <div class="live-video-card local artist-main" id="artist1VideoBox"><div class="live-label">ARTIST 1</div><div class="live-placeholder">Artist 1 camera waiting...</div></div>
-          <div class="live-video-card artist-main" id="artist2VideoBox"><div class="live-label">ARTIST 2</div><div class="live-placeholder">Artist 2 camera waiting...</div></div>
-        </div>
-      </div>
-      <div class="live-chat-vote-bar">
-        <div class="live-inline-card"><div class="live-inline-title">LIVE CHAT</div><div class="live-inline-note">Viewers participate through chat only. No viewer camera required.</div></div>
-        <div class="live-inline-card"><div class="live-inline-title">CROWD VOTING</div><div class="live-inline-note">Vote each round while both artists remain visible on screen.</div></div>
-      </div>
-      <div class="live-controls">
-        <button class="btn btn-gold" onclick="joinLiveBattleAs('artist')">🎤 Join Artist</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('dj')">🎧 Join DJ</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('viewer')">👀 Watch</button>
-        <button class="btn btn-blue artist-only" onclick="toggleLiveMic()">🎙️ Mic</button>
-        <button class="btn btn-blue artist-only" onclick="toggleLiveCamera()">📷 Camera</button>
-        <button class="btn btn-red" onclick="leaveBattleRoom()">Leave</button>
-      </div>
-    </div>
-  </div>
+<div class="live-controls">
+<button class="btn btn-gold" onclick="joinRole('artist')">Join Artist</button>
+<button class="btn btn-blue" onclick="joinRole('dj')">Join DJ</button>
+<button class="btn btn-blue" onclick="joinRole('viewer')">Watch</button>
+<button class="btn btn-red" onclick="leaveBattle()">Leave</button>
+</div>
 </div>
 
+<div class="live-room-shell">
 
-
-<div style="margin:0 14px 14px;padding:14px;border:1px solid rgba(201,168,76,0.22);border-radius:10px;background:linear-gradient(135deg,#0a0a14,#050510);">
-  <div style="font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;">BATTLE CATEGORIES</div>
-  <div class="role-grid" style="margin-bottom:0;grid-template-columns:repeat(2,1fr);gap:8px;">
-    <div class="role-card"><span class="role-icon">🎤</span><div class="role-name">MC: Boom Bap Bars</div><div class="role-desc">Classic 90s lyric format</div></div>
-    <div class="role-card"><span class="role-icon">🔥</span><div class="role-name">MC: Street Freestyle</div><div class="role-desc">Off-the-top pressure</div></div>
-    <div class="role-card"><span class="role-icon">⚔️</span><div class="role-name">MC: Punchline War</div><div class="role-desc">Heavy rebuttal round</div></div>
-    <div class="role-card"><span class="role-icon">🎧</span><div class="role-name">DJ Battle</div><div class="role-desc">DJ vs DJ routines</div></div>
-    <div class="role-card" style="grid-column:1/-1;"><span class="role-icon">⭕</span><div class="role-name">Cypher 12</div><div class="role-desc">12 MC circle format</div></div>
-  </div>
+<div class="live-status-card">
+<div class="live-room-title">Uni Freestyle Battle Arena</div>
+<div id="liveStatus">Status: Waiting...</div>
 </div>
 
+<div class="live-stage">
+
+<div class="dj-section">
+<div class="dj-video" id="djVideoBox">
+DJ CAMERA
+</div>
+</div>
+
+<div class="artist-grid">
+
+<div class="artist-box" id="artist1VideoBox">
+<div class="artist-label">ARTIST 1</div>
+</div>
+
+<div class="artist-box" id="artist2VideoBox">
+<div class="artist-label">ARTIST 2</div>
+</div>
+
+</div>
+
+<div class="bottom-row">
+
+<div class="panel">
+<h3>💬 Live Chat</h3>
+<div>Chat system ready.</div>
+</div>
+
+<div class="panel">
+<h3>🗳 Crowd Voting</h3>
+<div>Voting system ready.</div>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
 
 <script>
-function clearLiveVideos() {
-  resetLiveBox("djVideoBox", "DJ feed waiting...");
-  resetLiveBox("artist1VideoBox", "Artist 1 camera waiting...");
-  resetLiveBox("artist2VideoBox", "Artist 2 camera waiting...");
+
+function setLiveStatus(text){
+    document.getElementById("liveStatus").innerText = text;
 }
 
-function getVideoTargetBox(identity = "", isLocal = false) {
-  if (isLocal && ubLiveRole === "dj") return "djVideoBox";
-  if (isLocal) return "artist1VideoBox";
-  const id = String(identity || "").toLowerCase();
-  if (id.startsWith("dj_")) return "djVideoBox";
-  if (id.startsWith("artist_")) return "artist2VideoBox";
-  return "artist2VideoBox";
+function joinRole(role){
+    setLiveStatus("Joining as " + role + "...");
+    console.log("Joining role:", role);
 }
 
-function attachLiveTrack(track, isLocal = false, identity = "") {
-  const box = document.getElementById(getVideoTargetBox(identity, isLocal));
-  if (!track || typeof track.attach !== "function") return;
-  const element = track.attach();
-  element.setAttribute("playsinline", "true");
-  element.autoplay = true;
-  if (track.kind === "audio") { document.body.appendChild(element); return; }
-  if (!box) return;
-  const ph = box.querySelector(".live-placeholder");
-  if (ph) ph.remove();
-  const oldVideo = box.querySelector("video");
-  if (oldVideo) oldVideo.remove();
-  box.appendChild(element);
+function leaveBattle(){
+    setLiveStatus("Disconnected");
+    console.log("Left battle");
 }
 
-async function joinLiveBattleAs(role = "artist") {
-  clearLiveError();
-  if (!window.LivekitClient) { showLiveError("LiveKit client did not load. Refresh and try again."); return; }
-  try {
-    if (ubLiveRoom) await leaveBattleRoom(false);
-    ubLiveRole = role;
-    const shell = document.querySelector("#page-livebattle .live-room-shell");
-    if (shell) shell.classList.toggle("live-viewer-mode", role === "viewer");
-    const roomName = "battle-room";
-    const username = getBattleUsername(role);
-    document.getElementById("liveRoomName").textContent = roomName;
-    document.getElementById("liveUsername").textContent = username;
-    setLiveStatus("Requesting token...");
-    const tokenRes = await fetch(`${UB_LIVEKIT_TOKEN_FUNCTION}?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(username)}`);
-    const data = await tokenRes.json();
-    if (!tokenRes.ok || !data.token || !data.url) throw new Error(data.error || "Token function did not return a LiveKit token.");
-    const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
-    ubLiveRoom = room;
-    room.on("trackSubscribed", (track, pub, participant) => attachLiveTrack(track, false, participant?.identity));
-    room.on("participantConnected", (p) => setLiveStatus(`${p.identity} joined`));
-    room.on("participantDisconnected", () => setLiveStatus("Participant left"));
-    room.on("disconnected", () => { setLiveStatus("Disconnected"); clearLiveVideos(); });
-    setLiveStatus("Connecting...");
-    await room.connect(data.url, data.token);
-    if (role === "viewer") { setLiveStatus("Watching live (viewer mode · no camera)"); if (typeof showToast === "function") showToast("👀 Viewer mode: watch/chat/vote only"); return; }
-    setLiveStatus("Starting camera...");
-    await room.localParticipant.enableCameraAndMicrophone();
-    room.localParticipant.trackPublications.forEach((pub) => { if (pub.track) attachLiveTrack(pub.track, true, username); });
-    setLiveStatus("Live");
-    if (typeof showToast === "function") showToast("🔴 Live battle room connected");
-  } catch (err) {
-    console.error(err);
-    setLiveStatus("Error");
-    showLiveError(err.message || "Unable to join LiveKit room.");
-  }
-}
-
-async function detectDJEquipmentStatus() {
-  const midiEl = document.getElementById("djMidiStatus");
-  const ctrlEl = document.getElementById("djControllerStatus");
-  const inEl = document.getElementById("djInputStatus");
-  if (midiEl) midiEl.textContent = (navigator.requestMIDIAccess ? "Supported" : "Not supported");
-  if (ctrlEl) ctrlEl.textContent = "Placeholder";
-  if (inEl && navigator.mediaDevices?.enumerateDevices) {
-    const dev = await navigator.mediaDevices.enumerateDevices();
-    const inputs = dev.filter(d=>d.kind==="audioinput"||d.kind==="videoinput").length;
-    inEl.textContent = inputs+" detected";
-  }
-}
 </script>
+
+</body>
+</html>
+```
+
+
