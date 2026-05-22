@@ -1,7 +1,7 @@
 # UniFreestyle patch blocks (copy/paste into `unifreestyle.html`)
 
 ## 1) livebattle-layout-v2 CSS
-```html
+
 <style id="livebattle-layout-v2">
 .live-stage{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px;}
 .live-dj-row{display:flex;justify-content:center;}
@@ -19,10 +19,10 @@
 .dj-eq-pill{padding:8px;border:1px solid rgba(0,170,255,.25);border-radius:7px;font-size:.72rem;color:rgba(240,237,232,.8);background:rgba(0,170,255,.04);}
 @media(max-width:860px){.live-artists-grid{grid-template-columns:1fr;}.live-chat-vote-bar{grid-template-columns:1fr;}}
 </style>
-```
+
 
 ## 2) live battle HTML layout
-```html
+
 <div class="page" id="page-livebattle">
   <div class="top-bar">
     <button class="icon-btn" onclick="leaveBattleRoom();goToPage('queue')">←</button>
@@ -92,10 +92,10 @@
     </div>
   </div>
 </div>
-```
+
 
 ## 3) battle category cards
-```html
+
 <div style="margin:0 14px 14px;padding:14px;border:1px solid rgba(201,168,76,0.22);border-radius:10px;background:linear-gradient(135deg,#0a0a14,#050510);">
   <div style="font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;">BATTLE CATEGORIES</div>
   <div class="role-grid" style="margin-bottom:0;grid-template-columns:repeat(2,1fr);gap:8px;">
@@ -106,10 +106,10 @@
     <div class="role-card" style="grid-column:1/-1;"><span class="role-icon">⭕</span><div class="role-name">Cypher 12</div><div class="role-desc">12 MC circle format</div></div>
   </div>
 </div>
-```
+
 
 ## 4) JavaScript functions
-```javascript
+
 function clearLiveVideos() {
   resetLiveBox("djVideoBox", "DJ feed waiting...");
   resetLiveBox("artist1VideoBox", "Artist 1 camera waiting...");
