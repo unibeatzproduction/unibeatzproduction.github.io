@@ -3,6 +3,7 @@
 // Pages already include this file, so this safely activates unified auth everywhere this loader is present.
 
 import "/unibeatz-auth.js";
+import "/unibeatz-search.js";
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -58,9 +59,7 @@ function removeFloatingReminder() {
   document.getElementById("ub-push-float")?.remove();
 }
 
-function mountFloatingReminder() {
-  removeFloatingReminder();
-}
+function mountFloatingReminder() { removeFloatingReminder(); }
 
 async function requestPermissionAndRegister({ silent = false } = {}) {
   if (!messaging || !("Notification" in window)) return null;
@@ -122,9 +121,7 @@ function showInAppToast(data) {
   setTimeout(() => toast.remove(), 12000);
 }
 
-if (messaging) {
-  onMessage(messaging, payload => showInAppToast(payload.data || payload.notification || {}));
-}
+if (messaging) onMessage(messaging, payload => showInAppToast(payload.data || payload.notification || {}));
 
 function mountAdminComposer() {
   if (document.getElementById("ub-admin-fab")) return;
