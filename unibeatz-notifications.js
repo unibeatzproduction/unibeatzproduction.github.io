@@ -54,6 +54,14 @@ function showMiniToast(message, ms = 4500) {
   setTimeout(() => toast.remove(), ms);
 }
 
+function removeFloatingReminder() {
+  document.getElementById("ub-push-float")?.remove();
+}
+
+function mountFloatingReminder() {
+  removeFloatingReminder();
+}
+
 async function requestPermissionAndRegister({ silent = false } = {}) {
   if (!messaging || !("Notification" in window)) return null;
   try {
@@ -65,7 +73,6 @@ async function requestPermissionAndRegister({ silent = false } = {}) {
     let permission = Notification.permission;
     if (permission !== "granted") permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      mountFloatingReminder(permission === "denied" ? "blocked" : "ready");
       if (!silent) showMiniToast("Notifications were not turned on yet.");
       return null;
     }
@@ -81,14 +88,13 @@ async function requestPermissionAndRegister({ silent = false } = {}) {
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp()
       }, { merge: true });
-      mountFloatingReminder("on");
+      removeFloatingReminder();
       if (!silent) showMiniToast("✅ UniBeatz notifications are on.");
     }
     return token;
   } catch (err) {
     console.error("[UniBeatz Push] Registration error:", err);
     if (!silent) showMiniToast("Notification setup error: " + err.message, 8000);
-    mountFloatingReminder("ready");
     return null;
   }
 }
@@ -97,7 +103,6 @@ function showPrompt() {
   if (!("Notification" in window)) return;
   if (Notification.permission === "granted") return requestPermissionAndRegister({ silent: false });
   if (Notification.permission === "denied") {
-    mountFloatingReminder("blocked");
     showMiniToast("Notifications are blocked. Open browser site settings and allow notifications for this site.", 8000);
     return;
   }
@@ -106,20 +111,8 @@ function showPrompt() {
   banner.id = "ub-notif-banner";
   banner.innerHTML = `<style>#ub-notif-banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:999998;width:min(460px,calc(100% - 30px));background:linear-gradient(135deg,#0d0d18,#101b2e);color:#fff;border:1px solid rgba(201,168,76,.7);box-shadow:0 18px 55px rgba(0,0,0,.65),0 0 28px rgba(0,170,255,.18);border-radius:16px;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.ub-btns{display:flex;gap:8px;margin-top:12px}#ub-notif-banner button{border:0;border-radius:9px;padding:9px 12px;font-weight:800;font-size:12px;cursor:pointer}.ub-yes{flex:1;background:linear-gradient(135deg,#C9A84C,#F0C040);color:#070707}.ub-no{background:rgba(255,255,255,.08);color:#fff}</style><div style="font-weight:900;margin-bottom:4px">🔔 Turn on UniBeatzProduction updates</div><div style="font-size:13px;opacity:.8;line-height:1.35">Get beat drops, UniPack alerts, merch launches, and battle notifications.</div><div class="ub-btns"><button class="ub-no" id="ub-notif-later">Later</button><button class="ub-yes" id="ub-notif-yes">Turn On</button></div>`;
   document.body.appendChild(banner);
-  document.getElementById("ub-notif-later").onclick = () => { banner.remove(); mountFloatingReminder("ready"); };
+  document.getElementById("ub-notif-later").onclick = () => banner.remove();
   document.getElementById("ub-notif-yes").onclick = async () => { await requestPermissionAndRegister({ silent: false }); banner.remove(); };
-}
-
-function mountFloatingReminder(state = "ready") {
-  let btn = document.getElementById("ub-push-float");
-  if (!btn) {
-    btn = document.createElement("button");
-    btn.id = "ub-push-float";
-    btn.innerHTML = `<style>#ub-push-float{position:fixed;bottom:24px;left:24px;z-index:999997;width:56px;height:56px;border-radius:50%;border:1px solid rgba(201,168,76,.7);background:linear-gradient(135deg,#C9A84C,#00AAFF);color:#050505;font-size:23px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 25px rgba(0,170,255,.28)}#ub-push-float[data-state='on']{background:linear-gradient(135deg,#00C85A,#00AAFF)}#ub-push-float[data-state='blocked']{background:linear-gradient(135deg,#882222,#C9A84C)}</style>🔔`;
-    btn.onclick = showPrompt;
-    document.body.appendChild(btn);
-  }
-  btn.dataset.state = state;
 }
 
 function showInAppToast(data) {
@@ -228,8 +221,7 @@ else {
 }
 
 function bootPush() {
-  if (!("Notification" in window)) return;
-  mountFloatingReminder(Notification.permission === "granted" ? "on" : Notification.permission === "denied" ? "blocked" : "ready");
+  removeFloatingReminder();
   if (Notification.permission === "granted") requestPermissionAndRegister({ silent: true });
 }
 
