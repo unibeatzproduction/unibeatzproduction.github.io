@@ -1,7 +1,6 @@
 // unibeatz-auth.js
 // Unified UniBeatz account bridge.
-// Goal: one Firebase Auth login across UniBeatzProduction, UniBeatWorld, UniPack, and battle/customer pages,
-// while keeping separate memberships per platform.
+// One Firebase Auth login across UniBeatzProduction, UniBeatWorld, UniPack, radio, and battle/customer pages.
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -12,7 +11,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut,
-  updateProfile
+  updateProfile,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore,
@@ -40,6 +41,11 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: "select_account" });
+
+// This is the important part: one browser-local Firebase session across all pages on the same domain.
+const persistenceReady = setPersistence(auth, browserLocalPersistence).catch(err => {
+  console.warn("[UniBeatzAuth] Persistence setup failed:", err);
+});
 
 let currentProfile = null;
 let currentUser = null;
@@ -111,6 +117,7 @@ async function ensureProfile(user, extra = {}) {
     platform: PLATFORM
   }));
   window.dispatchEvent(new CustomEvent("ub-auth-ready", { detail: { user, profile: currentProfile, platform: PLATFORM } }));
+  syncLegacyHomepageFields(user, currentProfile);
   return currentProfile;
 }
 
@@ -131,6 +138,13 @@ function membershipText(profile) {
 }
 
 function escapeHtml(s) { return String(s ?? "").replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
+
+function syncLegacyHomepageFields(user, profile) {
+  const name = profile?.displayName || profile?.username || user?.displayName || "";
+  const email = user?.email || profile?.email || "";
+  ["mName", "bName"].forEach(id => { const el = document.getElementById(id); if (el && !el.value && name) el.value = name; });
+  ["mEmail", "bEmail"].forEach(id => { const el = document.getElementById(id); if (el && !el.value && email) el.value = email; });
+}
 
 function showAccountModal(mode = "login") {
   if (document.getElementById("ub-auth-modal")) document.getElementById("ub-auth-modal").remove();
@@ -178,6 +192,7 @@ function showAccountModal(mode = "login") {
   const submit = document.getElementById("ub-auth-submit");
   if (submit) submit.onclick = async () => {
     try {
+      await persistenceReady;
       const email = document.getElementById("ub-auth-email").value.trim().toLowerCase();
       const pass = document.getElementById("ub-auth-pass").value;
       if (!email || !pass) return setStatus("Enter email and password.");
@@ -198,6 +213,7 @@ function showAccountModal(mode = "login") {
   const google = document.getElementById("ub-auth-google");
   if (google) google.onclick = async () => {
     try {
+      await persistenceReady;
       const cred = await signInWithPopup(auth, googleProvider);
       await ensureProfile(cred.user);
       setStatus("Signed in with Google.", "ok");
@@ -232,6 +248,7 @@ function refreshAccountButton() {
 }
 
 onAuthStateChanged(auth, async user => {
+  await persistenceReady;
   currentUser = user;
   if (user) await ensureProfile(user);
   else {
