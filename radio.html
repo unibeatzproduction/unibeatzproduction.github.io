@@ -18,7 +18,8 @@ a{text-decoration:none;color:inherit}
 .nav{position:sticky;top:0;z-index:120;background:rgba(5,8,14,.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(201,168,76,.55);box-shadow:0 12px 30px rgba(0,0,0,.45)}
 .nav-inner{max-width:1200px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px}
 .brand{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:1.5rem;color:var(--gold-light);text-shadow:0 0 14px rgba(201,168,76,.22)}
-.links{display:flex;gap:14px;flex-wrap:wrap}.links a{font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3}
+.links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}.links a,.links button{font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;background:transparent;border:0;cursor:pointer}
+#radioAccountBtn{border:1px solid rgba(201,168,76,.45);border-radius:999px;padding:7px 10px;color:var(--gold-light);background:rgba(0,0,0,.22)}
 .wrap{max-width:1200px;margin:0 auto;padding:24px 18px 40px;position:relative;z-index:2}
 .hero{display:grid;grid-template-columns:1.3fr .7fr;gap:16px}
 @media(max-width:930px){.hero{grid-template-columns:1fr}}
@@ -54,7 +55,7 @@ textarea{min-height:92px;resize:vertical}
 </head>
 <body>
 <div class="street-art street-left">90s<br/>Boom Bap</div><div class="street-art street-right">Respect<br/>The Art</div><div class="street-art street-floor">From The Bronx To The World</div>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Uni Radio</a></div></div></nav>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Uni Radio</a><button id="radioAccountBtn" type="button">Sign In</button></div></div></nav>
 
 <main class="wrap">
   <section class="hero">
@@ -68,7 +69,7 @@ textarea{min-height:92px;resize:vertical}
         <div class="meta">
           <h3>Featured Station: Empire Rotation</h3>
           <p>Approved drops, underground heat, and curated podcast/radio cuts.</p>
-          <span class="badge">Notifications + Broadcasts Live</span>
+          <span class="badge">Google Sign-In + Broadcasts Live</span>
         </div>
       </div>
 
@@ -118,10 +119,10 @@ textarea{min-height:92px;resize:vertical}
 </div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js';
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
@@ -132,16 +133,35 @@ const firebaseConfig = {
   appId: "1:70667820609:web:57762df5510e6b4000b0c0"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
+
+window.UB_FIREBASE = { app, auth, db, storage, onAuthStateChanged, ready: true };
+window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
 
 const form = document.getElementById('artistForm');
 const notice = document.getElementById('formNotice');
 const approvedList = document.getElementById('approvedList');
 const radioPlayer = document.getElementById('radioPlayer');
 const modal = document.getElementById('submitModal');
+const accountBtn = document.getElementById('radioAccountBtn');
+
+accountBtn.addEventListener('click', () => {
+  if (window.UniBeatzAuth?.getUser?.()) window.UniBeatzAuth.showAccount();
+  else window.UniBeatzAuth?.showLogin?.();
+});
+
+window.addEventListener('ub-auth-ready', (e) => {
+  const user = e.detail?.user;
+  const profile = e.detail?.profile;
+  accountBtn.textContent = user ? (profile?.username || user.email || 'Account') : 'Sign In';
+});
+
+onAuthStateChanged(auth, (user) => {
+  accountBtn.textContent = user && !user.isAnonymous ? (user.displayName || user.email || 'Account') : 'Sign In';
+});
 
 document.getElementById('openSubmit').addEventListener('click', ()=> modal.classList.add('open'));
 document.getElementById('closeSubmit').addEventListener('click', ()=> modal.classList.remove('open'));
@@ -179,6 +199,9 @@ form.addEventListener('submit', async (e) => {
       status: 'pending',
       reviewNotes: '',
       approvedFor: [],
+      submittedByUid: auth.currentUser?.uid || null,
+      submittedByEmail: auth.currentUser?.email || formData.get('email'),
+      isAnonymousSubmission: !!auth.currentUser?.isAnonymous,
       createdAt: serverTimestamp(),
       reviewedAt: null
     });
