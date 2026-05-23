@@ -1,21 +1,18 @@
 // unibeatz-notifications.js
-// Drop in GitHub repo root. Include AFTER firebase init in each HTML file:
-//   <script type="module" src="/unibeatz-notifications.js"></script>
-//
-// Requires firebase already initialized + firebase/auth + firebase/firestore + firebase/messaging + firebase/storage on the page.
+// Shared UniBeatz loader: Google/Firebase account bridge + notifications + admin broadcast.
+// Pages already include this file, so this safely activates unified auth everywhere this loader is present.
+
+import "/unibeatz-auth.js";
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, collection, addDoc, getDocs, query, orderBy, limit,
-  serverTimestamp, doc, setDoc, where
+  serverTimestamp, doc, setDoc
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging.js";
+import { getMessaging, getToken, onMessage, isSupported } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-messaging.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-// ============================================================
-// CONFIG
-// ============================================================
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
   authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
@@ -25,474 +22,225 @@ const FIREBASE_CONFIG = {
   appId: "1:70667820609:web:57762df5510e6b4000b0c0"
 };
 
-// ⚠️ PASTE YOUR VAPID KEY HERE once generated in Firebase Console → Cloud Messaging → Web Push certificates
 const VAPID_KEY = "BBFJmA6QKx8YgG2BvP8OVuU1JYxIbu0_fAGy1_weagUVBFR1fNt7bfCwsg_j2HwHtWw9TgEQxSKJ_8LBiHk3yt0";
-
 const ADMIN_EMAIL = "unibeatzproduction@gmail.com";
+const SW_PATH = "/firebase-messaging-sw.js";
 
-// ============================================================
-// INIT
-// ============================================================
 const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 let messaging = null;
+let registeredToken = null;
+
 try {
-  messaging = getMessaging(app);
+  if (await isSupported()) messaging = getMessaging(app);
 } catch (e) {
-  console.warn('[UniBeatz Push] Messaging not supported in this browser:', e);
+  console.warn("[UniBeatz Push] Messaging not supported:", e);
 }
 
-// ============================================================
-// SOFT PERMISSION PROMPT (custom UI before native prompt)
-// ============================================================
-function showSoftPrompt() {
-  if (localStorage.getItem('ub_notif_asked') === 'true') return;
-  if (Notification.permission !== 'default') return;
-  if (!messaging) return;
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+}
+function escapeAttr(s) { return String(s ?? "").replace(/\"/g, "&quot;"); }
 
-  const banner = document.createElement('div');
-  banner.id = 'ub-notif-banner';
-  banner.innerHTML = `
-    <style>
-      #ub-notif-banner {
-        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        color: #fff; padding: 18px 22px; border-radius: 14px;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
-        z-index: 99998; max-width: 420px; width: calc(100% - 40px);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        animation: ubSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        backdrop-filter: blur(20px);
-      }
-      @keyframes ubSlideUp { from { transform: translate(-50%, 80px); opacity: 0; } to { transform: translateX(-50%); opacity: 1; } }
-      #ub-notif-banner .ub-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
-      #ub-notif-banner .ub-sub { font-size: 13px; opacity: 0.75; margin-bottom: 12px; line-height: 1.4; }
-      #ub-notif-banner .ub-btns { display: flex; gap: 8px; }
-      #ub-notif-banner button {
-        flex: 1; padding: 9px 14px; border: none; border-radius: 8px;
-        font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;
-      }
-      #ub-notif-banner .ub-yes { background: #ff3366; color: #fff; }
-      #ub-notif-banner .ub-yes:hover { background: #ff1f56; transform: translateY(-1px); }
-      #ub-notif-banner .ub-no { background: rgba(255,255,255,0.08); color: #fff; }
-      #ub-notif-banner .ub-no:hover { background: rgba(255,255,255,0.14); }
-    </style>
-    <div class="ub-title">🔔 Stay in the loop</div>
-    <div class="ub-sub">Get notified about new beats, packs, and battles across all UniBeatz platforms.</div>
-    <div class="ub-btns">
-      <button class="ub-no" id="ub-notif-no">Not now</button>
-      <button class="ub-yes" id="ub-notif-yes">Allow</button>
-    </div>
-  `;
-  document.body.appendChild(banner);
-
-  document.getElementById('ub-notif-yes').onclick = async () => {
-    banner.remove();
-    localStorage.setItem('ub_notif_asked', 'true');
-    await requestPermissionAndRegister();
-  };
-  document.getElementById('ub-notif-no').onclick = () => {
-    banner.remove();
-    localStorage.setItem('ub_notif_asked', 'true');
-  };
+function showMiniToast(message, ms = 4500) {
+  const old = document.getElementById("ub-mini-toast");
+  if (old) old.remove();
+  const toast = document.createElement("div");
+  toast.id = "ub-mini-toast";
+  toast.innerHTML = `<style>#ub-mini-toast{position:fixed;bottom:92px;right:22px;z-index:999999;background:#0d0d18;color:#fff;border:1px solid rgba(201,168,76,.55);box-shadow:0 12px 35px rgba(0,0,0,.55),0 0 18px rgba(0,170,255,.18);border-radius:12px;padding:12px 15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;max-width:310px;line-height:1.35}</style>${escapeHtml(message)}`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), ms);
 }
 
-async function requestPermissionAndRegister() {
-  if (!messaging) return;
+async function requestPermissionAndRegister({ silent = false } = {}) {
+  if (!messaging || !("Notification" in window)) return null;
   try {
-    // Register the SW (must be at root)
-    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('[UniBeatz Push] Permission denied');
-      return;
+    if (!("serviceWorker" in navigator)) {
+      if (!silent) showMiniToast("This browser does not support service worker notifications.");
+      return null;
     }
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration: swReg
-    });
+    const swReg = await navigator.serviceWorker.register(SW_PATH, { scope: "/" });
+    let permission = Notification.permission;
+    if (permission !== "granted") permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      mountFloatingReminder(permission === "denied" ? "blocked" : "ready");
+      if (!silent) showMiniToast("Notifications were not turned on yet.");
+      return null;
+    }
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
     if (token) {
-      console.log('[UniBeatz Push] FCM token:', token);
-      // Save token to Firestore under fcm_tokens collection
-      await setDoc(doc(db, 'fcm_tokens', token), {
+      registeredToken = token;
+      await setDoc(doc(db, "fcm_tokens", token), {
         token,
         uid: auth.currentUser?.uid || null,
         email: auth.currentUser?.email || null,
-        platform: location.pathname.split('/').pop() || 'index',
+        platform: location.pathname.split("/").pop() || "index",
         userAgent: navigator.userAgent,
         createdAt: serverTimestamp(),
         lastSeen: serverTimestamp()
       }, { merge: true });
+      mountFloatingReminder("on");
+      if (!silent) showMiniToast("✅ UniBeatz notifications are on.");
     }
+    return token;
   } catch (err) {
-    console.error('[UniBeatz Push] Registration error:', err);
+    console.error("[UniBeatz Push] Registration error:", err);
+    if (!silent) showMiniToast("Notification setup error: " + err.message, 8000);
+    mountFloatingReminder("ready");
+    return null;
   }
 }
 
-// Foreground messages - show toast since native notification won't fire
-if (messaging) {
-  onMessage(messaging, (payload) => {
-    console.log('[UniBeatz Push] Foreground:', payload);
-    showInAppToast(payload.data || {});
-  });
+function showPrompt() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") return requestPermissionAndRegister({ silent: false });
+  if (Notification.permission === "denied") {
+    mountFloatingReminder("blocked");
+    showMiniToast("Notifications are blocked. Open browser site settings and allow notifications for this site.", 8000);
+    return;
+  }
+  if (document.getElementById("ub-notif-banner")) return;
+  const banner = document.createElement("div");
+  banner.id = "ub-notif-banner";
+  banner.innerHTML = `<style>#ub-notif-banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:999998;width:min(460px,calc(100% - 30px));background:linear-gradient(135deg,#0d0d18,#101b2e);color:#fff;border:1px solid rgba(201,168,76,.7);box-shadow:0 18px 55px rgba(0,0,0,.65),0 0 28px rgba(0,170,255,.18);border-radius:16px;padding:16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}.ub-btns{display:flex;gap:8px;margin-top:12px}#ub-notif-banner button{border:0;border-radius:9px;padding:9px 12px;font-weight:800;font-size:12px;cursor:pointer}.ub-yes{flex:1;background:linear-gradient(135deg,#C9A84C,#F0C040);color:#070707}.ub-no{background:rgba(255,255,255,.08);color:#fff}</style><div style="font-weight:900;margin-bottom:4px">🔔 Turn on UniBeatzProduction updates</div><div style="font-size:13px;opacity:.8;line-height:1.35">Get beat drops, UniPack alerts, merch launches, and battle notifications.</div><div class="ub-btns"><button class="ub-no" id="ub-notif-later">Later</button><button class="ub-yes" id="ub-notif-yes">Turn On</button></div>`;
+  document.body.appendChild(banner);
+  document.getElementById("ub-notif-later").onclick = () => { banner.remove(); mountFloatingReminder("ready"); };
+  document.getElementById("ub-notif-yes").onclick = async () => { await requestPermissionAndRegister({ silent: false }); banner.remove(); };
+}
+
+function mountFloatingReminder(state = "ready") {
+  let btn = document.getElementById("ub-push-float");
+  if (!btn) {
+    btn = document.createElement("button");
+    btn.id = "ub-push-float";
+    btn.innerHTML = `<style>#ub-push-float{position:fixed;bottom:24px;left:24px;z-index:999997;width:56px;height:56px;border-radius:50%;border:1px solid rgba(201,168,76,.7);background:linear-gradient(135deg,#C9A84C,#00AAFF);color:#050505;font-size:23px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 25px rgba(0,170,255,.28)}#ub-push-float[data-state='on']{background:linear-gradient(135deg,#00C85A,#00AAFF)}#ub-push-float[data-state='blocked']{background:linear-gradient(135deg,#882222,#C9A84C)}</style>🔔`;
+    btn.onclick = showPrompt;
+    document.body.appendChild(btn);
+  }
+  btn.dataset.state = state;
 }
 
 function showInAppToast(data) {
-  const toast = document.createElement('div');
-  toast.innerHTML = `
-    <style>
-      .ub-toast {
-        position: fixed; top: 20px; right: 20px; z-index: 99999;
-        background: #0d0d18; color: #fff; border-radius: 14px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,51,102,0.3);
-        max-width: 380px; overflow: hidden;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        animation: ubToastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        cursor: pointer;
-      }
-      @keyframes ubToastIn { from { transform: translateX(420px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-      .ub-toast-header { padding: 14px 16px 8px; display: flex; align-items: center; gap: 8px; }
-      .ub-toast-brand { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #ff3366; font-weight: 700; }
-      .ub-toast-title { padding: 0 16px 6px; font-weight: 700; font-size: 16px; }
-      .ub-toast-top { padding: 0 16px 10px; font-size: 13px; opacity: 0.85; line-height: 1.4; }
-      .ub-toast-img { width: 100%; max-height: 200px; object-fit: cover; display: block; }
-      .ub-toast-bot { padding: 10px 16px 14px; font-size: 13px; opacity: 0.85; line-height: 1.4; }
-    </style>
-    <div class="ub-toast" onclick="this.remove()">
-      <div class="ub-toast-header"><span class="ub-toast-brand">● UniBeatz</span></div>
-      <div class="ub-toast-title">${escapeHtml(data.title || 'Notification')}</div>
-      ${data.topText ? `<div class="ub-toast-top">${escapeHtml(data.topText)}</div>` : ''}
-      ${data.image ? `<img class="ub-toast-img" src="${escapeAttr(data.image)}" alt="">` : ''}
-      ${data.bottomText ? `<div class="ub-toast-bot">${escapeHtml(data.bottomText)}</div>` : ''}
-    </div>
-  `;
+  const toast = document.createElement("div");
+  toast.innerHTML = `<style>.ub-toast{position:fixed;top:20px;right:20px;z-index:999999;background:#0d0d18;color:#fff;border-radius:14px;box-shadow:0 20px 50px rgba(0,0,0,.6),0 0 0 1px rgba(201,168,76,.45);max-width:390px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;cursor:pointer}.ub-toast-header{padding:14px 16px 8px}.ub-toast-brand{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#C9A84C;font-weight:800}.ub-toast-title{padding:0 16px 6px;font-weight:800;font-size:16px}.ub-toast-top,.ub-toast-bot{padding:0 16px 10px;font-size:13px;opacity:.86;line-height:1.4}.ub-toast-bot{padding-top:10px;padding-bottom:14px}.ub-toast-img{width:100%;max-height:220px;object-fit:cover;display:block}</style><div class="ub-toast" onclick="this.remove()"><div class="ub-toast-header"><span class="ub-toast-brand">● UniBeatz</span></div><div class="ub-toast-title">${escapeHtml(data.title || "Notification")}</div>${data.topText ? `<div class="ub-toast-top">${escapeHtml(data.topText)}</div>` : ""}${data.image ? `<img class="ub-toast-img" src="${escapeAttr(data.image)}" alt="">` : ""}${data.bottomText ? `<div class="ub-toast-bot">${escapeHtml(data.bottomText)}</div>` : ""}</div>`;
   document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 8000);
+  setTimeout(() => toast.remove(), 12000);
 }
 
-function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function escapeAttr(s) { return String(s).replace(/"/g, '&quot;'); }
+if (messaging) {
+  onMessage(messaging, payload => showInAppToast(payload.data || payload.notification || {}));
+}
 
-// ============================================================
-// ADMIN COMPOSER (floating button visible only to admin)
-// ============================================================
 function mountAdminComposer() {
-  if (document.getElementById('ub-admin-fab')) return;
-
-  const fab = document.createElement('div');
-  fab.id = 'ub-admin-fab';
-  fab.innerHTML = `
-    <style>
-      #ub-admin-fab {
-        position: fixed; bottom: 24px; right: 24px; z-index: 99997;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      }
-      #ub-admin-fab-btn {
-        width: 58px; height: 58px; border-radius: 50%;
-        background: linear-gradient(135deg, #ff3366 0%, #ff6b3d 100%);
-        color: #fff; border: none; cursor: pointer;
-        box-shadow: 0 10px 30px rgba(255,51,102,0.5), 0 0 0 1px rgba(255,255,255,0.1);
-        display: flex; align-items: center; justify-content: center;
-        font-size: 24px; transition: all 0.25s ease;
-      }
-      #ub-admin-fab-btn:hover { transform: scale(1.08) rotate(-5deg); box-shadow: 0 14px 40px rgba(255,51,102,0.7); }
-      #ub-admin-modal {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
-        z-index: 99999; display: none; align-items: center; justify-content: center; padding: 20px;
-      }
-      #ub-admin-modal.open { display: flex; animation: ubFade 0.25s ease; }
-      @keyframes ubFade { from { opacity: 0; } to { opacity: 1; } }
-      #ub-admin-modal .ub-card {
-        background: #0d0d18; color: #fff; border-radius: 20px;
-        width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;
-        box-shadow: 0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08);
-        padding: 28px;
-      }
-      #ub-admin-modal h2 {
-        margin: 0 0 4px; font-size: 22px; font-weight: 800;
-        background: linear-gradient(135deg, #ff3366 0%, #ff6b3d 100%);
-        -webkit-background-clip: text; background-clip: text; color: transparent;
-      }
-      #ub-admin-modal .ub-sub { font-size: 13px; opacity: 0.6; margin-bottom: 20px; }
-      #ub-admin-modal label {
-        display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
-        font-weight: 700; margin-bottom: 6px; opacity: 0.7;
-      }
-      #ub-admin-modal input[type="text"],
-      #ub-admin-modal textarea {
-        width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-        color: #fff; padding: 12px 14px; font-size: 14px; font-family: inherit;
-        margin-bottom: 16px; transition: border 0.2s;
-      }
-      #ub-admin-modal input:focus, #ub-admin-modal textarea:focus { outline: none; border-color: #ff3366; }
-      #ub-admin-modal textarea { resize: vertical; min-height: 60px; }
-      #ub-admin-modal .ub-image-zone {
-        border: 2px dashed rgba(255,255,255,0.15); border-radius: 12px;
-        padding: 24px; text-align: center; cursor: pointer; margin-bottom: 16px;
-        transition: all 0.2s; position: relative; overflow: hidden;
-      }
-      #ub-admin-modal .ub-image-zone:hover { border-color: #ff3366; background: rgba(255,51,102,0.04); }
-      #ub-admin-modal .ub-image-zone.has-image { padding: 0; }
-      #ub-admin-modal .ub-image-zone img { width: 100%; max-height: 200px; object-fit: cover; display: block; }
-      #ub-admin-modal .ub-btns { display: flex; gap: 10px; margin-top: 8px; }
-      #ub-admin-modal .ub-send {
-        flex: 1; padding: 14px; border: none; border-radius: 10px; cursor: pointer;
-        background: linear-gradient(135deg, #ff3366 0%, #ff6b3d 100%);
-        color: #fff; font-weight: 700; font-size: 14px; letter-spacing: 0.5px;
-        transition: all 0.2s;
-      }
-      #ub-admin-modal .ub-send:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,51,102,0.4); }
-      #ub-admin-modal .ub-send:disabled { opacity: 0.5; cursor: not-allowed; }
-      #ub-admin-modal .ub-cancel {
-        padding: 14px 20px; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px;
-        background: transparent; color: #fff; cursor: pointer; font-weight: 600;
-      }
-      #ub-admin-modal .ub-status { margin-top: 14px; font-size: 13px; padding: 10px 14px; border-radius: 8px; display: none; }
-      #ub-admin-modal .ub-status.ok { display: block; background: rgba(0,200,100,0.15); color: #4ade80; }
-      #ub-admin-modal .ub-status.err { display: block; background: rgba(255,50,80,0.15); color: #ff6b85; }
-    </style>
-    <button id="ub-admin-fab-btn" title="Send Notification">📢</button>
-    <div id="ub-admin-modal">
-      <div class="ub-card">
-        <h2>Broadcast Notification</h2>
-        <div class="ub-sub">Sends to ALL platforms (UniBeatz World, UniFreestyle, UniPack)</div>
-
-        <label>Title</label>
-        <input type="text" id="ub-comp-title" maxlength="80" placeholder="🔥 New Drop Live">
-
-        <label>Top Passage</label>
-        <textarea id="ub-comp-top" maxlength="200" placeholder="Short hook above the image"></textarea>
-
-        <label>Image (optional)</label>
-        <div class="ub-image-zone" id="ub-image-zone">
-          <input type="file" id="ub-comp-image" accept="image/*" style="display:none">
-          <div id="ub-image-placeholder">📷 Click to add image</div>
-        </div>
-
-        <label>Bottom Passage</label>
-        <textarea id="ub-comp-bottom" maxlength="200" placeholder="Call to action below the image"></textarea>
-
-        <label>Link URL (where clicks go)</label>
-        <input type="text" id="ub-comp-url" placeholder="/unipack.html" value="/">
-
-        <div class="ub-btns">
-          <button class="ub-cancel" id="ub-comp-cancel">Cancel</button>
-          <button class="ub-send" id="ub-comp-send">Send to Everyone</button>
-        </div>
-        <div class="ub-status" id="ub-comp-status"></div>
-      </div>
-    </div>
-  `;
+  if (document.getElementById("ub-admin-fab")) return;
+  const fab = document.createElement("div");
+  fab.id = "ub-admin-fab";
+  fab.innerHTML = `<style>#ub-admin-fab{position:fixed;bottom:24px;right:24px;z-index:999997;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}#ub-admin-fab-btn{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#ff3366,#ff6b3d);color:#fff;border:0;cursor:pointer;box-shadow:0 10px 30px rgba(255,51,102,.5);display:flex;align-items:center;justify-content:center;font-size:24px}#ub-admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:999999;display:none;align-items:center;justify-content:center;padding:20px}#ub-admin-modal.open{display:flex}#ub-admin-modal .ub-card{background:#0d0d18;color:#fff;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.7);padding:28px}#ub-admin-modal h2{margin:0 0 4px;font-size:22px;font-weight:900;color:#F0C040}#ub-admin-modal .ub-sub{font-size:13px;opacity:.65;margin-bottom:20px}#ub-admin-modal label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:800;margin-bottom:6px;opacity:.75}#ub-admin-modal input[type='text'],#ub-admin-modal textarea{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px 14px;font-size:14px;font-family:inherit;margin-bottom:16px}#ub-admin-modal textarea{resize:vertical;min-height:60px}.ub-image-zone{border:2px dashed rgba(255,255,255,.15);border-radius:12px;padding:24px;text-align:center;cursor:pointer;margin-bottom:16px;overflow:hidden}.ub-image-zone.has-image{padding:0}.ub-image-zone img{width:100%;max-height:210px;object-fit:cover;display:block}.ub-btns{display:flex;gap:10px;margin-top:8px}.ub-send{flex:1;padding:14px;border:0;border-radius:10px;cursor:pointer;background:linear-gradient(135deg,#C9A84C,#F0C040);color:#050505;font-weight:900}.ub-cancel{padding:14px 20px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:transparent;color:#fff;cursor:pointer;font-weight:700}.ub-status{margin-top:14px;font-size:13px;padding:10px 14px;border-radius:8px;display:none}.ub-status.ok{display:block;background:rgba(0,200,100,.15);color:#4ade80}.ub-status.err{display:block;background:rgba(255,50,80,.15);color:#ff6b85}</style><button id="ub-admin-fab-btn" title="Send Broadcast">📢</button><div id="ub-admin-modal"><div class="ub-card"><h2>Broadcast Notification</h2><div class="ub-sub">Sends to all registered UniBeatz devices.</div><label>Title</label><input type="text" id="ub-comp-title" maxlength="80" placeholder="🔥 New Drop Live"><label>Top Passage</label><textarea id="ub-comp-top" maxlength="220"></textarea><label>Image optional</label><div class="ub-image-zone" id="ub-image-zone"><input type="file" id="ub-comp-image" accept="image/*" style="display:none"><div>📷 Click to add image</div></div><label>Bottom Passage</label><textarea id="ub-comp-bottom" maxlength="220"></textarea><label>Link URL</label><input type="text" id="ub-comp-url" value="/"><div class="ub-btns"><button class="ub-cancel" id="ub-comp-cancel">Cancel</button><button class="ub-send" id="ub-comp-send">Send to Everyone</button></div><div class="ub-status" id="ub-comp-status"></div></div></div>`;
   document.body.appendChild(fab);
-
-  const modal = document.getElementById('ub-admin-modal');
-  const fabBtn = document.getElementById('ub-admin-fab-btn');
-  const cancelBtn = document.getElementById('ub-comp-cancel');
-  const sendBtn = document.getElementById('ub-comp-send');
-  const imageZone = document.getElementById('ub-image-zone');
-  const imageInput = document.getElementById('ub-comp-image');
-  const statusEl = document.getElementById('ub-comp-status');
-  let uploadedImageUrl = null;
-
-  fabBtn.onclick = () => modal.classList.add('open');
-  cancelBtn.onclick = () => modal.classList.remove('open');
-  modal.onclick = (e) => { if (e.target === modal) modal.classList.remove('open'); };
-
+  const modal = document.getElementById("ub-admin-modal");
+  const imageZone = document.getElementById("ub-image-zone");
+  const imageInput = document.getElementById("ub-comp-image");
+  const statusEl = document.getElementById("ub-comp-status");
+  const sendBtn = document.getElementById("ub-comp-send");
+  let uploadedImageUrl = "";
+  document.getElementById("ub-admin-fab-btn").onclick = () => modal.classList.add("open");
+  document.getElementById("ub-comp-cancel").onclick = () => modal.classList.remove("open");
+  modal.onclick = e => { if (e.target === modal) modal.classList.remove("open"); };
   imageZone.onclick = () => imageInput.click();
-  imageInput.onchange = async (e) => {
-    const file = e.target.files[0];
+  imageInput.onchange = async e => {
+    const file = e.target.files?.[0];
     if (!file) return;
-    statusEl.className = 'ub-status'; statusEl.textContent = '';
     try {
-      const path = `notifications/${Date.now()}_${file.name}`;
-      const ref = storageRef(storage, path);
+      const ref = storageRef(storage, `notifications/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`);
       await uploadBytes(ref, file);
       uploadedImageUrl = await getDownloadURL(ref);
-      imageZone.classList.add('has-image');
-      imageZone.innerHTML = `<img src="${uploadedImageUrl}" alt="">`;
+      imageZone.classList.add("has-image");
+      imageZone.innerHTML = `<img src="${escapeAttr(uploadedImageUrl)}" alt="">`;
     } catch (err) {
-      console.error(err);
-      statusEl.className = 'ub-status err';
-      statusEl.textContent = 'Image upload failed: ' + err.message;
+      statusEl.className = "ub-status err";
+      statusEl.textContent = "Image upload failed: " + err.message;
     }
   };
-
   sendBtn.onclick = async () => {
-    const title = document.getElementById('ub-comp-title').value.trim();
-    const topText = document.getElementById('ub-comp-top').value.trim();
-    const bottomText = document.getElementById('ub-comp-bottom').value.trim();
-    const url = document.getElementById('ub-comp-url').value.trim() || '/';
-
-    if (!title) {
-      statusEl.className = 'ub-status err';
-      statusEl.textContent = 'Title is required';
-      return;
-    }
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = 'Sending...';
-    statusEl.className = 'ub-status'; statusEl.textContent = '';
-
+    const title = document.getElementById("ub-comp-title").value.trim();
+    if (!title) { statusEl.className = "ub-status err"; statusEl.textContent = "Title is required"; return; }
+    sendBtn.disabled = true; sendBtn.textContent = "Sending...";
     try {
-      // Write to Firestore - Cloud Function picks it up and fans out
-      await addDoc(collection(db, 'notifications'), {
+      await addDoc(collection(db, "notifications"), {
         title,
-        topText,
-        bottomText,
-        image: uploadedImageUrl,
-        url,
-        sentBy: auth.currentUser?.email || 'admin',
+        topText: document.getElementById("ub-comp-top").value.trim(),
+        bottomText: document.getElementById("ub-comp-bottom").value.trim(),
+        image: uploadedImageUrl || "",
+        url: document.getElementById("ub-comp-url").value.trim() || "/",
+        sentBy: auth.currentUser?.email || ADMIN_EMAIL,
         createdAt: serverTimestamp(),
-        status: 'pending'
+        status: "pending"
       });
-
-      statusEl.className = 'ub-status ok';
-      statusEl.textContent = '✓ Queued. Cloud Function is delivering now.';
-      sendBtn.textContent = 'Sent ✓';
-
-      // Reset
-      setTimeout(() => {
-        document.getElementById('ub-comp-title').value = '';
-        document.getElementById('ub-comp-top').value = '';
-        document.getElementById('ub-comp-bottom').value = '';
-        uploadedImageUrl = null;
-        imageZone.classList.remove('has-image');
-        imageZone.innerHTML = '<input type="file" id="ub-comp-image" accept="image/*" style="display:none"><div id="ub-image-placeholder">📷 Click to add image</div>';
-        // re-bind
-        document.getElementById('ub-comp-image').onchange = imageInput.onchange;
-        sendBtn.disabled = false;
-        sendBtn.textContent = 'Send to Everyone';
-        statusEl.textContent = '';
-        statusEl.className = 'ub-status';
-        modal.classList.remove('open');
-      }, 1500);
+      statusEl.className = "ub-status ok";
+      statusEl.textContent = "✓ Broadcast queued.";
+      sendBtn.textContent = "Sent ✓";
+      setTimeout(() => modal.classList.remove("open"), 1300);
     } catch (err) {
-      console.error(err);
-      statusEl.className = 'ub-status err';
-      statusEl.textContent = 'Send failed: ' + err.message;
-      sendBtn.disabled = false;
-      sendBtn.textContent = 'Send to Everyone';
+      statusEl.className = "ub-status err";
+      statusEl.textContent = "Send failed: " + err.message;
+      sendBtn.disabled = false; sendBtn.textContent = "Send to Everyone";
     }
   };
 }
 
-// ============================================================
-// HISTORY PANEL (visible to everyone)
-// ============================================================
-async function loadHistory(containerId = 'ub-notif-history') {
+async function loadHistory(containerId = "ub-notif-history") {
   const container = document.getElementById(containerId);
   if (!container) return;
   try {
-    const q = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(50));
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      container.innerHTML = '<p style="opacity:0.6">No announcements yet.</p>';
-      return;
-    }
+    const snap = await getDocs(query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(50)));
+    if (snap.empty) { container.innerHTML = '<p style="opacity:.6">No announcements yet.</p>'; return; }
     container.innerHTML = snap.docs.map(d => {
       const n = d.data();
-      const date = n.createdAt?.toDate?.()?.toLocaleString() || '';
-      return `
-        <article style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px; margin-bottom:14px;">
-          <div style="font-size:11px; opacity:0.5; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:8px;">${date}</div>
-          <h3 style="margin:0 0 8px; font-size:18px;">${escapeHtml(n.title || '')}</h3>
-          ${n.topText ? `<p style="margin:0 0 10px; opacity:0.8;">${escapeHtml(n.topText)}</p>` : ''}
-          ${n.image ? `<img src="${escapeAttr(n.image)}" style="width:100%; max-height:240px; object-fit:cover; border-radius:10px; margin:8px 0;">` : ''}
-          ${n.bottomText ? `<p style="margin:10px 0 0; opacity:0.8;">${escapeHtml(n.bottomText)}</p>` : ''}
-        </article>
-      `;
-    }).join('');
+      const date = n.createdAt?.toDate?.()?.toLocaleString() || "";
+      return `<article style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;margin-bottom:14px"><div style="font-size:11px;opacity:.5;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">${date}</div><h3 style="margin:0 0 8px;font-size:18px">${escapeHtml(n.title || "")}</h3>${n.topText ? `<p style="margin:0 0 10px;opacity:.8">${escapeHtml(n.topText)}</p>` : ""}${n.image ? `<img src="${escapeAttr(n.image)}" style="width:100%;max-height:240px;object-fit:cover;border-radius:10px;margin:8px 0">` : ""}${n.bottomText ? `<p style="margin:10px 0 0;opacity:.8">${escapeHtml(n.bottomText)}</p>` : ""}</article>`;
+    }).join("");
   } catch (err) {
     console.error(err);
     container.innerHTML = '<p style="color:#ff6b85">Could not load history.</p>';
   }
 }
 
-// ============================================================
-// BOOTSTRAP
-// Listen on the PAGE's Firebase auth (window.UB_FIREBASE) when available,
-// because each <script type="module"> has its own Firebase app instance.
-// Falls back to the module's own auth otherwise.
-// ============================================================
-function wireAuthListeners(pageAuth) {
-  // Admin composer
-  onAuthStateChanged(pageAuth, (user) => {
-    if (user && user.email === ADMIN_EMAIL) {
-      mountAdminComposer();
-    }
-  });
-
-  // FCM token registration for any signed-in user
-  onAuthStateChanged(pageAuth, async (user) => {
-    if (user && Notification.permission === 'granted' && messaging) {
-      try {
-        const swReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
-          || await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-        if (token) {
-          await setDoc(doc(db, 'fcm_tokens', token), {
-            token, uid: user.uid, email: user.email, lastSeen: serverTimestamp()
-          }, { merge: true });
-        }
-      } catch (e) { /* silent */ }
-    }
-  });
-}
-
-function bootstrapAuth() {
-  // Prefer the page's Firebase instance if it exposed one (UB_FIREBASE)
-  if (window.UB_FIREBASE && window.UB_FIREBASE.auth && window.UB_FIREBASE.onAuthStateChanged) {
-    // Use the page's onAuthStateChanged because it's bound to the page's auth instance
-    const pageOnAuthStateChanged = window.UB_FIREBASE.onAuthStateChanged;
-    const pageAuth = window.UB_FIREBASE.auth;
-    pageOnAuthStateChanged(pageAuth, (user) => {
-      if (user && user.email === ADMIN_EMAIL) {
-        mountAdminComposer();
-      }
-    });
-    pageOnAuthStateChanged(pageAuth, async (user) => {
-      if (user && Notification.permission === 'granted' && messaging) {
-        try {
-          const swReg = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js')
-            || await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-          if (token) {
-            await setDoc(doc(db, 'fcm_tokens', token), {
-              token, uid: user.uid, email: user.email, lastSeen: serverTimestamp()
-            }, { merge: true });
-          }
-        } catch (e) { /* silent */ }
-      }
-    });
-    console.log('[UniBeatz Push] Using page Firebase auth');
-    return;
+function wireAuth() {
+  const handler = async user => {
+    if (user?.email === ADMIN_EMAIL) mountAdminComposer();
+    if (user && Notification.permission === "granted" && messaging) await requestPermissionAndRegister({ silent: true });
+  };
+  if (window.UB_FIREBASE?.auth && window.UB_FIREBASE?.onAuthStateChanged) {
+    window.UB_FIREBASE.onAuthStateChanged(window.UB_FIREBASE.auth, handler);
+    console.log("[UniBeatz Push] Using page Firebase auth");
+  } else {
+    onAuthStateChanged(auth, handler);
+    console.log("[UniBeatz Push] Using shared Firebase auth");
   }
-
-  // Fallback: use the module's own auth (works only on pages that don't init their own Firebase)
-  wireAuthListeners(auth);
-  console.log('[UniBeatz Push] Using module Firebase auth (fallback)');
 }
 
-// If the page hasn't initialized UB_FIREBASE yet, wait for the ub-firebase-ready event
-if (window.UB_FIREBASE && window.UB_FIREBASE.ready) {
-  bootstrapAuth();
-} else {
-  window.addEventListener('ub-firebase-ready', bootstrapAuth, { once: true });
-  // Also try again after 2 seconds as a safety net (in case event fires before listener attached)
-  setTimeout(() => {
-    if (!document.getElementById('ub-admin-fab')) bootstrapAuth();
-  }, 2000);
+if (window.UB_FIREBASE?.ready) wireAuth();
+else {
+  window.addEventListener("ub-firebase-ready", wireAuth, { once: true });
+  setTimeout(wireAuth, 2000);
 }
 
-// Soft-ask after 5s on first visit (gives page time to load)
-setTimeout(showSoftPrompt, 5000);
+function bootPush() {
+  if (!("Notification" in window)) return;
+  mountFloatingReminder(Notification.permission === "granted" ? "on" : Notification.permission === "denied" ? "blocked" : "ready");
+  if (Notification.permission === "granted") requestPermissionAndRegister({ silent: true });
+}
 
-// Expose for manual triggering
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(bootPush, 700));
+else setTimeout(bootPush, 700);
+
 window.UniBeatzPush = {
   loadHistory,
   requestPermission: requestPermissionAndRegister,
-  showPrompt: showSoftPrompt
+  showPrompt,
+  forcePrompt: showPrompt,
+  showTestToast: (data = {}) => showInAppToast({ title: "UniBeatz Test", topText: "Notification display is working.", ...data }),
+  token: () => registeredToken
 };
