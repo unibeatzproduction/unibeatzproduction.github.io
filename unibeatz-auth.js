@@ -47,6 +47,7 @@ let currentUser = null;
 function detectPlatform() {
   const path = (location.pathname || "").toLowerCase();
   if (path.includes("unipack")) return "unipack";
+  if (path.includes("radio")) return "radio";
   if (path.includes("unifreestyle") || path.includes("battle")) return "battle";
   if (path.includes("unibeatzworld")) return "unibeatworld";
   return "unibeatzproduction";
@@ -59,6 +60,7 @@ function defaultMemberships(email = "") {
     unibeatworld: "free",
     unipack: admin ? "master" : "starter",
     battle: "visitor",
+    radio: "listener",
     merch: "customer"
   };
 }
@@ -78,11 +80,8 @@ async function ensureProfile(user, extra = {}) {
     ...(existing.memberships || {}),
     ...(extra.memberships || {})
   };
-
-  // Legacy compatibility for UniPack existing tier code.
   const unipackTier = existing.unipackTier || memberships.unipack || (user.email === ADMIN_EMAIL ? "master" : "starter");
   memberships.unipack = unipackTier;
-
   const profile = {
     uid: user.uid,
     email: user.email || "",
@@ -97,7 +96,6 @@ async function ensureProfile(user, extra = {}) {
     createdAt: existing.createdAt || serverTimestamp(),
     lastLoginAt: serverTimestamp()
   };
-
   await setDoc(ref, profile, { merge: true });
   currentProfile = { ...existing, ...profile, memberships };
   localStorage.setItem("ub_unified_user", JSON.stringify({
@@ -122,6 +120,7 @@ function platformLabel(key) {
     unibeatworld: "UniBeatWorld",
     unipack: "UniPack",
     battle: "Uni Freestyle Battle",
+    radio: "Uni Radio",
     merch: "Merch"
   })[key] || key;
 }
@@ -130,6 +129,8 @@ function membershipText(profile) {
   const m = profile?.memberships || defaultMemberships(profile?.email || "");
   return Object.entries(m).map(([k, v]) => `${platformLabel(k)}: ${String(v).toUpperCase()}`).join("\n");
 }
+
+function escapeHtml(s) { return String(s ?? "").replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
 
 function showAccountModal(mode = "login") {
   if (document.getElementById("ub-auth-modal")) document.getElementById("ub-auth-modal").remove();
@@ -154,7 +155,7 @@ function showAccountModal(mode = "login") {
     </style>
     <div class="ub-card">
       <div class="ub-head"><h2>${mode === "signup" ? "Create UniBeatz Account" : "UniBeatz Account"}</h2><button class="ub-x" id="ub-auth-close">×</button></div>
-      <div class="ub-sub">One account signs you into the full empire. Memberships stay separate for UniBeatWorld, UniPack, Battle, and Merch.</div>
+      <div class="ub-sub">One account signs you into the full empire. Memberships stay separate for UniBeatWorld, UniPack, Battle, Radio, and Merch.</div>
       ${mode === "account" && currentProfile ? `<pre>${escapeHtml(membershipText(currentProfile))}</pre><button class="ub-btn" id="ub-auth-logout">Log Out</button>` : `
         ${mode === "signup" ? `<label>Name</label><input id="ub-auth-name" placeholder="Producer / customer name">` : ""}
         <label>Email</label><input id="ub-auth-email" type="email" placeholder="you@email.com">
@@ -165,7 +166,6 @@ function showAccountModal(mode = "login") {
       <div class="ub-status" id="ub-auth-status"></div>
     </div>`;
   document.body.appendChild(modal);
-
   const close = () => modal.remove();
   document.getElementById("ub-auth-close").onclick = close;
   modal.onclick = e => { if (e.target === modal) close(); };
@@ -206,18 +206,16 @@ function showAccountModal(mode = "login") {
   };
 }
 
-function escapeHtml(s) { return String(s ?? "").replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c])); }
-
 function mountAccountButton() {
   if (document.getElementById("ub-auth-float")) return;
   const btn = document.createElement("button");
   btn.id = "ub-auth-float";
   btn.innerHTML = `
     <style>
-      #ub-auth-float{position:fixed;bottom:24px;left:92px;z-index:999996;min-width:56px;height:56px;border-radius:999px;border:1px solid rgba(201,168,76,.7);background:linear-gradient(135deg,#10101c,#070710);color:#fff;font-size:18px;cursor:pointer;box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 20px rgba(201,168,76,.16);padding:0 15px;font-weight:900;display:flex;align-items:center;gap:8px}
+      #ub-auth-float{position:fixed;top:12px;right:108px;z-index:999996;min-width:42px;height:36px;border-radius:999px;border:1px solid rgba(201,168,76,.7);background:linear-gradient(135deg,#10101c,#070710);color:#fff;font-size:15px;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.45),0 0 14px rgba(201,168,76,.14);padding:0 10px;font-weight:900;display:flex;align-items:center;gap:6px}
       #ub-auth-float[data-signed='true']{background:linear-gradient(135deg,#C9A84C,#00AAFF);color:#050505}
-      #ub-auth-float small{font-size:11px;font-weight:900;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      @media(max-width:600px){#ub-auth-float{left:86px;bottom:24px}#ub-auth-float small{display:none}}
+      #ub-auth-float small{font-size:10px;font-weight:900;max-width:82px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      @media(max-width:860px){#ub-auth-float{top:12px;right:62px;min-width:36px;width:36px;padding:0;justify-content:center}#ub-auth-float small{display:none}}
     </style>
     <span>👤</span><small>Account</small>`;
   btn.onclick = () => showAccountModal(currentUser ? "account" : "login");
