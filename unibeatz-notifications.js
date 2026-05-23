@@ -26,7 +26,7 @@ const FIREBASE_CONFIG = {
 };
 
 // ⚠️ PASTE YOUR VAPID KEY HERE once generated in Firebase Console → Cloud Messaging → Web Push certificates
-const VAPID_KEY = "PASTE_YOUR_VAPID_PUBLIC_KEY_HERE";
+const VAPID_KEY = "BBFJmA6QKx8YgG2BvP8OVuU1JYxIbu0_fAGy1_weagUVBFR1fNt7bfCwsg_j2HwHtWw9TgEQxSKJ_8LBiHk3yt0";
 
 const ADMIN_EMAIL = "unibeatzproduction@gmail.com";
 
