@@ -4,10 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uni Freestyle Battle Test</title>
-<link rel="stylesheet" href="unifreestyle-test.css">
+<style>
+html,body{margin:0;height:100%;background:#030305;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+.testbar{position:fixed;top:0;left:0;right:0;height:42px;z-index:999999;background:#08080f;border-bottom:2px solid #C9A84C;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-sizing:border-box;color:#F0C040;font-size:12px;font-weight:800;letter-spacing:1px}
+.testbar a{color:#40D0FF;text-decoration:none;margin-left:10px}
+iframe{position:fixed;top:42px;left:0;width:100%;height:calc(100% - 42px);border:0;background:#030305}
+</style>
 </head>
 <body>
-<div id="app"></div>
+<div class="testbar">
+  <span>UNI FREESTYLE TEST SHELL</span>
+  <span><a href="/unifreestyle.html">Open Live App</a><a href="/index.html">Empire</a></span>
+</div>
+<iframe src="/unifreestyle.html" title="Uni Freestyle Battle App Test"></iframe>
 <script type="module" src="/unibeatz-notifications.js"></script>
 </body>
 </html>
