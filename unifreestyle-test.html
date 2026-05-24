@@ -5,40 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <title>UniFreestyle Battle App Test</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="unifreestyle-test.css"/>
+<style>
+:root{--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#9aa3b8;--red:#FF3333;--green:#00CC66}
+*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:radial-gradient(circle at 18% 12%,rgba(0,170,255,.22),transparent 28%),radial-gradient(circle at 82% 18%,rgba(201,168,76,.18),transparent 30%),linear-gradient(135deg,#030305,#080816 48%,#030305);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden}body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,170,255,.05) 1px,transparent 1px),linear-gradient(rgba(201,168,76,.04) 1px,transparent 1px);background-size:46px 46px;opacity:.35}.ufb-header{position:sticky;top:0;z-index:50;background:rgba(4,7,14,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(201,168,76,.55);display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 18px}.ufb-brand{font-family:'Bebas Neue',sans-serif;color:var(--gold-light);text-decoration:none;font-size:1.6rem;letter-spacing:2px}.ufb-nav{display:flex;gap:14px;flex-wrap:wrap}.ufb-nav a{font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:#dce6ff;text-decoration:none}.ufb-shell{max-width:1280px;margin:auto;padding:22px 18px 44px;position:relative}.ufb-hero{display:grid;grid-template-columns:.95fr 1.3fr;gap:18px;align-items:stretch}.ufb-copy,.ufb-stage,.panel{border:1px solid rgba(201,168,76,.3);background:linear-gradient(145deg,rgba(6,8,18,.88),rgba(0,0,0,.72));border-radius:18px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.52),inset 0 0 28px rgba(0,170,255,.035)}.eyebrow{font-family:'Orbitron',sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--blue-bright);text-transform:uppercase}.ufb-copy h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,8vw,6.2rem);line-height:.82;letter-spacing:3px;margin:12px 0}.ufb-copy h1 span{color:var(--gold-light);text-shadow:0 0 22px rgba(201,168,76,.28)}.ufb-copy p{color:#cbd3e4;line-height:1.45;font-size:1.08rem;max-width:590px}.ufb-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{border:0;border-radius:10px;padding:11px 15px;font-family:'Orbitron',sans-serif;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#08080f}.btn-blue{background:rgba(0,170,255,.08);border:1px solid var(--blue);color:var(--blue-bright)}.ufb-stage{min-height:520px;display:grid;grid-template-columns:1fr 210px 1fr;gap:12px;position:relative;overflow:hidden}.ufb-stage:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at center,rgba(0,170,255,.2),transparent 36%),linear-gradient(135deg,rgba(255,255,255,.06),transparent 30%,rgba(201,168,76,.08));opacity:.8}.artist-card,.dj-card{position:relative;z-index:1;display:flex;flex-direction:column;gap:10px;justify-content:space-between;border:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.42);border-radius:16px;padding:12px}.screen{flex:1;min-height:320px;border-radius:14px;border:1px solid rgba(0,170,255,.38);background:linear-gradient(135deg,rgba(0,170,255,.15),rgba(0,0,0,.75)),radial-gradient(circle at 50% 35%,rgba(64,208,255,.2),transparent 38%);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:3px;color:#eaf7ff;text-shadow:0 0 18px rgba(0,170,255,.55)}.screen.small{min-height:160px;color:var(--gold-light);border-color:rgba(201,168,76,.45);background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(0,0,0,.72))}.dj-card{justify-content:center}.ufb-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.panel h2{font-family:'Bebas Neue',sans-serif;color:var(--gold-light);font-size:1.8rem;letter-spacing:2px;margin-bottom:6px}.panel p{color:#cbd3e4;line-height:1.4}.status-pill{display:inline-flex;margin-top:14px;border:1px solid rgba(0,204,102,.5);color:#73ffad;border-radius:999px;padding:7px 11px;font-family:'Orbitron',sans-serif;font-size:.54rem;letter-spacing:2px;text-transform:uppercase;background:rgba(0,204,102,.08)}@media(max-width:980px){.ufb-hero{grid-template-columns:1fr}.ufb-stage{grid-template-columns:1fr;min-height:auto}.screen{min-height:220px}.dj-card{order:-1}.ufb-grid{grid-template-columns:1fr}}@media(max-width:620px){.ufb-header{align-items:flex-start;flex-direction:column}.ufb-nav{gap:10px}.ufb-stage{padding:10px}.ufb-copy h1{font-size:3.3rem}}
+</style>
 </head>
 <body>
 <header class="ufb-header">
   <a href="index.html" class="ufb-brand">⚡ UniFreestyle Battle</a>
-  <nav class="ufb-nav">
-    <a href="index.html">Empire</a>
-    <a href="unibeatzworld.html">World</a>
-    <a href="radio.html">Radio</a>
-    <a href="unifreestyle.html">Live App</a>
-  </nav>
+  <nav class="ufb-nav"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Radio</a><a href="unifreestyle.html">Live App</a></nav>
 </header>
 <main class="ufb-shell">
   <section class="ufb-hero">
-    <div class="ufb-copy">
-      <div class="eyebrow">TEST BUILD • MODULAR DEPLOYMENT</div>
-      <h1>Uni Freestyle <span>Battle</span></h1>
-      <p>Safe test version for the separated battle app files. This test page does not replace the live production app until approved.</p>
-      <div class="ufb-actions">
-        <button class="btn btn-gold" type="button" onclick="window.UniBeatzAuth?.showLogin?.()">Sign In</button>
-        <a class="btn btn-blue" href="unifreestyle.html">Open Live App</a>
-      </div>
-    </div>
-    <div class="ufb-stage">
-      <div class="artist-card"><div class="screen">ARTIST 1</div><button class="btn btn-blue">Join Artist</button></div>
-      <div class="dj-card"><div class="screen small">DJ PANEL</div><button class="btn btn-gold">DJ Control</button></div>
-      <div class="artist-card"><div class="screen">ARTIST 2</div><button class="btn btn-blue">Join Artist</button></div>
-    </div>
+    <div class="ufb-copy"><div class="eyebrow">TEST BUILD • MODULAR DEPLOYMENT</div><h1>Uni Freestyle <span>Battle</span></h1><p>The separated-file battle app test is active. This preview keeps production safe while you approve the modular version.</p><div class="status-pill">Hero visual active</div><div class="ufb-actions"><button class="btn btn-gold" type="button" onclick="window.UniBeatzAuth?.showLogin?.()">Sign In</button><a class="btn btn-blue" href="unifreestyle.html">Open Live App</a></div></div>
+    <div class="ufb-stage"><div class="artist-card"><div class="screen">ARTIST 1</div><button class="btn btn-blue">Join Artist</button></div><div class="dj-card"><div class="screen small">DJ PANEL</div><button class="btn btn-gold">DJ Control</button></div><div class="artist-card"><div class="screen">ARTIST 2</div><button class="btn btn-blue">Join Artist</button></div></div>
   </section>
-  <section class="ufb-grid">
-    <article class="panel"><h2>Battle Flow</h2><p>Two artist panels, DJ center control, countdown, voting, and role-based access structure.</p></article>
-    <article class="panel"><h2>Membership Safe</h2><p>Shared identity remains separate from battle-specific paid access and permissions.</p></article>
-    <article class="panel"><h2>Production Protected</h2><p>This test page lets you approve the refactor before replacing the live app.</p></article>
-  </section>
+  <section class="ufb-grid"><article class="panel"><h2>Battle Flow</h2><p>Two artist screens with DJ center control, built for the battle structure.</p></article><article class="panel"><h2>Membership Safe</h2><p>Shared identity stays separate from paid battle access and permissions.</p></article><article class="panel"><h2>Production Protected</h2><p>This test version lets you approve the refactor before replacing the live app.</p></article></section>
 </main>
 <script type="module" src="/unibeatz-notifications.js"></script>
 </body>
