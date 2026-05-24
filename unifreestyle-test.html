@@ -1,22 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uni Freestyle Battle Test</title>
-<style>
-html,body{margin:0;height:100%;background:#030305;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
-.testbar{position:fixed;top:0;left:0;right:0;height:42px;z-index:999999;background:#08080f;border-bottom:2px solid #C9A84C;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-sizing:border-box;color:#F0C040;font-size:12px;font-weight:800;letter-spacing:1px}
-.testbar a{color:#40D0FF;text-decoration:none;margin-left:10px}
-iframe{position:fixed;top:42px;left:0;width:100%;height:calc(100% - 42px);border:0;background:#030305}
-</style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>UniFreestyle Battle App Test</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="unifreestyle-test.css"/>
 </head>
 <body>
-<div class="testbar">
-  <span>UNI FREESTYLE TEST SHELL</span>
-  <span><a href="/unifreestyle.html">Open Live App</a><a href="/index.html">Empire</a></span>
-</div>
-<iframe src="/unifreestyle.html" title="Uni Freestyle Battle App Test"></iframe>
+<header class="ufb-header">
+  <a href="index.html" class="ufb-brand">⚡ UniFreestyle Battle</a>
+  <nav class="ufb-nav">
+    <a href="index.html">Empire</a>
+    <a href="unibeatzworld.html">World</a>
+    <a href="radio.html">Radio</a>
+    <a href="unifreestyle.html">Live App</a>
+  </nav>
+</header>
+<main class="ufb-shell">
+  <section class="ufb-hero">
+    <div class="ufb-copy">
+      <div class="eyebrow">TEST BUILD • MODULAR DEPLOYMENT</div>
+      <h1>Uni Freestyle <span>Battle</span></h1>
+      <p>Safe test version for the separated battle app files. This test page does not replace the live production app until approved.</p>
+      <div class="ufb-actions">
+        <button class="btn btn-gold" type="button" onclick="window.UniBeatzAuth?.showLogin?.()">Sign In</button>
+        <a class="btn btn-blue" href="unifreestyle.html">Open Live App</a>
+      </div>
+    </div>
+    <div class="ufb-stage">
+      <div class="artist-card"><div class="screen">ARTIST 1</div><button class="btn btn-blue">Join Artist</button></div>
+      <div class="dj-card"><div class="screen small">DJ PANEL</div><button class="btn btn-gold">DJ Control</button></div>
+      <div class="artist-card"><div class="screen">ARTIST 2</div><button class="btn btn-blue">Join Artist</button></div>
+    </div>
+  </section>
+  <section class="ufb-grid">
+    <article class="panel"><h2>Battle Flow</h2><p>Two artist panels, DJ center control, countdown, voting, and role-based access structure.</p></article>
+    <article class="panel"><h2>Membership Safe</h2><p>Shared identity remains separate from battle-specific paid access and permissions.</p></article>
+    <article class="panel"><h2>Production Protected</h2><p>This test page lets you approve the refactor before replacing the live app.</p></article>
+  </section>
+</main>
 <script type="module" src="/unibeatz-notifications.js"></script>
 </body>
 </html>
