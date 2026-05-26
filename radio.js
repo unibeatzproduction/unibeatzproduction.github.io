@@ -26,6 +26,15 @@ const approvedList = document.getElementById('approvedList');
 const radioPlayer = document.getElementById('radioPlayer');
 const modal = document.getElementById('submitModal');
 const accountBtn = document.getElementById('radioAccountBtn');
+const genreFilters = document.getElementById('genreFilters');
+const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+const nowPlayingMeta = document.getElementById('nowPlayingMeta');
+const nowPlayingBadge = document.getElementById('nowPlayingBadge');
+
+let allApprovedTracks = [];
+let currentGenre = 'All';
+
+function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
 accountBtn.addEventListener('click', () => {
   if (window.UniBeatzAuth?.getUser?.()) window.UniBeatzAuth.showAccount();
@@ -76,6 +85,7 @@ form.addEventListener('submit', async (e) => {
       audioUrl: downloadURL,
       storagePath: fileRef.fullPath,
       status: 'pending',
+      featured: false,
       reviewNotes: '',
       approvedFor: [],
       submittedByUid: auth.currentUser?.uid || null,
@@ -96,28 +106,74 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
+function updateNowPlaying(track){
+  nowPlayingTitle.textContent = `Now Playing: ${track.trackTitle}`;
+  nowPlayingMeta.textContent = `${track.artistName} • ${track.genre}`;
+  nowPlayingBadge.textContent = track.featured ? 'FEATURED ROTATION' : 'APPROVED ROTATION';
+}
+
+function renderGenreFilters(){
+  const genres=['All', ...new Set(allApprovedTracks.map(t=>t.genre).filter(Boolean))];
+  genreFilters.innerHTML='';
+  genres.forEach((genre)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='btn ' + (genre===currentGenre ? 'btn-gold' : 'btn-blue');
+    btn.style.margin='4px';
+    btn.textContent=genre;
+    btn.addEventListener('click', ()=>{
+      currentGenre=genre;
+      renderApprovedTracks();
+      renderGenreFilters();
+    });
+    genreFilters.appendChild(btn);
+  });
+}
+
+function renderApprovedTracks(){
+  const filtered=currentGenre==='All' ? allApprovedTracks : allApprovedTracks.filter(t=>t.genre===currentGenre);
+
+  if(!filtered.length){
+    approvedList.innerHTML='<div class="channel">No approved tracks in this category yet.</div>';
+    return;
+  }
+
+  approvedList.innerHTML='';
+
+  filtered.forEach((track)=>{
+    const el=document.createElement('button');
+    el.type='button';
+    el.className='track';
+    el.innerHTML=`<div class="name">${esc(track.trackTitle)}</div><div class="desc">${esc(track.artistName)} · ${esc(track.genre)}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div>`;
+    el.addEventListener('click', ()=>{
+      radioPlayer.src=track.audioUrl;
+      radioPlayer.play();
+      updateNowPlaying(track);
+    });
+    approvedList.appendChild(el);
+  });
+}
+
 async function loadApproved() {
   approvedList.innerHTML = '<div class="channel">Loading approved tracks...</div>';
   const q = query(collection(db, 'radio_submissions'), where('status', '==', 'approved'), orderBy('createdAt', 'desc'));
   const snapshot = await getDocs(q);
+
   if (snapshot.empty) {
     approvedList.innerHTML = '<div class="channel">No approved tracks yet.</div>';
     return;
   }
 
-  approvedList.innerHTML = '';
-  snapshot.forEach((doc) => {
-    const track = doc.data();
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = 'track';
-    el.innerHTML = `<div class="name">${track.trackTitle}</div><div class="desc">${track.artistName} · ${track.genre}</div><div class="badge" style="margin-top:8px">APPROVED</div>`;
-    el.addEventListener('click', () => {
-      radioPlayer.src = track.audioUrl;
-      radioPlayer.play();
-    });
-    approvedList.appendChild(el);
-  });
+  allApprovedTracks = snapshot.docs.map(doc => doc.data())
+    .sort((a,b)=> Number(!!b.featured) - Number(!!a.featured));
+
+  renderGenreFilters();
+  renderApprovedTracks();
+
+  const firstTrack = allApprovedTracks[0];
+  if(firstTrack){
+    updateNowPlaying(firstTrack);
+  }
 }
 
 document.getElementById('refreshApproved').addEventListener('click', loadApproved);
