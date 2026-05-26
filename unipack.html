@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>UniPack | Turn Your Beat Into A Sample Pack</title>
+<title>UniBeatz Pack Studio | Turn Your Beat Into A Sample Pack</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <!-- ══ FIREBASE INTEGRATION ══ -->
@@ -43,7 +43,6 @@
     uploadBytes,
     getDownloadURL,
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
-
   // ═════ FIREBASE CONFIG ═════
   const firebaseConfig = {
     apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
@@ -54,14 +53,12 @@
     appId: "1:70667820609:web:57762df5510e6b4000b0c0",
     measurementId: "G-QR5J3KW8T1"
   };
-
   // Initialize
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
   auth.languageCode = "en";
-
   // Make Firebase available globally for the rest of the script
   window.UB_FIREBASE = {
     app,
@@ -95,447 +92,21 @@
     getDownloadURL,
     ready: true,
   };
-
   // Notify any listener
   window.dispatchEvent(new Event("ub-firebase-ready"));
   console.log("🔥 Firebase initialized — UniBeatz Production");
 </script>
-
-<style>
-:root{
-  --black:#020202;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;
-  --blue:#00AAFF;--blue-bright:#40D0FF;
-  --white:#F0EDE8;--gray:#777;--red:#FF3333;--green:#00CC66;--orange:#FF8800;--purple:#9B30FF;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
-#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55;}
-
-/* NAVBAR */
-nav{position:fixed;top:0;left:0;right:0;z-index:300;height:60px;background:linear-gradient(90deg,#08080f,#0d0d1a);border-bottom:2px solid var(--gold);box-shadow:0 4px 30px rgba(0,0,0,0.8);}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 16px;max-width:1400px;margin:0 auto;}
-.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
-.nav-logo img{height:36px;width:36px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,170,255,0.6));}
-.nav-brand{display:flex;flex-direction:column;line-height:1;}
-.nav-brand-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.nav-brand-tag{font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:2px;color:var(--gray);margin-top:2px;}
-.nav-right{display:flex;gap:8px;align-items:center;}
-.nav-link{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:rgba(240,237,232,0.7);text-decoration:none;padding:8px 12px;border:1px solid transparent;}
-.nav-link:hover{color:var(--gold-light);}
-.nav-cta{padding:8px 14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black) !important;font-family:'Orbitron',sans-serif;font-size:0.5rem;font-weight:700;letter-spacing:2px;border-radius:5px;cursor:pointer;border:none;}
-.user-chip{display:flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border:1px solid rgba(201,168,76,0.3);border-radius:24px;cursor:pointer;}
-.user-chip-ava{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));display:flex;align-items:center;justify-content:center;font-size:0.85rem;overflow:hidden;}
-.user-chip-ava img{width:100%;height:100%;object-fit:cover;}
-.user-chip-name{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:1px;color:var(--white);}
-.tier-pill{font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.2px;padding:2px 7px;border-radius:10px;font-weight:800;white-space:nowrap;}
-.tier-pill-starter{background:#222;color:#999;border:1px solid #444;}
-.tier-pill-pro{background:linear-gradient(135deg,#003a5f,#00AAFF);color:#fff;border:1px solid #00AAFF;}
-.tier-pill-elite{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:1px solid var(--gold);}
-.tier-pill-master{background:linear-gradient(135deg,#5a1095,#9B30FF);color:#fff;border:1px solid #9B30FF;box-shadow:0 0 6px rgba(155,48,255,0.4);}
-
-/* PAGE */
-.page{display:none;min-height:100vh;padding-top:60px;}
-.page.active{display:block;}
-
-/* ════════ LANDING ════════ */
-#landing-hero{padding:60px 20px 50px;text-align:center;position:relative;overflow:hidden;}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,170,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,170,255,0.03) 1px,transparent 1px);background-size:50px 50px;opacity:0.5;}
-.hero-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 30%,rgba(0,170,255,0.12),transparent 70%),radial-gradient(ellipse 50% 50% at 50% 80%,rgba(201,168,76,0.08),transparent 70%);}
-.hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto;}
-.hero-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:14px;}
-.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,12vw,7rem);line-height:0.85;letter-spacing:3px;margin-bottom:14px;}
-.hero-title .g{color:var(--gold-light);}
-.hero-title .b{color:var(--blue-bright);text-shadow:0 0 24px rgba(0,170,255,0.5);}
-.hero-tagline{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.1rem,3vw,1.7rem);letter-spacing:5px;color:var(--gold);margin-bottom:14px;}
-.hero-desc{font-size:1rem;color:rgba(240,237,232,0.6);max-width:620px;margin:0 auto 30px;line-height:1.6;}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
-.btn-gold{display:inline-block;padding:13px 28px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
-.btn-gold:hover{box-shadow:0 0 25px rgba(201,168,76,0.5);transform:translateY(-2px);}
-.btn-blue{display:inline-block;padding:13px 28px;border:1px solid var(--blue);background:transparent;color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
-.btn-blue:hover{background:rgba(0,170,255,0.1);transform:translateY(-2px);}
-.btn-full{width:100%;padding:13px;}
-
-/* DEMO ANIMATION */
-.demo-visual{margin:40px auto 0;max-width:780px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.18);border-radius:12px;padding:24px;position:relative;}
-.demo-step{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid rgba(255,255,255,0.05);border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);}
-.demo-step-icon{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.9rem;flex-shrink:0;}
-.demo-step-text{flex:1;text-align:left;}
-.demo-step-title{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;}
-.demo-step-desc{font-size:0.82rem;color:var(--gray);}
-.demo-arrow{color:var(--gold);font-size:1.6rem;text-align:center;margin:4px 0;animation:bounce 1.5s infinite;}
-@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(4px);}}
-
-/* FEATURE GRID */
-#features{padding:60px 20px;background:linear-gradient(180deg,var(--black),#05050f);position:relative;z-index:1;}
-.section-head{text-align:center;margin-bottom:40px;}
-.section-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:8px;}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.4rem);letter-spacing:3px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.section-line{display:block;width:64px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),transparent);margin:10px auto 0;}
-.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;max-width:1100px;margin:0 auto;}
-.feature-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.16);padding:24px;border-radius:8px;transition:all 0.3s;}
-.feature-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-3px);}
-.feature-icon{font-size:2.2rem;margin-bottom:12px;}
-.feature-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:6px;}
-.feature-desc{font-size:0.86rem;color:rgba(240,237,232,0.55);line-height:1.6;}
-
-/* PRICING */
-#pricing{padding:60px 20px;background:var(--black);position:relative;z-index:1;}
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:900px;margin:0 auto;}
-.pricing-grid-4{max-width:1180px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));}
-.price-card{border:1px solid rgba(201,168,76,0.18);padding:34px 26px;text-align:center;position:relative;background:linear-gradient(160deg,#090910,#040408);border-radius:8px;transition:all 0.3s;}
-.price-card.featured{border-color:var(--gold);box-shadow:0 0 40px rgba(201,168,76,0.12);}
-.price-card-elite{border-color:var(--gold);background:linear-gradient(160deg,#1a1308,#040408);box-shadow:0 0 30px rgba(201,168,76,0.1);}
-.price-card-master{border:1.5px solid #9B30FF;background:linear-gradient(160deg,#100818,#040408);box-shadow:0 0 36px rgba(155,48,255,0.18);}
-.price-card-master:hover{box-shadow:0 0 50px rgba(155,48,255,0.32);}
-.price-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;padding:3px 14px;font-weight:700;border-radius:0 0 5px 5px;}
-.price-badge-soon{background:linear-gradient(90deg,#7B21CF,#9B30FF);color:#fff;}
-.price-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;margin-bottom:6px;margin-top:8px;}
-.price-amount{font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:900;color:var(--gold-light);line-height:1;}
-.price-period{font-size:0.78rem;color:var(--gray);letter-spacing:2px;margin-bottom:24px;margin-top:4px;}
-.price-features{list-style:none;text-align:left;margin-bottom:24px;}
-.price-features li{padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.88rem;color:rgba(240,237,232,0.74);display:flex;align-items:center;gap:8px;}
-.price-features li::before{content:'⚡';font-size:0.6rem;color:var(--gold);flex-shrink:0;}
-
-/* ════════ AUTH SCREENS ════════ */
-.auth-page{padding:80px 20px 40px;display:flex;justify-content:center;}
-.auth-card{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.25);padding:32px;max-width:420px;width:100%;border-radius:10px;}
-.auth-logo{height:48px;display:block;margin:0 auto 12px;filter:drop-shadow(0 0 10px rgba(0,170,255,0.4));}
-.auth-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;text-align:center;color:var(--gold-light);margin-bottom:6px;}
-.auth-sub{font-size:0.85rem;color:var(--gray);text-align:center;margin-bottom:22px;}
-.field{margin-bottom:14px;}
-.field label{display:block;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:6px;}
-.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);padding:12px 14px;font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;border-radius:5px;-webkit-appearance:none;}
-.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);}
-.field select option{background:#0a0a14;color:var(--white);}
-.auth-switch{text-align:center;margin-top:16px;font-size:0.85rem;color:var(--gray);}
-.auth-switch a{color:var(--gold);font-weight:700;cursor:pointer;}
-
-/* ════════ STUDIO (MAIN APP) ════════ */
-#studio{padding-top:60px;background:#020207;min-height:100vh;}
-.studio-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(90deg,#0a0a14,#08080f);border-bottom:1px solid rgba(201,168,76,0.15);flex-wrap:wrap;}
-.tool-btn{padding:7px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;cursor:pointer;border-radius:5px;display:flex;align-items:center;gap:5px;transition:all 0.2s;}
-.tool-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.08);}
-.tool-btn.primary{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;font-weight:700;}
-.tool-btn.primary:hover{box-shadow:0 0 12px rgba(201,168,76,0.4);}
-.tool-btn.danger{border-color:rgba(255,51,51,0.3);color:var(--red);}
-.tool-btn.danger:hover{background:rgba(255,51,51,0.08);}
-.tool-divider{width:1px;height:22px;background:rgba(255,255,255,0.1);}
-
-.studio-layout{display:grid;grid-template-columns:1fr 320px;gap:0;min-height:calc(100vh - 110px);}
-@media(max-width:900px){.studio-layout{grid-template-columns:1fr;}}
-
-/* WORKSPACE */
-.workspace{padding:18px;overflow:auto;}
-.upload-zone{border:2px dashed rgba(0,170,255,0.3);background:rgba(0,170,255,0.02);padding:50px 24px;text-align:center;border-radius:12px;cursor:pointer;transition:all 0.3s;}
-.upload-zone:hover,.upload-zone.dragging{border-color:var(--blue);background:rgba(0,170,255,0.08);}
-.upload-icon{font-size:3.4rem;margin-bottom:12px;}
-.upload-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:6px;}
-.upload-desc{font-size:0.9rem;color:var(--gray);margin-bottom:16px;}
-
-/* WAVEFORM */
-.waveform-section{margin-bottom:18px;}
-/* ── MULTI-SECTION TABS ── */
-.section-tabs{display:flex;gap:8px;margin-bottom:16px;}
-.section-tab{flex:1;padding:10px 8px;border:2px solid rgba(0,170,255,0.25);background:rgba(0,170,255,0.04);border-radius:10px;cursor:pointer;text-align:center;transition:all 0.2s;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--gray);}
-.section-tab.active{border-color:var(--gold);background:rgba(201,168,76,0.18);color:var(--gold-light);box-shadow:0 0 14px rgba(201,168,76,0.25);}
-.section-tab .tab-label{font-size:0.85rem;display:block;margin-top:4px;font-family:'Rajdhani',sans-serif;font-weight:600;}
-.section-tab .tab-count{font-size:0.7rem;color:var(--blue-bright);margin-top:2px;display:block;}
-.section-panel{display:none;}.section-panel.active{display:block;}
-/* ═════ MIDI STEP SEQUENCER ═════ */
-.midi-locked{padding:60px 24px;text-align:center;background:linear-gradient(160deg,#0a0a14,#040408);border:1px dashed rgba(201,168,76,0.3);border-radius:10px;}
-.midi-locked-icon{font-size:3rem;margin-bottom:12px;}
-.midi-locked-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;}
-.midi-locked-text{font-family:'Rajdhani',sans-serif;font-size:0.95rem;color:var(--white);margin-bottom:20px;max-width:380px;margin-left:auto;margin-right:auto;}
-.midi-presets-row{background:linear-gradient(160deg,#08081a,#040408);border:1px solid rgba(0,170,255,0.2);border-radius:8px;padding:14px 16px;margin-bottom:14px;}
-.midi-presets-label{font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:9px;}
-.midi-presets-grid{display:flex;flex-wrap:wrap;gap:7px;}
-.midi-preset{padding:8px 13px;background:linear-gradient(135deg,#0d1424,#0a1a2e);border:1px solid rgba(0,170,255,0.3);color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.84rem;font-weight:600;cursor:pointer;border-radius:5px;transition:all 0.18s;}
-.midi-preset:hover:not(:disabled){background:linear-gradient(135deg,#0e2a4a,#0a1a2e);border-color:var(--blue-bright);transform:translateY(-1px);}
-.midi-preset:disabled{opacity:0.4;cursor:not-allowed;}
-.midi-preset.locked{opacity:0.5;cursor:not-allowed;background:linear-gradient(135deg,#1a0d24,#0a0a18);border-color:rgba(155,48,255,0.3);}
-.midi-preset-clear{background:linear-gradient(135deg,#220505,#1a0808) !important;border-color:rgba(255,60,60,0.3) !important;}
-.midi-preset-clear:hover:not(:disabled){border-color:var(--red) !important;}
-.midi-presets-note{font-family:'Rajdhani',sans-serif;font-size:0.78rem;color:var(--gold);margin-top:8px;display:none;}
-.midi-presets-note.show{display:block;}
-.midi-transport{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:linear-gradient(160deg,#0a0a14,#040408);border:1px solid rgba(201,168,76,0.18);padding:12px 14px;border-radius:8px;margin-bottom:14px;}
-.midi-play-btn{padding:10px 22px;background:linear-gradient(135deg,var(--green),#00aa55);color:#fff;border:none;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2.5px;font-weight:800;cursor:pointer;border-radius:6px;transition:all 0.2s;}
-.midi-play-btn:hover{box-shadow:0 0 14px rgba(0,200,90,0.5);}
-.midi-play-btn.playing{background:linear-gradient(135deg,var(--red),#cc2222);}
-.midi-tempo-wrap{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;}
-.midi-tempo-label{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2.5px;color:var(--gold);}
-.midi-tempo-slider{flex:1;-webkit-appearance:none;appearance:none;height:5px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));border-radius:3px;outline:none;cursor:pointer;}
-.midi-tempo-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;background:var(--white);border:2px solid var(--gold);border-radius:50%;cursor:pointer;}
-.midi-tempo-slider::-moz-range-thumb{width:16px;height:16px;background:var(--white);border:2px solid var(--gold);border-radius:50%;cursor:pointer;}
-.midi-tempo-display{font-family:'Orbitron',sans-serif;font-size:0.66rem;color:var(--white);min-width:65px;text-align:right;}
-.midi-pattern-btn{padding:10px 16px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;font-family:'Orbitron',sans-serif;font-size:0.65rem;letter-spacing:2px;font-weight:800;cursor:pointer;border-radius:6px;transition:all 0.2s;}
-.midi-pattern-btn:hover{box-shadow:0 0 14px rgba(201,168,76,0.5);}
-.midi-pattern-btn:disabled{opacity:0.4;cursor:not-allowed;background:linear-gradient(135deg,#444,#666);color:#888;}
-.midi-grid-wrap{overflow-x:auto;padding:6px 0;}
-.midi-grid{display:grid;grid-template-columns:140px repeat(16,minmax(34px,1fr));gap:3px;min-width:660px;background:linear-gradient(160deg,#0a0a14,#040408);border:1px solid rgba(0,170,255,0.18);padding:10px;border-radius:8px;}
-.midi-row{display:contents;}
-.midi-track-head{display:flex;flex-direction:column;justify-content:center;padding:6px 8px;background:linear-gradient(135deg,#08081a,#040408);border:1px solid rgba(201,168,76,0.18);border-radius:5px;gap:3px;}
-.midi-track-name{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--gold);}
-.midi-track-source{font-family:'Rajdhani',sans-serif;font-size:0.72rem;color:var(--white);background:#040408;border:1px solid rgba(0,170,255,0.25);border-radius:3px;padding:2px 4px;cursor:pointer;outline:none;}
-.midi-track-source:disabled{opacity:0.5;cursor:not-allowed;}
-.midi-step{height:36px;background:linear-gradient(160deg,#0e0e1a,#08080e);border:1px solid rgba(255,255,255,0.05);border-radius:4px;cursor:pointer;transition:all 0.12s;position:relative;}
-.midi-step:hover{border-color:rgba(0,170,255,0.5);}
-.midi-step.beat{background:linear-gradient(160deg,#1a1a26,#0e0e16);border-color:rgba(255,255,255,0.1);}
-.midi-step.on{background:linear-gradient(135deg,var(--blue),var(--blue-bright));border-color:var(--blue-bright);box-shadow:0 0 6px rgba(0,170,255,0.4);}
-.midi-step.on.beat{background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,0.5);}
-.midi-step.playhead{outline:2px solid var(--white);outline-offset:-1px;}
-.midi-saved-section{margin-top:14px;background:linear-gradient(160deg,#08081a,#040408);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:12px 14px;}
-.midi-saved-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2.5px;color:var(--gold);}
-.midi-pattern-counter{color:var(--blue-bright);}
-.midi-saved-list{display:flex;flex-direction:column;gap:6px;}
-.midi-saved-empty{padding:14px;text-align:center;font-family:'Rajdhani',sans-serif;color:var(--gray);font-size:0.86rem;font-style:italic;}
-.midi-saved-row{display:flex;align-items:center;gap:8px;background:#0a0a14;padding:8px 10px;border-radius:5px;border:1px solid rgba(255,255,255,0.06);}
-.midi-saved-name{flex:1;font-family:'Rajdhani',sans-serif;font-size:0.92rem;color:var(--white);}
-.midi-saved-meta{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:1.5px;color:var(--gray);}
-.midi-saved-btn{background:none;border:1px solid rgba(255,255,255,0.15);color:var(--white);padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem;}
-.midi-saved-btn:hover{border-color:var(--gold);color:var(--gold);}
-.midi-saved-btn.danger:hover{border-color:var(--red);color:var(--red);}
-.section-divider{display:flex;align-items:center;gap:10px;margin:18px 0 14px;color:var(--gray);font-size:0.75rem;font-family:'Orbitron',sans-serif;letter-spacing:2px;}
-.section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08);}
-.waveform-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.waveform-info{font-family:'Orbitron',sans-serif;font-size:0.46rem;color:var(--gray);}
-.waveform-container{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:14px;position:relative;}
-.waveform-canvas-wrap{position:relative;height:140px;background:rgba(0,0,0,0.4);border-radius:5px;overflow:hidden;cursor:crosshair;}
-canvas.waveform-cv{position:absolute;inset:0;width:100%;height:100%;}
-.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:5;pointer-events:none;display:none;box-shadow:0 0 8px rgba(255,51,51,0.6);}
-.slice-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);z-index:4;cursor:ew-resize;}
-.slice-marker::before{content:'';position:absolute;top:-4px;left:-4px;width:10px;height:10px;background:var(--gold);transform:rotate(45deg);}
-.slice-region{position:absolute;top:0;bottom:0;background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);border-right:2px solid var(--gold);z-index:3;}
-.slice-region.selected{background:rgba(64,208,255,0.15);border-color:var(--blue-bright);}
-.slice-region-label{position:absolute;top:6px;left:6px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1px;color:var(--gold-light);background:rgba(0,0,0,0.7);padding:2px 6px;border-radius:3px;}
-.slice-region.selected .slice-region-label{color:var(--blue-bright);}
-.slice-region-delete{position:absolute;top:4px;right:4px;width:18px;height:18px;background:rgba(255,60,60,0.9);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:800;cursor:pointer;z-index:6;line-height:1;opacity:0.7;transition:all 0.15s;}
-.slice-region-delete:hover{opacity:1;transform:scale(1.15);background:#ff3030;box-shadow:0 0 8px rgba(255,60,60,0.6);}
-/* ═════ TRIM-BY-DRAG SELECTION ═════ */
-.trim-selection{position:absolute;top:0;bottom:0;background:rgba(0,170,255,0.22);border-left:2px solid var(--blue-bright);border-right:2px solid var(--blue-bright);z-index:4;cursor:move;box-shadow:0 0 14px rgba(0,170,255,0.3) inset;}
-.trim-handle{position:absolute;top:0;bottom:0;width:18px;cursor:ew-resize;z-index:6;display:flex;align-items:center;justify-content:center;background:rgba(0,170,255,0.3);}
-.trim-handle::after{content:'';width:3px;height:50%;background:var(--blue-bright);border-radius:2px;box-shadow:0 0 6px rgba(0,170,255,0.8);}
-.trim-handle-left{left:-9px;}
-.trim-handle-right{right:-9px;}
-.trim-label{position:absolute;top:4px;left:50%;transform:translateX(-50%);background:rgba(0,170,255,0.95);color:#000;padding:3px 8px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1.5px;font-weight:700;border-radius:4px;white-space:nowrap;pointer-events:none;}
-.slice-handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:5;display:flex;align-items:center;justify-content:center;}
-.slice-handle::after{content:'';width:3px;height:40%;background:currentColor;border-radius:2px;opacity:0.8;}
-.slice-handle-left{left:-7px;color:var(--gold);}
-.slice-handle-right{right:-7px;color:var(--gold);}
-.slice-region.selected .slice-handle-left,.slice-region.selected .slice-handle-right{color:var(--blue-bright);}
-
-.waveform-controls{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
-.play-btn{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
-.play-btn:hover{box-shadow:0 0 14px rgba(201,168,76,0.5);}
-
-/* ══ FX TOP PANEL — next to waveform/slices ══ */
-.fx-top-panel{margin-bottom:18px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(0,170,255,0.2);border-radius:8px;padding:14px;box-shadow:0 0 20px rgba(0,170,255,0.05);}
-.fx-top-header{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
-.fx-top-title{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);}
-.fx-top-slice{flex:1;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--gray);}
-.fx-preview-btn{padding:7px 14px;background:linear-gradient(135deg,#004488,var(--blue));color:#fff;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;border:none;cursor:pointer;border-radius:5px;font-weight:700;transition:all 0.2s;}
-.fx-preview-btn:hover{box-shadow:0 0 12px rgba(0,170,255,0.5);}
-.fx-loop-btn{background:linear-gradient(135deg,#553388,#9B30FF) !important;}
-.fx-loop-btn.active{background:linear-gradient(135deg,var(--gold-dark),var(--gold)) !important;color:var(--black) !important;box-shadow:0 0 12px rgba(201,168,76,0.5);}
-.fx-reverse-btn{background:linear-gradient(135deg,#883300,#FF6B1A) !important;}
-.fx-reverse-btn.active{background:linear-gradient(135deg,var(--gold-dark),var(--gold)) !important;color:var(--black) !important;box-shadow:0 0 12px rgba(255,107,26,0.6);}
-.fx-stop-btn{background:linear-gradient(135deg,#882200,var(--red)) !important;}
-.fx-playing{animation:fxPulse 1s infinite;}
-@keyframes fxPulse{0%,100%{box-shadow:0 0 8px rgba(0,204,102,0.4);}50%{box-shadow:0 0 16px rgba(0,204,102,0.8);}}
-.fx-live-indicator{display:none;align-items:center;gap:5px;padding:4px 10px;background:rgba(0,204,102,0.12);border:1px solid var(--green);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--green);font-weight:700;}
-.fx-live-indicator.active{display:inline-flex;}
-.fx-live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:livePulse 1s infinite;}
-@keyframes livePulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-.fx-top-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
-@media(max-width:900px){.fx-top-grid{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:480px){.fx-top-grid{grid-template-columns:repeat(2,1fr);}}
-.fx-knob{background:rgba(255,255,255,0.02);border:1px solid rgba(201,168,76,0.1);padding:10px 8px;border-radius:6px;}
-.fx-knob-label{display:flex;flex-direction:column;gap:3px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1px;color:rgba(240,237,232,0.65);margin-bottom:8px;text-align:center;line-height:1.3;}
-.fx-knob-label .fx-value{color:var(--blue-bright);font-size:0.5rem;font-weight:700;}
-.fx-knob .fx-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;background:rgba(255,255,255,0.07);outline:none;border-radius:3px;cursor:pointer;}
-.fx-knob .fx-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);box-shadow:0 0 6px rgba(201,168,76,0.5);}
-.fx-knob .fx-slider::-moz-range-thumb{width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);}
-.fx-top-empty{display:none;}
-.fx-top-panel.empty .fx-top-grid{display:none;}
-.fx-top-panel.empty .fx-top-empty{display:block;}
-.fx-top-panel.empty .fx-top-slice{color:var(--gray);}
-.fx-top-panel.empty .fx-preview-btn{display:none;}
-
-/* SLICES PANEL */
-.slices-section{margin-bottom:18px;}
-.slices-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.slices-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);}
-.slices-count{font-family:'Orbitron',sans-serif;font-size:0.42rem;color:var(--blue-bright);}
-.slices-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
-.slice-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.16);border-radius:8px;padding:12px;position:relative;transition:all 0.2s;}
-.slice-card:hover{border-color:rgba(201,168,76,0.4);}
-.slice-card.selected{border-color:var(--blue);background:rgba(0,170,255,0.04);}
-.slice-card-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;}
-.slice-card-num{font-family:'Orbitron',sans-serif;font-size:0.42rem;color:var(--gray);letter-spacing:2px;}
-.slice-card-time{font-family:'Orbitron',sans-serif;font-size:0.45rem;color:var(--blue-bright);}
-.slice-card-name{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.15);color:var(--white);padding:6px 9px;font-family:'Rajdhani',sans-serif;font-size:0.85rem;outline:none;border-radius:4px;margin-bottom:8px;-webkit-appearance:none;}
-.slice-card-name:focus{border-color:var(--gold);}
-.slice-card-cat{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.15);color:var(--white);padding:5px 8px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;outline:none;border-radius:4px;-webkit-appearance:none;margin-bottom:8px;}
-.slice-card-cat option{background:#0a0a14;}
-.slice-card-actions{display:flex;gap:5px;}
-.slice-mini-btn{flex:1;padding:6px;border:1px solid rgba(201,168,76,0.2);background:transparent;color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;cursor:pointer;border-radius:4px;transition:all 0.2s;}
-.slice-mini-btn:hover{background:rgba(201,168,76,0.08);border-color:var(--gold);}
-.slice-mini-btn.del{color:var(--red);border-color:rgba(255,51,51,0.25);}
-.slice-mini-btn.del:hover{background:rgba(255,51,51,0.06);}
-
-/* SIDE PANEL */
-.side-panel{background:linear-gradient(180deg,#0a0a14,#06060f);border-left:1px solid rgba(201,168,76,0.15);padding:18px;overflow-y:auto;}
-@media(max-width:900px){.side-panel{border-left:none;border-top:1px solid rgba(201,168,76,0.15);}}
-.panel-section{margin-bottom:24px;}
-.panel-section-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-
-/* PACK INFO */
-.pack-cover-upload{aspect-ratio:1;background:linear-gradient(135deg,rgba(0,170,255,0.08),rgba(201,168,76,0.08));border:2px dashed rgba(201,168,76,0.25);border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;cursor:pointer;overflow:hidden;position:relative;}
-.pack-cover-upload:hover{border-color:var(--gold);}
-.pack-cover-upload img{width:100%;height:100%;object-fit:cover;}
-.pack-cover-empty{text-align:center;padding:14px;}
-.pack-cover-empty .pc-icon{font-size:2rem;margin-bottom:6px;}
-.pack-cover-empty .pc-text{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);}
-
-/* EFFECTS */
-.fx-row{margin-bottom:12px;}
-.fx-label{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:rgba(240,237,232,0.7);margin-bottom:5px;}
-.fx-value{color:var(--blue-bright);}
-.fx-slider{width:100%;-webkit-appearance:none;appearance:none;height:5px;background:rgba(255,255,255,0.07);outline:none;border-radius:3px;}
-.fx-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);box-shadow:0 0 6px rgba(201,168,76,0.5);}
-.fx-slider::-moz-range-thumb{width:14px;height:14px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border-radius:50%;cursor:pointer;border:2px solid var(--black);}
-
-/* EXPORT BUTTON */
-.export-section{position:sticky;bottom:0;padding-top:14px;background:linear-gradient(180deg,transparent,#06060f 30%);}
-.export-stats{font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;color:var(--gray);text-align:center;margin-bottom:10px;}
-.export-stats strong{color:var(--gold-light);}
-
-/* USAGE COUNTER */
-.usage-meter{background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.18);padding:10px 12px;border-radius:6px;margin-bottom:14px;}
-.usage-row{display:flex;justify-content:space-between;font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;margin-bottom:6px;}
-.usage-bar{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
-.usage-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:3px;transition:width 0.3s;}
-.usage-fill.warn{background:linear-gradient(90deg,var(--orange),var(--red));}
-
-/* PAYWALL MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(8px);padding:16px;}
-.modal-overlay.active{display:flex;}
-.modal{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.3);padding:30px;max-width:440px;width:100%;border-radius:10px;position:relative;max-height:90vh;overflow-y:auto;}
-.modal-paywall{max-width:880px;}
-.modal-close{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--gray);font-size:1.3rem;cursor:pointer;}
-.btn-master{display:inline-block;padding:13px 28px;background:linear-gradient(135deg,#5a1095,#9B30FF);color:#fff;font-family:'Orbitron',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(7px 0%,100% 0%,calc(100% - 7px) 100%,0% 100%);transition:all 0.3s;}
-.btn-master:hover{box-shadow:0 0 25px rgba(155,48,255,0.6);transform:translateY(-2px);}
-.btn-master.btn-full{width:100%;text-align:center;}
-.paywall-tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px;}
-.paywall-tier{position:relative;background:linear-gradient(160deg,#0a0a14,#040408);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:18px 16px 14px;cursor:pointer;transition:all 0.25s;}
-.paywall-tier:hover{transform:translateY(-3px);}
-.paywall-tier-pro:hover{border-color:var(--blue-bright);box-shadow:0 0 22px rgba(0,170,255,0.25);}
-.paywall-tier-elite{border-color:rgba(201,168,76,0.4);background:linear-gradient(160deg,#161009,#040408);}
-.paywall-tier-elite:hover{border-color:var(--gold);box-shadow:0 0 22px rgba(201,168,76,0.3);}
-.paywall-tier-master{border:1px solid rgba(155,48,255,0.4);background:linear-gradient(160deg,#11081a,#040408);}
-.paywall-tier-master:hover{border-color:#9B30FF;box-shadow:0 0 22px rgba(155,48,255,0.4);}
-.paywall-tier-featured{border-color:var(--gold);box-shadow:0 0 24px rgba(201,168,76,0.18);}
-.paywall-tier-flag{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;padding:2px 10px;font-weight:800;border-radius:10px;white-space:nowrap;}
-.paywall-tier-flag-soon{background:linear-gradient(90deg,#7B21CF,#9B30FF);color:#fff;}
-.paywall-tier-head{text-align:center;margin-bottom:10px;}
-.paywall-tier-name{font-family:'Orbitron',sans-serif;font-size:0.72rem;letter-spacing:3px;color:var(--white);margin-bottom:4px;}
-.paywall-tier-price{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);line-height:1;}
-.paywall-tier-price span{font-size:0.7rem;color:var(--gray);font-family:'Orbitron',sans-serif;letter-spacing:1px;}
-.paywall-tier-features{list-style:none;padding:0;margin:0 0 14px;font-family:'Rajdhani',sans-serif;font-size:0.84rem;color:var(--white);}
-.paywall-tier-features li{padding:4px 0;color:var(--white);}
-/* ═════ PLANS POPUP ═════ */
-.modal-plans{max-width:1100px;padding:36px 28px;}
-.plans-header{text-align:center;margin-bottom:24px;}
-.plans-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:4px;color:var(--gold);margin-bottom:8px;}
-.plans-title{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--white);margin:0 0 6px;line-height:1.1;}
-.plans-sub{font-family:'Rajdhani',sans-serif;font-size:0.92rem;color:var(--gray);margin:0;}
-.plans-footer{font-family:'Rajdhani',sans-serif;font-size:0.78rem;color:var(--gray);text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);}
-.modal-icon{font-size:3rem;text-align:center;margin-bottom:12px;}
-.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;text-align:center;color:var(--gold-light);margin-bottom:8px;}
-.modal-sub{font-size:0.88rem;color:rgba(240,237,232,0.6);text-align:center;line-height:1.6;margin-bottom:18px;}
-.upgrade-features{list-style:none;margin-bottom:20px;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.12);border-radius:6px;padding:14px;}
-.upgrade-features li{padding:6px 0;font-size:0.88rem;color:rgba(240,237,232,0.78);display:flex;align-items:center;gap:8px;}
-.upgrade-features li::before{content:'✓';color:var(--green);font-weight:700;}
-
-/* TOAST */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid var(--gold);padding:11px 18px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.88rem;z-index:9999;opacity:0;transition:all 0.35s;border-radius:6px;max-width:90%;text-align:center;box-shadow:0 0 24px rgba(201,168,76,0.2);}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
-.toast.success{border-color:var(--green);}
-.toast.error{border-color:var(--red);}
-/* ═════ UNDO SYSTEM ═════ */
-.undo-toast-btn{margin-left:12px;padding:5px 12px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border:none;color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:1.5px;font-weight:800;cursor:pointer;border-radius:4px;text-transform:uppercase;transition:transform 0.15s;}
-.undo-toast-btn:hover{transform:scale(1.05);box-shadow:0 0 12px rgba(201,168,76,0.6);}
-.undo-floater{position:fixed;bottom:90px;right:18px;z-index:9998;background:linear-gradient(135deg,#0d0d1a,#1a1a2e);border:1px solid var(--gold);padding:10px 16px;border-radius:24px;cursor:pointer;display:none;align-items:center;gap:8px;font-family:'Orbitron',sans-serif;font-size:0.72rem;letter-spacing:1.5px;color:var(--gold);font-weight:700;transition:all 0.2s;box-shadow:0 4px 18px rgba(0,0,0,0.5),0 0 18px rgba(201,168,76,0.2);}
-.undo-floater.show{display:flex;}
-.undo-floater:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,0.6),0 0 26px rgba(201,168,76,0.45);background:linear-gradient(135deg,#1a1a2e,#0d0d1a);}
-.undo-floater-count{background:var(--gold);color:var(--black);padding:1px 8px;border-radius:10px;font-size:0.65rem;font-weight:900;}
-/* ═════ WARNING MODAL (for destructive actions like Load) ═════ */
-.warn-modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
-.warn-modal.show{display:flex;}
-.warn-modal-box{background:linear-gradient(160deg,#10101a,#070710);border:2px solid var(--gold);border-radius:10px;padding:28px 24px;max-width:440px;width:100%;box-shadow:0 0 60px rgba(201,168,76,0.4);}
-.warn-modal-icon{font-size:2.5rem;text-align:center;margin-bottom:10px;}
-.warn-modal-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;text-align:center;color:var(--gold);letter-spacing:2px;margin-bottom:14px;}
-.warn-modal-body{font-family:'Rajdhani',sans-serif;font-size:0.95rem;color:var(--white);text-align:center;line-height:1.5;margin-bottom:6px;}
-.warn-modal-detail{font-family:'Rajdhani',sans-serif;font-size:0.82rem;color:var(--blue-bright);text-align:center;margin-bottom:18px;font-weight:600;}
-.warn-modal-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.warn-btn{padding:11px 22px;border:none;border-radius:6px;font-family:'Orbitron',sans-serif;font-size:0.72rem;letter-spacing:2px;font-weight:700;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
-.warn-btn-cancel{background:linear-gradient(135deg,#222,#333);color:var(--white);}
-.warn-btn-cancel:hover{background:linear-gradient(135deg,#333,#444);}
-.warn-btn-danger{background:linear-gradient(135deg,#882200,var(--red));color:var(--white);}
-.warn-btn-danger:hover{box-shadow:0 0 14px rgba(255,60,60,0.5);}
-/* ═════ SAVE / LOAD PROJECT MODAL ═════ */
-.proj-input{width:100%;padding:11px 13px;background:#040408;border:1px solid rgba(201,168,76,0.4);color:var(--white);font-family:'Rajdhani',sans-serif;font-size:1rem;border-radius:6px;margin:8px 0 12px;outline:none;}
-.proj-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,0.15);}
-.warn-modal-detail.warn{color:var(--red);font-weight:700;}
-.proj-list{max-height:340px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:6px;padding:2px;}
-.proj-list:empty::before{content:'No saved projects yet.';display:block;text-align:center;padding:20px;color:var(--gray);font-family:'Rajdhani',sans-serif;font-style:italic;}
-.proj-row{display:flex;align-items:center;gap:10px;background:#0a0a14;padding:10px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);transition:all 0.15s;}
-.proj-row:hover{border-color:rgba(201,168,76,0.3);background:#10101a;}
-.proj-icon{font-size:1.4rem;flex-shrink:0;}
-.proj-info{flex:1;min-width:0;}
-.proj-name{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.proj-meta{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:1.5px;color:var(--gray);margin-top:2px;}
-.proj-actions{display:flex;gap:5px;flex-shrink:0;}
-.proj-btn{padding:6px 12px;background:linear-gradient(135deg,#08081a,#040408);border:1px solid var(--blue);color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1.5px;font-weight:700;cursor:pointer;border-radius:4px;}
-.proj-btn:hover{background:rgba(0,170,255,0.1);}
-.proj-btn.danger{border-color:rgba(255,60,60,0.5);color:#ff6666;}
-.proj-btn.danger:hover{background:rgba(255,60,60,0.1);}
-/* ═════ TRIM MODAL ═════ */
-.trim-info{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;color:var(--gold);text-align:center;padding:8px 0 12px;}
-.trim-row{display:flex;align-items:center;gap:8px;padding:6px 0;}
-.trim-label{font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2px;color:var(--gold);min-width:48px;}
-.trim-input{flex:1;padding:9px 12px;background:#040408;border:1px solid rgba(201,168,76,0.35);color:var(--white);font-family:'Rajdhani',sans-serif;font-size:1.1rem;border-radius:5px;text-align:center;outline:none;}
-.trim-input:focus{border-color:var(--gold);}
-.trim-colon{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);}
-.trim-help{font-family:'Rajdhani',sans-serif;font-size:0.78rem;color:var(--gray);text-align:center;margin:10px 0 14px;}
-.trim-actions{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
-.trim-btn{padding:10px 14px;border:none;border-radius:6px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:0.62rem;letter-spacing:2px;font-weight:700;color:var(--white);transition:all 0.2s;text-align:left;}
-.trim-btn-keep{background:linear-gradient(135deg,#005a3a,var(--green));}
-.trim-btn-keep:hover{box-shadow:0 0 12px rgba(0,200,90,0.4);}
-.trim-btn-delete{background:linear-gradient(135deg,#882200,var(--red));}
-.trim-btn-delete:hover{box-shadow:0 0 12px rgba(255,60,60,0.4);}
-.trim-btn-split{background:linear-gradient(135deg,#003a5f,#00AAFF);}
-.trim-btn-split:hover{box-shadow:0 0 12px rgba(0,170,255,0.4);}
-
-/* FOOTER */
-footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30px 20px 20px;text-align:center;position:relative;z-index:1;}
-.footer-links{display:flex;gap:18px;justify-content:center;margin-bottom:14px;flex-wrap:wrap;}
-.footer-links a{color:rgba(240,237,232,0.5);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;}
-.footer-links a:hover{color:var(--gold);}
-.footer-copy{font-size:0.7rem;color:rgba(240,237,232,0.3);}
-.footer-copy span{color:var(--gold);}
-</style>
+<link rel="stylesheet" href="unipack.css"/>
 </head>
 <body>
 <canvas id="bg-canvas"></canvas>
-
 <!-- ════════ NAVBAR ════════ -->
 <nav>
   <div class="nav-inner">
     <a href="#" class="nav-logo" onclick="goPage('landing');return false;">
       <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
       <div class="nav-brand">
-        <span class="nav-brand-name">UNIPACK</span>
+        <span class="nav-brand-name">PACK STUDIO</span>
         <span class="nav-brand-tag">part of UniBeatz World</span>
       </div>
     </a>
@@ -547,7 +118,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </nav>
-
 <!-- ════════ LANDING PAGE ════════ -->
 <div class="page active" id="page-landing">
   <section id="landing-hero">
@@ -555,14 +125,13 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     <div class="hero-glow"></div>
     <div class="hero-content">
       <p class="hero-eyebrow">⚡ NEW · PART OF UNIBEATZ WORLD ⚡</p>
-      <h1 class="hero-title"><span class="g">UNI</span><span class="b">PACK</span></h1>
+      <h1 class="hero-title"><span class="g">PACK</span> <span class="b">STUDIO</span></h1>
       <p class="hero-tagline">TURN YOUR BEAT INTO A SAMPLE PACK</p>
-      <p class="hero-desc">You already made the sounds. UniPack chops, organizes, and exports your beat as a complete sample pack — drums, loops, one-shots — ready to sell on Splice, BeatStars, or your own site. <strong style="color:var(--gold-light);">In minutes, not hours.</strong></p>
+      <p class="hero-desc">You already made the sounds. UniBeatz Pack Studio chops, organizes, and exports your beat as a complete sample pack — drums, loops, one-shots — ready to sell on Splice, BeatStars, or your own site. <strong style="color:var(--gold-light);">In minutes, not hours.</strong></p>
       <div class="hero-btns">
         <button class="btn-gold" onclick="if(currentUser)goPage('studio');else goPage('signup')">🎛️ Start Free</button>
         <a href="#features" class="btn-blue">See Features</a>
       </div>
-
       <div class="demo-visual">
         <div class="demo-step">
           <div class="demo-step-icon">1</div>
@@ -590,7 +159,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
       </div>
     </div>
   </section>
-
   <section id="features">
     <div class="section-head">
       <p class="section-eyebrow">Built For Producers</p>
@@ -608,8 +176,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
       <div class="feature-card"><div class="feature-icon">💾</div><div class="feature-title">Save & Continue</div><div class="feature-desc">Save your project. Come back anytime to keep slicing and polishing.</div></div>
     </div>
   </section>
-
-
   <footer>
     <div class="footer-links">
       <a href="index.html">UniBeatz Production</a>
@@ -618,17 +184,16 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
       <a href="legal.html">Legal</a>
       <a href="mailto:unibeatzproduction@gmail.com">Contact</a>
     </div>
-    <p class="footer-copy">© 2026 <span>UniBeatz Production</span>. UniPack — Turn your beat into a sample pack.</p>
+    <p class="footer-copy">© 2026 <span>UniBeatz Production</span>. UniBeatz Pack Studio — Turn your beat into a sample pack.</p>
   </footer>
 </div>
-
 <!-- ════════ LOGIN PAGE ════════ -->
 <div class="page" id="page-login">
   <div class="auth-page">
     <div class="auth-card">
-      <img src="logo.png" class="auth-logo" alt="UniPack" onerror="this.style.display='none'"/>
+      <img src="logo.png" class="auth-logo" alt="UniBeatz Pack Studio" onerror="this.style.display='none'"/>
       <div class="auth-title">Welcome Back</div>
-      <p class="auth-sub">Log in to UniPack with your UniBeatz account</p>
+      <p class="auth-sub">Log in to UniBeatz Pack Studio with your UniBeatz account</p>
       <div class="field"><label>Email or Username</label><input type="text" id="liEmail" placeholder="your@email.com"/></div>
       <div class="field"><label>Password</label><input type="password" id="liPassword" placeholder="Your password" onkeydown="if(event.key==='Enter')handleLogin()"/></div>
       <button class="btn-gold btn-full" onclick="handleLogin()">Log In</button>
@@ -640,13 +205,12 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ SIGNUP PAGE ════════ -->
 <div class="page" id="page-signup">
   <div class="auth-page">
     <div class="auth-card">
-      <img src="logo.png" class="auth-logo" alt="UniPack" onerror="this.style.display='none'"/>
-      <div class="auth-title">Join UniPack</div>
+      <img src="logo.png" class="auth-logo" alt="UniBeatz Pack Studio" onerror="this.style.display='none'"/>
+      <div class="auth-title">Join UniBeatz Pack Studio</div>
       <p class="auth-sub">Free account · No credit card · Start in 30 seconds</p>
       <div class="field"><label>Producer Name</label><input type="text" id="suName" placeholder="Your producer name"/></div>
       <div class="field"><label>Username</label><input type="text" id="suUsername" placeholder="username" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')"/></div>
@@ -658,7 +222,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ STUDIO (MAIN APP) ════════ -->
 <div class="page" id="page-studio">
   <!-- TOOLBAR -->
@@ -676,12 +239,10 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     <button class="tool-btn primary" onclick="exportPack()">📦 Export ZIP</button>
     <button class="tool-btn" id="adminToolBtn" onclick="goPage('admin')" style="display:none;background:linear-gradient(135deg,#8B0000,#ff3333);color:#fff;font-weight:700;">👑 Admin</button>
   </div>
-
   <!-- LAYOUT -->
   <div class="studio-layout">
     <!-- WORKSPACE -->
     <div class="workspace">
-
       <!-- SECTION TABS -->
       <div class="section-tabs">
         <div class="section-tab active" id="tab-oneshots" onclick="switchSection('oneshots')">
@@ -700,7 +261,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
           <span class="tab-count" id="tab-midi-count">0 patterns</span>
         </div>
       </div>
-
       <!-- ══ ONE-SHOTS SECTION ══ -->
       <div class="section-panel active" id="panel-oneshots">
         <input type="file" id="uploadInputA" accept="audio/*" style="display:none;" onchange="handleAudioUpload(this,'A')"/>
@@ -761,7 +321,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
           <div class="slices-list" id="slicesListA"></div>
         </div>
       </div>
-
       <!-- ══ LOOPS SECTION ══ -->
       <div class="section-panel" id="panel-loops">
         <input type="file" id="uploadInputB" accept="audio/*" style="display:none;" onchange="handleAudioUpload(this,'B')"/>
@@ -822,7 +381,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
           <div class="slices-list" id="slicesListB"></div>
         </div>
       </div>
-
       <!-- ══ MIDI STEP SEQUENCER ══ -->
       <div class="section-panel" id="panel-midi">
         <!-- Locked overlay for Starter tier -->
@@ -848,7 +406,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
             </div>
             <div class="midi-presets-note" id="midiPresetsNote"></div>
           </div>
-
           <!-- Transport / controls -->
           <div class="midi-transport">
             <button class="midi-play-btn" id="midiPlayBtn" onclick="toggleMidiPlay()">▶ Play</button>
@@ -859,14 +416,12 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
             </div>
             <button class="midi-pattern-btn" id="midiSaveBtn" onclick="saveMidiPattern()">💾 Save Pattern</button>
           </div>
-
           <!-- Step Grid -->
           <div class="midi-grid-wrap">
             <div class="midi-grid" id="midiGrid">
               <!-- 4 tracks generated by JS -->
             </div>
           </div>
-
           <!-- Saved patterns list -->
           <div class="midi-saved-section">
             <div class="midi-saved-header">
@@ -879,9 +434,7 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
           </div>
         </div>
       </div>
-
     </div>
-
     <!-- SIDE PANEL -->
     <div class="side-panel">
       <!-- USAGE -->
@@ -890,7 +443,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
         <div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%;"></div></div>
         <div style="font-size:0.74rem;color:var(--gray);margin-top:6px;text-align:center;" id="usageNote">Resets monthly · <a style="color:var(--gold);cursor:pointer;" onclick="upgradeToPro()">Upgrade to Pro</a></div>
       </div>
-
       <!-- PACK INFO -->
       <div class="panel-section">
         <div class="panel-section-title">📦 Pack Info</div>
@@ -930,7 +482,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
         </div>
         <div class="field"><label>Producer Name</label><input type="text" id="packProducer" placeholder="Your name"/></div>
       </div>
-
       <!-- EXPORT -->
       <div class="export-section">
         <div class="export-stats">📦 <strong><span id="exportSlicesCount">0</span></strong> slices · <strong id="exportPackName">Untitled</strong></div>
@@ -940,7 +491,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ PAYWALL MODAL ════════ -->
 <div class="modal-overlay" id="paywallModal">
   <div class="modal modal-paywall">
@@ -1001,7 +551,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     <div style="text-align:center;margin-top:6px;"><a style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);cursor:pointer;" onclick="closePaywall()">Maybe later</a></div>
   </div>
 </div>
-
 <!-- ════════ PLANS POPUP — Full 4-Tier Pricing ════════ -->
 <div class="modal-overlay" id="plansModal">
   <div class="modal modal-plans">
@@ -1083,7 +632,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     <p class="plans-footer">All paid tiers include a 30-day cancel-anytime policy. Subscriptions auto-renew monthly until canceled.</p>
   </div>
 </div>
-
 <!-- ════════ ADMIN PANEL (Eugene only) ════════ -->
 <div class="page" id="page-admin">
   <div style="max-width:900px;margin:0 auto;padding:40px 20px;">
@@ -1094,7 +642,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
       </div>
       <button class="tool-btn" onclick="goPage('studio')">← Back to Studio</button>
     </div>
-
     <!-- STATS CARDS -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:32px;">
       <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;text-align:center;">
@@ -1114,7 +661,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
         <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">FREE USERS</div>
       </div>
     </div>
-
     <!-- USER MANAGEMENT -->
     <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:24px;margin-bottom:24px;">
       <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:16px;">👥 USER MANAGEMENT</div>
@@ -1127,7 +673,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
         Tap "Refresh List" to load users...
       </div>
     </div>
-
     <!-- DANGER ZONE -->
     <div style="background:linear-gradient(135deg,#1a0606,#0a0303);border:1px solid rgba(255,51,51,0.3);border-radius:10px;padding:24px;">
       <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:#ff3333;margin-bottom:8px;">🚨 DANGER ZONE</div>
@@ -1137,14 +682,12 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
         <button class="tool-btn" onclick="adminMasterReset()" style="background:#ff3333;color:#fff;font-weight:700;">💥 MASTER RESET (Nuclear)</button>
       </div>
     </div>
-
     <!-- ADMIN INFO -->
     <div style="margin-top:32px;padding:16px;background:rgba(0,170,255,0.05);border:1px solid rgba(0,170,255,0.2);border-radius:8px;font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.6;">
       💡 <strong style="color:var(--blue-bright);">Emergency Login:</strong> If you ever lose access, use email <code style="background:#000;padding:2px 6px;border-radius:3px;">unibeatzproduction@gmail.com</code> with password <code style="background:#000;padding:2px 6px;border-radius:3px;">empire2026</code> to bypass any auth issue and get admin access.
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 <div class="undo-floater" id="undoFloater" onclick="performUndo()">
   <span>↶ UNDO</span>
@@ -1162,7 +705,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ SAVE PROJECT MODAL ════════ -->
 <div class="warn-modal" id="saveProjectModal">
   <div class="warn-modal-box">
@@ -1177,7 +719,6 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ LOAD PROJECT MODAL ════════ -->
 <div class="warn-modal" id="loadProjectModal">
   <div class="warn-modal-box" style="max-width:560px;">
@@ -1190,9 +731,7 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
     </div>
   </div>
 </div>
-
 <!-- ════════ TRIM AUDIO MODAL ════════ -->
-
 <script>
 // ════════════════════════════════════════
 // STATE
@@ -1200,13 +739,11 @@ footer{background:#020205;border-top:1px solid rgba(201,168,76,0.12);padding:30p
 let currentUser = null;
 let currentPage = 'landing';
 let activeSection = 'A'; // 'A' = one-shots, 'B' = loops
-
 // Per-section state
 const SEC = {
   A: { audioBuffer:null, audioSource:null, isPlaying:false, playStartTime:0, pausedAt:0, trackName:'', trackDuration:0, slices:[], selectedSliceId:null, playheadInterval:null, liveSource:null, liveLoopEnabled:false, reverbImpulseBuffer:null, isLivePreviewPlaying:false, livePreviewSliceId:null, liveBassFilter:null, liveLowFilter:null, liveMidFilter:null, liveHighFilter:null, liveShaper:null, liveGainNode:null, liveDryGain:null, liveWetGain:null, liveConvolver:null },
   B: { audioBuffer:null, audioSource:null, isPlaying:false, playStartTime:0, pausedAt:0, trackName:'', trackDuration:0, slices:[], selectedSliceId:null, playheadInterval:null, liveSource:null, liveLoopEnabled:false, reverbImpulseBuffer:null, isLivePreviewPlaying:false, livePreviewSliceId:null, liveBassFilter:null, liveLowFilter:null, liveMidFilter:null, liveHighFilter:null, liveShaper:null, liveGainNode:null, liveDryGain:null, liveWetGain:null, liveConvolver:null },
 };
-
 // Legacy aliases (for code that hasn't been updated yet)
 let audioBuffer = null;
 let audioContext = null;
@@ -1232,7 +769,6 @@ let isLivePreviewPlaying = false;
 let livePreviewSliceId = null;
 let liveLoopEnabled = false;
 let reverbImpulseBuffer = null;
-
 // ════════════════════════════════════════
 // 4-TIER SYSTEM
 // Starter (free) | Pro $9.99 | Elite $19.99 | Master $39.99 (coming soon = stems)
@@ -1243,7 +779,6 @@ const TIER = {
   ELITE: 'elite',
   MASTER: 'master',
 };
-
 const TIER_LIMITS = {
   starter: {
     exports: 3,
@@ -1298,27 +833,22 @@ const TIER_LIMITS = {
     priorityFx: true,
   },
 };
-
 // Legacy compat
 const FREE_LIMITS = TIER_LIMITS.starter;
 const PRO_LIMITS = TIER_LIMITS.pro;
-
 // ════════════════════════════════════════
 // ADMIN CONFIG
 // ════════════════════════════════════════
 const ADMIN_EMAILS = [
   'unibeatzproduction@gmail.com',
 ];
-
 function isAdminEmail(email) {
   if(!email) return false;
   return ADMIN_EMAILS.includes(email.toLowerCase().trim());
 }
-
 function isAdmin() {
   return currentUser && isAdminEmail(currentUser.email);
 }
-
 // Force admin users to always be Master tier
 function applyAdminPrivileges(user) {
   if(!user) return user;
@@ -1329,7 +859,6 @@ function applyAdminPrivileges(user) {
   }
   return user;
 }
-
 // ════════════════════════════════════════
 // FIRESTORE TIER SYNC
 // Reads tier from cloud — overrides localStorage
@@ -1338,22 +867,17 @@ function applyAdminPrivileges(user) {
 async function syncTierFromFirestore(user) {
   if(!user || !user.email) return user;
   if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) return user;
-
   // Admin always stays Pro regardless of Firestore
   if(isAdminEmail(user.email)) return user;
-
   try {
     const fb = window.UB_FIREBASE;
     const email = user.email.toLowerCase();
-
     // STRATEGY 0: Try Firebase Auth UID first (most reliable)
     const authUid = fb.auth && fb.auth.currentUser ? fb.auth.currentUser.uid : null;
-
     // STRATEGY 1: Try lookup by doc ID (uid, username or email as doc ID)
     const lookupIds = [authUid, user.username, email].filter(Boolean);
     let cloudData = null;
     let cloudDocId = null;
-
     for(const id of lookupIds) {
       const docRef = fb.doc(fb.db, "users", id);
       const docSnap = await fb.getDoc(docRef);
@@ -1363,7 +887,6 @@ async function syncTierFromFirestore(user) {
         break;
       }
     }
-
     // STRATEGY 2: If still nothing, QUERY by email field
     // This catches cases where the doc ID doesn't match username
     // (e.g., Stripe used a different client_reference_id)
@@ -1382,21 +905,18 @@ async function syncTierFromFirestore(user) {
         console.warn('Email query failed:', qErr);
       }
     }
-
     if(cloudData && cloudData.unipackTier) {
       const oldTier = user.unipackTier;
       user.unipackTier = cloudData.unipackTier;
       if(cloudData.proSince) user.proSince = cloudData.proSince;
       if(cloudData.stripeCustomerId) user.stripeCustomerId = cloudData.stripeCustomerId;
       if(cloudDocId) user.firestoreDocId = cloudDocId; // Remember for future listener
-
       // Persist updated tier locally
       const users = getUsers();
       if(users[user.username]) {
         users[user.username] = user;
         saveUsers(users);
       }
-
       // Show toast if upgrade happened (any tier upgrade)
       const paid = ['pro','elite','master'];
       if(!paid.includes(oldTier) && paid.includes(cloudData.unipackTier)) {
@@ -1412,32 +932,27 @@ async function syncTierFromFirestore(user) {
   }
   return user;
 }
-
 // Real-time tier listener — auto-updates UI when Firestore changes
 let _tierUnsubscribe = null;
 function startTierListener(user) {
   if(_tierUnsubscribe) { _tierUnsubscribe(); _tierUnsubscribe = null; }
   if(!user || !user.email || isAdminEmail(user.email)) return;
   if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) return;
-
   try {
     const fb = window.UB_FIREBASE;
     // Use discovered doc ID if we found one, else use Auth UID, else fallback to username/email
     const authUid = fb.auth && fb.auth.currentUser ? fb.auth.currentUser.uid : null;
     const docId = user.firestoreDocId || authUid || user.username || user.email.toLowerCase();
     const docRef = fb.doc(fb.db, "users", docId);
-
     _tierUnsubscribe = fb.onSnapshot(docRef, (docSnap) => {
       if(!docSnap.exists()) return;
       const cloudData = docSnap.data();
       if(!cloudData.unipackTier) return;
-
       if(currentUser && currentUser.unipackTier !== cloudData.unipackTier) {
         const oldTier = currentUser.unipackTier;
         currentUser.unipackTier = cloudData.unipackTier;
         if(cloudData.proSince) currentUser.proSince = cloudData.proSince;
         if(cloudData.stripeCustomerId) currentUser.stripeCustomerId = cloudData.stripeCustomerId;
-
         // Save locally
         localStorage.setItem(STORAGE.CURRENT, JSON.stringify(currentUser));
         const users = getUsers();
@@ -1445,11 +960,9 @@ function startTierListener(user) {
           users[currentUser.username] = currentUser;
           saveUsers(users);
         }
-
         // Update UI
         refreshNav();
         if(typeof refreshUsageMeter === 'function') refreshUsageMeter();
-
         // Toast notification for tier changes
         const paid = ['pro','elite','master'];
         const newInfo = getTierInfo(cloudData.unipackTier);
@@ -1468,11 +981,9 @@ function startTierListener(user) {
     console.warn('Could not start tier listener:', err);
   }
 }
-
 function stopTierListener() {
   if(_tierUnsubscribe) { _tierUnsubscribe(); _tierUnsubscribe = null; }
 }
-
 // ════════════════════════════════════════
 // STORAGE
 // ════════════════════════════════════════
@@ -1482,7 +993,6 @@ const STORAGE = {
   PROJECT: 'unipack_project',
   USAGE: 'unipack_usage',
 };
-
 function getUsers() {
   try { return JSON.parse(localStorage.getItem(STORAGE.USERS) || '{}'); }
   catch(e) { return {}; }
@@ -1540,7 +1050,6 @@ function loadCurrentUser() {
   catch(e) {}
   return false;
 }
-
 function getUsage() {
   try {
     const u = JSON.parse(localStorage.getItem(STORAGE.USAGE) || '{}');
@@ -1550,7 +1059,6 @@ function getUsage() {
   } catch(e) { return { all: {}, month: '0', current: { exports: 0 } }; }
 }
 function saveUsage(usage) { localStorage.setItem(STORAGE.USAGE, JSON.stringify(usage.all)); }
-
 function getTier() {
   if(!currentUser) return TIER.STARTER;
   if(isAdmin()) return TIER.MASTER; // admin gets max
@@ -1561,26 +1069,21 @@ function getTier() {
   if(!TIER_LIMITS[t]) return TIER.STARTER;
   return t;
 }
-
 // Backward-compat: isPro returns true for ANY paid tier
 function isPro() {
   const t = getTier();
   return t === TIER.PRO || t === TIER.ELITE || t === TIER.MASTER;
 }
-
 function isElite() {
   const t = getTier();
   return t === TIER.ELITE || t === TIER.MASTER;
 }
-
 function isMaster() {
   return getTier() === TIER.MASTER;
 }
-
 function getLimits() {
   return TIER_LIMITS[getTier()] || TIER_LIMITS.starter;
 }
-
 // Centralized feature check
 // e.g. hasFeature('reverse'), hasFeature('midi.presets'), hasFeature('fx.distortion')
 function hasFeature(path) {
@@ -1593,7 +1096,6 @@ function hasFeature(path) {
   }
   return !!val;
 }
-
 // What tier unlocks a given feature (used for upgrade prompts)
 function tierForFeature(path) {
   const tiers = [TIER.STARTER, TIER.PRO, TIER.ELITE, TIER.MASTER];
@@ -1609,7 +1111,6 @@ function tierForFeature(path) {
   }
   return TIER.MASTER;
 }
-
 // Tier display info
 function getTierInfo(tier) {
   tier = tier || getTier();
@@ -1621,7 +1122,6 @@ function getTierInfo(tier) {
   };
   return info[tier] || info.starter;
 }
-
 // ════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════
@@ -1647,7 +1147,6 @@ function goPage(p) {
     adminRefreshUserList();
   }
 }
-
 function refreshNav() {
   const nav = document.getElementById('navRight');
   if(currentUser) {
@@ -1675,9 +1174,8 @@ function refreshNav() {
     `;
   }
 }
-
 async function logoutPrompt() {
-  if(confirm('Log out of UniPack?')) {
+  if(confirm('Log out of UniBeatz Pack Studio?')) {
     if(window.UB_FIREBASE && window.UB_FIREBASE.ready) {
       try { await window.UB_FIREBASE.signOut(window.UB_FIREBASE.auth); }
       catch(e) { console.warn('Firebase signOut error:', e); }
@@ -1687,7 +1185,6 @@ async function logoutPrompt() {
     goPage('landing');
   }
 }
-
 // ════════════════════════════════════════
 // AUTH
 // ════════════════════════════════════════
@@ -1703,7 +1200,6 @@ async function handleSignup() {
   const users = getUsers();
   if(users[username]) { showToast('Username taken', 'error'); return; }
   for(const k in users) { if(users[k].email === email) { showToast('Email already registered', 'error'); return; } }
-
   // ═════ FIREBASE SIGNUP ═════
   if(window.UB_FIREBASE && window.UB_FIREBASE.ready) {
     try {
@@ -1744,15 +1240,13 @@ async function handleSignup() {
   users[username] = user;
   saveUsers(users);
   setCurrentUser(user);
-  showToast('✅ Welcome to UniPack, ' + name.split(' ')[0] + '!', 'success');
+  showToast('✅ Welcome to UniBeatz Pack Studio, ' + name.split(' ')[0] + '!', 'success');
   setTimeout(() => goPage('studio'), 600);
 }
-
 async function handleLogin() {
   const e = document.getElementById('liEmail').value.trim().toLowerCase();
   const p = document.getElementById('liPassword').value;
   if(!e || !p) { showToast('Enter email and password', 'error'); return; }
-
   // ═════ ADMIN EMERGENCY OVERRIDE ═════
   // If admin email + special master password → instant access
   // This prevents the founder from EVER being locked out
@@ -1785,7 +1279,6 @@ async function handleLogin() {
     setTimeout(() => goPage('studio'), 600);
     return;
   }
-
   // ═════ FIREBASE LOGIN (try first if email format) ═════
   let firebaseSucceeded = false;
   let firebaseError = null;
@@ -1827,12 +1320,10 @@ async function handleLogin() {
       // DON'T return — fall through to try local storage
     }
   }
-
   // ═════ LOCAL STORAGE FALLBACK (always check, even if Firebase failed) ═════
   const users = getUsers();
   let found = users[e] || null;
   if(!found) for(const k in users) if(users[k].email === e) { found = users[k]; break; }
-
   if(found && found.password === p) {
     if(!found.unipackTier) found.unipackTier = 'free';
     setCurrentUser(found);
@@ -1840,7 +1331,6 @@ async function handleLogin() {
     setTimeout(() => goPage('studio'), 600);
     return;
   }
-
   // ═════ HELPFUL ERROR MESSAGES ═════
   if(firebaseError) {
     if(firebaseError.code === 'auth/wrong-password' || firebaseError.code === 'auth/invalid-credential') {
@@ -1856,14 +1346,12 @@ async function handleLogin() {
       return;
     }
   }
-
   if(!found) {
     showToast('❌ No account found for "' + e + '"', 'error');
   } else {
     showToast('❌ Wrong password. Try "Forgot Password" below.', 'error');
   }
 }
-
 // ════════════════════════════════════════
 // FORGOT PASSWORD
 // ════════════════════════════════════════
@@ -1891,13 +1379,12 @@ async function handleForgotPassword() {
     showToast('⚠️ Reset only works with online accounts', 'error');
   }
 }
-
 // ════════════════════════════════════════
 // ADMIN: MASTER RESET (Eugene's emergency tools)
 // ════════════════════════════════════════
 function adminMasterReset() {
   if(!isAdmin()) { showToast('Admin only', 'error'); return; }
-  const confirmed = confirm('🚨 MASTER RESET\n\nThis will wipe ALL UniPack data on this device:\n- All user accounts\n- All projects\n- All usage data\n- Your current session\n\nFirebase cloud users will NOT be deleted.\n\nContinue?');
+  const confirmed = confirm('🚨 MASTER RESET\n\nThis will wipe ALL UniBeatz Pack Studio data on this device:\n- All user accounts\n- All projects\n- All usage data\n- Your current session\n\nFirebase cloud users will NOT be deleted.\n\nContinue?');
   if(!confirmed) return;
   const reallyConfirmed = confirm('⚠️ FINAL WARNING\n\nThis cannot be undone. Type-confirm by tapping OK.');
   if(!reallyConfirmed) return;
@@ -1909,7 +1396,6 @@ function adminMasterReset() {
   showToast('🔄 Master reset complete. Reloading...', 'success');
   setTimeout(() => location.reload(), 1500);
 }
-
 function adminResetMyAccount() {
   if(!isAdmin()) { showToast('Admin only', 'error'); return; }
   if(!confirm('Reset YOUR admin account?\nYou can sign in again with master password.')) return;
@@ -1923,7 +1409,6 @@ function adminResetMyAccount() {
   showToast('Admin account reset. Sign in again.', 'success');
   setTimeout(() => goPage('login'), 1500);
 }
-
 function adminForceProTier(targetEmail) {
   if(!isAdmin()) { showToast('Admin only', 'error'); return; }
   const email = (targetEmail || prompt('Enter email to upgrade to Pro:'))?.trim().toLowerCase();
@@ -1946,7 +1431,6 @@ function adminForceProTier(targetEmail) {
   }
   if(currentPage === 'admin') adminRefreshStats();
 }
-
 function adminDowngradeUser() {
   if(!isAdmin()) { showToast('Admin only', 'error'); return; }
   const email = prompt('Enter email to downgrade to Free:')?.trim().toLowerCase();
@@ -1970,7 +1454,6 @@ function adminDowngradeUser() {
     showToast('User not found: ' + email, 'error');
   }
 }
-
 function adminRefreshStats() {
   if(!isAdmin()) return;
   const users = getUsers();
@@ -1981,7 +1464,6 @@ function adminRefreshStats() {
   // Estimated MRR: $9.99 per Pro user (excluding admin's free Pro)
   const realPro = userList.filter(u => u.unipackTier === 'pro' && !isAdminEmail(u.email)).length;
   const mrr = (realPro * 9.99).toFixed(2);
-
   const elU = document.getElementById('admStatUsers');
   const elP = document.getElementById('admStatPro');
   const elF = document.getElementById('admStatFree');
@@ -1991,7 +1473,6 @@ function adminRefreshStats() {
   if(elF) elF.textContent = free;
   if(elR) elR.textContent = '$' + mrr;
 }
-
 function adminRefreshUserList() {
   if(!isAdmin()) return;
   const users = getUsers();
@@ -2012,7 +1493,6 @@ function adminRefreshUserList() {
   }).join('');
   adminRefreshStats();
 }
-
 async function handlePasswordReset() {
   const email = prompt('Enter your email to receive a password reset link:');
   if(!email || !email.includes('@')) { showToast('Please enter a valid email', 'error'); return; }
@@ -2034,7 +1514,6 @@ async function handlePasswordReset() {
     }
   }
 }
-
 // ════════════════════════════════════════
 // AUDIO ENGINE
 // ════════════════════════════════════════
@@ -2060,19 +1539,16 @@ function switchSection(name) {
     refreshMidiSavedList();
   }
 }
-
 function updateTabCounts() {
   document.getElementById('tab-oneshots-count').textContent = SEC.A.slices.length + ' slice' + (SEC.A.slices.length !== 1 ? 's' : '');
   document.getElementById('tab-loops-count').textContent = SEC.B.slices.length + ' slice' + (SEC.B.slices.length !== 1 ? 's' : '');
   const midiTab = document.getElementById('tab-midi-count');
   if(midiTab) midiTab.textContent = midiState.patterns.length + ' pattern' + (midiState.patterns.length !== 1 ? 's' : '');
 }
-
 function ensureAudioContext() {
   if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
   return audioContext;
 }
-
 async function handleAudioUpload(input, sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2112,7 +1588,6 @@ async function handleAudioUpload(input, sec) {
   }
   input.value = '';
 }
-
 function handleDrop(e, sec) {
   e.preventDefault();
   sec = sec || activeSection;
@@ -2123,7 +1598,6 @@ function handleDrop(e, sec) {
 }
 function handleDragOver(e, sec) { e.preventDefault(); document.getElementById('uploadZone' + (sec||activeSection)).classList.add('dragging'); }
 function handleDragLeave(e, sec) { document.getElementById('uploadZone' + (sec||activeSection)).classList.remove('dragging'); }
-
 function drawWaveform(sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2163,7 +1637,6 @@ function drawWaveform(sec) {
   ctx.stroke();
   renderSliceMarkers(sec);
 }
-
 function renderSliceMarkers(sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2203,7 +1676,6 @@ function renderSliceMarkers(sec) {
     regions.appendChild(region);
   });
 }
-
 function handleWaveClick(e, sec) {
   // Click handler is now a fallback — main interaction goes through mousedown drag.
   // If user just clicked without dragging significantly, treat as a seek.
@@ -2228,7 +1700,6 @@ function handleWaveClick(e, sec) {
   updatePlayhead(sec);
   document.getElementById('playTime' + sec).textContent = formatTime(time) + ' / ' + formatTime(s.trackDuration);
 }
-
 // ════════════════════════════════════════
 // ⏱️ TRIM-BY-DRAG SELECTION (NEW)
 // User drags on waveform → blue highlighted region → click Trim → delete it
@@ -2241,7 +1712,6 @@ function setupTrimDragHandlers() {
     let startX = null;
     let dragStartTime = 0;
     let isDraggingHandle = false;
-
     wrap.addEventListener('mousedown', (e) => {
       const s = SEC[sec];
       if(!s.audioBuffer) return;
@@ -2268,7 +1738,6 @@ function setupTrimDragHandlers() {
       dragStartTime = (startX / rect.width) * s.trackDuration;
       s._wasDragging = false;
     }, {passive: true});
-
     document.addEventListener('mousemove', (e) => {
       if(startX === null || isDraggingHandle) return;
       const s = SEC[sec];
@@ -2300,7 +1769,6 @@ function setupTrimDragHandlers() {
       s.trimSelection = { start: startT, end: endT };
       renderTrimSelection(sec);
     }, {passive: true});
-
     const endDrag = () => {
       startX = null;
       isDraggingHandle = false;
@@ -2309,7 +1777,6 @@ function setupTrimDragHandlers() {
     document.addEventListener('touchend', endDrag);
   });
 }
-
 function renderTrimSelection(sec) {
   const s = SEC[sec];
   const wrap = document.getElementById('waveCanvasWrap' + sec);
@@ -2345,7 +1812,6 @@ function renderTrimSelection(sec) {
   const label = existing.querySelector('.trim-label-time');
   if(label) label.textContent = formatTime(s.trimSelection.end - s.trimSelection.start);
 }
-
 function setupTrimHandleDrag(handle, sec, edge) {
   const onDown = (e) => {
     e.stopPropagation();
@@ -2376,13 +1842,11 @@ function setupTrimHandleDrag(handle, sec, edge) {
   handle.addEventListener('mousedown', onDown);
   handle.addEventListener('touchstart', onDown, {passive: false});
 }
-
 function clearTrimSelection(sec) {
   sec = sec || activeSection;
   SEC[sec].trimSelection = null;
   renderTrimSelection(sec);
 }
-
 // 🗑️ THE TRIM ACTION — deletes the highlighted region from audio
 async function trimSelection(sec) {
   sec = sec || activeSection;
@@ -2398,10 +1862,8 @@ async function trimSelection(sec) {
   const dur = s.audioBuffer.duration;
   if(end - start < 0.05) { showToast('Selection too small', 'error'); return; }
   if(end - start >= dur - 0.05) { showToast('Cannot delete entire track', 'error'); return; }
-
   pushUndo('Trim audio (' + formatTime(end - start) + ' removed)');
   showToast('✂️ Trimming...');
-
   try {
     // Concatenate [0..start] + [end..end of track]
     const part1 = start > 0.01 ? await sliceAudioBuffer(s.audioBuffer, 0, start) : null;
@@ -2416,7 +1878,6 @@ async function trimSelection(sec) {
     showToast('Trim failed: ' + (e.message || 'unknown'), 'error');
   }
 }
-
 function updatePlayhead(sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2429,7 +1890,6 @@ function updatePlayhead(sec) {
   const pct = Math.min(time / s.trackDuration, 1);
   ph.style.left = (pct * wrap.offsetWidth) + 'px';
 }
-
 function togglePlay(sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2460,7 +1920,6 @@ function togglePlay(sec) {
     }, 50);
   }
 }
-
 function seekTo(time, sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2468,13 +1927,11 @@ function seekTo(time, sec) {
   if(s.isPlaying) { togglePlay(sec); togglePlay(sec); }
   updatePlayhead(sec);
 }
-
 // ════════════════════════════════════════
 // SLICE RESIZE DRAG HANDLES
 // ════════════════════════════════════════
 (function initSliceResize() {
   let dragging = null; // { id, edge, sec, wrapRect, wrapWidth }
-
   document.addEventListener('mousedown', e => {
     const handle = e.target.closest('.slice-handle');
     if(!handle) return;
@@ -2488,7 +1945,6 @@ function seekTo(time, sec) {
     dragging = { id, edge, sec, rect, width: rect.width };
     selectSlice(id, sec);
   });
-
   document.addEventListener('touchstart', e => {
     const handle = e.target.closest('.slice-handle');
     if(!handle) return;
@@ -2501,7 +1957,6 @@ function seekTo(time, sec) {
     dragging = { id, edge, sec, rect, width: rect.width };
     selectSlice(id, sec);
   }, { passive: false });
-
   function onMove(clientX) {
     if(!dragging) return;
     const { id, edge, sec, rect, width } = dragging;
@@ -2519,10 +1974,8 @@ function seekTo(time, sec) {
     renderSliceMarkers(sec);
     renderSlices(sec);
   }
-
   document.addEventListener('mousemove', e => { if(dragging) { e.preventDefault(); onMove(e.clientX); } });
   document.addEventListener('touchmove', e => { if(dragging) { e.preventDefault(); onMove(e.touches[0].clientX); } }, { passive: false });
-
   function onUp() { dragging = null; }
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchend', onUp);
@@ -2570,7 +2023,6 @@ function addSliceAtPlayhead(sec) {
   updateTabCounts();
   showToast('✂️ Slice added: ' + autoName, 'success');
 }
-
 // ════════════════════════════════════════
 // 🤖 SMART AUDIO ANALYSIS — Auto-categorize & tag slices
 // Returns { category, tags, attack, energy, brightness, length }
@@ -2673,7 +2125,6 @@ function analyzeSliceAudio(audioBuffer, start, end) {
     return { category:'one-shot', tags:[], length: end - start };
   }
 }
-
 // Generate a smart filename based on analysis + pack metadata
 // Tier-gated: more sophisticated naming for higher tiers
 function generateSmartName(analysis, category, sliceNum, sec) {
@@ -2681,12 +2132,10 @@ function generateSmartName(analysis, category, sliceNum, sec) {
   const bpm = (document.getElementById('packBpm') || {}).value || '';
   const key = (document.getElementById('packKey') || {}).value || '';
   const keyShort = key ? key.replace(' major','maj').replace(' minor','min').replace(/\s/g,'') : '';
-
   // Starter: just basic name (e.g., "sample_01")
   if(tier === TIER.STARTER) {
     return 'sample_' + String(sliceNum).padStart(2, '0');
   }
-
   // Pro: category + BPM + slice number (e.g., "Kick_140BPM_01")
   if(tier === TIER.PRO) {
     const catName = humanCategoryName(category);
@@ -2696,7 +2145,6 @@ function generateSmartName(analysis, category, sliceNum, sec) {
     parts.push(String(sliceNum).padStart(2, '0'));
     return parts.join('_');
   }
-
   // Elite: + descriptive tag (e.g., "Punchy_Kick_140BPM_Cmin_01")
   if(tier === TIER.ELITE) {
     const catName = humanCategoryName(category);
@@ -2709,7 +2157,6 @@ function generateSmartName(analysis, category, sliceNum, sec) {
     parts.push(String(sliceNum).padStart(2, '0'));
     return parts.join('_');
   }
-
   // Master: full descriptive name (e.g., "Hard_Punchy_Kick_140BPM_Cmin_01")
   if(tier === TIER.MASTER) {
     const catName = humanCategoryName(category);
@@ -2722,10 +2169,8 @@ function generateSmartName(analysis, category, sliceNum, sec) {
     parts.push(String(sliceNum).padStart(2, '0'));
     return parts.join('_').replace(/_+/g, '_');
   }
-
   return 'sample_' + String(sliceNum).padStart(2, '0');
 }
-
 function humanCategoryName(cat) {
   const map = {
     kick: 'Kick', snare: 'Snare', hihat: 'Hat', perc: 'Perc',
@@ -2734,7 +2179,6 @@ function humanCategoryName(cat) {
   };
   return map[cat] || 'Sample';
 }
-
 // Auto-name all slices in current section using smart analysis
 // Tier-gated: Pro+ only (Starter doesn't get smart naming)
 function autoNameAllSlices(sec) {
@@ -2760,7 +2204,6 @@ function autoNameAllSlices(sec) {
   renderSliceMarkers(sec);
   showToast('🤖 Renamed ' + renamed + ' slice' + (renamed === 1 ? '' : 's'), 'success');
 }
-
 function clearAllSlices(sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2785,7 +2228,6 @@ function clearAllSlices(sec) {
     }
   });
 }
-
 function selectSlice(id, sec) {
   sec = sec || activeSection;
   const s = SEC[sec];
@@ -2825,7 +2267,6 @@ function selectSlice(id, sec) {
     revBtn.textContent = isRev ? '⏪ Reversed' : '⏪ Reverse';
   }
 }
-
 function updateFx(type, value, sec) {
   // Tier-gate advanced FX
   const gated = { bass: 'fx.bass', sat: 'fx.sat', dist: 'fx.dist' };
@@ -2876,7 +2317,6 @@ function updateFx(type, value, sec) {
     }
   }
 }
-
 function renderSlices(sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -2915,7 +2355,6 @@ function renderSlices(sec) {
     </div>
   `).join('');
 }
-
 function renameSlice(id, name, sec) {
   sec = sec || activeSection;
   const s = SEC[sec].slices.find(x => x.id === id);
@@ -2940,13 +2379,11 @@ function deleteSlice(id, sec) {
   updateTabCounts();
   showUndoToast('🗑️ Slice deleted', 'Delete slice');
 }
-
 function previewSelectedSlice() {
   if(!selectedSliceId) { showToast('Select a slice first', 'error'); return; }
   // Use live preview (one-shot)
   startLivePreview();
 }
-
 function previewSlice(id, sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -2971,7 +2408,6 @@ function previewSlice(id, sec) {
   src.connect(lowF).connect(midF).connect(highF).connect(gain).connect(ctx.destination);
   src.start();
 }
-
 // ════════════════════════════════════════
 // LIVE FX PREVIEW ENGINE
 // ════════════════════════════════════════
@@ -2989,7 +2425,6 @@ function buildReverbImpulse(sec) {
   st.reverbImpulseBuffer = impulse;
   return impulse;
 }
-
 function buildSliceBuffer(s, sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -3010,7 +2445,6 @@ function buildSliceBuffer(s, sec) {
   }
   return sliceBuf;
 }
-
 function startLivePreview(sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -3055,7 +2489,6 @@ function startLivePreview(sec) {
   document.getElementById('fxPlayBtn' + sec).classList.add('fx-playing');
   document.getElementById('fxStopBtn' + sec).style.display = 'inline-block';
 }
-
 function stopLivePreview(sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -3072,17 +2505,14 @@ function stopLivePreview(sec) {
   const stopBtn = document.getElementById('fxStopBtn' + sec);
   if(stopBtn) stopBtn.style.display = 'none';
 }
-
 function restartLivePreview(sec) {
   sec = sec || activeSection;
   if(SEC[sec].isLivePreviewPlaying) { stopLivePreview(sec); setTimeout(() => startLivePreview(sec), 30); }
 }
-
 function toggleLivePreview(sec) {
   sec = sec || activeSection;
   if(SEC[sec].isLivePreviewPlaying) stopLivePreview(sec); else startLivePreview(sec);
 }
-
 function toggleLoop(sec) {
   sec = sec || activeSection;
   const st = SEC[sec];
@@ -3093,7 +2523,6 @@ function toggleLoop(sec) {
   if(st.liveSource) st.liveSource.loop = st.liveLoopEnabled;
   showToast(st.liveLoopEnabled ? '🔁 Loop ON' : 'Loop off');
 }
-
 function toggleReverse(sec) {
   if(!hasFeature('fx.reverse')) {
     showToast('🔒 Reverse is a Pro feature. Upgrade to unlock.', 'error');
@@ -3117,7 +2546,6 @@ function toggleReverse(sec) {
   }
   showToast(sl.fx.reverse ? '⏪ Reversed' : '▶ Forward');
 }
-
 // ════════════════════════════════════════
 // COVER ART
 // ════════════════════════════════════════
@@ -3137,7 +2565,6 @@ function handleCoverUpload(input) {
   reader.readAsDataURL(file);
   input.value = '';
 }
-
 // ════════════════════════════════════════
 // PROJECT SAVE/LOAD
 // ════════════════════════════════════════
@@ -3157,7 +2584,6 @@ function newProject() {
     onConfirm: doNewProject,
   });
 }
-
 function doNewProject() {
   pushUndo('Start new project');
   ['A','B'].forEach(sec => {
@@ -3184,7 +2610,6 @@ function doNewProject() {
   updateTabCounts();
   showUndoToast('📄 New project started', 'New project');
 }
-
 // ════════════════════════════════════════
 // 🎹 MIDI STEP SEQUENCER ENGINE
 // ════════════════════════════════════════
@@ -3195,7 +2620,6 @@ const MIDI_TRACKS = [
   { id: 'open',  name: 'OPEN HAT', gmNote: 46, color: '#9B30FF' },
 ];
 const MIDI_STEPS = 16;
-
 const midiState = {
   gridInitialized: false,
   steps: {},          // { kick: [bool,...x16], snare:[], hat:[], open:[] }
@@ -3206,14 +2630,12 @@ const midiState = {
   currentStep: -1,
   playTimer: null,
 };
-
 function initMidiState() {
   MIDI_TRACKS.forEach(t => {
     midiState.steps[t.id] = new Array(MIDI_STEPS).fill(false);
     midiState.trackSource[t.id] = 'synth';
   });
 }
-
 // Preset patterns (kick/snare/hat/open arrays — '1' = on, '.' = off)
 const MIDI_PRESETS = {
   trap: {
@@ -3265,7 +2687,6 @@ const MIDI_PRESETS = {
     open:  '..1.....1.......',
   },
 };
-
 function buildMidiGrid() {
   if(!midiState.steps.kick) initMidiState();
   const grid = document.getElementById('midiGrid');
@@ -3298,7 +2719,6 @@ function buildMidiGrid() {
   });
   midiState.gridInitialized = true;
 }
-
 function getMidiSourceOptions(trackId) {
   const tier = getTier();
   const canLibrary = tier === TIER.ELITE || tier === TIER.MASTER;
@@ -3317,11 +2737,9 @@ function getMidiSourceOptions(trackId) {
   }
   return html;
 }
-
 function setMidiTrackSource(trackId, source) {
   midiState.trackSource[trackId] = source;
 }
-
 function refreshMidiAccess() {
   const tier = getTier();
   const locked = tier === TIER.STARTER;
@@ -3357,14 +2775,12 @@ function refreshMidiAccess() {
     if(sel) sel.innerHTML = getMidiSourceOptions(t.id);
   });
 }
-
 function toggleMidiStep(trackId, step) {
   if(getTier() === TIER.STARTER) { showToast('🔒 Upgrade to Pro to use MIDI Studio', 'error'); return; }
   midiState.steps[trackId][step] = !midiState.steps[trackId][step];
   const cell = document.querySelector(`.midi-step[data-track="${trackId}"][data-step="${step}"]`);
   if(cell) cell.classList.toggle('on', midiState.steps[trackId][step]);
 }
-
 function loadMidiPreset(presetId) {
   if(getTier() === TIER.STARTER) { showToast('🔒 Upgrade to Pro for MIDI Studio', 'error'); return; }
   if(getTier() === TIER.PRO) { showToast('🔒 Vibe presets are an Elite feature ($19.99/mo)', 'error'); return; }
@@ -3383,7 +2799,6 @@ function loadMidiPreset(presetId) {
   buildMidiGrid();
   showToast('🎨 Loaded ' + preset.name + ' preset', 'success');
 }
-
 function clearMidiGrid() {
   if(getTier() === TIER.STARTER) return;
   const hasAny = Object.values(midiState.steps).some(arr => arr.some(v => v));
@@ -3393,18 +2808,15 @@ function clearMidiGrid() {
   buildMidiGrid();
   showToast('🗑️ MIDI grid cleared');
 }
-
 function updateMidiTempo(val) {
   midiState.tempo = parseInt(val);
   document.getElementById('midiTempoDisplay').textContent = val + ' BPM';
 }
-
 // ═════ MIDI PLAYBACK ENGINE ═════
 function toggleMidiPlay() {
   if(getTier() === TIER.STARTER) { showToast('🔒 Upgrade to Pro for MIDI Studio', 'error'); return; }
   if(midiState.playing) stopMidiPlay(); else startMidiPlay();
 }
-
 function startMidiPlay() {
   const ctx = ensureAudioContext();
   if(ctx.state === 'suspended') ctx.resume();
@@ -3431,7 +2843,6 @@ function startMidiPlay() {
   };
   tick();
 }
-
 function stopMidiPlay() {
   midiState.playing = false;
   if(midiState.playTimer) { clearTimeout(midiState.playTimer); midiState.playTimer = null; }
@@ -3440,7 +2851,6 @@ function stopMidiPlay() {
   const btn = document.getElementById('midiPlayBtn');
   if(btn) { btn.textContent = '▶ Play'; btn.classList.remove('playing'); }
 }
-
 // Play a single drum hit based on track + source
 function playMidiHit(trackId) {
   const source = midiState.trackSource[trackId] || 'synth';
@@ -3455,7 +2865,6 @@ function playMidiHit(trackId) {
     playSliceSample(sliceId, ctx);
   }
 }
-
 // Built-in synth drums (Web Audio API)
 function playSynthDrum(trackId, ctx, mode) {
   const now = ctx.currentTime;
@@ -3514,7 +2923,6 @@ function playSynthDrum(trackId, ctx, mode) {
     noise.start(now);
   }
 }
-
 // Play user's slice as drum trigger
 function playSliceSample(sliceId, ctx) {
   // Search slices across both sections
@@ -3530,7 +2938,6 @@ function playSliceSample(sliceId, ctx) {
     src.start();
   } catch(e) { console.warn('Slice playback failed:', e); }
 }
-
 // ═════ SAVE / LOAD MIDI PATTERNS ═════
 function saveMidiPattern() {
   if(getTier() === TIER.STARTER) { showToast('🔒 Upgrade to Pro to save patterns', 'error'); return; }
@@ -3561,7 +2968,6 @@ function saveMidiPattern() {
   updateTabCounts();
   showToast('💾 Pattern saved!', 'success');
 }
-
 function refreshMidiSavedList() {
   const list = document.getElementById('midiSavedList');
   if(!list) return;
@@ -3578,7 +2984,6 @@ function refreshMidiSavedList() {
     </div>
   `).join('');
 }
-
 function loadMidiPattern(id) {
   const p = midiState.patterns.find(x => x.id === id);
   if(!p) return;
@@ -3591,7 +2996,6 @@ function loadMidiPattern(id) {
   buildMidiGrid();
   showToast('📂 Loaded ' + p.name, 'success');
 }
-
 function deleteMidiPattern(id) {
   const p = midiState.patterns.find(x => x.id === id);
   if(!p) return;
@@ -3602,7 +3006,6 @@ function deleteMidiPattern(id) {
   updateTabCounts();
   showUndoToast('🗑️ Pattern deleted', 'Delete pattern');
 }
-
 // ═════ MIDI FILE EXPORT (General MIDI standard) ═════
 // Generates a valid .mid file binary blob
 function generateMidiFile(pattern) {
@@ -3611,7 +3014,6 @@ function generateMidiFile(pattern) {
   const ticksPerStep = ppq / stepsPerBeat;
   const tempo = pattern.tempo;
   const microsPerBeat = Math.round(60000000 / tempo);
-
   // Build track events
   // Format: [delta-time, note-on/off, channel, note, velocity]
   const events = []; // { tick, status, data1, data2 }
@@ -3631,7 +3033,6 @@ function generateMidiFile(pattern) {
   });
   // Sort by tick
   events.sort((a, b) => a.tick - b.tick || (a.status & 0xF0) - (b.status & 0xF0));
-
   // Build track bytes
   const trackBytes = [];
   // Track name meta event
@@ -3643,7 +3044,6 @@ function generateMidiFile(pattern) {
     (microsPerBeat >> 16) & 0xFF, (microsPerBeat >> 8) & 0xFF, microsPerBeat & 0xFF);
   // Time signature (FF 58 04 nn dd cc bb) — 4/4
   trackBytes.push(0x00, 0xFF, 0x58, 0x04, 4, 2, 24, 8);
-
   let prevTick = 0;
   events.forEach(e => {
     const delta = e.tick - prevTick;
@@ -3655,7 +3055,6 @@ function generateMidiFile(pattern) {
   });
   // End of track meta event
   trackBytes.push(0x00, 0xFF, 0x2F, 0x00);
-
   // Assemble file
   const header = [
     // MThd
@@ -3672,11 +3071,9 @@ function generateMidiFile(pattern) {
     (trackLen >> 24) & 0xFF, (trackLen >> 16) & 0xFF,
     (trackLen >> 8) & 0xFF, trackLen & 0xFF,
   ];
-
   const total = [...header, ...trackHeader, ...trackBytes];
   return new Uint8Array(total);
 }
-
 // Variable-length quantity encoding (MIDI delta times)
 function encodeVLQ(value) {
   if(value < 0) value = 0;
@@ -3690,8 +3087,6 @@ function encodeVLQ(value) {
   }
   return bytes;
 }
-
-
 // ════════════════════════════════════════
 // 💾 INDEXEDDB PROJECT STORAGE
 // Stores audio (huge files) + state under named project keys
@@ -3699,7 +3094,6 @@ function encodeVLQ(value) {
 const UB_DB_NAME = 'unipack_db';
 const UB_DB_VERSION = 1;
 const UB_DB_STORE = 'projects';
-
 let _dbPromise = null;
 function openProjectDB() {
   if(_dbPromise) return _dbPromise;
@@ -3719,24 +3113,20 @@ function openProjectDB() {
   });
   return _dbPromise;
 }
-
 // AudioBuffer ↔ Blob conversion for IndexedDB persistence
 function audioBufferToBlob(buffer) {
   // Reuse the existing audioBufferToWav we already wrote
   return audioBufferToWav(buffer);
 }
-
 async function blobToAudioBuffer(blob) {
   const arrayBuf = await blob.arrayBuffer();
   const ctx = ensureAudioContext();
   return await ctx.decodeAudioData(arrayBuf);
 }
-
 function dbUserKey() {
   // Namespace projects per user so users don't see each other's saves
   return (currentUser && currentUser.username) || (currentUser && currentUser.email) || 'guest';
 }
-
 async function dbListProjects() {
   try {
     const db = await openProjectDB();
@@ -3758,7 +3148,6 @@ async function dbListProjects() {
     return [];
   }
 }
-
 async function dbSaveProject(projectData) {
   const db = await openProjectDB();
   return new Promise((resolve, reject) => {
@@ -3769,7 +3158,6 @@ async function dbSaveProject(projectData) {
     req.onerror = (e) => reject(e.target.error);
   });
 }
-
 async function dbGetProject(id) {
   const db = await openProjectDB();
   return new Promise((resolve) => {
@@ -3780,7 +3168,6 @@ async function dbGetProject(id) {
     req.onerror = () => resolve(null);
   });
 }
-
 async function dbDeleteProject(id) {
   const db = await openProjectDB();
   return new Promise((resolve) => {
@@ -3791,7 +3178,6 @@ async function dbDeleteProject(id) {
     req.onerror = () => resolve(false);
   });
 }
-
 // ════════════════════════════════════════
 // 💾 MULTI-PROJECT SAVE / LOAD
 // Tier-limited: Starter=1, Pro=5, Elite=20, Master=∞
@@ -3800,7 +3186,6 @@ function getProjectLimit() {
   const limits = getLimits();
   return limits.savedProjects || 1;
 }
-
 function saveProject() {
   // Open the save modal — user names the project
   const hasAudio = SEC.A.audioBuffer || SEC.B.audioBuffer;
@@ -3808,7 +3193,6 @@ function saveProject() {
   if(!hasAudio && !hasMidi) { showToast('Nothing to save yet', 'error'); return; }
   openSaveProjectModal();
 }
-
 async function openSaveProjectModal() {
   // Check the limit before showing
   const projects = await dbListProjects();
@@ -3828,19 +3212,15 @@ async function openSaveProjectModal() {
   }
   setTimeout(() => document.getElementById('saveProjectNameInput').focus(), 100);
 }
-
 function closeSaveProjectModal() {
   document.getElementById('saveProjectModal').classList.remove('show');
 }
-
 async function confirmSaveProject() {
   const nameInput = document.getElementById('saveProjectNameInput');
   const rawName = (nameInput.value || '').trim();
   if(!rawName) { showToast('Enter a project name', 'error'); nameInput.focus(); return; }
   const projectName = rawName.slice(0, 40);
-
   showToast('💾 Saving project...');
-
   try {
     // Build the project record
     const projects = await dbListProjects();
@@ -3885,11 +3265,9 @@ async function confirmSaveProject() {
     showToast('Save failed: ' + (e.message || 'unknown error'), 'error');
   }
 }
-
 async function loadProject() {
   await openLoadProjectModal();
 }
-
 async function openLoadProjectModal() {
   const projects = await dbListProjects();
   // Also check legacy localStorage save for migration
@@ -3942,18 +3320,15 @@ async function openLoadProjectModal() {
   }).join('');
   modal.classList.add('show');
 }
-
 function closeLoadProjectModal() {
   document.getElementById('loadProjectModal').classList.remove('show');
 }
-
 async function loadProjectById(id) {
   // Check if user has CURRENT work that would be replaced
   const currentA = SEC.A.slices.length;
   const currentB = SEC.B.slices.length;
   const currentMidi = midiState.patterns.length;
   const hasUnsavedWork = currentA > 0 || currentB > 0 || currentMidi > 0;
-
   if(hasUnsavedWork) {
     const parts = [];
     if(currentA) parts.push(currentA + ' One-Shot' + (currentA === 1 ? '' : 's'));
@@ -3971,7 +3346,6 @@ async function loadProjectById(id) {
     doLoadProjectById(id);
   }
 }
-
 async function doLoadProjectById(id) {
   closeLoadProjectModal();
   let project;
@@ -3982,10 +3356,8 @@ async function doLoadProjectById(id) {
     project = await dbGetProject(id);
   }
   if(!project) { showToast('Project not found', 'error'); return; }
-
   pushUndo('Load project ' + (project.projectName || 'saved'));
   showToast('📂 Loading...');
-
   try {
     // Restore pack info
     if(document.getElementById('packName')) document.getElementById('packName').value = project.packName || '';
@@ -4004,7 +3376,6 @@ async function doLoadProjectById(id) {
       document.getElementById('coverEmpty').style.display = 'flex';
       document.getElementById('coverImg').style.display = 'none';
     }
-
     // Restore audio buffers + slices for A
     let restoredA = 0, restoredB = 0;
     if(project.audioA) {
@@ -4032,7 +3403,6 @@ async function doLoadProjectById(id) {
     restoredA = SEC.A.slices.length;
     renderSliceMarkers('A');
     renderSlices('A');
-
     if(project.audioB) {
       const bufB = await blobToAudioBuffer(project.audioB);
       SEC.B.audioBuffer = bufB;
@@ -4057,7 +3427,6 @@ async function doLoadProjectById(id) {
     restoredB = SEC.B.slices.length;
     renderSliceMarkers('B');
     renderSlices('B');
-
     // Restore MIDI
     if(project.midiPatterns && Array.isArray(project.midiPatterns)) {
       midiState.patterns = project.midiPatterns;
@@ -4083,7 +3452,6 @@ async function doLoadProjectById(id) {
     showToast('Load failed: ' + (e.message || 'unknown'), 'error');
   }
 }
-
 function confirmDeleteProject(id, name) {
   showWarnModal({
     icon: '🗑️',
@@ -4098,12 +3466,10 @@ function confirmDeleteProject(id, name) {
     },
   });
 }
-
 // ════════════════════════════════════════
 // ✂️ AUDIO TRIM / CROP / SPLIT
 // Time-based input: from-to, then Keep/Delete/Split
 // ════════════════════════════════════════
-
 // Create a new AudioBuffer that's [start..end] of source
 async function sliceAudioBuffer(source, start, end) {
   const ctx = ensureAudioContext();
@@ -4120,7 +3486,6 @@ async function sliceAudioBuffer(source, start, end) {
   }
   return newBuf;
 }
-
 // Concatenate multiple AudioBuffers into one
 function concatAudioBuffers(buffers) {
   if(!buffers.length) return null;
@@ -4141,7 +3506,6 @@ function concatAudioBuffers(buffers) {
   }
   return result;
 }
-
 // Replace section audio buffer with new buffer, remap slices that survived
 function applyTrimmedBuffer(sec, newBuf, offsetSec, deleteFrom, deleteTo) {
   const st = SEC[sec];
@@ -4183,8 +3547,6 @@ function applyTrimmedBuffer(sec, newBuf, offsetSec, deleteFrom, deleteTo) {
   updateTabCounts();
   showToast('✂️ Trim complete · new duration ' + formatTime(newBuf.duration), 'success');
 }
-
-
 function legacySaveProject() {
   // KEPT FOR REFERENCE — replaced by openSaveProjectModal
   const hasAudio = SEC.A.audioBuffer || SEC.B.audioBuffer;
@@ -4208,19 +3570,15 @@ function legacySaveProject() {
   localStorage.setItem(STORAGE.PROJECT, JSON.stringify(project));
   showToast('💾 Project saved', 'success');
 }
-
-
 // ════════════════════════════════════════
 // EXPORT TO ZIP
 // ════════════════════════════════════════
-
 async function buildUniPackZipBlob(options = {}) {
   const silent = !!options.silent;
   const totalSlices = SEC.A.slices.length + SEC.B.slices.length;
   const totalMidi = midiState.patterns.length;
   if(!SEC.A.audioBuffer && !SEC.B.audioBuffer && !totalMidi) { if(!silent) showToast('Upload a beat or save a MIDI pattern first', 'error'); return null; }
   if(!totalSlices && !totalMidi) { if(!silent) showToast('Add at least one slice or MIDI pattern', 'error'); return null; }
-
   const limits = getLimits();
   const fileLimit = limits.files || 10;
   const totalFiles = totalSlices + totalMidi;
@@ -4229,22 +3587,18 @@ async function buildUniPackZipBlob(options = {}) {
     showPaywall(`Your ${info.name} tier allows ${fileLimit} files per pack. You have ${totalFiles}. Upgrade for higher limits.`);
     return null;
   }
-
   const packName = (document.getElementById('packName').value || 'UntitledPack').replace(/[^a-zA-Z0-9_-]/g, '_');
   const bpm = document.getElementById('packBpm').value || 'XXX';
   const key = document.getElementById('packKey').value || '';
   const keyShort = key ? key.replace(' major','maj').replace(' minor','min').replace(/\s/g,'') : '';
   const genre = document.getElementById('packGenre').value || 'Trap';
   const producer = document.getElementById('packProducer').value || (currentUser?.name || 'Producer');
-
   if(!silent) showToast('📦 Building pack... please wait');
-
   const zip = new JSZip();
   const categoryFolders = {
     'kick': 'Drums/Kicks', 'snare': 'Drums/Snares', 'hihat': 'Drums/HiHats', 'perc': 'Drums/Percussion',
     '808': 'Bass/808s', 'loop': 'Loops', 'melody': 'Melodies', 'vocal': 'Vocals', 'fx': 'FX', 'one-shot': 'One-Shots',
   };
-
   for(let i = 0; i < SEC.A.slices.length; i++) {
     const s = SEC.A.slices[i];
     try {
@@ -4254,7 +3608,6 @@ async function buildUniPackZipBlob(options = {}) {
       zip.file(`${packName}/${folder}/${fileName}`, wavBlob);
     } catch(e) { console.error('Export A slice failed:', e); }
   }
-
   for(let i = 0; i < SEC.B.slices.length; i++) {
     const s = SEC.B.slices[i];
     try {
@@ -4264,7 +3617,6 @@ async function buildUniPackZipBlob(options = {}) {
       zip.file(`${packName}/${folder}/${fileName}`, wavBlob);
     } catch(e) { console.error('Export B slice failed:', e); }
   }
-
   for(let i = 0; i < midiState.patterns.length; i++) {
     const pat = midiState.patterns[i];
     try {
@@ -4274,54 +3626,43 @@ async function buildUniPackZipBlob(options = {}) {
       zip.file(`${packName}/MIDI/${fileName}`, midiBytes);
     } catch(e) { console.error('Export MIDI pattern failed:', e); }
   }
-
   if(coverArtData) {
     const coverBlob = await fetch(coverArtData).then(r => r.blob());
     zip.file(`${packName}/cover.${coverArtData.includes('jpeg')?'jpg':'png'}`, coverBlob);
   }
-
   const tier = getTier();
   const tierInfo = getTierInfo(tier);
-  const watermark = tier === TIER.STARTER ? '\n\n--- Made with UniPack (Starter) — Upgrade at unibeatzproduction.com/unipack ---' : '';
+  const watermark = tier === TIER.STARTER ? '\n\n--- Made with UniBeatz Pack Studio (Starter) — Upgrade at unibeatzproduction.com/unipack ---' : '';
   const allSlices = [...SEC.A.slices, ...SEC.B.slices];
-  const info = `${packName}\n\nProducer: ${producer}\nBPM: ${bpm}\nKey: ${key || 'Various'}\nGenre: ${genre}\nOne-Shots: ${SEC.A.slices.length}\nLoops: ${SEC.B.slices.length}\nMIDI Patterns: ${totalMidi}\nTotal Files: ${totalFiles}\nTier: ${tierInfo.name}\n\nMade with UniPack by UniBeatz Production\nhttps://unibeatzproduction.com${watermark}`;
+  const info = `${packName}\n\nProducer: ${producer}\nBPM: ${bpm}\nKey: ${key || 'Various'}\nGenre: ${genre}\nOne-Shots: ${SEC.A.slices.length}\nLoops: ${SEC.B.slices.length}\nMIDI Patterns: ${totalMidi}\nTotal Files: ${totalFiles}\nTier: ${tierInfo.name}\n\nMade with UniBeatz Pack Studio by UniBeatz Production\nhttps://unibeatzproduction.com${watermark}`;
   zip.file(`${packName}/PACK_INFO.txt`, info);
-
-  const readme = `${packName.replace(/_/g,' ')}\n\nThis sample pack was created using UniPack by UniBeatz Production.\n\nContents:\n${[...new Set(allSlices.map(s => categoryFolders[s.category] || 'One-Shots'))].map(f => '  - ' + f).join('\n')}${totalMidi ? '\n  - MIDI Patterns (General MIDI standard, drag into any DAW)' : ''}\n\nVisit: https://unibeatzproduction.com/unipack\n${watermark}`;
+  const readme = `${packName.replace(/_/g,' ')}\n\nThis sample pack was created using UniBeatz Pack Studio by UniBeatz Production.\n\nContents:\n${[...new Set(allSlices.map(s => categoryFolders[s.category] || 'One-Shots'))].map(f => '  - ' + f).join('\n')}${totalMidi ? '\n  - MIDI Patterns (General MIDI standard, drag into any DAW)' : ''}\n\nVisit: https://unibeatzproduction.com/unipack\n${watermark}`;
   zip.file(`${packName}/README.txt`, readme);
-
   const blob = await zip.generateAsync({ type: 'blob' });
   return { blob, packName, bpm, key, genre, producer, totalSlices, totalMidi, totalFiles };
 }
-
 async function exportPack() {
   const usage = getUsage();
   const limits = getLimits();
-
   if(getTier() === TIER.STARTER && usage.current.exports >= limits.exports) {
     showPaywall(`You've used all ${limits.exports} free exports this month. Upgrade to Pro for unlimited.`);
     return;
   }
-
   const built = await buildUniPackZipBlob();
   if(!built) return;
-
   const url = URL.createObjectURL(built.blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `${built.packName}.zip`;
   a.click();
   URL.revokeObjectURL(url);
-
   if(getTier() === TIER.STARTER) {
     usage.current.exports = (usage.current.exports || 0) + 1;
     saveUsage(usage);
     refreshUsageMeter();
   }
-
   showToast(`✅ Pack exported! (${built.totalSlices} samples — ${SEC.A.slices.length} one-shots + ${SEC.B.slices.length} loops)`, 'success');
 }
-
 // Render a slice to WAV with FX (bass boost, saturation, distortion, reverse added)
 async function renderSliceToWav(slice, sec) {
   sec = sec || activeSection;
@@ -4371,7 +3712,6 @@ async function renderSliceToWav(slice, sec) {
   const rendered = await offline.startRendering();
   return audioBufferToWav(rendered);
 }
-
 // Convert AudioBuffer to WAV Blob
 function audioBufferToWav(buffer) {
   const numChannels = buffer.numberOfChannels;
@@ -4413,29 +3753,23 @@ function audioBufferToWav(buffer) {
 function writeStr(view, offset, str) {
   for(let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
 }
-
-
 async function pushToWorld() {
   if(!isPro()) {
     showPaywall('Push to UniBeatz World marketplace is a Pro feature. Upgrade to publish your packs directly to our marketplace.');
     return;
   }
-
   if(!currentUser) {
     showToast('Please log in before publishing your sound pack.', 'error');
     goPage('login');
     return;
   }
-
   const fb = window.UB_FIREBASE;
   if(!fb || !fb.storage || !fb.db) {
     showToast('Firebase is not ready yet. Refresh and try again.', 'error');
     return;
   }
-
   const built = await buildUniPackZipBlob({ silent: true });
   if(!built) return;
-
   try {
     showToast('⬆️ Uploading sound pack to UniBeatz World...');
     const safeName = built.packName.replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -4443,7 +3777,6 @@ async function pushToWorld() {
     const zipRef = fb.ref(fb.storage, zipPath);
     await fb.uploadBytes(zipRef, built.blob, { contentType: 'application/zip' });
     const zipUrl = await fb.getDownloadURL(zipRef);
-
     let coverUrl = '';
     if(coverArtData) {
       const coverBlob = await fetch(coverArtData).then(r => r.blob());
@@ -4453,14 +3786,12 @@ async function pushToWorld() {
       await fb.uploadBytes(coverRef, coverBlob, { contentType: coverBlob.type || `image/${ext}` });
       coverUrl = await fb.getDownloadURL(coverRef);
     }
-
     const includes = [
       `${SEC.A.slices.length} One-Shots`,
       `${SEC.B.slices.length} Loops`,
       `${built.totalMidi} MIDI Patterns`,
       `${built.totalFiles} Total Files`
     ].join(', ');
-
     await fb.addDoc(fb.collection(fb.db, 'marketplace_packs'), {
       name: built.packName.replace(/_/g, ' '),
       category: built.genre || 'Sample Pack',
@@ -4477,17 +3808,14 @@ async function pushToWorld() {
       createdBy: currentUser.uid || '',
       createdByEmail: currentUser.email || '',
       createdAt: fb.serverTimestamp(),
-      source: 'UniPack Studio'
+      source: 'UniBeatz Pack Studio'
     });
-
     showToast('✅ Sound pack uploaded to UniBeatz World marketplace!', 'success');
   } catch(e) {
     console.error('Push to UniBeatz World failed:', e);
     showToast('❌ Upload failed: ' + e.message, 'error');
   }
 }
-
-
 // ════════════════════════════════════════
 // PAYWALL
 // ════════════════════════════════════════
@@ -4498,7 +3826,6 @@ function showPaywall(reason) {
 function closePaywall() {
   document.getElementById('paywallModal').classList.remove('active');
 }
-
 // ═════ PLANS POPUP (manual trigger or 30s auto for first-time visitors) ═════
 function showPlansPopup() {
   document.getElementById('plansModal').classList.add('active');
@@ -4508,7 +3835,6 @@ function showPlansPopup() {
 function closePlansPopup() {
   document.getElementById('plansModal').classList.remove('active');
 }
-
 // 30-second auto-trigger for first-time visitors (only on landing page)
 function maybeAutoShowPlans() {
   try {
@@ -4530,7 +3856,6 @@ function upgradeToPro() {
   // Legacy entry point — funnel to pro tier
   upgradeTo('pro');
 }
-
 // ════════════════════════════════════════
 // 4-TIER STRIPE CHECKOUT FLOW
 // ════════════════════════════════════════
@@ -4539,10 +3864,8 @@ const STRIPE_URLS = {
   elite: 'https://buy.stripe.com/14AdR2ezEexo6689dk93y02',
   master: null, // Coming soon — uses waitlist instead
 };
-
 // Stripe Pro Subscription Link (legacy alias)
 const STRIPE_PRO_URL = STRIPE_URLS.pro;
-
 function upgradeTo(targetTier) {
   if(!currentUser) {
     showToast('Sign up first to upgrade', 'error');
@@ -4557,37 +3880,30 @@ function upgradeTo(targetTier) {
     showToast("You're already on " + getTierInfo(targetTier).name + "!", 'info');
     return;
   }
-
   // ═════ REAL STRIPE CHECKOUT ═════
   const stripeUrl = STRIPE_URLS[targetTier];
   const checkoutUrl = stripeUrl
     + '?prefilled_email=' + encodeURIComponent(currentUser.email)
     + '&client_reference_id=' + encodeURIComponent(currentUser.username || currentUser.uid);
-
   const info = getTierInfo(targetTier);
   showToast('🚀 Opening ' + info.icon + ' ' + info.name + ' checkout...');
-
   // Mark pending upgrade
   localStorage.setItem('unipack_pending_upgrade', JSON.stringify({
     username: currentUser.username,
     targetTier: targetTier,
     timestamp: Date.now()
   }));
-
   // Open Stripe Checkout in new tab
   window.open(checkoutUrl, '_blank');
   closePaywall();
-
   // Wait + poll Firestore for tier change
   setTimeout(() => {
     showToast('⏳ Waiting for payment confirmation...', 'info');
     pollForUpgrade(0, targetTier);
   }, 5000);
 }
-
 // Legacy alias — keep existing buttons working
 function processProUpgrade() { upgradeTo('pro'); }
-
 // Poll Firestore for tier upgrade
 function pollForUpgrade(attempt, targetTier) {
   const paid = ['pro','elite','master'];
@@ -4608,17 +3924,15 @@ function pollForUpgrade(attempt, targetTier) {
       const info = getTierInfo(updated.unipackTier);
       const uploadEl = document.getElementById('uploadSizeLimit');
       if(uploadEl) uploadEl.textContent = TIER_LIMITS[updated.unipackTier].uploadMB + 'MB';
-      showToast('🔥 Welcome to UniPack ' + info.name + '! Features unlocked!', 'success');
+      showToast('🔥 Welcome to UniBeatz Pack Studio ' + info.name + '! Features unlocked!', 'success');
       localStorage.removeItem('unipack_pending_upgrade');
     } else {
       setTimeout(() => pollForUpgrade(attempt + 1, targetTier), 5000);
     }
   });
 }
-
 // Legacy alias
 function pollForProUpgrade(attempt) { pollForUpgrade(attempt, 'pro'); }
-
 // ════════════════════════════════════════
 // MASTER TIER WAITLIST (Stems coming Q3 2026)
 // ════════════════════════════════════════
@@ -4654,7 +3968,6 @@ function joinMasterWaitlist() {
   } catch(e) {}
   showToast("🔔 You're on the Master waitlist! We'll email you when stems launch.", 'success');
 }
-
 // ════════════════════════════════════════
 // USAGE METER
 // ════════════════════════════════════════
@@ -4697,7 +4010,6 @@ function refreshUsageMeter() {
   const upEl = document.getElementById('uploadSizeLimit');
   if(upEl) upEl.textContent = limits.uploadMB + 'MB';
 }
-
 // ════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════
@@ -4706,14 +4018,12 @@ function formatTime(s) {
   const sec = Math.floor(s % 60);
   return `${min}:${String(sec).padStart(2,'0')}`;
 }
-
 // ════════════════════════════════════════
 // UNDO SYSTEM (last 3 minutes of destructive actions)
 // ════════════════════════════════════════
 const UNDO_WINDOW_MS = 3 * 60 * 1000; // 3 minutes
 const UNDO_MAX_ENTRIES = 20;
 let undoStack = []; // { label, timestamp, restore: function }
-
 function captureSnapshot() {
   // Deep clone the relevant state we care about
   return {
@@ -4735,7 +4045,6 @@ function captureSnapshot() {
     midiTempo: midiState ? midiState.tempo : 140,
   };
 }
-
 function restoreSnapshot(snap) {
   if(!snap) return;
   // Stop any live preview before swapping state
@@ -4790,7 +4099,6 @@ function restoreSnapshot(snap) {
   });
   try { updateTabCounts(); } catch(e) {}
 }
-
 function pushUndo(label) {
   const snap = captureSnapshot();
   undoStack.push({
@@ -4802,7 +4110,6 @@ function pushUndo(label) {
   pruneUndoStack();
   refreshUndoFloater();
 }
-
 function pruneUndoStack() {
   const cutoff = Date.now() - UNDO_WINDOW_MS;
   undoStack = undoStack.filter(e => e.timestamp >= cutoff);
@@ -4810,7 +4117,6 @@ function pruneUndoStack() {
     undoStack = undoStack.slice(-UNDO_MAX_ENTRIES);
   }
 }
-
 function refreshUndoFloater() {
   pruneUndoStack();
   const fl = document.getElementById('undoFloater');
@@ -4823,10 +4129,8 @@ function refreshUndoFloater() {
     fl.classList.remove('show');
   }
 }
-
 // Auto-refresh floater every 15 sec so it disappears when entries expire
 setInterval(refreshUndoFloater, 15000);
-
 function performUndo() {
   pruneUndoStack();
   if(!undoStack.length) {
@@ -4838,7 +4142,6 @@ function performUndo() {
   refreshUndoFloater();
   showToast('↶ Undone: ' + (entry.label || 'last action'), 'success');
 }
-
 // Toast with inline UNDO button
 function showUndoToast(msg, undoLabel) {
   const t = document.getElementById('toast');
@@ -4848,12 +4151,10 @@ function showUndoToast(msg, undoLabel) {
   clearTimeout(window._toastT);
   window._toastT = setTimeout(() => t.classList.remove('show'), 6000);
 }
-
 // ════════════════════════════════════════
 // WARNING MODAL (for big destructive actions)
 // ════════════════════════════════════════
 let _warnConfirmCallback = null;
-
 function showWarnModal(opts) {
   // opts: { title, body, detail, icon, confirmText, onConfirm }
   const modal = document.getElementById('warnModal');
@@ -4876,12 +4177,10 @@ function showWarnModal(opts) {
   };
   modal.classList.add('show');
 }
-
 function closeWarnModal() {
   document.getElementById('warnModal').classList.remove('show');
   _warnConfirmCallback = null;
 }
-
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -4889,7 +4188,6 @@ function showToast(msg, type) {
   clearTimeout(window._toastT);
   window._toastT = setTimeout(() => t.classList.remove('show'), 3500);
 }
-
 // Keyboard shortcut: Ctrl+Z (Win) or Cmd+Z (Mac) for undo
 document.addEventListener('keydown', (e) => {
   const meta = e.ctrlKey || e.metaKey;
@@ -4901,7 +4199,6 @@ document.addEventListener('keydown', (e) => {
   e.preventDefault();
   performUndo();
 });
-
 // ════════════════════════════════════════
 // LIGHTNING BG
 // ════════════════════════════════════════
@@ -4938,7 +4235,6 @@ function flash(){
   }
   requestAnimationFrame(loop);
 })();
-
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
