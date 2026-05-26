@@ -1,9 +1,9 @@
 // unibeatz-search.js
-// Functional UniBeatz site/content search + small homepage utility repairs.
+// Functional UniBeatz site/content search + shared utility repairs.
 
 const SEARCH_LINKS = [
   { title: "Beat Store", url: "/index.html#beats", text: "beats beat store licenses hip hop trap r&b drill afrobeats purchase stream" },
-  { title: "Full Beat Catalog", url: "/unibeatzworld.html#beats", text: "full catalog beats marketplace licenses unibeatzworld" },
+  { title: "Full Beat Catalog", url: "/unibeatzworld.html#featured", text: "full catalog beats marketplace licenses unibeatzworld" },
   { title: "Artist Battles", url: "/index.html#battles", text: "battles freestyle app artist live vote leaderboard" },
   { title: "All Platforms", url: "/index.html#platforms", text: "platforms empire unibeatzworld unipack radio battle merch studio" },
   { title: "Membership", url: "/index.html#membership", text: "membership tiers subscriptions pro customer visitor" },
@@ -96,10 +96,10 @@ function openSearch() {
   render();
 }
 
-function injectHomepageUtilityFixes() {
-  if (document.getElementById("ub-homepage-utility-fixes")) return;
+function injectSharedUtilityFixes() {
+  if (document.getElementById("ub-shared-utility-fixes")) return;
   const style = document.createElement("style");
-  style.id = "ub-homepage-utility-fixes";
+  style.id = "ub-shared-utility-fixes";
   style.textContent = `
     body #ub-auth-float{top:72px!important;right:24px!important;z-index:299!important}
     @media(max-width:860px){body #ub-auth-float{top:72px!important;right:16px!important}}
@@ -117,10 +117,26 @@ function wireSearchButtons() {
 }
 
 function repairBeatStore() {
-  if (!location.pathname.endsWith("/") && !location.pathname.endsWith("/index.html") && location.pathname !== "") return;
+  const path = location.pathname.toLowerCase();
+
+  if (path.endsWith("/unibeatzworld.html") || path.endsWith("unibeatzworld.html")) {
+    document.querySelectorAll('a[href="index.html#beats"], a[href="/index.html#beats"]').forEach(a => {
+      const label = (a.textContent || "").toLowerCase();
+      if (label.includes("beat") || label.includes("store")) {
+        a.href = "#featured";
+        a.textContent = "Back to Featured Beats";
+        a.onclick = (e) => {
+          e.preventDefault();
+          document.getElementById("featured")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        };
+      }
+    });
+  }
+
+  if (!path.endsWith("/") && !path.endsWith("/index.html") && path !== "") return;
   const fullCatalog = document.querySelector('.see-more[href="unibeatzworld.html"]');
   if (fullCatalog) {
-    fullCatalog.href = "unibeatzworld.html#beats";
+    fullCatalog.href = "unibeatzworld.html#featured";
     fullCatalog.textContent = "Open Full Beat Catalog →";
   }
   const track = document.getElementById("beatsTrack");
@@ -130,7 +146,7 @@ function repairBeatStore() {
     const hasCards = track.querySelector(".beat-slide");
     if (hasCards) return;
     if (text.includes("loading beats") || text.includes("no beats")) {
-      track.innerHTML = `<div class="beat-store-empty">Beat Store is connected. Upload beats from admin/marketplace and they will appear here automatically.<br><a href="unibeatzworld.html#beats">Open Full Catalog</a></div>`;
+      track.innerHTML = `<div class="beat-store-empty">Beat Store is connected. Upload beats from admin/marketplace and they will appear here automatically.<br><a href="unibeatzworld.html#featured">Open Full Catalog</a></div>`;
     }
   }, 2800);
 }
@@ -139,13 +155,14 @@ window.UniBeatzSiteSearch = { open: openSearch };
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    injectHomepageUtilityFixes();
+    injectSharedUtilityFixes();
     wireSearchButtons();
     repairBeatStore();
   });
 } else {
-  injectHomepageUtilityFixes();
+  injectSharedUtilityFixes();
   wireSearchButtons();
   repairBeatStore();
 }
-setTimeout(() => { injectHomepageUtilityFixes(); wireSearchButtons(); repairBeatStore(); }, 1200);
+setTimeout(() => { injectSharedUtilityFixes(); wireSearchButtons(); repairBeatStore(); }, 1200);
+setTimeout(() => { injectSharedUtilityFixes(); repairBeatStore(); }, 2600);
