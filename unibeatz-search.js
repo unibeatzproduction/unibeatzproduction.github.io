@@ -14,98 +14,15 @@ const SEARCH_LINKS = [
   { title: "Legal", url: "/legal.html", text: "legal terms refund license exclusive wav rights contracts" },
   { title: "Admin Radio", url: "/admin-radio.html", text: "admin radio approve submissions review tracks" }
 ];
-
-function pageResults(term) {
-  const q = term.toLowerCase().trim();
-  const items = [];
-  document.querySelectorAll("section[id], main, article, .platform-card, .coming-card, .plan-card, .beat-slide, .video-slide").forEach((el) => {
-    const text = (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
-    if (!text || text.length < 8) return;
-    if (!q || text.toLowerCase().includes(q)) {
-      const id = el.id || el.closest("section[id]")?.id || "";
-      items.push({ title: id ? id.replace(/[-_]/g, " ").replace(/\b\w/g, c => c.toUpperCase()) : "This Page Result", url: id ? `#${id}` : location.pathname, text: text.slice(0, 180), score: q ? 2 : 1 });
-    }
-  });
-  return items.slice(0, 12);
-}
-function globalResults(term) {
-  const q = term.toLowerCase().trim();
-  if (!q) return SEARCH_LINKS;
-  return SEARCH_LINKS.filter(item => `${item.title} ${item.text}`.toLowerCase().includes(q));
-}
-function openSearch() {
-  document.getElementById("ub-search-modal")?.remove();
-  const modal = document.createElement("div");
-  modal.id = "ub-search-modal";
-  modal.innerHTML = `<style>#ub-search-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:88px 18px 18px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}#ub-search-modal .ub-card{width:min(760px,100%);background:linear-gradient(135deg,#0d0d18,#070710);border:1px solid rgba(201,168,76,.48);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.75),0 0 28px rgba(0,170,255,.14);overflow:hidden}#ub-search-modal .ub-head{display:flex;gap:10px;align-items:center;padding:14px;border-bottom:1px solid rgba(255,255,255,.08)}#ub-search-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:13px 14px;font-size:16px;outline:none}#ub-search-input:focus{border-color:#C9A84C}#ub-search-close{background:transparent;border:0;color:#aaa;font-size:26px;cursor:pointer;padding:5px 8px}#ub-search-results{max-height:62vh;overflow:auto;padding:10px}.ub-result{display:block;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:12px;padding:13px 14px;margin-bottom:10px;transition:.18s}.ub-result:hover{border-color:#C9A84C;background:rgba(201,168,76,.08);transform:translateY(-1px)}.ub-result-title{font-weight:900;color:#F0C040;margin-bottom:4px;letter-spacing:.2px}.ub-result-text{font-size:13px;opacity:.74;line-height:1.35}.ub-empty{padding:22px;text-align:center;color:#aaa}</style><div class="ub-card"><div class="ub-head"><input id="ub-search-input" placeholder="Search beats, radio, battle, UniPack, legal, membership..." autofocus><button id="ub-search-close">×</button></div><div id="ub-search-results"></div></div>`;
-  document.body.appendChild(modal);
-  const input = document.getElementById("ub-search-input");
-  const results = document.getElementById("ub-search-results");
-  const close = () => modal.remove();
-  document.getElementById("ub-search-close").onclick = close;
-  modal.onclick = e => { if (e.target === modal) close(); };
-  document.addEventListener("keydown", function esc(e){ if(e.key === "Escape"){ close(); document.removeEventListener("keydown", esc); } });
-  function render() {
-    const q = input.value.trim();
-    const combined = [...pageResults(q), ...globalResults(q)];
-    const seen = new Set();
-    const unique = combined.filter(item => { const key = item.url + item.title; if (seen.has(key)) return false; seen.add(key); return true; }).slice(0, 18);
-    if (!unique.length) { results.innerHTML = `<div class="ub-empty">No results found for “${q.replace(/[<>]/g, "") }”.</div>`; return; }
-    results.innerHTML = unique.map(item => `<a class="ub-result" href="${item.url}"><div class="ub-result-title">${item.title}</div><div class="ub-result-text">${item.text}</div></a>`).join("");
-    results.querySelectorAll("a").forEach(a => a.addEventListener("click", () => setTimeout(close, 50)));
-  }
-  input.addEventListener("input", render); setTimeout(() => input.focus(), 30); render();
-}
-function injectSharedUtilityFixes() {
-  if (document.getElementById("ub-shared-utility-fixes")) return;
-  const style = document.createElement("style");
-  style.id = "ub-shared-utility-fixes";
-  style.textContent = `body #ub-auth-float{top:72px!important;right:24px!important;z-index:299!important}@media(max-width:860px){body #ub-auth-float{top:72px!important;right:16px!important}}.beat-store-empty{color:var(--gray);padding:28px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:.68rem;letter-spacing:2px;border:1px dashed rgba(201,168,76,.28);border-radius:8px;background:rgba(255,255,255,.025)}.beat-store-empty a{display:inline-block;margin-top:12px;color:#050505;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);padding:9px 14px;border-radius:6px;text-decoration:none;font-weight:900}`;
-  document.head.appendChild(style);
-}
-function wireSearchButtons() {
-  document.querySelectorAll(".nav-icon-btn").forEach(btn => { if ((btn.textContent || "").includes("🔍")) btn.onclick = openSearch; if ((btn.textContent || "").includes("🔔")) btn.onclick = () => window.UniBeatzPush?.openCenter?.(); });
-}
-function openWorldBeatsModal() {
-  if (typeof window.openSection === "function") {
-    window.openSection("beats");
-    return true;
-  }
-  const tab = Array.from(document.querySelectorAll("button, a")).find(el => (el.textContent || "").toLowerCase().includes("beats"));
-  if (tab) { tab.click(); return true; }
-  return false;
-}
-function repairBeatStore() {
-  const path = location.pathname.toLowerCase();
-  const params = new URLSearchParams(location.search);
-  if ((path.endsWith("/unibeatzworld.html") || path.endsWith("unibeatzworld.html"))) {
-    document.querySelectorAll('a[href="index.html#beats"], a[href="/index.html#beats"], a[href="#featured"], a[href="unibeatzworld.html#featured"]').forEach(a => {
-      const label = (a.textContent || "").toLowerCase();
-      if (label.includes("beat") || label.includes("store") || label.includes("catalog")) {
-        a.href = "#";
-        a.textContent = "Open Beat Store";
-        a.onclick = (e) => { e.preventDefault(); openWorldBeatsModal(); };
-      }
-    });
-    if (params.get("open") === "beats" || location.hash === "#beats" || location.hash === "#featured") {
-      setTimeout(openWorldBeatsModal, 600);
-      setTimeout(openWorldBeatsModal, 1600);
-    }
-  }
-  if (!path.endsWith("/") && !path.endsWith("/index.html") && path !== "") return;
-  const fullCatalog = document.querySelector('.see-more[href="unibeatzworld.html"]');
-  if (fullCatalog) { fullCatalog.href = "unibeatzworld.html?open=beats"; fullCatalog.textContent = "Open Full Beat Catalog →"; }
-  const track = document.getElementById("beatsTrack");
-  if (!track) return;
-  setTimeout(() => {
-    const text = (track.textContent || "").toLowerCase();
-    const hasCards = track.querySelector(".beat-slide");
-    if (hasCards) return;
-    if (text.includes("loading beats") || text.includes("no beats")) track.innerHTML = `<div class="beat-store-empty">Beat Store is connected. Upload beats from admin/marketplace and they will appear here automatically.<br><a href="unibeatzworld.html?open=beats">Open Full Catalog</a></div>`;
-  }, 2800);
-}
-window.UniBeatzSiteSearch = { open: openSearch };
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { injectSharedUtilityFixes(); wireSearchButtons(); repairBeatStore(); });
-else { injectSharedUtilityFixes(); wireSearchButtons(); repairBeatStore(); }
-setTimeout(() => { injectSharedUtilityFixes(); wireSearchButtons(); repairBeatStore(); }, 1200);
-setTimeout(() => { injectSharedUtilityFixes(); repairBeatStore(); }, 2600);
+function pageResults(term){const q=term.toLowerCase().trim();const items=[];document.querySelectorAll("section[id], main, article, .platform-card, .coming-card, .plan-card, .beat-slide, .video-slide").forEach(el=>{const text=(el.innerText||el.textContent||"").replace(/\s+/g," ").trim();if(!text||text.length<8)return;if(!q||text.toLowerCase().includes(q)){const id=el.id||el.closest("section[id]")?.id||"";items.push({title:id?id.replace(/[-_]/g," ").replace(/\b\w/g,c=>c.toUpperCase()):"This Page Result",url:id?`#${id}`:location.pathname,text:text.slice(0,180),score:q?2:1});}});return items.slice(0,12);}
+function globalResults(term){const q=term.toLowerCase().trim();if(!q)return SEARCH_LINKS;return SEARCH_LINKS.filter(item=>`${item.title} ${item.text}`.toLowerCase().includes(q));}
+function openSearch(){document.getElementById("ub-search-modal")?.remove();const modal=document.createElement("div");modal.id="ub-search-modal";modal.innerHTML=`<style>#ub-search-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:88px 18px 18px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}#ub-search-modal .ub-card{width:min(760px,100%);background:linear-gradient(135deg,#0d0d18,#070710);border:1px solid rgba(201,168,76,.48);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.75),0 0 28px rgba(0,170,255,.14);overflow:hidden}#ub-search-modal .ub-head{display:flex;gap:10px;align-items:center;padding:14px;border-bottom:1px solid rgba(255,255,255,.08)}#ub-search-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:13px 14px;font-size:16px;outline:none}#ub-search-input:focus{border-color:#C9A84C}#ub-search-close{background:transparent;border:0;color:#aaa;font-size:26px;cursor:pointer;padding:5px 8px}#ub-search-results{max-height:62vh;overflow:auto;padding:10px}.ub-result{display:block;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:12px;padding:13px 14px;margin-bottom:10px;transition:.18s}.ub-result:hover{border-color:#C9A84C;background:rgba(201,168,76,.08);transform:translateY(-1px)}.ub-result-title{font-weight:900;color:#F0C040;margin-bottom:4px;letter-spacing:.2px}.ub-result-text{font-size:13px;opacity:.74;line-height:1.35}.ub-empty{padding:22px;text-align:center;color:#aaa}</style><div class="ub-card"><div class="ub-head"><input id="ub-search-input" placeholder="Search beats, radio, battle, UniPack, legal, membership..." autofocus><button id="ub-search-close">×</button></div><div id="ub-search-results"></div></div>`;document.body.appendChild(modal);const input=document.getElementById("ub-search-input");const results=document.getElementById("ub-search-results");const close=()=>modal.remove();document.getElementById("ub-search-close").onclick=close;modal.onclick=e=>{if(e.target===modal)close();};document.addEventListener("keydown",function esc(e){if(e.key==="Escape"){close();document.removeEventListener("keydown",esc);}});function render(){const q=input.value.trim();const combined=[...pageResults(q),...globalResults(q)];const seen=new Set();const unique=combined.filter(item=>{const key=item.url+item.title;if(seen.has(key))return false;seen.add(key);return true;}).slice(0,18);if(!unique.length){results.innerHTML=`<div class="ub-empty">No results found for “${q.replace(/[<>]/g,"") }”.</div>`;return;}results.innerHTML=unique.map(item=>`<a class="ub-result" href="${item.url}"><div class="ub-result-title">${item.title}</div><div class="ub-result-text">${item.text}</div></a>`).join("");results.querySelectorAll("a").forEach(a=>a.addEventListener("click",()=>setTimeout(close,50)));}input.addEventListener("input",render);setTimeout(()=>input.focus(),30);render();}
+function injectSharedUtilityFixes(){if(document.getElementById("ub-shared-utility-fixes"))return;const style=document.createElement("style");style.id="ub-shared-utility-fixes";style.textContent=`body #ub-auth-float{top:72px!important;right:24px!important;z-index:299!important}@media(max-width:860px){body #ub-auth-float{top:72px!important;right:16px!important}}.beat-store-empty{color:var(--gray);padding:28px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:.68rem;letter-spacing:2px;border:1px dashed rgba(201,168,76,.28);border-radius:8px;background:rgba(255,255,255,.025)}.beat-store-empty a{display:inline-block;margin-top:12px;color:#050505;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);padding:9px 14px;border-radius:6px;text-decoration:none;font-weight:900}`;document.head.appendChild(style);}
+function wireSearchButtons(){document.querySelectorAll(".nav-icon-btn").forEach(btn=>{if((btn.textContent||"").includes("🔍"))btn.onclick=openSearch;if((btn.textContent||"").includes("🔔"))btn.onclick=()=>window.UniBeatzPush?.openCenter?.();});}
+function openWorldBeatsModal(){if(typeof window.openSection==="function"){window.openSection("beats");return true;}const tab=Array.from(document.querySelectorAll("button, a")).find(el=>(el.textContent||"").toLowerCase().includes("beats"));if(tab){tab.click();return true;}return false;}
+function fixWorldBeatButtons(){document.querySelectorAll('a[href="index.html#beats"],a[href="/index.html#beats"],a[href="#featured"],a[href="unibeatzworld.html#featured"],a[href="#"]').forEach(a=>{const label=(a.textContent||"").toLowerCase();if(label.includes("view full beat store")||label.includes("open beat store")||label.includes("full catalog")){a.href="#";a.textContent="Back to UniBeatz World";a.onclick=e=>{e.preventDefault();if(typeof window.closeSection==="function")window.closeSection();else window.location.href="unibeatzworld.html";};}});}
+function repairBeatStore(){const path=location.pathname.toLowerCase();const params=new URLSearchParams(location.search);if(path.endsWith("/unibeatzworld.html")||path.endsWith("unibeatzworld.html")){fixWorldBeatButtons();setTimeout(fixWorldBeatButtons,900);setTimeout(fixWorldBeatButtons,2200);if(params.get("open")==="beats"||location.hash==="#beats"||location.hash==="#featured"){setTimeout(openWorldBeatsModal,600);setTimeout(()=>{openWorldBeatsModal();fixWorldBeatButtons();},1600);}return;}if(!path.endsWith("/")&&!path.endsWith("/index.html")&&path!=="")return;const fullCatalog=document.querySelector('.see-more[href="unibeatzworld.html"]');if(fullCatalog){fullCatalog.href="unibeatzworld.html?open=beats";fullCatalog.textContent="Open Full Beat Catalog →";}const track=document.getElementById("beatsTrack");if(!track)return;setTimeout(()=>{const text=(track.textContent||"").toLowerCase();const hasCards=track.querySelector(".beat-slide");if(hasCards)return;if(text.includes("loading beats")||text.includes("no beats"))track.innerHTML=`<div class="beat-store-empty">Beat Store is connected. Upload beats from admin/marketplace and they will appear here automatically.<br><a href="unibeatzworld.html?open=beats">Open Full Catalog</a></div>`;},2800);}
+window.UniBeatzSiteSearch={open:openSearch};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore();});else{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore();}
+setTimeout(()=>{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore();},1200);
+setTimeout(()=>{injectSharedUtilityFixes();repairBeatStore();},2600);
