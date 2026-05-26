@@ -42,3 +42,12 @@ a{text-decoration:none;color:inherit}
 .x{position:absolute;right:12px;top:10px;background:none;border:none;color:#b7c0d4;font-size:1.2rem;cursor:pointer}
 .form{display:grid;gap:9px;margin-top:10px}.input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid rgba(201,168,76,.2);background:#090d18;color:var(--white)}
 textarea{min-height:92px;resize:vertical}
+
+/* FLOAT AUTH POSITION FIX */
+[class*="account"],[class*="auth"],[id*="account"],[id*="auth"]{
+  max-width:calc(100vw - 20px);
+}
+[style*="position: fixed"][style*="top: 0"],
+[style*="position:fixed"][style*="top:0"]{
+  top:72px !important;
+}
