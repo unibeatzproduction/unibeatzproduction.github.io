@@ -22,9 +22,9 @@
       <div class="station">
         <div class="cover">📻</div>
         <div class="meta">
-          <h3>Featured Station: Empire Rotation</h3>
-          <p>Approved drops, underground heat, curated podcasts, DJ sets, and independent artist records.</p>
-          <span class="badge">Google Sign-In + Broadcasts Live</span>
+          <h3 id="nowPlayingTitle">Featured Station: Empire Rotation</h3>
+          <p id="nowPlayingMeta">Approved drops, underground heat, curated podcasts, DJ sets, and independent artist records.</p>
+          <span class="badge" id="nowPlayingBadge">Google Sign-In + Broadcasts Live</span>
         </div>
       </div>
 
@@ -53,12 +53,14 @@
         <div class="channel"><h4>Producer Showcase</h4><p>Beats, loops, and instrumentals.</p></div>
         <div class="channel"><h4>Freestyle Sessions</h4><p>Raw bars and cyphers.</p></div>
         <div class="channel"><h4>Live DJ Sets</h4><p>Curated mixes and live blends.</p></div>
+        <div class="channel"><h4>Instrumentals</h4><p>Beat tapes and no-vocal production.</p></div>
       </div>
     </article>
   </section>
 
   <section>
     <h2 class="section-title">Approved Tracks</h2>
+    <div id="genreFilters" class="genre-filters"></div>
     <div id="approvedList" class="track-list"></div>
   </section>
 </main>
