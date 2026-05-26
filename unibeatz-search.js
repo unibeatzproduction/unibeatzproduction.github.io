@@ -1,8 +1,9 @@
 // unibeatz-search.js
-// Functional UniBeatz site/content search.
+// Functional UniBeatz site/content search + small homepage utility repairs.
 
 const SEARCH_LINKS = [
   { title: "Beat Store", url: "/index.html#beats", text: "beats beat store licenses hip hop trap r&b drill afrobeats purchase stream" },
+  { title: "Full Beat Catalog", url: "/unibeatzworld.html#beats", text: "full catalog beats marketplace licenses unibeatzworld" },
   { title: "Artist Battles", url: "/index.html#battles", text: "battles freestyle app artist live vote leaderboard" },
   { title: "All Platforms", url: "/index.html#platforms", text: "platforms empire unibeatzworld unipack radio battle merch studio" },
   { title: "Membership", url: "/index.html#membership", text: "membership tiers subscriptions pro customer visitor" },
@@ -17,7 +18,7 @@ const SEARCH_LINKS = [
 function pageResults(term) {
   const q = term.toLowerCase().trim();
   const items = [];
-  document.querySelectorAll("section[id], main, article, .platform-card, .coming-card, .plan-card, .beat-slide, .video-slide").forEach((el, idx) => {
+  document.querySelectorAll("section[id], main, article, .platform-card, .coming-card, .plan-card, .beat-slide, .video-slide").forEach((el) => {
     const text = (el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
     if (!text || text.length < 8) return;
     if (!q || text.toLowerCase().includes(q)) {
@@ -84,7 +85,7 @@ function openSearch() {
       return true;
     }).slice(0, 18);
     if (!unique.length) {
-      results.innerHTML = `<div class="ub-empty">No results found for “${q.replace(/[<>]/g, "")}”.</div>`;
+      results.innerHTML = `<div class="ub-empty">No results found for “${q.replace(/[<>]/g, "") }”.</div>`;
       return;
     }
     results.innerHTML = unique.map(item => `<a class="ub-result" href="${item.url}"><div class="ub-result-title">${item.title}</div><div class="ub-result-text">${item.text}</div></a>`).join("");
@@ -95,13 +96,56 @@ function openSearch() {
   render();
 }
 
-window.UniBeatzSiteSearch = { open: openSearch };
+function injectHomepageUtilityFixes() {
+  if (document.getElementById("ub-homepage-utility-fixes")) return;
+  const style = document.createElement("style");
+  style.id = "ub-homepage-utility-fixes";
+  style.textContent = `
+    body #ub-auth-float{top:72px!important;right:24px!important;z-index:299!important}
+    @media(max-width:860px){body #ub-auth-float{top:72px!important;right:16px!important}}
+    .beat-store-empty{color:var(--gray);padding:28px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:.68rem;letter-spacing:2px;border:1px dashed rgba(201,168,76,.28);border-radius:8px;background:rgba(255,255,255,.025)}
+    .beat-store-empty a{display:inline-block;margin-top:12px;color:#050505;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);padding:9px 14px;border-radius:6px;text-decoration:none;font-weight:900}
+  `;
+  document.head.appendChild(style);
+}
 
-// Upgrade any existing top nav search buttons that still say "coming soon".
 function wireSearchButtons() {
   document.querySelectorAll(".nav-icon-btn").forEach(btn => {
     if ((btn.textContent || "").includes("🔍")) btn.onclick = openSearch;
+    if ((btn.textContent || "").includes("🔔")) btn.onclick = () => window.UniBeatzPush?.openCenter?.();
   });
 }
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wireSearchButtons);
-else wireSearchButtons();
+
+function repairBeatStore() {
+  if (!location.pathname.endsWith("/") && !location.pathname.endsWith("/index.html") && location.pathname !== "") return;
+  const fullCatalog = document.querySelector('.see-more[href="unibeatzworld.html"]');
+  if (fullCatalog) {
+    fullCatalog.href = "unibeatzworld.html#beats";
+    fullCatalog.textContent = "Open Full Beat Catalog →";
+  }
+  const track = document.getElementById("beatsTrack");
+  if (!track) return;
+  setTimeout(() => {
+    const text = (track.textContent || "").toLowerCase();
+    const hasCards = track.querySelector(".beat-slide");
+    if (hasCards) return;
+    if (text.includes("loading beats") || text.includes("no beats")) {
+      track.innerHTML = `<div class="beat-store-empty">Beat Store is connected. Upload beats from admin/marketplace and they will appear here automatically.<br><a href="unibeatzworld.html#beats">Open Full Catalog</a></div>`;
+    }
+  }, 2800);
+}
+
+window.UniBeatzSiteSearch = { open: openSearch };
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    injectHomepageUtilityFixes();
+    wireSearchButtons();
+    repairBeatStore();
+  });
+} else {
+  injectHomepageUtilityFixes();
+  wireSearchButtons();
+  repairBeatStore();
+}
+setTimeout(() => { injectHomepageUtilityFixes(); wireSearchButtons(); repairBeatStore(); }, 1200);
