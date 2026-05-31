@@ -1,5 +1,5 @@
 // unifreestyle-cypher-fix.js
-// Stable Freestyle fixes only: visible Cypher card + Home Join Battle routes to queue.
+// Stable Freestyle fixes only: visible Cypher card + Home Join Battle routes to queue + Cypher role buttons.
 
 (function(){
   function isFreestylePage(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
@@ -11,8 +11,23 @@
     if(el) el.classList.add('active');
   }
 
+  function showMsg(msg){
+    if(typeof window.showToast === 'function') window.showToast(msg);
+    var tip = document.getElementById('cyTip');
+    if(tip) tip.innerHTML = '<strong>' + msg + '</strong>';
+  }
+
   function openCypherRoom(){ goPageSafe('cypher'); }
   window.openCypherRoom = openCypherRoom;
+
+  window.joinCypher = function(role){
+    var clean = String(role || 'artist').toLowerCase();
+    window.ubCypherRole = clean;
+    document.body.setAttribute('data-cypher-role', clean);
+    if(clean === 'dj') showMsg('🎧 Joined Cypher as DJ. DJ controls ready.');
+    else if(clean === 'watch') showMsg('👀 Watch Only mode active.');
+    else showMsg('🎤 Joined Cypher as Artist. Waiting for turn.');
+  };
 
   function makeCypherCard(id){
     var card = document.createElement('div');
@@ -39,14 +54,15 @@
     if(!joinBtn) return;
     joinBtn.removeAttribute('onclick');
     joinBtn.onclick = null;
-    if(joinBtn.dataset.ubJoinFixed === 'yes') return;
-    joinBtn.dataset.ubJoinFixed = 'yes';
-    joinBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      goPageSafe('queue');
-      return false;
-    }, true);
+    if(joinBtn.dataset.ubJoinFixed !== 'yes') {
+      joinBtn.dataset.ubJoinFixed = 'yes';
+      joinBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        goPageSafe('queue');
+        return false;
+      }, true);
+    }
   }
 
   function injectHomeCypherLauncher(){
@@ -69,15 +85,37 @@
     queueBody.insertBefore(card, queueBody.firstChild);
   }
 
+  function bindCypherButtons(){
+    if(!isFreestylePage()) return;
+    var buttons = Array.from(document.querySelectorAll('button, .btn, [role="button"'));
+    buttons.forEach(function(btn){
+      var txt = (btn.textContent || '').toLowerCase().replace(/\s+/g,' ').trim();
+      var role = null;
+      if(txt.includes('join as artist')) role = 'artist';
+      if(txt.includes('join as dj')) role = 'dj';
+      if(txt.includes('watch only')) role = 'watch';
+      if(!role || btn.dataset.ubCypherRoleFixed === 'yes') return;
+      btn.dataset.ubCypherRoleFixed = 'yes';
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        window.joinCypher(role);
+        return false;
+      }, true);
+    });
+  }
+
   function runFix(){
     if(!isFreestylePage()) return;
     fixHomeJoinBattleRouting();
     injectHomeCypherLauncher();
     injectQueueCypherLauncher();
+    bindCypherButtons();
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runFix);
   else runFix();
+  setInterval(bindCypherButtons, 1200);
   setTimeout(runFix, 400);
   setTimeout(runFix, 1000);
   setTimeout(runFix, 2200);
