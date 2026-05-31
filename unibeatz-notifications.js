@@ -4,6 +4,8 @@
 import "/unibeatz-auth.js";
 import "/unibeatz-search.js";
 import "/unipack-stems.js";
+import "/unipack-mobile-upload-fix.js";
+import "/unifreestyle-cypher-fix.js";
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
@@ -24,14 +26,12 @@ const FIREBASE_CONFIG = {
 };
 
 const VAPID_KEY = "BBFJmA6QKx8YgG2BvP8OVuU1JYxIbu0_fAGy1_weagUVBFR1fNt7bfCwsg_j2HwHtWw9TgEQxSKJ_8LBiHk3yt0";
-const ADMIN_EMAIL = "unibeatzproduction@gmail.com";
 const SW_PATH = "/firebase-messaging-sw.js";
 const TWO_WEEKS_MS = 14 * 24 * 60 * 60 * 1000;
 
 const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 let messaging = null;
 let registeredToken = null;
 
@@ -44,7 +44,6 @@ try {
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
 }
-function escapeAttr(s) { return String(s ?? "").replace(/\"/g, "&quot;"); }
 function toDate(v) { return v?.toDate?.() || (v ? new Date(v) : null); }
 function isRecent(createdAt) {
   const d = toDate(createdAt);
@@ -64,7 +63,7 @@ function showMiniToast(message, ms = 4500) {
 function removeFloatingReminder() {
   document.getElementById("ub-push-float")?.remove();
 }
-function mountFloatingReminder() { removeFloatingReminder(); }
+function updateBellDot() {}
 
 async function requestPermissionAndRegister({ silent = false } = {}) {
   if (!messaging || !("Notification" in window)) return null;
@@ -103,3 +102,7 @@ async function requestPermissionAndRegister({ silent = false } = {}) {
     return null;
   }
 }
+
+window.UniBeatzPush = window.UniBeatzPush || {};
+window.UniBeatzPush.requestPermissionAndRegister = requestPermissionAndRegister;
+window.UniBeatzPush.openCenter = function(){ showMiniToast("Notifications center is loading updates."); };
