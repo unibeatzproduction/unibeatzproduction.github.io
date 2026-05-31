@@ -653,4 +653,105 @@ body::after {
 .beat-admin-lock{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:12px;}
 .beat-admin-lock input{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.22);color:var(--white);padding:12px;border-radius:7px;font-family:'Rajdhani',sans-serif;}
 @media(min-width:760px){.beat-form-grid{grid-template-columns:2fr 1fr 1fr 1fr 1.2fr}.beat-vault-card{padding:18px}.beat-row-name{font-size:1.35rem}}
+/* ════════════════════════════════════════════════════════
+   ══════════ PHASE 2 · CYPHER ROOM (STAGE 1) ══════════
+   Fullscreen page · Firestore turn-sync · rotating spotlight
+   Uses existing brand tokens. Matches .page fixed pattern.
+   ════════════════════════════════════════════════════════ */
 
+/* Cypher uses the standard .page / .page-body system already defined */
+#page-cypher .page-body{padding-bottom:24px;}
+
+/* ── Cypher top status strip ── */
+.cy-status{display:flex;align-items:center;gap:8px;padding:10px 14px;flex-wrap:wrap;border-bottom:1px solid rgba(201,168,76,0.12);background:linear-gradient(90deg,rgba(8,8,15,0.9),rgba(13,13,26,0.9));}
+.cy-live-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(255,51,51,0.15);border:1px solid var(--red);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2.5px;color:var(--red);font-weight:800;}
+.cy-live-dot{width:7px;height:7px;background:var(--red);border-radius:50%;animation:blink 1s infinite;}
+.cy-session-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0;}
+.cy-rename-btn{background:none;border:none;color:var(--gray);font-size:0.85rem;cursor:pointer;padding:4px 6px;}
+.cy-rename-btn:hover{color:var(--gold);}
+.cy-meta{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);white-space:nowrap;}
+.cy-rename-input{background:rgba(0,0,0,0.6);border:1px solid var(--gold);color:var(--white);padding:5px 9px;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;outline:none;border-radius:5px;flex:1;min-width:0;}
+
+/* ── The circle stage ── */
+.cy-stage{position:relative;padding:18px 14px 6px;}
+.cy-circle-wrap{position:relative;width:100%;max-width:480px;aspect-ratio:1;margin:0 auto;display:flex;align-items:center;justify-content:center;}
+
+/* Decorative pulsing rings */
+.cy-rings{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0.35;}
+.cy-ring{position:absolute;border-radius:50%;border:1px solid rgba(201,168,76,0.18);}
+.cy-ring.r1{width:55%;height:55%;animation:cyRingPulse 4s infinite ease-out;}
+.cy-ring.r2{width:78%;height:78%;animation:cyRingPulse 4s infinite ease-out 1.3s;}
+.cy-ring.r3{width:100%;height:100%;animation:cyRingPulse 4s infinite ease-out 2.6s;}
+@keyframes cyRingPulse{0%{opacity:0;transform:scale(0.85);}40%{opacity:0.5;}100%{opacity:0;transform:scale(1.05);}}
+
+/* Stage floor glow */
+.cy-floor{position:absolute;width:80%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at center,rgba(0,170,255,0.12),rgba(201,168,76,0.05) 50%,transparent 75%);z-index:0;}
+
+/* Rotating spotlight */
+.cy-spotlight{position:absolute;width:96%;aspect-ratio:1;border-radius:50%;pointer-events:none;z-index:1;}
+.cy-spotlight::before{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,transparent 0deg,rgba(201,168,76,0.0) 60deg,rgba(201,168,76,0.5) 85deg,rgba(247,201,76,0.95) 90deg,rgba(201,168,76,0.5) 95deg,transparent 120deg);transition:transform 0.8s cubic-bezier(0.7,0,0.3,1);-webkit-mask:radial-gradient(circle,transparent 56%,#000 57%,#000 96%,transparent 100%);mask:radial-gradient(circle,transparent 56%,#000 57%,#000 96%,transparent 100%);}
+
+/* Center display */
+.cy-center{position:absolute;width:40%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(0,170,255,0.35),rgba(0,0,0,0.96));border:2px solid var(--gold);box-shadow:0 0 40px rgba(201,168,76,0.45),inset 0 0 30px rgba(0,170,255,0.25);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;z-index:3;}
+.cy-center-label{font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2.5px;color:var(--gold-light);margin-bottom:5px;}
+.cy-center-name{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1.5px;color:var(--white);line-height:1;margin-bottom:5px;word-break:break-word;}
+.cy-center-time{font-family:'Orbitron',sans-serif;font-size:1.5rem;letter-spacing:2px;color:var(--gold);font-weight:900;}
+.cy-center-time.urgent{color:var(--red);animation:cyUrgent 0.5s infinite;}
+@keyframes cyUrgent{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.cy-center-waiting{font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:var(--gray);}
+
+/* Participant tiles around circle */
+.cy-tile{position:absolute;width:15%;aspect-ratio:1;border-radius:50%;background:linear-gradient(135deg,#0a0a18,#000);border:2px solid rgba(255,255,255,0.2);overflow:visible;transition:all 0.4s;z-index:2;}
+.cy-tile-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;background:#000;}
+.cy-tile-inner video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.cy-tile-ph{font-size:1.3rem;opacity:0.4;}
+.cy-tile.dj-host{border-color:var(--gold);background:linear-gradient(135deg,#1a1408,#040408);box-shadow:0 0 14px rgba(201,168,76,0.4);}
+.cy-tile.active{width:18%;border:3px solid var(--gold);box-shadow:0 0 32px rgba(201,168,76,0.8),0 0 64px rgba(201,168,76,0.35);z-index:4;}
+.cy-tile.up-next{border-color:var(--blue-bright);box-shadow:0 0 18px rgba(64,208,255,0.5);}
+.cy-tile-label{position:absolute;bottom:-19px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1px;color:var(--white);white-space:nowrap;text-shadow:0 1px 4px #000,0 0 8px #000;font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+.cy-tile.active .cy-tile-label{color:var(--gold-light);font-size:0.48rem;}
+.cy-tile.dj-host .cy-tile-label{color:var(--gold-light);}
+.cy-tile-mic{position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.8);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;z-index:3;}
+.cy-tile-mic.muted{background:rgba(255,51,51,0.85);}
+
+/* ── Turn queue bar ── */
+.cy-queue{margin:14px;padding:11px 13px;background:rgba(0,0,0,0.45);border:1px solid rgba(201,168,76,0.16);border-radius:8px;}
+.cy-queue-title{font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:8px;}
+.cy-queue-list{display:flex;gap:7px;flex-wrap:wrap;}
+.cy-q-item{padding:5px 10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:14px;color:rgba(240,237,232,0.6);font-family:'Rajdhani',sans-serif;font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:5px;}
+.cy-q-item.done{opacity:0.4;}
+.cy-q-item.done::before{content:'✓';color:var(--green);}
+.cy-q-item.current{background:rgba(201,168,76,0.18);border-color:var(--gold);color:var(--gold-light);font-weight:700;}
+.cy-q-item.next{background:rgba(0,170,255,0.12);border-color:var(--blue);color:var(--blue-bright);}
+.cy-queue-empty{font-family:'Rajdhani',sans-serif;font-size:0.85rem;color:var(--gray);font-style:italic;}
+
+/* ── Join controls ── */
+.cy-join-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px;}
+.cy-join-row .btn{padding:12px 8px;font-size:0.5rem;}
+.cy-join-row .btn.full{grid-column:1 / -1;}
+
+/* ── DJ control panel (only DJ/admin) ── */
+.cy-dj-panel{margin:0 14px 14px;background:linear-gradient(135deg,rgba(20,15,8,0.95),rgba(4,4,8,0.95));border:1px solid rgba(201,168,76,0.35);border-radius:10px;padding:13px;display:none;}
+.cy-dj-panel.show{display:block;}
+.cy-dj-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+.cy-dj-title{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2.5px;color:var(--gold);}
+.cy-dj-badge{font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:2px;background:rgba(201,168,76,0.2);border:1px solid var(--gold);color:var(--gold-light);padding:3px 8px;border-radius:10px;font-weight:800;}
+.cy-dj-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cy-dj-btn{padding:11px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.25);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;border-radius:6px;cursor:pointer;font-weight:700;transition:all 0.2s;}
+.cy-dj-btn:hover{background:rgba(201,168,76,0.1);border-color:var(--gold);}
+.cy-dj-btn.primary{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);border:none;}
+.cy-dj-btn.danger{background:linear-gradient(135deg,#440a00,#990000);border:none;color:#fff;}
+.cy-dj-btn.full{grid-column:1 / -1;}
+
+/* ── Info / tip bar ── */
+.cy-tip{margin:0 14px 14px;padding:11px 13px;background:rgba(0,170,255,0.04);border:1px solid rgba(0,170,255,0.15);border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:0.8rem;color:rgba(240,237,232,0.65);line-height:1.5;}
+.cy-tip strong{color:var(--blue-bright);}
+
+/* ── Desktop scaling ── */
+@media(min-width:760px){
+  .cy-circle-wrap{max-width:560px;}
+  .cy-join-row{grid-template-columns:repeat(4,1fr);max-width:760px;margin:0 auto;}
+  .cy-join-row .btn.full{grid-column:auto;}
+  .cy-dj-row{grid-template-columns:repeat(4,1fr);}
+  .cy-dj-panel,.cy-queue,.cy-tip{max-width:900px;margin-left:auto;margin-right:auto;}
+}
