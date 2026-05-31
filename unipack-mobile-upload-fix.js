@@ -1,5 +1,5 @@
 // unipack-mobile-upload-fix.js
-// Keeps UniPack Studio open after mobile file selection.
+// Keeps UniPack Studio open and forces audio loading after mobile file selection.
 
 function forceStudioOpen() {
   if (!location.pathname.toLowerCase().includes('unipack.html')) return;
@@ -16,6 +16,50 @@ function forceStudioOpen() {
   });
   var studio = document.getElementById('page-studio');
   if (studio) studio.classList.add('active');
+}
+
+function getCurrentSection() {
+  var activeTab = document.querySelector('.section-tab.active');
+  if (activeTab && activeTab.id === 'tab-loops') return 'B';
+  return 'A';
+}
+
+function forceAudioLoad(input, sec) {
+  if (!input || !input.files || !input.files[0]) return;
+  forceStudioOpen();
+
+  var file = input.files[0];
+  var beforeName = '';
+  try {
+    var state = window.SEC && window.SEC[sec];
+    beforeName = state && state.trackName ? state.trackName : '';
+  } catch (e) {}
+
+  setTimeout(function () {
+    try {
+      var waveform = document.getElementById('waveformSection' + sec);
+      var isVisible = waveform && waveform.style.display !== 'none' && waveform.offsetParent !== null;
+      var state = window.SEC && window.SEC[sec];
+      var loaded = isVisible || (state && state.audioBuffer);
+
+      if (!loaded && typeof window.handleAudioUpload === 'function') {
+        window.handleAudioUpload(input, sec);
+      }
+    } catch (e) {
+      console.warn('[UniPack Mobile Upload Fix] retry failed:', e);
+    }
+  }, 300);
+
+  setTimeout(function () {
+    try {
+      var waveform = document.getElementById('waveformSection' + sec);
+      var state = window.SEC && window.SEC[sec];
+      var loaded = (waveform && waveform.style.display !== 'none') || (state && state.audioBuffer);
+      if (!loaded && typeof window.showToast === 'function') {
+        window.showToast('Still loading audio. Try MP3 or smaller WAV if it does not appear.');
+      }
+    } catch (e) {}
+  }, 2500);
 }
 
 function protectUploadInputs() {
@@ -37,7 +81,8 @@ function protectUploadInputs() {
       setTimeout(forceStudioOpen, 150);
       setTimeout(forceStudioOpen, 600);
       setTimeout(forceStudioOpen, 1600);
-    }, true);
+      forceAudioLoad(input, sec);
+    }, false);
   });
 
   document.querySelectorAll('[onclick*="uploadInput"]').forEach(function (btn) {
@@ -48,7 +93,7 @@ function protectUploadInputs() {
       event.stopPropagation();
       sessionStorage.setItem('ub_unipack_stay_studio', '1');
       forceStudioOpen();
-      var sec = window.activeSection || 'A';
+      var sec = getCurrentSection();
       var input = document.getElementById('uploadInput' + sec);
       if (input) input.click();
       return false;
