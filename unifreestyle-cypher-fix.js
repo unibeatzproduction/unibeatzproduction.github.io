@@ -25,6 +25,7 @@
   }
 
   function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+  function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
 
   async function loadMarketplaceBeats(){
     if(window.ubCypherBeats && window.ubCypherBeats.length) return window.ubCypherBeats;
@@ -68,8 +69,16 @@
     if(!b) return null;
     if(typeof b === 'string') return { name:b, audioUrl:'' };
     var name = b.name || b.title || b.beatName || b.fileName || b.filename || 'Untitled Beat';
-    var audioUrl = b.audioUrl || b.url || b.downloadUrl || b.fileUrl || b.previewUrl || '';
+    var audioUrl = b.audioUrl || b.url || b.downloadUrl || b.fileUrl || b.previewUrl || b.preview || b.audio || '';
     return { id:b.id || name, name:name, audioUrl:audioUrl, bpm:b.bpm || '', key:b.key || '', tag:b.tag || b.genre || '' };
+  }
+
+  function ensureAudioUnlocked(audio){
+    if(!audio) return;
+    audio.setAttribute('playsinline','true');
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+    audio.controls = true;
   }
 
   function playCypherBeat(beat){
@@ -79,13 +88,33 @@
     localStorage.setItem('ub_current_battle_beat', JSON.stringify(beat));
     var current = document.getElementById('ubCypherCurrentBeat');
     if(current) current.innerHTML = 'Current Beat: <strong style="color:#F0C040;">' + escapeHtml(beat.name) + '</strong>' + (beat.bpm ? ' · ' + escapeHtml(beat.bpm) + ' BPM' : '');
+
     var audio = document.getElementById('ubCypherBeatAudio');
+    var playBtn = document.getElementById('ubCypherManualPlay');
     if(audio && beat.audioUrl){
-      audio.src = beat.audioUrl;
+      ensureAudioUnlocked(audio);
       audio.style.display = 'block';
-      audio.play().catch(function(){ showMsg('🎧 Beat selected: ' + beat.name + '. Tap play to hear preview.'); });
+      audio.pause();
+      audio.src = beat.audioUrl;
+      audio.load();
+      if(playBtn) {
+        playBtn.style.display = 'block';
+        playBtn.textContent = '▶ PLAY SELECTED BEAT';
+        playBtn.onclick = function(e){
+          if(e){ e.preventDefault(); e.stopImmediatePropagation(); }
+          ensureAudioUnlocked(audio);
+          audio.play().then(function(){ playBtn.textContent = '⏸ BEAT PLAYING'; }).catch(function(err){ showMsg('⚠️ Tap the audio controls to play. ' + (err && err.message ? err.message : '')); });
+          return false;
+        };
+      }
+      audio.onplay = function(){ if(playBtn) playBtn.textContent = '⏸ BEAT PLAYING'; };
+      audio.onpause = function(){ if(playBtn) playBtn.textContent = '▶ PLAY SELECTED BEAT'; };
+      audio.onerror = function(){ showMsg('⚠️ Audio file could not load for: ' + beat.name); };
+      audio.play().catch(function(){ showMsg('🎧 Beat selected: ' + beat.name + '. Tap PLAY SELECTED BEAT or the audio bar.'); });
+    } else if(playBtn) {
+      playBtn.style.display = 'none';
+      showMsg('⚠️ Beat has no audio URL: ' + beat.name);
     }
-    showMsg('🎧 DJ switched beat: ' + beat.name);
     window.dispatchEvent(new CustomEvent('ub-battle-beat-changed', { detail: beat }));
   }
 
@@ -142,7 +171,7 @@
     var panel = document.createElement('div');
     panel.id = 'ubCypherDjPanel';
     panel.style.cssText = 'display:none;margin:12px auto 16px;max-width:780px;padding:14px;border:1px solid rgba(201,168,76,.55);border-radius:12px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(0,170,255,.08));box-shadow:0 14px 32px rgba(0,0,0,.35);color:#fff;font-family:Rajdhani,Arial,sans-serif;';
-    panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;"><div><div style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#40D0FF;">DJ CONTROL PANEL</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;">SWITCH CYPHER BEATS</div></div><button id="ubCypherSkipTurn" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(64,208,255,.7);background:rgba(64,208,255,.12);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.5px;cursor:pointer;">SKIP TURN</button></div><div id="ubCypherCurrentBeat" style="padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;color:rgba(240,237,232,.82);">Current Beat: <strong style="color:#F0C040;">None selected</strong></div><audio id="ubCypherBeatAudio" controls style="display:none;width:100%;margin:0 0 10px;"></audio><div id="ubCypherBeatGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"><div style="grid-column:1/-1;color:rgba(240,237,232,.65);">Loading marketplace beats...</div></div>';
+    panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;"><div><div style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#40D0FF;">DJ CONTROL PANEL</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;">SWITCH CYPHER BEATS</div></div><button id="ubCypherSkipTurn" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(64,208,255,.7);background:rgba(64,208,255,.12);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.5px;cursor:pointer;">SKIP TURN</button></div><div id="ubCypherCurrentBeat" style="padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;color:rgba(240,237,232,.82);">Current Beat: <strong style="color:#F0C040;">None selected</strong></div><audio id="ubCypherBeatAudio" controls playsinline preload="auto" style="display:none;width:100%;margin:0 0 10px;"></audio><button id="ubCypherManualPlay" style="display:none;width:100%;margin:0 0 10px;padding:11px;border-radius:8px;border:1px solid #40D0FF;background:rgba(64,208,255,.14);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:2px;cursor:pointer;">▶ PLAY SELECTED BEAT</button><div id="ubCypherBeatGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"><div style="grid-column:1/-1;color:rgba(240,237,232,.65);">Loading marketplace beats...</div></div>';
     var target = root.querySelector('.page-body') || root;
     target.appendChild(panel);
     panel.querySelector('#ubCypherSkipTurn').addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); showMsg('⏭️ DJ skipped to next cypher turn.'); }, true);
