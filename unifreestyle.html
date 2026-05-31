@@ -549,7 +549,89 @@
     </div>
   </div>
 </div>
+<!-- ════════════════════════════════════════════
+     CYPHER ROOM — Phase 2 Stage 1
+     Multi-person freestyle circle · 60-sec turns
+     ════════════════════════════════════════════ -->
+<div class="page" id="page-cypher">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="leaveCypher()" title="Leave cypher">←</button>
+    <h1>CYPHER ROOM</h1>
+    <div class="btn-row">
+      <button class="icon-btn" id="cyMicBtn" onclick="toggleCypherMic()" title="Toggle mic">🎤</button>
+    </div>
+  </div>
 
+  <div class="page-body">
+
+    <!-- Status strip -->
+    <div class="cy-status">
+      <span class="cy-live-badge"><span class="cy-live-dot"></span>LIVE</span>
+      <span class="cy-session-name" id="cySessionName">Cypher Session</span>
+      <input type="text" class="cy-rename-input" id="cyRenameInput" style="display:none;" maxlength="40" onkeydown="if(event.key==='Enter')cyCommitRename();if(event.key==='Escape')cyCancelRename();"/>
+      <button class="cy-rename-btn" id="cyRenameBtn" onclick="cyStartRename()" title="Rename session">✏️</button>
+      <span class="cy-meta" id="cyMeta">— participants</span>
+    </div>
+
+    <!-- The circle -->
+    <div class="cy-stage">
+      <div class="cy-circle-wrap" id="cyCircleWrap">
+        <div class="cy-rings">
+          <div class="cy-ring r1"></div>
+          <div class="cy-ring r2"></div>
+          <div class="cy-ring r3"></div>
+        </div>
+        <div class="cy-floor"></div>
+        <div class="cy-spotlight" id="cySpotlight"></div>
+
+        <!-- Center display -->
+        <div class="cy-center">
+          <div class="cy-center-label" id="cyCenterLabel">ON THE MIC</div>
+          <div class="cy-center-name" id="cyCenterName">—</div>
+          <div class="cy-center-time" id="cyCenterTime">--</div>
+        </div>
+
+        <!-- Participant tiles get inserted here dynamically -->
+        <!-- (positioned around the circle by JS) -->
+      </div>
+    </div>
+
+    <!-- Turn queue -->
+    <div class="cy-queue">
+      <div class="cy-queue-title">🎤 TURN ORDER</div>
+      <div class="cy-queue-list" id="cyQueueList">
+        <span class="cy-queue-empty">Waiting for artists to join…</span>
+      </div>
+    </div>
+
+    <!-- Join / role buttons -->
+    <div class="cy-join-row" id="cyJoinRow">
+      <button class="btn btn-blue" onclick="joinCypher('artist')">🎤 Join as Artist</button>
+      <button class="btn btn-blue" onclick="joinCypher('dj')">🎧 Join as DJ</button>
+      <button class="btn btn-blue full" onclick="joinCypher('viewer')">👁️ Watch Only</button>
+    </div>
+
+    <!-- DJ-only control panel -->
+    <div class="cy-dj-panel" id="cyDjPanel">
+      <div class="cy-dj-head">
+        <div class="cy-dj-title">🎧 DJ CONTROLS</div>
+        <span class="cy-dj-badge">YOU ARE THE DJ</span>
+      </div>
+      <div class="cy-dj-row">
+        <button class="cy-dj-btn primary" onclick="cyStartSession()">▶ Start Cypher</button>
+        <button class="cy-dj-btn" onclick="cyAdvanceTurn()">⏭ Next Artist</button>
+        <button class="cy-dj-btn" onclick="cyToggleAutoRotate()" id="cyAutoBtn">🔁 Auto-Rotate: ON</button>
+        <button class="cy-dj-btn danger" onclick="cyEndSession()">⏹ End Cypher</button>
+      </div>
+    </div>
+
+    <!-- Info tip -->
+    <div class="cy-tip" id="cyTip">
+      <strong>How it works:</strong> Each artist gets <strong>60 seconds</strong> on the mic, then it rotates clockwise. Only the active artist's cam is live. DJ controls the music and can skip turns.
+    </div>
+
+  </div>
+</div>
 <!-- ══════════ QUEUE / BATTLE SETUP ══════════ -->
 <div class="page" id="page-queue">
   <div class="top-bar">
