@@ -1,26 +1,20 @@
 // unipack-mobile-upload-fix.js
-// Mobile UniPack upload fix: adds real visible file inputs so mobile browsers fire onchange reliably.
+// Mobile UniPack upload fix: visible file inputs that do NOT bubble into old upload-zone click handlers.
 
 function isUniPack() {
   return location.pathname.toLowerCase().includes('unipack.html');
 }
 
-function forceStudioOpenSoft() {
-  if (!isUniPack()) return;
-  try {
-    if (typeof window.goPage === 'function') {
-      window.goPage('studio');
-      return;
-    }
-  } catch (e) {}
-  document.querySelectorAll('.page').forEach(function (page) { page.classList.remove('active'); });
-  var studio = document.getElementById('page-studio');
-  if (studio) studio.classList.add('active');
-}
-
 function markStayStudio() {
   if (!isUniPack()) return;
   sessionStorage.setItem('ub_unipack_stay_studio', '1');
+}
+
+function keepCurrentStudioVisible() {
+  if (!isUniPack()) return;
+  document.querySelectorAll('.page').forEach(function (page) { page.classList.remove('active'); });
+  var studio = document.getElementById('page-studio');
+  if (studio) studio.classList.add('active');
 }
 
 function addStyle() {
@@ -36,18 +30,25 @@ function addMainMobileInput(sec) {
   if (!zone || document.getElementById('ubMobileInput' + sec)) return;
   var row = document.createElement('div');
   row.className = 'ub-mobile-file-row';
-  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileInput' + sec + '" type="file" accept="audio/*"><div class="ub-mobile-file-note">Use this on phone/tablet if the gold Choose File button does not load audio.</div>';
+  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileInput' + sec + '" type="file" accept="audio/*"><div class="ub-mobile-file-note">Tap this box directly on phone/tablet.</div>';
   zone.appendChild(row);
+
+  row.addEventListener('click', function (e) { e.stopPropagation(); }, true);
+  row.addEventListener('pointerdown', function (e) { e.stopPropagation(); markStayStudio(); }, true);
+  row.addEventListener('touchstart', function (e) { e.stopPropagation(); markStayStudio(); }, true);
+
   var input = row.querySelector('input');
-  input.addEventListener('change', function () {
+  input.addEventListener('click', function (e) { e.stopPropagation(); markStayStudio(); }, true);
+  input.addEventListener('change', function (e) {
+    e.stopPropagation();
     markStayStudio();
-    forceStudioOpenSoft();
+    keepCurrentStudioVisible();
     if (typeof window.handleAudioUpload === 'function') {
       window.handleAudioUpload(input, sec);
     } else {
       alert('Upload engine not ready yet. Refresh and try again.');
     }
-  });
+  }, true);
 }
 
 function addStemMobileInput() {
@@ -55,55 +56,36 @@ function addStemMobileInput() {
   if (!stemBox || document.getElementById('ubMobileStemInput')) return;
   var row = document.createElement('div');
   row.className = 'ub-mobile-file-row';
-  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE STEM DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileStemInput" type="file" multiple accept="audio/*"><div class="ub-mobile-file-note">Use this on phone/tablet to add stems directly.</div>';
+  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE STEM DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileStemInput" type="file" multiple accept="audio/*"><div class="ub-mobile-file-note">Tap this box directly to add stems on mobile.</div>';
   stemBox.appendChild(row);
+  row.addEventListener('click', function (e) { e.stopPropagation(); }, true);
+  row.addEventListener('pointerdown', function (e) { e.stopPropagation(); markStayStudio(); }, true);
+  row.addEventListener('touchstart', function (e) { e.stopPropagation(); markStayStudio(); }, true);
   var input = row.querySelector('input');
-  input.addEventListener('change', function () {
+  input.addEventListener('click', function (e) { e.stopPropagation(); markStayStudio(); }, true);
+  input.addEventListener('change', function (e) {
+    e.stopPropagation();
     markStayStudio();
-    var original = document.getElementById('ubStemInput');
-    if (original) {
-      // The browser will not let us copy FileList into another input reliably, so trigger Stem Studio's list directly if available.
-      var event = new CustomEvent('ub-mobile-stems-selected', { detail: { files: Array.from(input.files || []) } });
-      document.dispatchEvent(event);
-    }
-  });
+    keepCurrentStudioVisible();
+    document.dispatchEvent(new CustomEvent('ub-mobile-stems-selected', { detail: { files: Array.from(input.files || []) } }));
+  }, true);
 }
 
-function attachPassiveGuards() {
+function attachGuards() {
   if (!isUniPack()) return;
   addStyle();
   addMainMobileInput('A');
   addMainMobileInput('B');
   addStemMobileInput();
-  document.querySelectorAll('#uploadZoneA,#uploadZoneB,#ub-stem-studio,[onclick*="uploadInput"],[onclick*="ubStemInput"]').forEach(function (el) {
-    if (!el || el.dataset.ubPassiveGuard === 'yes') return;
-    el.dataset.ubPassiveGuard = 'yes';
-    el.addEventListener('pointerdown', markStayStudio, { passive: true });
-    el.addEventListener('touchstart', markStayStudio, { passive: true });
-    el.addEventListener('click', markStayStudio, { passive: true });
-  });
-}
-
-function maybeRestoreStudio() {
-  if (!isUniPack()) return;
-  if (sessionStorage.getItem('ub_unipack_stay_studio') !== '1') return;
-  setTimeout(forceStudioOpenSoft, 150);
-  setTimeout(forceStudioOpenSoft, 600);
 }
 
 function boot() {
-  attachPassiveGuards();
-  maybeRestoreStudio();
+  attachGuards();
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
 
-window.addEventListener('focus', maybeRestoreStudio);
-window.addEventListener('pageshow', maybeRestoreStudio);
-document.addEventListener('visibilitychange', function () {
-  if (!document.hidden) maybeRestoreStudio();
-});
 setTimeout(boot, 800);
 setTimeout(boot, 1800);
 setTimeout(boot, 3200);
