@@ -5,8 +5,8 @@ import "/unibeatz-auth.js";
 import "/unibeatz-search.js";
 import "/unipack-stems.js";
 import "/unipack-mobile-upload-fix.js";
-import "/unifreestyle-cypher-fix.js";
-import "/unifreestyle-cypher-audio-url-fix.js";
+//import "/unifreestyle-cypher-fix.js";
+//import "/unifreestyle-cypher-audio-url-fix.js";
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
