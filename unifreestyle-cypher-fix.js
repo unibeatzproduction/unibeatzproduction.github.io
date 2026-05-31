@@ -1,111 +1,85 @@
 // unifreestyle-cypher-fix.js
-// Fixes Cypher visibility on Home and routes Home Join Battle to setup/queue.
+// Stable Freestyle fixes only: visible Cypher card + Home Join Battle routes to queue.
 
-function isFreestylePage() {
-  return location.pathname.toLowerCase().includes('unifreestyle.html');
-}
+(function(){
+  function isFreestylePage(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
 
-function goPageSafe(page) {
-  if (typeof window.goToPage === 'function') {
-    window.goToPage(page);
-    return;
+  function goPageSafe(page){
+    if(typeof window.goToPage === 'function') return window.goToPage(page);
+    document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+    var el = document.getElementById('page-' + page);
+    if(el) el.classList.add('active');
   }
-  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
-  var el = document.getElementById('page-' + page);
-  if (el) el.classList.add('active');
-}
 
-function openCypherRoom() {
-  goPageSafe('cypher');
-}
+  function openCypherRoom(){ goPageSafe('cypher'); }
+  window.openCypherRoom = openCypherRoom;
 
-function addCypherStyles() {
-  if (document.getElementById('ub-cypher-launch-style')) return;
-  var style = document.createElement('style');
-  style.id = 'ub-cypher-launch-style';
-  style.textContent = [
-    '.ub-cypher-launch{margin:14px 0 18px;padding:16px;background:linear-gradient(135deg,rgba(201,168,76,.14),rgba(0,170,255,.10));border:1px solid rgba(201,168,76,.42);border-radius:12px;cursor:pointer;box-shadow:0 16px 38px rgba(0,0,0,.34);position:relative;overflow:hidden}',
-    '.ub-cypher-launch:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 0,rgba(64,208,255,.18),transparent 38%);pointer-events:none}',
-    '.ub-cypher-launch-inner{position:relative;display:flex;align-items:center;gap:14px}',
-    '.ub-cypher-icon{font-size:2.3rem;flex-shrink:0}',
-    '.ub-cypher-title{font-family:"Bebas Neue",sans-serif;font-size:1.45rem;letter-spacing:2px;color:#F0C040;line-height:1}',
-    '.ub-cypher-sub{font-size:.8rem;color:rgba(240,237,232,.68);line-height:1.35;margin-top:4px}',
-    '.ub-cypher-badge{display:inline-flex;margin-bottom:6px;padding:3px 8px;border-radius:999px;border:1px solid #40D0FF;color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;font-weight:800}',
-    '.ub-cypher-arrow{margin-left:auto;font-size:1.5rem;color:#C9A84C}'
-  ].join('');
-  document.head.appendChild(style);
-}
+  function makeCypherCard(id){
+    var card = document.createElement('div');
+    card.id = id;
+    card.setAttribute('role','button');
+    card.onclick = openCypherRoom;
+    card.style.cssText = 'display:block!important;visibility:visible!important;opacity:1!important;min-height:96px!important;height:auto!important;margin:16px 0 18px!important;padding:16px!important;border-radius:14px!important;border:1px solid rgba(201,168,76,.65)!important;background:linear-gradient(135deg,rgba(201,168,76,.18),rgba(0,170,255,.13))!important;box-shadow:0 18px 40px rgba(0,0,0,.38),0 0 18px rgba(0,170,255,.14)!important;cursor:pointer!important;overflow:visible!important;position:relative!important;z-index:40!important;color:#fff!important;';
+    card.innerHTML = '<div style="display:flex!important;align-items:center!important;gap:14px!important;width:100%!important;min-height:64px!important;">' +
+      '<div style="font-size:2.4rem!important;line-height:1!important;flex:0 0 auto!important;">🌀</div>' +
+      '<div style="flex:1!important;min-width:0!important;">' +
+        '<div style="display:inline-block!important;margin-bottom:7px!important;padding:4px 9px!important;border-radius:999px!important;border:1px solid #40D0FF!important;color:#40D0FF!important;font-family:Orbitron,sans-serif!important;font-size:.48rem!important;letter-spacing:2px!important;font-weight:900!important;line-height:1!important;">NEW MODE · LIVE</div>' +
+        '<div style="display:block!important;color:#F0C040!important;font-family:Bebas Neue,Arial,sans-serif!important;font-size:1.65rem!important;letter-spacing:2px!important;line-height:1.05!important;">CYPHER ROOM</div>' +
+        '<div style="display:block!important;color:rgba(240,237,232,.78)!important;font-size:.86rem!important;line-height:1.35!important;margin-top:5px!important;">Multi-artist freestyle circle · 60-sec turns · DJ controls rotation</div>' +
+      '</div>' +
+      '<div style="font-size:1.55rem!important;color:#C9A84C!important;flex:0 0 auto!important;">→</div>' +
+    '</div>';
+    return card;
+  }
 
-function makeCypherCard(id) {
-  var card = document.createElement('div');
-  card.className = 'ub-cypher-launch';
-  if (id) card.id = id;
-  card.onclick = openCypherRoom;
-  card.innerHTML = '<div class="ub-cypher-launch-inner"><div class="ub-cypher-icon">🌀</div><div style="flex:1"><div class="ub-cypher-badge">NEW MODE · LIVE</div><div class="ub-cypher-title">CYPHER ROOM</div><div class="ub-cypher-sub">Multi-artist freestyle circle · 60-sec turns · DJ controls rotation</div></div><div class="ub-cypher-arrow">→</div></div>';
-  return card;
-}
-
-function fixHomeJoinBattleRouting() {
-  var home = document.getElementById('page-home');
-  if (!home) return;
-
-  // The first gold button in .home-action-row is JOIN BATTLE. It must go to queue/setup, not live battle.
-  var joinBtn = home.querySelector('.home-action-row .btn-gold');
-  if (joinBtn) {
-    joinBtn.onclick = function (event) {
-      if (event) event.preventDefault();
+  function fixHomeJoinBattleRouting(){
+    var home = document.getElementById('page-home');
+    if(!home) return;
+    var joinBtn = home.querySelector('.home-action-row .btn-gold');
+    if(!joinBtn) return;
+    joinBtn.removeAttribute('onclick');
+    joinBtn.onclick = null;
+    if(joinBtn.dataset.ubJoinFixed === 'yes') return;
+    joinBtn.dataset.ubJoinFixed = 'yes';
+    joinBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
       goPageSafe('queue');
       return false;
-    };
+    }, true);
   }
-}
 
-function injectHomeCypherLauncher() {
-  var homeBody = document.querySelector('#page-home .page-body');
-  if (!homeBody || document.getElementById('ub-cypher-home-launch')) return;
+  function injectHomeCypherLauncher(){
+    var homeBody = document.querySelector('#page-home .page-body');
+    if(!homeBody) return;
+    var old = document.getElementById('ub-cypher-home-launch');
+    if(old) old.remove();
+    var card = makeCypherCard('ub-cypher-home-launch');
+    var actionRow = homeBody.querySelector('.home-action-row');
+    if(actionRow) actionRow.insertAdjacentElement('afterend', card);
+    else homeBody.insertBefore(card, homeBody.firstChild);
+  }
 
-  var card = makeCypherCard('ub-cypher-home-launch');
-  var actionRow = homeBody.querySelector('.home-action-row');
-  if (actionRow) actionRow.insertAdjacentElement('afterend', card);
-  else homeBody.insertBefore(card, homeBody.firstChild);
-}
+  function injectQueueCypherLauncher(){
+    var queueBody = document.querySelector('#page-queue .page-body');
+    if(!queueBody) return;
+    var old = document.getElementById('ub-cypher-queue-launch');
+    if(old) old.remove();
+    var card = makeCypherCard('ub-cypher-queue-launch');
+    queueBody.insertBefore(card, queueBody.firstChild);
+  }
 
-function injectQueueCypherLauncher() {
-  var queueBody = document.querySelector('#page-queue .page-body');
-  if (!queueBody || document.getElementById('ub-cypher-queue-launch')) return;
+  function runFix(){
+    if(!isFreestylePage()) return;
+    fixHomeJoinBattleRouting();
+    injectHomeCypherLauncher();
+    injectQueueCypherLauncher();
+  }
 
-  var card = makeCypherCard('ub-cypher-queue-launch');
-  var insertAfter = queueBody.children[1] || queueBody.firstChild;
-  if (insertAfter && insertAfter.nextSibling) queueBody.insertBefore(card, insertAfter.nextSibling);
-  else queueBody.appendChild(card);
-}
-
-function injectCypherLauncher() {
-  if (!isFreestylePage()) return;
-  addCypherStyles();
-  fixHomeJoinBattleRouting();
-  injectHomeCypherLauncher();
-  injectQueueCypherLauncher();
-}
-
-window.openCypherRoom = openCypherRoom;
-if (typeof window.leaveCypher !== 'function') {
-  window.leaveCypher = function () { goPageSafe('queue'); };
-}
-if (typeof window.joinCypher !== 'function') {
-  window.joinCypher = function (role) {
-    var tip = document.getElementById('cyTip');
-    if (tip) tip.innerHTML = '<strong>Joined as ' + role + '.</strong> Cypher controls are ready for live testing.';
-    if (typeof window.showToast === 'function') window.showToast('🌀 Joined Cypher as ' + role);
-  };
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', injectCypherLauncher);
-} else {
-  injectCypherLauncher();
-}
-setTimeout(injectCypherLauncher, 500);
-setTimeout(injectCypherLauncher, 1200);
-setTimeout(injectCypherLauncher, 2200);
-setTimeout(injectCypherLauncher, 4000);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', runFix);
+  else runFix();
+  setTimeout(runFix, 400);
+  setTimeout(runFix, 1000);
+  setTimeout(runFix, 2200);
+  setTimeout(runFix, 4500);
+})();
