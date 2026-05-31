@@ -24,15 +24,94 @@
     return candidates.find(function(el){ return (el.textContent || '').toLowerCase().includes('join as artist') && (el.textContent || '').toLowerCase().includes('join as dj'); }) || document.body;
   }
 
+  function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
+
+  async function loadMarketplaceBeats(){
+    if(window.ubCypherBeats && window.ubCypherBeats.length) return window.ubCypherBeats;
+
+    var windowSources = [window.beats, window.marketplaceBeats, window.ubMarketplaceBeats, window.UB_MARKETPLACE_BEATS, window.battleBeats, window.ubBattleBeats];
+    for(var i=0;i<windowSources.length;i++){
+      if(Array.isArray(windowSources[i]) && windowSources[i].length){
+        window.ubCypherBeats = windowSources[i].map(normalizeBeat).filter(Boolean);
+        return window.ubCypherBeats;
+      }
+    }
+
+    try {
+      var raw = localStorage.getItem('ub_marketplace_beats') || localStorage.getItem('marketplace_beats') || localStorage.getItem('ub_beats') || localStorage.getItem('battle_beats');
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(Array.isArray(parsed) && parsed.length){
+          window.ubCypherBeats = parsed.map(normalizeBeat).filter(Boolean);
+          return window.ubCypherBeats;
+        }
+      }
+    } catch(e) {}
+
+    try {
+      var fb = window.UB_FIREBASE;
+      if(fb && fb.app){
+        var mod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+        var db = mod.getFirestore(fb.app);
+        var snap = await mod.getDocs(mod.query(mod.collection(db, 'marketplace_beats'), mod.orderBy('createdAt', 'desc')));
+        window.ubCypherBeats = snap.docs.map(function(d){ return normalizeBeat(Object.assign({id:d.id}, d.data())); }).filter(Boolean);
+        return window.ubCypherBeats;
+      }
+    } catch(e) {
+      console.warn('[Cypher] marketplace_beats load failed', e);
+    }
+
+    return [];
+  }
+
+  function normalizeBeat(b){
+    if(!b) return null;
+    if(typeof b === 'string') return { name:b, audioUrl:'' };
+    var name = b.name || b.title || b.beatName || b.fileName || b.filename || 'Untitled Beat';
+    var audioUrl = b.audioUrl || b.url || b.downloadUrl || b.fileUrl || b.previewUrl || '';
+    return { id:b.id || name, name:name, audioUrl:audioUrl, bpm:b.bpm || '', key:b.key || '', tag:b.tag || b.genre || '' };
+  }
+
+  function playCypherBeat(beat){
+    if(!beat) return;
+    window.ubCypherBeat = beat;
+    window.ubSharedCurrentBeat = beat;
+    localStorage.setItem('ub_current_battle_beat', JSON.stringify(beat));
+    var current = document.getElementById('ubCypherCurrentBeat');
+    if(current) current.innerHTML = 'Current Beat: <strong style="color:#F0C040;">' + escapeHtml(beat.name) + '</strong>' + (beat.bpm ? ' · ' + escapeHtml(beat.bpm) + ' BPM' : '');
+    var audio = document.getElementById('ubCypherBeatAudio');
+    if(audio && beat.audioUrl){
+      audio.src = beat.audioUrl;
+      audio.style.display = 'block';
+      audio.play().catch(function(){ showMsg('🎧 Beat selected: ' + beat.name + '. Tap play to hear preview.'); });
+    }
+    showMsg('🎧 DJ switched beat: ' + beat.name);
+    window.dispatchEvent(new CustomEvent('ub-battle-beat-changed', { detail: beat }));
+  }
+
+  function renderBeatGrid(beats){
+    var panel = document.getElementById('ubCypherDjPanel');
+    var grid = document.getElementById('ubCypherBeatGrid');
+    if(!panel || !grid) return;
+    grid.innerHTML = '';
+    if(!beats || !beats.length){
+      grid.innerHTML = '<div style="grid-column:1/-1;color:rgba(240,237,232,.65);font-size:.82rem;line-height:1.35;">No marketplace beats found yet. Upload/push beats to UniBeatzWorld marketplace_beats, then refresh.</div>';
+      return;
+    }
+    beats.forEach(function(beat){
+      var btn = document.createElement('button');
+      btn.innerHTML = '<strong>' + escapeHtml(beat.name) + '</strong><br><span style="opacity:.65;font-size:.72em;">' + escapeHtml([beat.tag, beat.bpm ? beat.bpm + ' BPM' : '', beat.key].filter(Boolean).join(' · ')) + '</span>';
+      btn.style.cssText = 'padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.4);background:rgba(0,0,0,.28);color:#fff;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1px;cursor:pointer;text-align:left;line-height:1.35;';
+      btn.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); playCypherBeat(beat); return false; }, true);
+      grid.appendChild(btn);
+    });
+  }
+
   function openCypherRoom(){ goPageSafe('cypher'); setTimeout(bindCypherButtons, 250); }
   window.openCypherRoom = openCypherRoom;
 
   function updateSessionTitle(name){
     window.ubCypherSessionName = name;
-    Array.from(document.querySelectorAll('*')).forEach(function(el){
-      var t = (el.textContent || '').trim().toLowerCase();
-      if(t === 'on the mic' || t === 'turn order' || t.includes('waiting for artists to join')) return;
-    });
     var title = document.getElementById('ubCypherSessionTitle');
     if(title) title.textContent = name;
     showMsg('✅ Session renamed: ' + name);
@@ -63,26 +142,11 @@
     var panel = document.createElement('div');
     panel.id = 'ubCypherDjPanel';
     panel.style.cssText = 'display:none;margin:12px auto 16px;max-width:780px;padding:14px;border:1px solid rgba(201,168,76,.55);border-radius:12px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(0,170,255,.08));box-shadow:0 14px 32px rgba(0,0,0,.35);color:#fff;font-family:Rajdhani,Arial,sans-serif;';
-    panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;"><div><div style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#40D0FF;">DJ CONTROL PANEL</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;">SWITCH CYPHER BEATS</div></div><button id="ubCypherSkipTurn" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(64,208,255,.7);background:rgba(64,208,255,.12);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.5px;cursor:pointer;">SKIP TURN</button></div><div id="ubCypherCurrentBeat" style="padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;color:rgba(240,237,232,.82);">Current Beat: <strong style="color:#F0C040;">UBP Battle Beat 1</strong></div><div id="ubCypherBeatGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"></div>';
+    panel.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;"><div><div style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#40D0FF;">DJ CONTROL PANEL</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;">SWITCH CYPHER BEATS</div></div><button id="ubCypherSkipTurn" style="padding:8px 10px;border-radius:8px;border:1px solid rgba(64,208,255,.7);background:rgba(64,208,255,.12);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.5px;cursor:pointer;">SKIP TURN</button></div><div id="ubCypherCurrentBeat" style="padding:9px 10px;border-radius:8px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);margin-bottom:10px;color:rgba(240,237,232,.82);">Current Beat: <strong style="color:#F0C040;">None selected</strong></div><audio id="ubCypherBeatAudio" controls style="display:none;width:100%;margin:0 0 10px;"></audio><div id="ubCypherBeatGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;"><div style="grid-column:1/-1;color:rgba(240,237,232,.65);">Loading marketplace beats...</div></div>';
     var target = root.querySelector('.page-body') || root;
     target.appendChild(panel);
-
-    var beats = ['UBP Battle Beat 1','Trap Pressure','Boom Bap Heat','R&B Smoke','Drill Energy','Afro Bounce'];
-    var grid = panel.querySelector('#ubCypherBeatGrid');
-    beats.forEach(function(beat){
-      var btn = document.createElement('button');
-      btn.textContent = beat;
-      btn.style.cssText = 'padding:10px;border-radius:8px;border:1px solid rgba(201,168,76,.4);background:rgba(0,0,0,.28);color:#fff;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1px;cursor:pointer;';
-      btn.addEventListener('click', function(e){
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        window.ubCypherBeat = beat;
-        panel.querySelector('#ubCypherCurrentBeat').innerHTML = 'Current Beat: <strong style="color:#F0C040;">' + beat + '</strong>';
-        showMsg('🎧 DJ switched beat: ' + beat);
-      }, true);
-      grid.appendChild(btn);
-    });
     panel.querySelector('#ubCypherSkipTurn').addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); showMsg('⏭️ DJ skipped to next cypher turn.'); }, true);
+    loadMarketplaceBeats().then(renderBeatGrid);
   }
 
   function showDjPanel(){
@@ -90,6 +154,7 @@
     ensureDjPanel();
     var panel = document.getElementById('ubCypherDjPanel');
     if(panel) panel.style.display = 'block';
+    loadMarketplaceBeats().then(renderBeatGrid);
   }
 
   window.joinCypher = function(role){
