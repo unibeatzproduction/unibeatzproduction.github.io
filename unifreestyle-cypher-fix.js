@@ -27,43 +27,41 @@
   function escapeHtml(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
   function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
 
-  async function loadMarketplaceBeats(){
-    if(window.ubCypherBeats && window.ubCypherBeats.length) return window.ubCypherBeats;
-
-    var windowSources = [window.beats, window.marketplaceBeats, window.ubMarketplaceBeats, window.UB_MARKETPLACE_BEATS, window.battleBeats, window.ubBattleBeats];
-    for(var i=0;i<windowSources.length;i++){
-      if(Array.isArray(windowSources[i]) && windowSources[i].length){
-        window.ubCypherBeats = windowSources[i].map(normalizeBeat).filter(Boolean);
-        return window.ubCypherBeats;
-      }
+ async function loadMarketplaceBeats(){
+  // CYPHER USES THE SAME BEAT AS INSTANT BATTLE
+  // Reads from battle_rooms/battle-room → selectedBeat
+  // Returns array of ONE beat (the current battle beat) or empty array
+  try {
+    var fb = window.UB_FIREBASE;
+    if(!fb || !fb.app) return [];
+    var mod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    var db = mod.getFirestore(fb.app);
+    var snap = await mod.getDoc(mod.doc(db, 'battle_rooms', 'battle-room'));
+    if(!snap.exists()) {
+      window.ubCypherBeats = [];
+      return [];
     }
-
-    try {
-      var raw = localStorage.getItem('ub_marketplace_beats') || localStorage.getItem('marketplace_beats') || localStorage.getItem('ub_beats') || localStorage.getItem('battle_beats');
-      if(raw){
-        var parsed = JSON.parse(raw);
-        if(Array.isArray(parsed) && parsed.length){
-          window.ubCypherBeats = parsed.map(normalizeBeat).filter(Boolean);
-          return window.ubCypherBeats;
-        }
-      }
-    } catch(e) {}
-
-    try {
-      var fb = window.UB_FIREBASE;
-      if(fb && fb.app){
-        var mod = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
-        var db = mod.getFirestore(fb.app);
-        var snap = await mod.getDocs(mod.query(mod.collection(db, 'marketplace_beats'), mod.orderBy('createdAt', 'desc')));
-        window.ubCypherBeats = snap.docs.map(function(d){ return normalizeBeat(Object.assign({id:d.id}, d.data())); }).filter(Boolean);
-        return window.ubCypherBeats;
-      }
-    } catch(e) {
-      console.warn('[Cypher] marketplace_beats load failed', e);
+    var data = snap.data();
+    var beat = data.selectedBeat;
+    if(!beat || !beat.name) {
+      window.ubCypherBeats = [];
+      return [];
     }
-
+    var normalized = {
+      id: beat.beatId || beat.id || 'current-battle-beat',
+      name: beat.name,
+      audioUrl: beat.audioUrl || '',
+      bpm: beat.bpm || '',
+      key: beat.key || '',
+      tag: beat.genre || beat.tag || ''
+    };
+    window.ubCypherBeats = [normalized];
+    return window.ubCypherBeats;
+  } catch(e) {
+    console.warn('[Cypher] battle_rooms/battle-room load failed', e);
     return [];
   }
+}
 
   function normalizeBeat(b){
     if(!b) return null;
