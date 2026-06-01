@@ -49,9 +49,15 @@
   function esc(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
   function fmtTime(sec){ if(sec < 0) sec = 0; var m = Math.floor(sec / 60); var s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 
-  function getCurrentUser(){
-    try { var raw = localStorage.getItem('ub_current_user'); return raw ? JSON.parse(raw) : null; } catch(e) { return null; }
-  }
+ function getCurrentUser(){
+  try {
+    // Google sign-in stores user under 'ub_user'
+    // Email/password signup stores under 'ub_current_user'
+    // Check both
+    var raw = localStorage.getItem('ub_current_user') || localStorage.getItem('ub_user');
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
 
   function resolveUsername(){
     var u = getCurrentUser();
