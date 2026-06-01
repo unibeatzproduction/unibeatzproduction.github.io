@@ -5,9 +5,9 @@ import "/unibeatz-auth.js";
 import "/unibeatz-search.js";
 import "/unipack-stems.js";
 import "/unipack-mobile-upload-fix.js";
-import "/unifreestyle-cypher-fix.js";
-import "/unifreestyle-cypher-engine.js";
-// import "/unifreestyle-cypher-audio-url-fix.js"; // disabled — was overwriting cypher-fix beat grid every 2.5s
+// import "/unifreestyle-cypher-fix.js";          // disabled — replaced by unifreestyle-cypher.js
+// import "/unifreestyle-cypher-engine.js";       // disabled — replaced by unifreestyle-cypher.js
+import "/unifreestyle-cypher.js";
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
