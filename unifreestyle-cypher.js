@@ -277,7 +277,7 @@
     if(existing) existing.remove();
     var vid = document.createElement('video');
     vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-    vid.style.cssText = 'position:absolute;top:-10%;left:-10%;width:120%;height:120%;object-fit:cover;';
+   
     tile.appendChild(vid);
     track.attach(vid);
   }
@@ -299,7 +299,7 @@
       if(existing) existing.remove();
       var vid = document.createElement('video');
       vid.autoplay = true; vid.playsInline = true;
-      vid.style.cssText = 'position:absolute;top:-10%;left:-10%;width:120%;height:120%;object-fit:cover;';
+      
       tile.appendChild(vid);
       track.attach(vid);
     }
