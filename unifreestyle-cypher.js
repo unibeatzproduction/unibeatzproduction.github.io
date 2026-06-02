@@ -285,18 +285,19 @@
   }
 
   function attachLocalTrack(track){
-    if(!track || track.kind !== 'video') return;
-    var tile = ensureTile(st.username, true);
-    if(!tile) return;
-    var existing = tile.querySelector('video');
-    if(existing) existing.remove();
-    var vid = track.attach();
-    vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-    vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;border-radius:50%;box-sizing:border-box;';
-    tile.appendChild(vid);
-  }
+  if(!track || track.kind !== 'video') return;
+  var tile = ensureTile(st.username, true);
+  if(!tile) return;
+  var existing = tile.querySelector('video');
+  if(existing) existing.remove();
+  var vid = document.createElement('video');
+  vid.autoplay = true; vid.muted = true; vid.playsInline = true;
+  vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);';
+  tile.appendChild(vid);
+  track.attach(vid);
+}
 
-  function attachRemoteTrack(track, participant){
+ function attachRemoteTrack(track, participant){
     var identity = participant.identity;
     if(track.kind === 'audio'){
       var aud = track.attach();
@@ -311,10 +312,11 @@
       if(!tile) return;
       var existing = tile.querySelector('video');
       if(existing) existing.remove();
-      var vid = track.attach();
+      var vid = document.createElement('video');
       vid.autoplay = true; vid.playsInline = true;
-      vid.style.cssText = 'position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%,-50%);border-radius:50%;';
+      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;';
       tile.appendChild(vid);
+      track.attach(vid);
     }
   }
 
