@@ -396,7 +396,7 @@
     tile = document.createElement('div');
     tile.id = 'cy-tile-' + identity;
     tile.className = 'cy-tile' + (isMe ? ' cy-tile-me' : '');
-    tile.style.cssText = 'position:absolute;width:14%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(64,208,255,.4);background:rgba(0,0,0,.55);overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:1px;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.4);';
+    tile.style.cssText = 'position:absolute;width:14%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(64,208,255,.4);background:rgba(0,0,0,.55);overflow:hidden;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:1px;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.4);';
 
     var label = document.createElement('div');
     label.className = 'cy-tile-label';
