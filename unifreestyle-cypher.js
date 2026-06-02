@@ -54,7 +54,15 @@ function showDebugError(label, err){
     box = document.createElement('div');
     box.id = 'cyDebugBox';
     box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;padding:14px;background:#900;color:#fff;border:2px solid #fff;border-radius:8px;font-family:monospace;font-size:12px;line-height:1.4;max-height:60vh;overflow-y:auto;white-space:pre-wrap;word-break:break-all;';
-    box.onclick = function(){ box.remove(); };
+    // No tap-to-dismiss — add an explicit close button instead
+if(!box.querySelector('.cy-debug-close')){
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'cy-debug-close';
+  closeBtn.textContent = '✕ CLOSE';
+  closeBtn.style.cssText = 'position:sticky;top:0;float:right;padding:6px 12px;background:#fff;color:#900;border:none;border-radius:4px;font-weight:bold;font-family:monospace;font-size:14px;cursor:pointer;margin-bottom:8px;';
+  closeBtn.onclick = function(e){ e.stopPropagation(); box.remove(); };
+  box.appendChild(closeBtn);
+}
     document.body.appendChild(box);
   }
   var text = '[' + label + '] ' + (err && err.message ? err.message : err) + (err && err.stack ? '\n\n' + err.stack : '');
