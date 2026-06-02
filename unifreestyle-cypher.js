@@ -552,15 +552,29 @@
   }
 
   function render(){
-    if(!st.cypherDoc) return;
-    layoutTiles();
-    renderCenter();
-    renderQueue();
-    renderMeta();
-    renderDjPanel();
-    renderBeatUI();
-    syncMyMediaToTurn();
-  }
+  if(!st.cypherDoc) return;
+  layoutTiles();
+  renderCenter();
+  renderQueue();
+  renderMeta();
+  renderDjPanel();
+  renderBeatUI();
+  syncMyMediaToTurn();
+  // After tiles are laid out, re-attach local cam to its tile (handles DJ + artist alike)
+  reattachMyCamIfNeeded();
+}
+
+function reattachMyCamIfNeeded(){
+  if(!st.livekitRoom || !st.username) return;
+  var myTile = document.getElementById('cy-tile-' + st.username);
+  if(!myTile) return;
+  // If tile already has a video, do nothing
+  if(myTile.querySelector('video')) return;
+  // Find published cam track and attach
+  st.livekitRoom.localParticipant.trackPublications.forEach(function(pub){
+    if(pub.track && pub.track.kind === 'video') attachLocalTrack(pub.track);
+  });
+}
 
   // ──────────────────────────────────────────────────────────
   // TIMER
