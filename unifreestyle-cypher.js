@@ -292,7 +292,7 @@
     if(existing) existing.remove();
     var vid = track.attach();
     vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-    vid.style.cssText = 'position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%,-50%) scaleX(-1);border-radius:50%;';
+    vid.style.cssText = 'position:absolute;top:50%;left:50%;width:110%;height:110%;object-fit:cover;transform:translate(-50%,-50%);border-radius:50%;';
     tile.appendChild(vid);
   }
 
