@@ -20,7 +20,6 @@
   var CYPHER_ROOM_NAME = 'cypher-main';
   var TURN_DURATION_SEC = 60;
   var TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
-  // Set to true via console (window.ubCypherDebug = true) to see the red on-screen log
   var DEBUG = false;
 
   // ──────────────────────────────────────────────────────────
@@ -51,7 +50,6 @@
   function esc(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
   function fmtTime(sec){ if(sec < 0) sec = 0; var m = Math.floor(sec / 60); var s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 
-  // Debug overlay — only shows when window.ubCypherDebug = true
   function dbg(label, info){
     if(!DEBUG && !window.ubCypherDebug) return;
     var box = document.getElementById('cyDebugBox');
@@ -75,7 +73,6 @@
     box.appendChild(line);
   }
 
-  // FIX 1: Username resolution reads BOTH localStorage keys
   function getCurrentUser(){
     try {
       var raw = localStorage.getItem('ub_current_user') || localStorage.getItem('ub_user');
@@ -90,7 +87,7 @@
   }
 
   // ──────────────────────────────────────────────────────────
-  // FIRESTORE — lazy load, cached
+  // FIRESTORE
   // ──────────────────────────────────────────────────────────
   async function getFb(){
     if(st.fbMods) return st.fbMods;
@@ -147,12 +144,9 @@
     } catch(e){ dbg('beatListener:ERROR', e); }
   }
 
-  // FIX 2: Race-proof participant add via arrayUnion + mobile-safe getDoc fallback
   async function addMeToParticipants(role){
     var f = await getFb();
     var ref = f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME);
-
-    // Step 1: Read current doc (works even if onSnapshot hasn't fired yet — mobile-safe)
     var snap = await f.mod.getDoc(ref);
     var existing = [];
     if(snap.exists()){
@@ -160,13 +154,9 @@
         return p.username !== st.username;
       });
     }
-
-    // Step 2: Write filtered list back (removes any stale entry for same user)
     if(snap.exists()){
       await f.mod.setDoc(ref, { participants: existing }, { merge: true });
     }
-
-    // Step 3: Add self atomically via arrayUnion — race-proof across simultaneous clients
     var me = {
       username: st.username,
       role: role,
@@ -180,13 +170,9 @@
     var statusNow = snap.exists() ? (snap.data().status || 'waiting') : 'waiting';
     if(statusNow === 'ended') updates.status = 'waiting';
     await f.mod.setDoc(ref, updates, { merge: true });
-
-    // Step 4: Verify (mobile-safe — confirm write landed)
     var verify = await f.mod.getDoc(ref);
     var verifyParts = verify.exists() ? (verify.data().participants || []) : [];
     dbg('addMe:verified', 'count=' + verifyParts.length);
-
-    // Step 5: Update local cache immediately so render() can run without waiting for listener
     if(verify.exists()) st.cypherDoc = verify.data();
   }
 
@@ -236,7 +222,7 @@
   }
 
   // ──────────────────────────────────────────────────────────
-  // LIVEKIT — mirrors joinLiveBattleAs pattern
+  // LIVEKIT
   // ──────────────────────────────────────────────────────────
   async function waitForLiveKit(maxMs){
     if(window.LivekitClient) return window.LivekitClient;
@@ -270,7 +256,6 @@
     await room.connect(data.url, data.token);
     st.livekitConnected = true;
 
-    // DJ publishes immediately; artists wait for their turn (controlled by syncMyMediaToTurn)
     if(role === 'dj'){
       await room.localParticipant.enableCameraAndMicrophone();
       attachLocalTracks();
@@ -285,19 +270,19 @@
   }
 
   function attachLocalTrack(track){
-  if(!track || track.kind !== 'video') return;
-  var tile = ensureTile(st.username, true);
-  if(!tile) return;
-  var existing = tile.querySelector('video');
-  if(existing) existing.remove();
-  var vid = document.createElement('video');
-  vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-  vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
-  tile.appendChild(vid);
-  track.attach(vid);
-}
+    if(!track || track.kind !== 'video') return;
+    var tile = ensureTile(st.username, true);
+    if(!tile) return;
+    var existing = tile.querySelector('video');
+    if(existing) existing.remove();
+    var vid = document.createElement('video');
+    vid.autoplay = true; vid.muted = true; vid.playsInline = true;
+    vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+    tile.appendChild(vid);
+    track.attach(vid);
+  }
 
- function attachRemoteTrack(track, participant){
+  function attachRemoteTrack(track, participant){
     var identity = participant.identity;
     if(track.kind === 'audio'){
       var aud = track.attach();
@@ -317,8 +302,6 @@
       vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
       tile.appendChild(vid);
       track.attach(vid);
-    }
-  }
     }
   }
 
@@ -359,7 +342,7 @@
   }
 
   // ──────────────────────────────────────────────────────────
-  // BEAT (local DJ play)
+  // BEAT
   // ──────────────────────────────────────────────────────────
   function ensureBeatAudio(){
     if(st.beatAudioEl) return st.beatAudioEl;
@@ -404,13 +387,13 @@
 
     var label = document.createElement('div');
     label.className = 'cy-tile-label';
-    label.style.cssText = 'position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);padding:3px 8px;background:rgba(0,0,0,.7);border-radius:10px;font-size:.46rem;letter-spacing:1.5px;white-space:nowrap;color:#F0C040;font-family:Orbitron,sans-serif;';
+    label.style.cssText = 'position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);padding:3px 8px;background:rgba(0,0,0,.7);border-radius:10px;font-size:.46rem;letter-spacing:1.5px;white-space:nowrap;color:#F0C040;font-family:Orbitron,sans-serif;z-index:10;';
     label.textContent = identity;
     tile.appendChild(label);
 
     var ph = document.createElement('div');
     ph.className = 'cy-tile-silhouette';
-    ph.style.cssText = 'font-size:2rem;opacity:.5;';
+    ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.5;';
     ph.textContent = '🎤';
     tile.appendChild(ph);
 
@@ -556,29 +539,26 @@
   }
 
   function render(){
-  if(!st.cypherDoc) return;
-  layoutTiles();
-  renderCenter();
-  renderQueue();
-  renderMeta();
-  renderDjPanel();
-  renderBeatUI();
-  syncMyMediaToTurn();
-  // After tiles are laid out, re-attach local cam to its tile (handles DJ + artist alike)
-  reattachMyCamIfNeeded();
-}
+    if(!st.cypherDoc) return;
+    layoutTiles();
+    renderCenter();
+    renderQueue();
+    renderMeta();
+    renderDjPanel();
+    renderBeatUI();
+    syncMyMediaToTurn();
+    reattachMyCamIfNeeded();
+  }
 
-function reattachMyCamIfNeeded(){
-  if(!st.livekitRoom || !st.username) return;
-  var myTile = document.getElementById('cy-tile-' + st.username);
-  if(!myTile) return;
-  // If tile already has a video, do nothing
-  if(myTile.querySelector('video')) return;
-  // Find published cam track and attach
-  st.livekitRoom.localParticipant.trackPublications.forEach(function(pub){
-    if(pub.track && pub.track.kind === 'video') attachLocalTrack(pub.track);
-  });
-}
+  function reattachMyCamIfNeeded(){
+    if(!st.livekitRoom || !st.username) return;
+    var myTile = document.getElementById('cy-tile-' + st.username);
+    if(!myTile) return;
+    if(myTile.querySelector('video')) return;
+    st.livekitRoom.localParticipant.trackPublications.forEach(function(pub){
+      if(pub.track && pub.track.kind === 'video') attachLocalTrack(pub.track);
+    });
+  }
 
   // ──────────────────────────────────────────────────────────
   // TIMER
@@ -633,10 +613,7 @@ function reattachMyCamIfNeeded(){
         }
       }
 
-      // Add to participants — mobile-safe (does its own getDoc, doesn't wait for onSnapshot)
       await addMeToParticipants(clean);
-
-      // Render once with the verified data
       render();
 
       toast(clean === 'dj' ? '🎧 Joined as DJ' :
@@ -650,7 +627,6 @@ function reattachMyCamIfNeeded(){
 
   async function cyStartSession(){
     if(!isMeDj()){ toast('Only the DJ can start the cypher'); return; }
-    // Re-fetch fresh participants before start (mobile-safe)
     var f = await getFb();
     var snap = await f.mod.getDoc(f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME));
     var participants = snap.exists() ? (snap.data().participants || []) : [];
@@ -697,6 +673,7 @@ function reattachMyCamIfNeeded(){
     if(btn) btn.style.display = 'none';
     inp.focus(); inp.select();
   }
+
   async function cyCommitRename(){
     var inp = $('cyRenameInput'); var name = $('cySessionName'); var btn = $('cyRenameBtn');
     if(!inp) return;
@@ -709,6 +686,7 @@ function reattachMyCamIfNeeded(){
     if(name) name.style.display = '';
     if(btn) btn.style.display = '';
   }
+
   function cyCancelRename(){
     var inp = $('cyRenameInput'); var name = $('cySessionName'); var btn = $('cyRenameBtn');
     if(inp) inp.style.display = 'none';
