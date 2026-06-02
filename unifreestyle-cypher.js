@@ -292,7 +292,7 @@
   if(existing) existing.remove();
   var vid = document.createElement('video');
   vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-  vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);';
+  vid.style.cssText = 'position:absolute;top:-10%;left:-10%;width:120%;height:120%;object-fit:cover;transform:scaleX(-1);';
   tile.appendChild(vid);
   track.attach(vid);
 }
@@ -314,7 +314,7 @@
       if(existing) existing.remove();
       var vid = document.createElement('video');
       vid.autoplay = true; vid.playsInline = true;
-      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;';
+      vid.style.cssText = 'position:absolute;top:-10%;left:-10%;width:120%;height:120%;object-fit:cover;';
       tile.appendChild(vid);
       track.attach(vid);
     }
