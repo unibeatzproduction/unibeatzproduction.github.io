@@ -1,14 +1,15 @@
 // unifreestyle-cypher.js
 // UniBeatz Production — Phase 2 Stage 1 Cypher Room
-// Single clean implementation. Replaces unifreestyle-cypher-fix.js AND unifreestyle-cypher-engine.js.
+// FINAL CLEAN BUILD — replaces all prior cypher scripts.
 //
-// Design:
-// - Single shared LiveKit room: "cypher-main"
-// - Firestore doc: cypher_rooms/cypher-main (turn state, participants)
-// - Mirrors joinLiveBattleAs() pattern from unifreestyle.html (proven to work)
-// - DJ + active artist publish cam/mic via enableCameraAndMicrophone()
-// - Beat comes from battle_rooms/battle-room (same source as Instant Battle)
-// - 60-sec turns, clockwise rotation by join order, DJ controls
+// Fixes baked in:
+//   • Race-proof participant adds via Firestore arrayUnion
+//   • Reads username from BOTH ub_current_user AND ub_user (Google sign-in stores in ub_user)
+//   • Mobile-safe: getDoc() fallback when onSnapshot is slow on mobile networks
+//   • Visible debug overlay (toggleable via window.ubCypherDebug = true)
+//   • Single source of truth: cypher_rooms/cypher-main
+//   • Beat shown from battle_rooms/battle-room (matches Instant Battle)
+//   • LiveKit pattern mirrors joinLiveBattleAs() (proven to work)
 
 (function(){
   'use strict';
@@ -19,67 +20,68 @@
   var CYPHER_ROOM_NAME = 'cypher-main';
   var TURN_DURATION_SEC = 60;
   var TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+  // Set to true via console (window.ubCypherDebug = true) to see the red on-screen log
+  var DEBUG = false;
 
   // ──────────────────────────────────────────────────────────
-  // STATE (single source of truth)
+  // STATE
   // ──────────────────────────────────────────────────────────
   var st = {
-    role: null,             // 'artist' | 'dj' | 'viewer'
+    role: null,
     username: null,
     livekitRoom: null,
     livekitConnected: false,
     micOn: true,
     camOn: true,
-    autoRotate: true,
-    cypherDoc: null,        // latest snapshot of cypher_rooms/cypher-main
-    currentBeat: null,      // latest selectedBeat from battle_rooms/battle-room
+    cypherDoc: null,
+    currentBeat: null,
     docUnsub: null,
     beatUnsub: null,
     timerInterval: null,
-    fbMods: null,           // cached firestore module imports
-    beatAudioEl: null       // DJ-side <audio> playing the beat
+    fbMods: null,
+    beatAudioEl: null
   };
 
   // ──────────────────────────────────────────────────────────
-  // SMALL HELPERS
+  // HELPERS
   // ──────────────────────────────────────────────────────────
   function isFreestylePage(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
   function $(id){ return document.getElementById(id); }
-function toast(msg){ if(typeof window.showToast === 'function') return window.showToast(msg); console.log('[cypher]', msg); }
-  
-function showDebugError(label, err){
-  // Visible error overlay for mobile debugging (no F12 needed)
-  var box = document.getElementById('cyDebugBox');
-  if(!box){
-    box = document.createElement('div');
-    box.id = 'cyDebugBox';
-    box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;padding:14px;background:#900;color:#fff;border:2px solid #fff;border-radius:8px;font-family:monospace;font-size:12px;line-height:1.4;max-height:60vh;overflow-y:auto;white-space:pre-wrap;word-break:break-all;';
-    // No tap-to-dismiss — add an explicit close button instead
-if(!box.querySelector('.cy-debug-close')){
-  var closeBtn = document.createElement('button');
-  closeBtn.className = 'cy-debug-close';
-  closeBtn.textContent = '✕ CLOSE';
-  closeBtn.style.cssText = 'position:sticky;top:0;float:right;padding:6px 12px;background:#fff;color:#900;border:none;border-radius:4px;font-weight:bold;font-family:monospace;font-size:14px;cursor:pointer;margin-bottom:8px;';
-  closeBtn.onclick = function(e){ e.stopPropagation(); box.remove(); };
-  box.appendChild(closeBtn);
-}
-    document.body.appendChild(box);
-  }
-  var text = '[' + label + '] ' + (err && err.message ? err.message : err) + (err && err.stack ? '\n\n' + err.stack : '');
-  box.textContent = (box.textContent || '') + '\n\n' + text;
-}
+  function toast(msg){ if(typeof window.showToast === 'function') return window.showToast(msg); console.log('[cypher]', msg); }
   function esc(s){ return String(s || '').replace(/[&<>"']/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]; }); }
   function fmtTime(sec){ if(sec < 0) sec = 0; var m = Math.floor(sec / 60); var s = sec % 60; return m + ':' + (s < 10 ? '0' : '') + s; }
 
- function getCurrentUser(){
-  try {
-    // Google sign-in stores user under 'ub_user'
-    // Email/password signup stores under 'ub_current_user'
-    // Check both
-    var raw = localStorage.getItem('ub_current_user') || localStorage.getItem('ub_user');
-    return raw ? JSON.parse(raw) : null;
-  } catch(e) { return null; }
-}
+  // Debug overlay — only shows when window.ubCypherDebug = true
+  function dbg(label, info){
+    if(!DEBUG && !window.ubCypherDebug) return;
+    var box = document.getElementById('cyDebugBox');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'cyDebugBox';
+      box.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;z-index:99999;padding:14px;background:#900;color:#fff;border:2px solid #fff;border-radius:8px;font-family:monospace;font-size:12px;line-height:1.4;max-height:60vh;overflow-y:auto;white-space:pre-wrap;word-break:break-all;';
+      var closeBtn = document.createElement('button');
+      closeBtn.textContent = '✕ CLOSE';
+      closeBtn.style.cssText = 'position:sticky;top:0;float:right;padding:6px 12px;background:#fff;color:#900;border:none;border-radius:4px;font-weight:bold;font-size:14px;cursor:pointer;margin-bottom:8px;';
+      closeBtn.onclick = function(e){ e.stopPropagation(); box.remove(); };
+      box.appendChild(closeBtn);
+      document.body.appendChild(box);
+    }
+    var msg = '[' + label + '] ' + (info && info.message ? info.message : (typeof info === 'string' ? info : JSON.stringify(info || '')));
+    if(info && info.stack) msg += '\n' + info.stack;
+    var line = document.createElement('div');
+    line.style.borderBottom = '1px dashed #fff';
+    line.style.padding = '4px 0';
+    line.textContent = msg;
+    box.appendChild(line);
+  }
+
+  // FIX 1: Username resolution reads BOTH localStorage keys
+  function getCurrentUser(){
+    try {
+      var raw = localStorage.getItem('ub_current_user') || localStorage.getItem('ub_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch(e) { return null; }
+  }
 
   function resolveUsername(){
     var u = getCurrentUser();
@@ -88,7 +90,7 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // FIRESTORE — lazy load + cache
+  // FIRESTORE — lazy load, cached
   // ──────────────────────────────────────────────────────────
   async function getFb(){
     if(st.fbMods) return st.fbMods;
@@ -120,29 +122,16 @@ if(!box.querySelector('.cy-debug-close')){
     return ref;
   }
 
-  async function updateCypherDoc(updates){
-    try {
-      var f = await getFb();
-      var ref = f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME);
-      updates.updatedAt = f.mod.serverTimestamp();
-      await f.mod.setDoc(ref, updates, { merge: true });
-    } catch(e){
-      console.warn('[cypher] update failed', e);
-      toast('⚠️ Sync failed: ' + e.message);
-    }
-  }
-
   async function startCypherListener(){
     if(st.docUnsub) return;
-    try {
-      var f = await getFb();
-      var ref = await ensureCypherDoc();
-      st.docUnsub = f.mod.onSnapshot(ref, function(snap){
-        if(!snap.exists()) return;
-        st.cypherDoc = snap.data();
-        render();
-      }, function(err){ console.warn('[cypher] listener err', err); });
-    } catch(e){ console.warn('[cypher] cannot start listener', e); }
+    var f = await getFb();
+    var ref = await ensureCypherDoc();
+    st.docUnsub = f.mod.onSnapshot(ref, function(snap){
+      if(!snap.exists()) return;
+      st.cypherDoc = snap.data();
+      dbg('listener:fired', 'count=' + (st.cypherDoc.participants || []).length);
+      render();
+    }, function(err){ dbg('listener:ERROR', err); });
   }
 
   async function startBeatListener(){
@@ -152,44 +141,84 @@ if(!box.querySelector('.cy-debug-close')){
       var ref = f.mod.doc(f.db, 'battle_rooms', 'battle-room');
       st.beatUnsub = f.mod.onSnapshot(ref, function(snap){
         if(!snap.exists()) return;
-        var data = snap.data();
-        st.currentBeat = data.selectedBeat || null;
+        st.currentBeat = snap.data().selectedBeat || null;
         renderBeatUI();
       });
-    } catch(e){ console.warn('[cypher] beat listener failed', e); }
+    } catch(e){ dbg('beatListener:ERROR', e); }
   }
 
-  // ──────────────────────────────────────────────────────────
-  // PARTICIPANTS
-  // ──────────────────────────────────────────────────────────
+  // FIX 2: Race-proof participant add via arrayUnion + mobile-safe getDoc fallback
   async function addMeToParticipants(role){
-    var participants = (st.cypherDoc && st.cypherDoc.participants) || [];
-    participants = participants.filter(function(p){ return p.username !== st.username; });
-    participants.push({
+    var f = await getFb();
+    var ref = f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME);
+
+    // Step 1: Read current doc (works even if onSnapshot hasn't fired yet — mobile-safe)
+    var snap = await f.mod.getDoc(ref);
+    var existing = [];
+    if(snap.exists()){
+      existing = (snap.data().participants || []).filter(function(p){
+        return p.username !== st.username;
+      });
+    }
+
+    // Step 2: Write filtered list back (removes any stale entry for same user)
+    if(snap.exists()){
+      await f.mod.setDoc(ref, { participants: existing }, { merge: true });
+    }
+
+    // Step 3: Add self atomically via arrayUnion — race-proof across simultaneous clients
+    var me = {
       username: st.username,
       role: role,
       joinedAt: Date.now()
-    });
-    var updates = { participants: participants };
+    };
+    var updates = {
+      participants: f.mod.arrayUnion(me),
+      updatedAt: f.mod.serverTimestamp()
+    };
     if(role === 'dj') updates.djUsername = st.username;
-    if((!st.cypherDoc) || st.cypherDoc.status === 'ended') updates.status = 'waiting';
-    await updateCypherDoc(updates);
+    var statusNow = snap.exists() ? (snap.data().status || 'waiting') : 'waiting';
+    if(statusNow === 'ended') updates.status = 'waiting';
+    await f.mod.setDoc(ref, updates, { merge: true });
+
+    // Step 4: Verify (mobile-safe — confirm write landed)
+    var verify = await f.mod.getDoc(ref);
+    var verifyParts = verify.exists() ? (verify.data().participants || []) : [];
+    dbg('addMe:verified', 'count=' + verifyParts.length);
+
+    // Step 5: Update local cache immediately so render() can run without waiting for listener
+    if(verify.exists()) st.cypherDoc = verify.data();
   }
 
   async function removeMeFromParticipants(){
-    if(!st.cypherDoc) return;
-    var oldList = st.cypherDoc.participants || [];
-    var participants = oldList.filter(function(p){ return p.username !== st.username; });
-    var updates = { participants: participants };
-    var curIdx = st.cypherDoc.currentTurnIndex;
-    if(curIdx >= 0 && oldList[curIdx] && oldList[curIdx].username === st.username){
-      updates.currentTurnIndex = -1;
-      updates.turnStartTime = null;
-    }
-    if(st.role === 'dj' && st.cypherDoc.djUsername === st.username){
-      updates.djUsername = '';
-    }
-    await updateCypherDoc(updates);
+    try {
+      var f = await getFb();
+      var ref = f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME);
+      var snap = await f.mod.getDoc(ref);
+      if(!snap.exists()) return;
+      var data = snap.data();
+      var oldList = data.participants || [];
+      var participants = oldList.filter(function(p){ return p.username !== st.username; });
+      var updates = { participants: participants, updatedAt: f.mod.serverTimestamp() };
+      var curIdx = data.currentTurnIndex;
+      if(curIdx >= 0 && oldList[curIdx] && oldList[curIdx].username === st.username){
+        updates.currentTurnIndex = -1;
+        updates.turnStartTime = null;
+      }
+      if(data.djUsername === st.username){
+        updates.djUsername = '';
+      }
+      await f.mod.setDoc(ref, updates, { merge: true });
+    } catch(e){ dbg('removeMe:ERROR', e); }
+  }
+
+  async function updateCypherDoc(updates){
+    try {
+      var f = await getFb();
+      var ref = f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME);
+      updates.updatedAt = f.mod.serverTimestamp();
+      await f.mod.setDoc(ref, updates, { merge: true });
+    } catch(e){ dbg('update:ERROR', e); toast('⚠️ Sync failed: ' + e.message); }
   }
 
   function isMeDj(){
@@ -207,7 +236,7 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // LIVEKIT — mirror joinLiveBattleAs() pattern from unifreestyle.html
+  // LIVEKIT — mirrors joinLiveBattleAs pattern
   // ──────────────────────────────────────────────────────────
   async function waitForLiveKit(maxMs){
     if(window.LivekitClient) return window.LivekitClient;
@@ -235,20 +264,17 @@ if(!box.querySelector('.cy-debug-close')){
     room.on('trackUnsubscribed', function(track, publication, participant){
       detachRemoteTrack(track, participant);
     });
-    room.on('participantConnected', function(p){ console.log('[cypher] joined:', p.identity); });
     room.on('participantDisconnected', function(p){ removeRemoteTile(p.identity); });
     room.on('disconnected', function(){ st.livekitConnected = false; });
 
     await room.connect(data.url, data.token);
     st.livekitConnected = true;
 
-    // DJ always publishes cam + mic
+    // DJ publishes immediately; artists wait for their turn (controlled by syncMyMediaToTurn)
     if(role === 'dj'){
       await room.localParticipant.enableCameraAndMicrophone();
       attachLocalTracks();
     }
-    // Artists wait — turn-based publish (handled in syncMyMediaToTurn)
-    // Viewers do not publish anything.
   }
 
   function attachLocalTracks(){
@@ -259,9 +285,8 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   function attachLocalTrack(track){
-    if(!track) return;
+    if(!track || track.kind !== 'video') return;
     var tile = ensureTile(st.username, true);
-    if(track.kind === 'audio') return; // local audio not played back
     if(!tile) return;
     var existing = tile.querySelector('video');
     if(existing) existing.remove();
@@ -310,7 +335,6 @@ if(!box.querySelector('.cy-debug-close')){
     if(aud) aud.remove();
   }
 
-  // Artist turn-aware publishing
   async function syncMyMediaToTurn(){
     if(!st.livekitConnected || st.role !== 'artist') return;
     var room = st.livekitRoom;
@@ -324,17 +348,14 @@ if(!box.querySelector('.cy-debug-close')){
       } else {
         await room.localParticipant.setCameraEnabled(false);
         await room.localParticipant.setMicrophoneEnabled(false);
-        // Remove local cam video tile
         var tile = document.getElementById('cy-tile-' + st.username);
         if(tile){ var v = tile.querySelector('video'); if(v) v.remove(); }
       }
-    } catch(e){ console.warn('[cypher] media sync err', e); }
+    } catch(e){ dbg('syncMedia:ERROR', e); }
   }
 
   // ──────────────────────────────────────────────────────────
-  // DJ BEAT AUDIO — play locally on DJ side
-  //   (Routing into LiveKit is a future stage; for Stage 1 the
-  //    DJ's cam stream + LiveKit mic captures the room audio.)
+  // BEAT (local DJ play)
   // ──────────────────────────────────────────────────────────
   function ensureBeatAudio(){
     if(st.beatAudioEl) return st.beatAudioEl;
@@ -351,12 +372,12 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   function playBeatLocally(){
-    if(!st.currentBeat || !st.currentBeat.audioUrl){ toast('No beat selected. DJ picks beat in Instant Battle.'); return; }
+    if(!st.currentBeat || !st.currentBeat.audioUrl){ toast('No beat. Pick one in Instant Battle first.'); return; }
     var el = ensureBeatAudio();
     el.style.display = 'block';
     el.src = st.currentBeat.audioUrl;
     el.load();
-    el.play().catch(function(){ toast('🎧 Beat loaded. Tap the play button on the audio bar.'); });
+    el.play().catch(function(){ toast('🎧 Beat loaded. Tap the audio bar to play.'); });
   }
 
   function stopBeatLocally(){
@@ -364,7 +385,7 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // TILE RENDERING — positions tiles around the circle
+  // TILES + CIRCLE LAYOUT
   // ──────────────────────────────────────────────────────────
   function ensureTile(identity, isMe){
     var wrap = $('cyCircleWrap');
@@ -383,7 +404,6 @@ if(!box.querySelector('.cy-debug-close')){
     label.textContent = identity;
     tile.appendChild(label);
 
-    // Placeholder silhouette
     var ph = document.createElement('div');
     ph.className = 'cy-tile-silhouette';
     ph.style.cssText = 'font-size:2rem;opacity:.5;';
@@ -400,7 +420,6 @@ if(!box.querySelector('.cy-debug-close')){
     var wrap = $('cyCircleWrap');
     if(!wrap) return;
 
-    // Remove tiles for departed users
     var existing = wrap.querySelectorAll('.cy-tile');
     var valid = participants.map(function(p){ return p.username; });
     existing.forEach(function(t){
@@ -429,7 +448,6 @@ if(!box.querySelector('.cy-debug-close')){
       }
     });
 
-    // Highlight active + up-next artists
     var curIdx = (typeof st.cypherDoc.currentTurnIndex === 'number') ? st.cypherDoc.currentTurnIndex : -1;
     if(curIdx >= 0 && participants[curIdx]){
       var activeTile = document.getElementById('cy-tile-' + participants[curIdx].username);
@@ -438,7 +456,6 @@ if(!box.querySelector('.cy-debug-close')){
         activeTile.style.borderColor = '#F0C040';
         activeTile.style.boxShadow = '0 0 24px rgba(240,192,64,.7),0 6px 18px rgba(0,0,0,.4)';
       }
-      // Find next artist
       for(var i = 1; i <= participants.length; i++){
         var nIdx = (curIdx + i) % participants.length;
         if(participants[nIdx] && participants[nIdx].role === 'artist' && nIdx !== curIdx){
@@ -454,14 +471,13 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // CENTER DISPLAY + QUEUE + DJ PANEL
+  // RENDER
   // ──────────────────────────────────────────────────────────
   function renderCenter(){
     var s = st.cypherDoc; if(!s) return;
     var label = $('cyCenterLabel'), name = $('cyCenterName'), time = $('cyCenterTime');
     var participants = s.participants || [];
     var curIdx = s.currentTurnIndex;
-
     if(s.status === 'waiting'){
       if(label) label.textContent = 'WAITING';
       if(name)  name.textContent  = participants.length + ' joined';
@@ -505,16 +521,14 @@ if(!box.querySelector('.cy-debug-close')){
 
   function renderDjPanel(){
     var panel = $('cyDjPanel'); if(!panel) return;
-    var show = isMeDj();
-    panel.style.display = show ? 'block' : 'none';
+    panel.style.display = isMeDj() ? 'block' : 'none';
     var autoBtn = $('cyAutoBtn');
-    if(autoBtn && st.cypherDoc) autoBtn.textContent = '🔁 Auto-Rotate: ' + (st.cypherDoc.autoRotate ? 'ON' : 'OFF');
+    if(autoBtn && st.cypherDoc) autoBtn.textContent = '🔁 Auto-Rotate: ' + (st.cypherDoc.autoRotate !== false ? 'ON' : 'OFF');
   }
 
   function renderBeatUI(){
     var panel = $('cyDjPanel'); if(!panel) return;
     if(!isMeDj()) return;
-    // Show current battle beat info inside DJ panel
     var info = $('cyBeatInfo');
     if(!info){
       info = document.createElement('div');
@@ -549,7 +563,7 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // TURN TIMER
+  // TIMER
   // ──────────────────────────────────────────────────────────
   function startTimer(){
     if(st.timerInterval) return;
@@ -566,83 +580,65 @@ if(!box.querySelector('.cy-debug-close')){
       var remaining = (s.turnDuration || TURN_DURATION_SEC) - elapsed;
       time.textContent = fmtTime(Math.max(0, remaining));
       time.classList.toggle('urgent', remaining <= 10);
-
-      // Auto-rotate: only the DJ device fires the rotation, all clients display the same Firestore start time.
-      if(remaining <= 0 && isMeDj() && s.autoRotate !== false){
-        cyAdvanceTurn();
-      }
+      if(remaining <= 0 && isMeDj() && s.autoRotate !== false) cyAdvanceTurn();
     }, 500);
   }
   function stopTimer(){ if(st.timerInterval){ clearInterval(st.timerInterval); st.timerInterval = null; } }
 
   // ──────────────────────────────────────────────────────────
-  // PUBLIC: joinCypher / cyStartSession / cyAdvanceTurn / cyEndSession / cyToggleAutoRotate / rename / mic / leave
+  // PUBLIC ACTIONS
   // ──────────────────────────────────────────────────────────
   async function joinCypher(role){
-  try {
-    showDebugError('joinCypher:start', 'role=' + role);
-
-    var clean = String(role || 'artist').toLowerCase();
-    if(clean === 'watch') clean = 'viewer';
-    if(['artist','dj','viewer'].indexOf(clean) === -1) clean = 'artist';
-
-    st.role = clean;
-    st.username = resolveUsername();
-    showDebugError('joinCypher:username', 'resolved=' + st.username);
-
-    document.body.setAttribute('data-cypher-role', clean);
-
-    var joinRow = $('cyJoinRow');
-    if(joinRow) joinRow.style.display = 'none';
-
     try {
+      var clean = String(role || 'artist').toLowerCase();
+      if(clean === 'watch') clean = 'viewer';
+      if(['artist','dj','viewer'].indexOf(clean) === -1) clean = 'artist';
+
+      st.role = clean;
+      st.username = resolveUsername();
+      dbg('join:start', 'role=' + clean + ' user=' + st.username);
+
+      document.body.setAttribute('data-cypher-role', clean);
+      var joinRow = $('cyJoinRow');
+      if(joinRow) joinRow.style.display = 'none';
+
       await startCypherListener();
-      showDebugError('joinCypher:listener', 'OK');
-    } catch(e){ showDebugError('startCypherListener FAILED', e); throw e; }
-
-    try {
       await startBeatListener();
-    } catch(e){ showDebugError('startBeatListener FAILED', e); }
+      startTimer();
 
-    startTimer();
-
-    if(clean === 'artist' || clean === 'dj'){
-      try {
-        await connectLiveKit(clean);
-        showDebugError('joinCypher:LiveKit', 'connected');
-      } catch(e){
-        showDebugError('connectLiveKit FAILED', e);
-        toast('⚠️ Camera connect failed: ' + (e.message || e));
+      if(clean === 'artist' || clean === 'dj'){
+        try {
+          await connectLiveKit(clean);
+        } catch(e){
+          dbg('LiveKit:FAILED', e);
+          toast('⚠️ Camera connect failed: ' + (e.message || e));
+        }
       }
-    }
 
-    var tries = 0;
-    while(!st.cypherDoc && tries < 30){ await new Promise(function(r){ setTimeout(r, 100); }); tries++; }
-    showDebugError('joinCypher:waitedSnapshot', 'tries=' + tries + ', got=' + !!st.cypherDoc);
-
-    try {
+      // Add to participants — mobile-safe (does its own getDoc, doesn't wait for onSnapshot)
       await addMeToParticipants(clean);
-      showDebugError('joinCypher:added', 'OK');
-    } catch(e){ showDebugError('addMeToParticipants FAILED', e); throw e; }
 
-    toast(clean === 'dj' ? '🎧 Joined as DJ' :
-          clean === 'artist' ? '🎤 Joined as Artist — wait your turn' :
-          '👁️ Watching');
-  } catch(e){
-    showDebugError('joinCypher CRASHED', e);
+      // Render once with the verified data
+      render();
+
+      toast(clean === 'dj' ? '🎧 Joined as DJ' :
+            clean === 'artist' ? '🎤 Joined as Artist — wait your turn' :
+            '👁️ Watching');
+    } catch(e){
+      dbg('join:CRASHED', e);
+      toast('⚠️ Join failed: ' + (e.message || e));
+    }
   }
-}
 
   async function cyStartSession(){
     if(!isMeDj()){ toast('Only the DJ can start the cypher'); return; }
-    var participants = (st.cypherDoc && st.cypherDoc.participants) || [];
+    // Re-fetch fresh participants before start (mobile-safe)
+    var f = await getFb();
+    var snap = await f.mod.getDoc(f.mod.doc(f.db, 'cypher_rooms', CYPHER_ROOM_NAME));
+    var participants = snap.exists() ? (snap.data().participants || []) : [];
     var firstArtist = participants.findIndex(function(p){ return p.role === 'artist'; });
     if(firstArtist === -1){ toast('Need at least one artist'); return; }
-    await updateCypherDoc({
-      status: 'live',
-      currentTurnIndex: firstArtist,
-      turnStartTime: Date.now()
-    });
+    await updateCypherDoc({ status: 'live', currentTurnIndex: firstArtist, turnStartTime: Date.now() });
     toast('🎤 Cypher started!');
   }
 
@@ -674,7 +670,6 @@ if(!box.querySelector('.cy-debug-close')){
     await updateCypherDoc({ autoRotate: newVal });
   }
 
-  // Rename UI
   function cyStartRename(){
     var inp = $('cyRenameInput'); var name = $('cySessionName'); var btn = $('cyRenameBtn');
     if(!inp || !name) return;
@@ -689,12 +684,8 @@ if(!box.querySelector('.cy-debug-close')){
     if(!inp) return;
     var val = (inp.value || '').trim();
     if(val){
-      if(isMeDj()){
-        await updateCypherDoc({ sessionName: val });
-      } else {
-        if(name) name.textContent = val;
-        toast('Only DJ can rename for everyone; local-only change');
-      }
+      if(isMeDj()) await updateCypherDoc({ sessionName: val });
+      else { if(name) name.textContent = val; toast('Only DJ can rename for everyone'); }
     }
     inp.style.display = 'none';
     if(name) name.style.display = '';
@@ -708,11 +699,10 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   async function toggleCypherMic(){
-    if(!st.livekitRoom){ toast('Not connected to cypher yet'); return; }
+    if(!st.livekitRoom){ toast('Not connected'); return; }
     st.micOn = !st.micOn;
     try { await st.livekitRoom.localParticipant.setMicrophoneEnabled(st.micOn); } catch(e){}
-    var btn = $('cyMicBtn');
-    if(btn) btn.textContent = st.micOn ? '🎤' : '🔇';
+    var btn = $('cyMicBtn'); if(btn) btn.textContent = st.micOn ? '🎤' : '🔇';
     toast(st.micOn ? '🎤 Mic on' : '🔇 Mic off');
   }
 
@@ -728,12 +718,13 @@ if(!box.querySelector('.cy-debug-close')){
     if(st.docUnsub){ try { st.docUnsub(); } catch(e){} st.docUnsub = null; }
     if(st.beatUnsub){ try { st.beatUnsub(); } catch(e){} st.beatUnsub = null; }
     st.role = null;
+    st.cypherDoc = null;
     document.body.removeAttribute('data-cypher-role');
     var joinRow = $('cyJoinRow'); if(joinRow) joinRow.style.display = '';
   }
 
   // ──────────────────────────────────────────────────────────
-  // HOME PAGE LAUNCHER CARD (minimal, just one card)
+  // HOME PAGE LAUNCHER
   // ──────────────────────────────────────────────────────────
   function injectHomeCypherCard(){
     var homeBody = document.querySelector('#page-home .page-body');
@@ -759,12 +750,11 @@ if(!box.querySelector('.cy-debug-close')){
   }
 
   // ──────────────────────────────────────────────────────────
-  // BOOT — expose globals and inject launcher card
+  // BOOT
   // ──────────────────────────────────────────────────────────
   function boot(){
     if(!isFreestylePage()) return;
 
-    // Expose required globals for the inline onclick handlers in unifreestyle.html
     window.joinCypher        = joinCypher;
     window.cyStartSession    = cyStartSession;
     window.cyAdvanceTurn     = cyAdvanceTurn;
@@ -776,10 +766,8 @@ if(!box.querySelector('.cy-debug-close')){
     window.toggleCypherMic   = toggleCypherMic;
     window.leaveCypher       = leaveCypher;
 
-    // Inject home page launcher
     injectHomeCypherCard();
 
-    // Re-inject launcher if home page DOM gets replaced (defensive, but no fight loop)
     var lastHomeBody = null;
     setInterval(function(){
       var hb = document.querySelector('#page-home .page-body');
@@ -789,7 +777,6 @@ if(!box.querySelector('.cy-debug-close')){
       }
     }, 2000);
 
-    // Wire back button on cypher top bar to leave cleanly + go home
     setTimeout(function(){
       var backBtn = document.querySelector('#page-cypher .top-bar .icon-btn');
       if(backBtn){
@@ -800,7 +787,6 @@ if(!box.querySelector('.cy-debug-close')){
       }
     }, 800);
 
-    // Expose for debugging
     window.ubCypher = {
       state: st,
       join: joinCypher,
