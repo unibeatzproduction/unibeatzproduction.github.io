@@ -59,27 +59,24 @@ function addMainMobileInput(sec) {
   });
 
   input.addEventListener('change', function () {
-    keepStudioVisible();
-    setTimeout(keepStudioVisible, 100);
-    setTimeout(keepStudioVisible, 500);
-    setTimeout(keepStudioVisible, 1000);
-    setTimeout(keepStudioVisible, 2000);
-
-    if (!input.files || !input.files[0]) return;
-
-    if (typeof window.handleAudioUpload === 'function') {
-      window.handleAudioUpload(input, sec);
-    } else {
-      // handleAudioUpload not ready yet — retry after a short delay
-      setTimeout(function () {
-        if (typeof window.handleAudioUpload === 'function') {
-          window.handleAudioUpload(input, sec);
-        } else {
-          alert('Upload engine not ready yet. Refresh and try again.');
-        }
-      }, 800);
-    }
-  });
+  var file = input.files && input.files[0] ? input.files[0] : null;
+  if (!file) return;
+  keepStudioVisible();
+  setTimeout(keepStudioVisible, 300);
+  setTimeout(keepStudioVisible, 800);
+  var fakeInput = { files: [file], value: '' };
+  if (typeof window.handleAudioUpload === 'function') {
+    window.handleAudioUpload(fakeInput, sec);
+  } else {
+    setTimeout(function () {
+      if (typeof window.handleAudioUpload === 'function') {
+        window.handleAudioUpload(fakeInput, sec);
+      } else {
+        alert('Upload engine not ready yet. Refresh and try again.');
+      }
+    }, 800);
+  }
+});
 }
 
 function addStemMobileInput() {
