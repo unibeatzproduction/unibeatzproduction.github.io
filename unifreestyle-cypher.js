@@ -262,6 +262,61 @@
     }
   }
 
+  function getTileFrame(tile){
+    if(!tile) return null;
+    var frame = tile.querySelector('.cy-media-frame');
+    if(!frame){
+      frame = document.createElement('div');
+      frame.className = 'cy-media-frame';
+      frame.style.cssText = 'position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;background:rgba(0,0,0,.55);';
+      tile.insertBefore(frame, tile.firstChild);
+    }
+    var ph = tile.querySelector('.cy-tile-silhouette, .cy-tile-ph');
+    if(ph && ph.parentNode !== frame) frame.appendChild(ph);
+    return frame;
+  }
+
+  function styleCypherVideo(vid){
+    if(!vid) return;
+    vid.autoplay = true;
+    vid.playsInline = true;
+    vid.setAttribute('playsinline', 'true');
+    vid.style.cssText = [
+      'position:absolute',
+      'top:50%',
+      'left:50%',
+      'width:100%',
+      'height:100%',
+      'min-width:100%',
+      'min-height:100%',
+      'object-fit:cover',
+      'object-position:center center',
+      'border-radius:50%',
+      'transform:translate(-50%,-50%) scaleX(-1)',
+      'z-index:3'
+    ].join(';') + ';';
+  }
+
+  function hideTilePlaceholder(tile){
+    if(!tile) return;
+    tile.classList.add('has-video');
+    tile.querySelectorAll('.cy-tile-silhouette, .cy-tile-ph').forEach(function(ph){
+      ph.style.display = 'none';
+      ph.style.opacity = '0';
+      ph.style.visibility = 'hidden';
+    });
+  }
+
+  function showTilePlaceholder(tile){
+    if(!tile) return;
+    tile.classList.remove('has-video');
+    tile.querySelectorAll('.cy-tile-silhouette, .cy-tile-ph').forEach(function(ph){
+      ph.style.display = 'flex';
+      ph.style.opacity = '.5';
+      ph.style.visibility = 'visible';
+    });
+  }
+
   function attachLocalTracks(){
     if(!st.livekitRoom) return;
     st.livekitRoom.localParticipant.trackPublications.forEach(function(pub){
@@ -273,25 +328,19 @@
     if(!track || track.kind !== 'video') return;
     var tile = ensureTile(st.username, true);
     if(!tile) return;
-    var existing = tile.querySelector('video');
+    var frame = getTileFrame(tile);
+    if(!frame) return;
+
+    var existing = frame.querySelector('video');
     if(existing) existing.remove();
+
     var vid = document.createElement('video');
-    vid.autoplay = true; vid.muted = true; vid.playsInline = true;
-   
-    tile.appendChild(vid);
+    vid.muted = true;
+    styleCypherVideo(vid);
+    frame.appendChild(vid);
     track.attach(vid);
-
-    vid.style.position = 'absolute';
-    vid.style.inset = '0';
-    vid.style.width = '100%';
-    vid.style.height = '100%';
-    vid.style.objectFit = 'cover';
-    vid.style.borderRadius = '50%';
-    vid.style.zIndex = '999';
-
-const ph = tile.querySelector('.cy-tile-ph, .cy-tile-silhouette');
-if (ph) ph.style.display = 'none';
-}
+    hideTilePlaceholder(tile);
+  }
 
   function attachRemoteTrack(track, participant){
     var identity = participant.identity;
@@ -306,24 +355,19 @@ if (ph) ph.style.display = 'none';
     if(track.kind === 'video'){
       var tile = ensureTile(identity, false);
       if(!tile) return;
-      var existing = tile.querySelector('video');
+      var frame = getTileFrame(tile);
+      if(!frame) return;
+
+      var existing = frame.querySelector('video');
       if(existing) existing.remove();
+
       var vid = document.createElement('video');
-      vid.autoplay = true; vid.playsInline = true;
-      
-      tile.appendChild(vid);
+      styleCypherVideo(vid);
+      frame.appendChild(vid);
       track.attach(vid);
-
-      vid.style.position = 'absolute';
-      vid.style.inset = '0';
-      vid.style.width = '100%';
-      vid.style.height = '100%';
-      vid.style.objectFit = 'cover';
-      vid.style.borderRadius = '50%';
-      vid.style.zIndex = '999';
-
-const ph = tile.querySelector('.cy-tile-ph, .cy-tile-silhouette');
-if (ph) ph.style.display = 'none';
+      hideTilePlaceholder(tile);
+    }
+  }
 
   function detachRemoteTrack(track, participant){
     if(track.kind === 'audio'){
@@ -332,12 +376,10 @@ if (ph) ph.style.display = 'none';
     } else if(track.kind === 'video'){
       var tile = document.getElementById('cy-tile-' + participant.identity);
       if(tile){
-      var v = tile.querySelector('video');
-      if(v) v.remove();
-
-      var ph = tile.querySelector('.cy-tile-ph, .cy-tile-silhouette');
-      if(ph) ph.style.display = '';
-    }
+        var v = tile.querySelector('video');
+        if(v) v.remove();
+        showTilePlaceholder(tile);
+      }
     }
   }
 
@@ -362,7 +404,11 @@ if (ph) ph.style.display = 'none';
         await room.localParticipant.setCameraEnabled(false);
         await room.localParticipant.setMicrophoneEnabled(false);
         var tile = document.getElementById('cy-tile-' + st.username);
-        if(tile){ var v = tile.querySelector('video'); if(v) v.remove(); }
+        if(tile){
+          var v = tile.querySelector('video');
+          if(v) v.remove();
+          showTilePlaceholder(tile);
+        }
       }
     } catch(e){ dbg('syncMedia:ERROR', e); }
   }
@@ -409,7 +455,12 @@ if (ph) ph.style.display = 'none';
     tile = document.createElement('div');
     tile.id = 'cy-tile-' + identity;
     tile.className = 'cy-tile' + (isMe ? ' cy-tile-me' : '');
-    tile.style.cssText = 'position:absolute;width:14%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(64,208,255,.4);background:rgba(0,0,0,.55);overflow:hidden;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:1px;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.4);';
+    tile.style.cssText = 'position:absolute;width:14%;aspect-ratio:1;border-radius:50%;border:2px solid rgba(64,208,255,.4);background:rgba(0,0,0,.55);overflow:visible;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:1px;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.4);';
+
+    var frame = document.createElement('div');
+    frame.className = 'cy-media-frame';
+    frame.style.cssText = 'position:absolute;inset:0;border-radius:50%;overflow:hidden;z-index:1;background:rgba(0,0,0,.55);';
+    tile.appendChild(frame);
 
     var label = document.createElement('div');
     label.className = 'cy-tile-label';
@@ -421,7 +472,7 @@ if (ph) ph.style.display = 'none';
     ph.className = 'cy-tile-silhouette';
     ph.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem;opacity:.5;';
     ph.textContent = '🎤';
-    tile.appendChild(ph);
+    frame.appendChild(ph);
 
     wrap.appendChild(tile);
     return tile;
@@ -450,8 +501,9 @@ if (ph) ph.style.display = 'none';
       var angle = (idx / count) * 2 * Math.PI - Math.PI / 2;
       var x = 50 + radius * Math.cos(angle);
       var y = 50 + radius * Math.sin(angle);
-      tile.style.left = 'calc(' + x + '% - 7%)';
-      tile.style.top  = 'calc(' + y + '% - 7%)';
+      tile.style.left = x + '%';
+      tile.style.top  = y + '%';
+      tile.style.transform = 'translate(-50%, -50%)';
       tile.classList.remove('cy-active', 'cy-up-next', 'cy-dj');
       tile.style.borderColor = 'rgba(64,208,255,.4)';
       tile.style.boxShadow = '0 6px 18px rgba(0,0,0,.4)';
