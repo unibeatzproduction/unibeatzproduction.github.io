@@ -1,5 +1,6 @@
 // unifreestyle-cypher-camera-center.js
 // Cypher-only camera bubble centering for mobile + desktop.
+// This fixes the deeper engine issue where LiveKit videos are appended directly into .cy-tile.
 
 (function(){
   function isFreestyle(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
@@ -27,7 +28,6 @@
         overflow:visible !important;
       }
 
-      /* The bubble itself stays round and centered; label can still sit outside */
       #page-cypher .cy-tile{
         position:absolute !important;
         display:block !important;
@@ -37,12 +37,21 @@
         background:rgba(0,0,0,.72) !important;
       }
 
-      /* The camera/image is clipped into the circular frame */
-      #page-cypher .cy-tile video,
-      #page-cypher .cy-tile img,
-      #page-cypher .cy-tile canvas,
-      #page-cypher .cy-tile .cy-tile-inner video,
-      #page-cypher .cy-tile .cy-tile-inner img{
+      #page-cypher .cy-media-frame{
+        position:absolute !important;
+        inset:0 !important;
+        width:100% !important;
+        height:100% !important;
+        border-radius:50% !important;
+        overflow:hidden !important;
+        clip-path:circle(50% at 50% 50%) !important;
+        z-index:1 !important;
+        background:rgba(0,0,0,.55) !important;
+      }
+
+      #page-cypher .cy-media-frame video,
+      #page-cypher .cy-media-frame img,
+      #page-cypher .cy-media-frame canvas{
         position:absolute !important;
         top:50% !important;
         left:50% !important;
@@ -55,12 +64,27 @@
         border-radius:50% !important;
         clip-path:circle(50% at 50% 50%) !important;
         transform:translate(-50%,-50%) scaleX(-1) !important;
-        z-index:1 !important;
       }
 
-      #page-cypher .cy-tile img,
-      #page-cypher .cy-tile .cy-tile-inner img{
+      #page-cypher .cy-media-frame img,
+      #page-cypher .cy-media-frame canvas{
         transform:translate(-50%,-50%) !important;
+      }
+
+      #page-cypher .cy-tile > video,
+      #page-cypher .cy-tile > img,
+      #page-cypher .cy-tile > canvas{
+        position:absolute !important;
+        top:50% !important;
+        left:50% !important;
+        width:100% !important;
+        height:100% !important;
+        object-fit:cover !important;
+        object-position:center center !important;
+        border-radius:50% !important;
+        clip-path:circle(50% at 50% 50%) !important;
+        transform:translate(-50%,-50%) scaleX(-1) !important;
+        z-index:1 !important;
       }
 
       #page-cypher .cy-tile-silhouette,
@@ -86,6 +110,7 @@
         transform:translateX(-50%) !important;
         text-align:center !important;
         z-index:5 !important;
+        pointer-events:none !important;
       }
 
       @media (max-width: 759px){
@@ -106,28 +131,57 @@
     document.head.appendChild(style);
   }
 
-  function fixExistingMedia(){
+  function ensureFrame(tile){
+    if(!tile) return null;
+    var frame = tile.querySelector(':scope > .cy-media-frame');
+    if(!frame){
+      frame = document.createElement('div');
+      frame.className = 'cy-media-frame';
+      tile.insertBefore(frame, tile.firstChild);
+    }
+    var silhouette = tile.querySelector(':scope > .cy-tile-silhouette, :scope > .cy-tile-ph');
+    if(silhouette && silhouette.parentNode !== frame) frame.appendChild(silhouette);
+    return frame;
+  }
+
+  function centerMedia(el){
+    if(!el) return;
+    el.style.position = 'absolute';
+    el.style.top = '50%';
+    el.style.left = '50%';
+    el.style.width = '100%';
+    el.style.height = '100%';
+    el.style.minWidth = '100%';
+    el.style.minHeight = '100%';
+    el.style.objectFit = 'cover';
+    el.style.objectPosition = 'center center';
+    el.style.borderRadius = '50%';
+    el.style.clipPath = 'circle(50% at 50% 50%)';
+    if(el.tagName && el.tagName.toLowerCase() === 'video') el.style.transform = 'translate(-50%, -50%) scaleX(-1)';
+    else el.style.transform = 'translate(-50%, -50%)';
+  }
+
+  function normalizeTiles(){
     if(!isFreestyle()) return;
-    document.querySelectorAll('#page-cypher .cy-tile video, #page-cypher .cy-tile img, #page-cypher .cy-tile canvas').forEach(function(el){
-      el.style.position = 'absolute';
-      el.style.top = '50%';
-      el.style.left = '50%';
-      el.style.width = '100%';
-      el.style.height = '100%';
-      el.style.objectFit = 'cover';
-      el.style.objectPosition = 'center center';
-      el.style.borderRadius = '50%';
-      el.style.clipPath = 'circle(50% at 50% 50%)';
-      if(el.tagName.toLowerCase() === 'video') el.style.transform = 'translate(-50%, -50%) scaleX(-1)';
-      else el.style.transform = 'translate(-50%, -50%)';
+    document.querySelectorAll('#page-cypher .cy-tile').forEach(function(tile){
+      var frame = ensureFrame(tile);
+      if(!frame) return;
+      Array.from(tile.childNodes).forEach(function(node){
+        if(!node || node === frame) return;
+        if(node.classList && node.classList.contains('cy-tile-label')) return;
+        if(node.tagName && ['VIDEO','IMG','CANVAS'].indexOf(node.tagName) !== -1){
+          frame.appendChild(node);
+        }
+      });
+      frame.querySelectorAll('video,img,canvas').forEach(centerMedia);
     });
   }
 
-  function boot(){ injectStyle(); fixExistingMedia(); }
+  function boot(){ injectStyle(); normalizeTiles(); }
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 1400);
-  setTimeout(boot, 2600);
-  setInterval(fixExistingMedia, 1200);
+  setTimeout(boot, 300);
+  setTimeout(boot, 900);
+  setTimeout(boot, 1800);
+  setInterval(normalizeTiles, 500);
 })();
