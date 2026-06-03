@@ -10,31 +10,11 @@
   function go(page){ if(typeof window.goToPage === 'function') window.goToPage(page); }
 
   var MODES = {
-    showdown: {
-      title: 'SHOWDOWN', tag: '2V2 · 3 MIN ROUNDS',
-      desc: 'Main event team battle. Team A vs Team B, four live cameras, live mics, DJ-controlled beat, and 3-minute rounds.',
-      room: 'battle-showdown-2v2', slots: ['teamA1','teamA2','teamB1','teamB2'], round: '3:00', type: 'artist'
-    },
-    dogcage: {
-      title: 'DOG CAGE', tag: '1V1 · FLEXIBLE ROUNDS',
-      desc: 'Raw 1v1 battle mode. Rounds can be quick, standard, or extended depending on the session setup.',
-      room: 'battle-dog-cage-1v1', slots: ['artist1','artist2'], round: 'Optional', type: 'artist'
-    },
-    tournament: {
-      title: 'TOURNAMENT', tag: 'BRACKET · 3 MIN ROUNDS',
-      desc: 'Official bracket competition. 8, 16, or 32 artists, 3-minute rounds, elimination advancement, and final champion.',
-      room: 'battle-tournament-bracket', slots: ['artist1','artist2'], round: '3:00', type: 'artist'
-    },
-    djbattle: {
-      title: 'DJ BATTLE ROOM', tag: 'DJ VS DJ · EQUIPMENT READY',
-      desc: 'Two DJs go head-to-head live. Set up DJ equipment or MIDI controller, perform, switch, scratch, and let the crowd watch the showdown.',
-      room: 'battle-dj-room', slots: ['dj1','dj2'], round: 'DJ Controlled', type: 'dj'
-    },
-    practice: {
-      title: 'PRACTICE', tag: 'SOLO · TRAINING MODE',
-      desc: 'Solo training mode for artists. Select a beat, test mic/cam, and sharpen rounds before entering live battles.',
-      room: 'battle-practice-solo', slots: ['practice'], round: 'Optional', type: 'practice'
-    }
+    showdown: { title:'SHOWDOWN', tag:'2V2 · 3 MIN ROUNDS', desc:'Main event team battle. Team A vs Team B, four live cameras, live mics, DJ-controlled beat, and 3-minute rounds.', room:'battle-showdown-2v2', slots:['teamA1','teamA2','teamB1','teamB2'], round:'3:00', type:'artist' },
+    dogcage: { title:'DOG CAGE', tag:'1V1 · FLEXIBLE ROUNDS', desc:'Raw 1v1 battle mode. Rounds can be quick, standard, or extended depending on the session setup.', room:'battle-dog-cage-1v1', slots:['artist1','artist2'], round:'Optional', type:'artist' },
+    tournament: { title:'TOURNAMENT', tag:'BRACKET · 3 MIN ROUNDS', desc:'Official bracket competition. 8, 16, or 32 artists, 3-minute rounds, elimination advancement, and final champion.', room:'battle-tournament-bracket', slots:['artist1','artist2'], round:'3:00', type:'tournament' },
+    djbattle: { title:'DJ BATTLE ROOM', tag:'DJ VS DJ · EQUIPMENT READY', desc:'Two DJs go head-to-head live. Set up DJ equipment or MIDI controller, perform, switch, scratch, and let the crowd watch the showdown.', room:'battle-dj-room', slots:['dj1','dj2'], round:'DJ Controlled', type:'dj' },
+    practice: { title:'PRACTICE', tag:'SOLO · TRAINING MODE', desc:'Solo training mode for artists. Select a beat, test mic/cam, and sharpen rounds before entering live battles.', room:'battle-practice-solo', slots:['practice'], round:'Optional', type:'practice' }
   };
 
   function createModeCard(key, mode){
@@ -74,7 +54,7 @@
     page = document.createElement('section');
     page.id = 'page-battle-live';
     page.className = 'page';
-    page.innerHTML = '<div class="top-bar"><button class="icon-btn" id="ubBattleBackBtn">←</button><div class="brand-title">LIVE BATTLE</div><button class="icon-btn" id="ubBattleCamBtn">📹</button></div><div class="page-body"><div id="ubBattleModeTitle" style="font-family:Bebas Neue,Arial,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;margin-bottom:6px;">BATTLE</div><div id="ubBattleModeDesc" style="color:rgba(240,237,232,.72);margin-bottom:10px;"></div><div id="ubBattleRoundInfo" style="display:inline-block;margin-bottom:12px;padding:5px 9px;border-radius:999px;border:1px solid rgba(64,208,255,.55);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.8px;">ROUND</div><div id="ubBattleLiveStage" style="margin:14px 0;padding:12px;border:1px solid rgba(201,168,76,.45);border-radius:14px;background:rgba(0,0,0,.35);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;color:#fff;"></div><div id="ubBattleRoleRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px;"></div><div id="ubDjProgramPanel" style="display:none;margin-top:14px;padding:14px;border-radius:14px;border:1px solid rgba(201,168,76,.45);background:rgba(0,0,0,.32);"><div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#40D0FF;margin-bottom:6px;">DJ CONTROL CENTER</div><div style="color:rgba(240,237,232,.72);font-size:.86rem;line-height:1.35;">Beat type, round format, timer, match start/end, DJ equipment and MIDI controls belong here.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin-top:10px;"><button class="btn btn-blue">🎚️ EQUIPMENT</button><button class="btn btn-blue">🎛️ MIDI SETUP</button><button class="btn btn-blue">⏱️ TIMER</button><button class="btn btn-gold">▶ START</button></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px;"><button class="btn btn-blue" onclick="toggleBattleMic && toggleBattleMic()">🎤 MIC</button><button class="btn btn-blue" onclick="toggleBattleCam && toggleBattleCam()">📹 CAM</button><button class="btn btn-gold" onclick="disconnectBattleLive && disconnectBattleLive()">LEAVE LIVE</button></div></div>';
+    page.innerHTML = '<div class="top-bar"><button class="icon-btn" id="ubBattleBackBtn">←</button><div class="brand-title">LIVE BATTLE</div><button class="icon-btn" id="ubBattleCamBtn">📹</button></div><div class="page-body"><div id="ubBattleModeTitle" style="font-family:Bebas Neue,Arial,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;margin-bottom:6px;">BATTLE</div><div id="ubBattleModeDesc" style="color:rgba(240,237,232,.72);margin-bottom:10px;"></div><div id="ubBattleRoundInfo" style="display:inline-block;margin-bottom:12px;padding:5px 9px;border-radius:999px;border:1px solid rgba(64,208,255,.55);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.8px;">ROUND</div><div id="ubBattleLiveStage" style="margin:14px 0;padding:12px;border:1px solid rgba(201,168,76,.45);border-radius:14px;background:rgba(0,0,0,.35);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;color:#fff;"></div><div id="ubBattleRoleRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px;"></div><div id="ubBattleControlPanel"></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px;"><button class="btn btn-blue" onclick="toggleBattleMic && toggleBattleMic()">🎤 MIC</button><button class="btn btn-blue" onclick="toggleBattleCam && toggleBattleCam()">📹 CAM</button><button class="btn btn-gold" onclick="disconnectBattleLive && disconnectBattleLive()">LEAVE LIVE</button></div></div>';
     document.body.appendChild(page);
     var back = page.querySelector('#ubBattleBackBtn');
     if(back) back.onclick = function(){ disconnectBattleLive && disconnectBattleLive(); go('queue'); setTimeout(injectModeSelector, 250); };
@@ -93,15 +73,34 @@
     return tile;
   }
 
+  function panelShell(title, inner){
+    return '<div style="margin-top:14px;padding:14px;border-radius:14px;border:1px solid rgba(201,168,76,.45);background:rgba(0,0,0,.32);"><div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#40D0FF;margin-bottom:6px;">' + title + '</div>' + inner + '</div>';
+  }
+
+  function renderControlPanel(mode, key){
+    var panel = document.getElementById('ubBattleControlPanel');
+    if(!panel) return;
+    if(key === 'djbattle'){
+      panel.innerHTML = panelShell('DJ BATTLE CONTROL CENTER', '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;"><div style="border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Bebas Neue;font-size:1.5rem;letter-spacing:2px;">DJ 1</div><div style="font-size:1.8rem;color:#40D0FF;font-family:Orbitron;">0</div></div><div style="border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Bebas Neue;font-size:1.5rem;letter-spacing:2px;">DJ 2</div><div style="font-size:1.8rem;color:#40D0FF;font-family:Orbitron;">0</div></div><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Orbitron;font-size:.5rem;letter-spacing:2px;">CROWD METER</div><div style="height:8px;border-radius:999px;background:linear-gradient(90deg,#40D0FF 50%,#F0C040 50%);margin-top:10px;"></div></div></div><div style="color:rgba(240,237,232,.72);font-size:.86rem;line-height:1.35;margin-bottom:10px;">DJs can connect camera/mic now. MIDI and controller hookups are staged here for the next hardware layer.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue">🎚️ EQUIPMENT</button><button class="btn btn-blue">🎛️ MIDI SETUP</button><button class="btn btn-blue">⏱️ TIMER</button><button class="btn btn-blue">🔁 SWITCH</button><button class="btn btn-gold">▶ START</button><button class="btn btn-gold">🏆 WINNER</button></div>');
+    } else if(key === 'showdown'){
+      panel.innerHTML = panelShell('SHOWDOWN TEAM CONTROL', '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px;"><div style="border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Bebas Neue;font-size:1.5rem;letter-spacing:2px;">TEAM A</div><div style="font-size:1.8rem;color:#40D0FF;font-family:Orbitron;">0</div></div><div style="border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Bebas Neue;font-size:1.5rem;letter-spacing:2px;">TEAM B</div><div style="font-size:1.8rem;color:#40D0FF;font-family:Orbitron;">0</div></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue">🎧 DJ PANEL</button><button class="btn btn-blue">⏱️ 3:00 TIMER</button><button class="btn btn-blue">🗳️ CROWD VOTE</button><button class="btn btn-gold">▶ START ROUND</button><button class="btn btn-gold">🏆 SET WINNER</button></div>');
+    } else if(key === 'tournament'){
+      panel.innerHTML = panelShell('TOURNAMENT BRACKET FOUNDATION', '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px;"><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">ROUND 1<br><span style="color:#40D0FF;">Match 1</span></div><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">SEMI<br><span style="color:#40D0FF;">Winner</span></div><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">FINAL<br><span style="color:#40D0FF;">Champion</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue">👥 8 / 16 / 32</button><button class="btn btn-blue">⏱️ 3:00 TIMER</button><button class="btn btn-gold">➡️ ADVANCE WINNER</button><button class="btn btn-gold">👑 CHAMPION</button></div>');
+    } else if(key === 'dogcage'){
+      panel.innerHTML = panelShell('DOG CAGE CONTROL', '<div style="color:rgba(240,237,232,.72);font-size:.86rem;line-height:1.35;margin-bottom:10px;">1v1 flexible battle. DJ can choose quick, standard, or extended rounds from the control panel.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue">⚡ QUICK</button><button class="btn btn-blue">⏱️ STANDARD</button><button class="btn btn-blue">🔥 EXTENDED</button><button class="btn btn-gold">▶ START</button></div>');
+    } else {
+      panel.innerHTML = panelShell('PRACTICE CONTROL', '<div style="color:rgba(240,237,232,.72);font-size:.86rem;line-height:1.35;margin-bottom:10px;">Solo mode for camera, mic, beat test, and round prep.</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue">🎵 BEAT TEST</button><button class="btn btn-blue">🎤 MIC CHECK</button><button class="btn btn-blue">📹 CAM CHECK</button><button class="btn btn-gold">▶ PRACTICE</button></div>');
+    }
+  }
+
   function openMode(key){
     var mode = MODES[key] || MODES.showdown;
     var page = ensureBattlePage();
-    var title = page.querySelector('#ubBattleModeTitle'), desc = page.querySelector('#ubBattleModeDesc'), round = page.querySelector('#ubBattleRoundInfo'), stage = page.querySelector('#ubBattleLiveStage'), roles = page.querySelector('#ubBattleRoleRow'), djPanel = page.querySelector('#ubDjProgramPanel');
+    var title = page.querySelector('#ubBattleModeTitle'), desc = page.querySelector('#ubBattleModeDesc'), round = page.querySelector('#ubBattleRoundInfo'), stage = page.querySelector('#ubBattleLiveStage'), roles = page.querySelector('#ubBattleRoleRow');
     if(title) title.textContent = mode.title + ' · ' + mode.tag;
     if(desc) desc.textContent = mode.desc;
     if(round) round.textContent = 'ROUND: ' + mode.round;
     if(stage){ stage.innerHTML = ''; mode.slots.forEach(function(s){ stage.appendChild(makeSlotTile(s)); }); }
-    if(djPanel) djPanel.style.display = (mode.type === 'dj') ? 'block' : 'none';
     if(roles){
       roles.innerHTML = '';
       mode.slots.forEach(function(slot){
@@ -120,6 +119,7 @@
         roles.appendChild(dj);
       }
     }
+    renderControlPanel(mode, key);
     document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
     page.classList.add('active');
   }
