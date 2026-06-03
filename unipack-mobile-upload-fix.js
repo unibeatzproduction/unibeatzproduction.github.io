@@ -20,25 +20,64 @@ function keepStudioVisible() {
   studio.classList.add('active');
 }
 
+// Fire keepStudioVisible aggressively when page regains focus after file picker
+function setupFocusGuard() {
+  if (window._ubFocusGuardSetup) return;
+  window._ubFocusGuardSetup = true;
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      setTimeout(keepStudioVisible, 50);
+      setTimeout(keepStudioVisible, 300);
+      setTimeout(keepStudioVisible, 700);
+    }
+  });
+
+  window.addEventListener('focus', function () {
+    setTimeout(keepStudioVisible, 50);
+    setTimeout(keepStudioVisible, 300);
+  });
+
+  window.addEventListener('pageshow', function () {
+    setTimeout(keepStudioVisible, 50);
+  });
+}
+
 function addMainMobileInput(sec) {
   var zone = document.getElementById('uploadZone' + sec);
   if (!zone || document.getElementById('ubMobileInput' + sec)) return;
-
   var row = document.createElement('div');
   row.className = 'ub-mobile-file-row';
   row.id = 'ubMobileRow' + sec;
-  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileInput' + sec + '" type="file" accept="audio/*"><div class="ub-mobile-file-note">Use this mobile box instead of the gold upload area.</div>';
-
-  // Critical: place AFTER the upload zone, not inside it.
+  row.innerHTML = '<label class="ub-mobile-file-label">📱 MOBILE DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileInput' + sec + '" type="file" accept="audio/*"><div class="ub-mobile-file-note">Use this box to upload on mobile instead of the gold area above.</div>';
   zone.insertAdjacentElement('afterend', row);
 
   var input = row.querySelector('input');
+
+  input.addEventListener('click', function () {
+    keepStudioVisible();
+  });
+
   input.addEventListener('change', function () {
     keepStudioVisible();
+    setTimeout(keepStudioVisible, 100);
+    setTimeout(keepStudioVisible, 500);
+    setTimeout(keepStudioVisible, 1000);
+    setTimeout(keepStudioVisible, 2000);
+
+    if (!input.files || !input.files[0]) return;
+
     if (typeof window.handleAudioUpload === 'function') {
       window.handleAudioUpload(input, sec);
     } else {
-      alert('Upload engine not ready yet. Refresh and try again.');
+      // handleAudioUpload not ready yet — retry after a short delay
+      setTimeout(function () {
+        if (typeof window.handleAudioUpload === 'function') {
+          window.handleAudioUpload(input, sec);
+        } else {
+          alert('Upload engine not ready yet. Refresh and try again.');
+        }
+      }, 800);
     }
   });
 }
@@ -49,18 +88,53 @@ function addStemMobileInput() {
   var row = document.createElement('div');
   row.className = 'ub-mobile-file-row';
   row.id = 'ubMobileStemRow';
-  row.innerHTML = '<label class="ub-mobile-file-label">MOBILE STEM DIRECT UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileStemInput" type="file" multiple accept="audio/*"><div class="ub-mobile-file-note">Use this mobile box to select stems.</div>';
+  row.innerHTML = '<label class="ub-mobile-file-label">📱 MOBILE STEM UPLOAD</label><input class="ub-mobile-file-input" id="ubMobileStemInput" type="file" multiple accept="audio/*"><div class="ub-mobile-file-note">Use this box to select stems on mobile.</div>';
   stemBox.insertAdjacentElement('afterend', row);
+
   var input = row.querySelector('input');
+
+  input.addEventListener('click', function () {
+    keepStudioVisible();
+  });
+
   input.addEventListener('change', function () {
     keepStudioVisible();
-    document.dispatchEvent(new CustomEvent('ub-mobile-stems-selected', { detail: { files: Array.from(input.files || []) } }));
+    setTimeout(keepStudioVisible, 100);
+    setTimeout(keepStudioVisible, 500);
+    setTimeout(keepStudioVisible, 1000);
+    setTimeout(keepStudioVisible, 2000);
+
+    if (!input.files || !input.files.length) return;
+
+    var files = Array.from(input.files);
+
+    // Try to use unipack-stems.js internal stem handler
+    // It listens for ubStemInput change — trigger it directly
+    var stemInput = document.getElementById('ubStemInput');
+    if (stemInput) {
+      // Transfer files via DataTransfer
+      try {
+        var dt = new DataTransfer();
+        files.forEach(function (f) { dt.items.add(f); });
+        stemInput.files = dt.files;
+        stemInput.dispatchEvent(new Event('change'));
+        return;
+      } catch (e) {
+        console.warn('DataTransfer failed, falling back to custom event:', e);
+      }
+    }
+
+    // Fallback: dispatch custom event (original behavior)
+    document.dispatchEvent(new CustomEvent('ub-mobile-stems-selected', {
+      detail: { files: files }
+    }));
   });
 }
 
 function boot() {
   if (!isUniPack()) return;
   addStyle();
+  setupFocusGuard();
   addMainMobileInput('A');
   addMainMobileInput('B');
   addStemMobileInput();
@@ -68,7 +142,6 @@ function boot() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
-
 setTimeout(boot, 800);
 setTimeout(boot, 1800);
 setTimeout(boot, 3200);
