@@ -1,6 +1,6 @@
 // unifreestyle-battle-modes.js
 // Official UniFreestyle battle classes. Cypher stays separate and untouched.
-// Modes: Showdown 2v2, Dog Cage 1v1 flexible, Tournament bracket, Practice solo.
+// Modes live INSIDE the Join Battle screen, not above the homepage hero.
 
 (function(){
   'use strict';
@@ -11,40 +11,24 @@
 
   var MODES = {
     showdown: {
-      title: 'SHOWDOWN',
-      tag: '2V2 · 3 MIN ROUNDS',
+      title: 'SHOWDOWN', tag: '2V2 · 3 MIN ROUNDS',
       desc: 'Main event team battle. Team A vs Team B, four live cameras, live mics, DJ-controlled beat, and 3-minute rounds.',
-      room: 'battle-showdown-2v2',
-      slots: ['teamA1','teamA2','teamB1','teamB2'],
-      round: '3:00',
-      cta: 'ENTER SHOWDOWN'
+      room: 'battle-showdown-2v2', slots: ['teamA1','teamA2','teamB1','teamB2'], round: '3:00'
     },
     dogcage: {
-      title: 'DOG CAGE',
-      tag: '1V1 · FLEXIBLE ROUNDS',
+      title: 'DOG CAGE', tag: '1V1 · FLEXIBLE ROUNDS',
       desc: 'Raw 1v1 battle mode. Rounds can be quick, standard, or extended depending on the session setup.',
-      room: 'battle-dog-cage-1v1',
-      slots: ['artist1','artist2'],
-      round: 'Optional',
-      cta: 'ENTER DOG CAGE'
+      room: 'battle-dog-cage-1v1', slots: ['artist1','artist2'], round: 'Optional'
     },
     tournament: {
-      title: 'TOURNAMENT',
-      tag: 'BRACKET · 3 MIN ROUNDS',
+      title: 'TOURNAMENT', tag: 'BRACKET · 3 MIN ROUNDS',
       desc: 'Official bracket competition. 8, 16, or 32 artists, 3-minute rounds, elimination advancement, and final champion.',
-      room: 'battle-tournament-bracket',
-      slots: ['artist1','artist2'],
-      round: '3:00',
-      cta: 'ENTER TOURNAMENT'
+      room: 'battle-tournament-bracket', slots: ['artist1','artist2'], round: '3:00'
     },
     practice: {
-      title: 'PRACTICE',
-      tag: 'SOLO · TRAINING MODE',
+      title: 'PRACTICE', tag: 'SOLO · TRAINING MODE',
       desc: 'Solo training mode for artists. Select a beat, test mic/cam, and sharpen rounds before entering live battles.',
-      room: 'battle-practice-solo',
-      slots: ['practice'],
-      round: 'Optional',
-      cta: 'ENTER PRACTICE'
+      room: 'battle-practice-solo', slots: ['practice'], round: 'Optional'
     }
   };
 
@@ -58,17 +42,34 @@
     return card;
   }
 
+  function removeHomepagePanel(){
+    var panel = document.getElementById('ubBattleModesPanel');
+    if(panel && panel.closest('#page-home')) panel.remove();
+  }
+
+  function findJoinBattleBody(){
+    return document.querySelector('#page-queue .page-body, #page-battle .page-body');
+  }
+
   function injectModeSelector(){
-    if(!ok() || document.getElementById('ubBattleModesPanel')) return;
-    var queueBody = document.querySelector('#page-queue .page-body, #page-battle .page-body, #page-home .page-body');
+    if(!ok()) return;
+    removeHomepagePanel();
+    var queueBody = findJoinBattleBody();
     if(!queueBody) return;
+    var existing = document.getElementById('ubBattleModesPanel');
+    if(existing && !existing.closest('#page-home')) return;
+    if(existing) existing.remove();
+
     var panel = document.createElement('div');
     panel.id = 'ubBattleModesPanel';
-    panel.style.cssText = 'margin:16px 0 20px;padding:16px;border-radius:16px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.26);color:#fff;';
+    panel.style.cssText = 'margin:0 0 18px;padding:16px;border-radius:16px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.26);color:#fff;';
     panel.innerHTML = '<div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#40D0FF;margin-bottom:6px;">JOIN BATTLE CLASSES</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.9rem;letter-spacing:2px;color:#F0C040;line-height:1;">CHOOSE YOUR BATTLE FORMAT</div><div style="font-size:.9rem;color:rgba(240,237,232,.7);margin:7px 0 14px;">Showdown and Tournament use 3-minute rounds. Dog Cage and Practice are flexible.</div><div id="ubBattleModesGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;"></div>';
     var grid = panel.querySelector('#ubBattleModesGrid');
     Object.keys(MODES).forEach(function(k){ grid.appendChild(createModeCard(k, MODES[k])); });
-    queueBody.insertBefore(panel, queueBody.firstChild);
+
+    var anchor = queueBody.querySelector('.practice-card, .battle-setup, .section-label, .section-title, .battle-type-grid');
+    if(anchor) queueBody.insertBefore(panel, anchor);
+    else queueBody.insertBefore(panel, queueBody.firstChild);
   }
 
   function ensureBattlePage(){
@@ -80,7 +81,7 @@
     page.innerHTML = '<div class="top-bar"><button class="icon-btn" id="ubBattleBackBtn">←</button><div class="brand-title">LIVE BATTLE</div><button class="icon-btn" id="ubBattleCamBtn">📹</button></div><div class="page-body"><div id="ubBattleModeTitle" style="font-family:Bebas Neue,Arial,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;margin-bottom:6px;">BATTLE</div><div id="ubBattleModeDesc" style="color:rgba(240,237,232,.72);margin-bottom:10px;"></div><div id="ubBattleRoundInfo" style="display:inline-block;margin-bottom:12px;padding:5px 9px;border-radius:999px;border:1px solid rgba(64,208,255,.55);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.8px;">ROUND</div><div id="ubBattleLiveStage" style="margin:14px 0;padding:12px;border:1px solid rgba(201,168,76,.45);border-radius:14px;background:rgba(0,0,0,.35);display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;color:#fff;"></div><div id="ubBattleRoleRow" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px;"></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px;"><button class="btn btn-blue" onclick="toggleBattleMic && toggleBattleMic()">🎤 MIC</button><button class="btn btn-blue" onclick="toggleBattleCam && toggleBattleCam()">📹 CAM</button><button class="btn btn-gold" onclick="disconnectBattleLive && disconnectBattleLive()">LEAVE LIVE</button></div></div>';
     document.body.appendChild(page);
     var back = page.querySelector('#ubBattleBackBtn');
-    if(back) back.onclick = function(){ disconnectBattleLive && disconnectBattleLive(); go('queue'); };
+    if(back) back.onclick = function(){ disconnectBattleLive && disconnectBattleLive(); go('queue'); setTimeout(injectModeSelector, 250); };
     return page;
   }
 
@@ -152,7 +153,8 @@
   function boot(){
     if(!ok()) return;
     window.ubBattleModes = { modes: MODES, open: openMode, inject: injectModeSelector };
-    injectModeSelector();
+    removeHomepagePanel();
+    if(document.querySelector('#page-queue.active, #page-battle.active')) injectModeSelector();
     routeHomeJoinToQueue();
   }
 
@@ -160,5 +162,5 @@
   else boot();
   setTimeout(boot, 800);
   setTimeout(boot, 1800);
-  setInterval(routeHomeJoinToQueue, 2000);
+  setInterval(function(){ routeHomeJoinToQueue(); removeHomepagePanel(); if(document.querySelector('#page-queue.active, #page-battle.active')) injectModeSelector(); }, 1200);
 })();
