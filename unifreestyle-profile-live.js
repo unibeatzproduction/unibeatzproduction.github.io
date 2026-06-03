@@ -1,5 +1,5 @@
 // unifreestyle-profile-live.js
-// Live profile foundation: homepage live rail compact, profile live section preserved.
+// Live profile foundation: compact homepage live rail, profile live section preserved, profile scroll fixed.
 (function(){
   'use strict';
 
@@ -10,6 +10,14 @@
   function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function user(){ try{ var raw=localStorage.getItem('ub_current_user')||localStorage.getItem('ub_user'); return raw?JSON.parse(raw):{}; }catch(e){ return {}; } }
   function uname(){ var u=user(); return u.username || u.name || 'guest_'+Math.floor(Math.random()*9999); }
+
+  function injectScrollFix(){
+    if(document.getElementById('ubProfileScrollFix')) return;
+    var css=document.createElement('style');
+    css.id='ubProfileScrollFix';
+    css.textContent='html,body{overflow-y:auto!important;}#page-profile,#page-profile.active,#page-profile .page-body{overflow-y:auto!important;-webkit-overflow-scrolling:touch!important;height:auto!important;min-height:100vh!important;max-height:none!important;padding-bottom:160px!important;}#ubLiveProfilesRail{width:100%!important;box-sizing:border-box!important;max-width:100%!important;}#ubLiveProfilesList::-webkit-scrollbar{height:4px;}#ubLiveProfilesList::-webkit-scrollbar-thumb{background:rgba(64,208,255,.45);border-radius:999px;}';
+    document.head.appendChild(css);
+  }
 
   async function fb(){
     if(st.fb && st.db) return st;
@@ -72,12 +80,8 @@
     if(!amount || amount<1){ toast('Enter an amount'); return; }
     var ubp=Math.round(amount*UBP_CUT*100)/100;
     var creator=Math.round((amount-ubp)*100)/100;
-    await st.fb.addDoc(st.fb.collection(st.db,'profile_live_chats',target,'messages'),{
-      from:uname(), type:'superchat', emoji:emoji||'🔥', amount:amount, creatorAmount:creator, ubpAmount:ubp, payout:'quarterly', at:Date.now()
-    });
-    await st.fb.addDoc(st.fb.collection(st.db,'creator_earnings'),{
-      creator:target, from:uname(), amount:amount, creatorAmount:creator, ubpAmount:ubp, platformCut:UBP_CUT, payout:'quarterly', status:'pending', at:Date.now()
-    });
+    await st.fb.addDoc(st.fb.collection(st.db,'profile_live_chats',target,'messages'),{from:uname(), type:'superchat', emoji:emoji||'🔥', amount:amount, creatorAmount:creator, ubpAmount:ubp, payout:'quarterly', at:Date.now()});
+    await st.fb.addDoc(st.fb.collection(st.db,'creator_earnings'),{creator:target, from:uname(), amount:amount, creatorAmount:creator, ubpAmount:ubp, platformCut:UBP_CUT, payout:'quarterly', status:'pending', at:Date.now()});
     toast('💰 Super Chat logged');
   }
 
@@ -88,8 +92,8 @@
     if(box) return box;
     box=document.createElement('div');
     box.id='ubLiveProfilesRail';
-    box.style.cssText='margin:12px 0 14px;padding:10px 12px;border-radius:14px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.24);color:#fff;min-height:92px;';
-    box.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;"><div><div style="font-family:Orbitron,sans-serif;font-size:.45rem;letter-spacing:2px;color:#40D0FF;">LIVE PROFILES</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.2rem;letter-spacing:2px;color:#F0C040;line-height:1;">WATCH LIVE NOW</div></div><div style="font-family:Orbitron,sans-serif;font-size:.42rem;color:rgba(240,237,232,.55);letter-spacing:1px;">SLIDE →</div></div><div id="ubLiveProfilesList" style="display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding-bottom:4px;"></div>';
+    box.style.cssText='margin:8px 0 10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.22);color:#fff;min-height:58px;max-height:70px;overflow:hidden;';
+    box.innerHTML='<div style="display:flex;align-items:center;gap:10px;height:100%;"><div style="flex:0 0 auto;line-height:1;"><div style="font-family:Orbitron,sans-serif;font-size:.38rem;letter-spacing:1.6px;color:#40D0FF;">LIVE PROFILES</div><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:.95rem;letter-spacing:1.6px;color:#F0C040;line-height:.95;">WATCH LIVE NOW</div></div><div id="ubLiveProfilesList" style="flex:1;display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:0 2px 2px;"></div><div style="flex:0 0 auto;font-family:Orbitron,sans-serif;font-size:.38rem;color:rgba(240,237,232,.55);letter-spacing:1px;">SLIDE →</div></div>';
     var hero=home.querySelector('.home-hero');
     if(hero) hero.insertAdjacentElement('afterend',box); else home.insertBefore(box,home.firstChild);
     return box;
@@ -103,13 +107,13 @@
     var q=st.fb.query(st.fb.collection(st.db,'live_profiles'),st.fb.where('isLive','==',true));
     var snap=await st.fb.getDocs(q);
     list.innerHTML='';
-    if(snap.empty){ list.innerHTML='<div style="color:rgba(240,237,232,.65);font-size:.82rem;padding:8px 2px;white-space:nowrap;">No one is live yet.</div>'; return; }
+    if(snap.empty){ list.innerHTML='<div style="color:rgba(240,237,232,.65);font-size:.75rem;padding:8px 2px;white-space:nowrap;">No one is live yet.</div>'; return; }
     snap.forEach(function(doc){
       var p=doc.data();
       var card=document.createElement('div');
       var cover=p.cover ? 'background-image:linear-gradient(90deg,rgba(0,0,0,.72),rgba(0,0,0,.42)),url('+esc(p.cover)+');background-size:cover;background-position:center;' : 'background:linear-gradient(135deg,rgba(201,168,76,.16),rgba(64,208,255,.10));';
-      card.style.cssText='flex:0 0 260px;scroll-snap-align:start;min-height:74px;padding:10px;border-radius:12px;border:1px solid rgba(201,168,76,.38);'+cover+'cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.25);';
-      card.innerHTML='<div style="display:flex;align-items:center;gap:10px;"><div style="width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #F0C040;font-size:1.35rem;overflow:hidden;background:rgba(0,0,0,.55);">'+(p.photo?'<img src="'+esc(p.photo)+'" style="width:100%;height:100%;object-fit:cover;">':esc(p.avatar||'🎤'))+'</div><div style="min-width:0;"><div style="display:flex;align-items:center;gap:5px;color:#F0C040;font-family:Bebas Neue;font-size:1.15rem;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">'+esc(p.displayName||p.username)+(p.verified?' <span style="color:#40D0FF;font-size:.8rem;">✓</span>':'')+'</div><div style="color:#40D0FF;font-family:Orbitron;font-size:.42rem;letter-spacing:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">🔴 LIVE · @'+esc(p.username)+'</div></div></div>';
+      card.style.cssText='flex:0 0 174px;scroll-snap-align:start;height:44px;padding:6px 8px;border-radius:10px;border:1px solid rgba(201,168,76,.38);'+cover+'cursor:pointer;box-shadow:0 6px 15px rgba(0,0,0,.2);display:flex;align-items:center;';
+      card.innerHTML='<div style="display:flex;align-items:center;gap:7px;min-width:0;"><div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #F0C040;font-size:1rem;overflow:hidden;background:rgba(0,0,0,.55);flex:0 0 auto;">'+(p.photo?'<img src="'+esc(p.photo)+'" style="width:100%;height:100%;object-fit:cover;">':esc(p.avatar||'🎤'))+'</div><div style="min-width:0;"><div style="display:flex;align-items:center;gap:4px;color:#F0C040;font-family:Bebas Neue;font-size:.92rem;letter-spacing:1.1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">'+esc(p.displayName||p.username)+(p.verified?' <span style="color:#40D0FF;font-size:.68rem;">✓</span>':'')+'</div><div style="color:#40D0FF;font-family:Orbitron;font-size:.36rem;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">🔴 LIVE · @'+esc(p.username)+'</div></div></div>';
       card.onclick=function(){ openLive(p.username); };
       list.appendChild(card);
     });
@@ -139,26 +143,9 @@
     listenChat(target);
   }
 
-  async function joinLiveViewer(target){
-    await fb();
-    if(st.viewerTarget && st.viewerTarget!==target) await leaveLiveViewer();
-    st.viewerTarget=target;
-    await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',target+'_'+uname()),{profile:target,viewer:uname(),active:true,at:Date.now()},{merge:true});
-    refreshViewerCount(target);
-  }
-
-  async function leaveLiveViewer(){
-    if(!st.viewerTarget) return;
-    await fb();
-    await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',st.viewerTarget+'_'+uname()),{active:false,leftAt:Date.now()},{merge:true});
-    st.viewerTarget=null;
-  }
-
-  async function refreshViewerCount(target){
-    await fb();
-    var snap=await st.fb.getDocs(st.fb.query(st.fb.collection(st.db,'live_profile_viewers'),st.fb.where('profile','==',target),st.fb.where('active','==',true)));
-    document.querySelectorAll('[data-live-viewers]').forEach(function(el){el.textContent=snap.size;});
-  }
+  async function joinLiveViewer(target){ await fb(); if(st.viewerTarget && st.viewerTarget!==target) await leaveLiveViewer(); st.viewerTarget=target; await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',target+'_'+uname()),{profile:target,viewer:uname(),active:true,at:Date.now()},{merge:true}); refreshViewerCount(target); }
+  async function leaveLiveViewer(){ if(!st.viewerTarget) return; await fb(); await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',st.viewerTarget+'_'+uname()),{active:false,leftAt:Date.now()},{merge:true}); st.viewerTarget=null; }
+  async function refreshViewerCount(target){ await fb(); var snap=await st.fb.getDocs(st.fb.query(st.fb.collection(st.db,'live_profile_viewers'),st.fb.where('profile','==',target),st.fb.where('active','==',true))); document.querySelectorAll('[data-live-viewers]').forEach(function(el){el.textContent=snap.size;}); }
 
   async function listenChat(target){
     await fb();
@@ -185,18 +172,10 @@
     ensurePublicProfile();
   }
 
-  async function searchProfiles(term){
-    await fb();
-    var out=document.getElementById('ubProfileSearchResults'); if(!out) return;
-    term=String(term||'').toLowerCase().trim();
-    if(term.length<2){out.innerHTML='';return;}
-    var snap=await st.fb.getDocs(st.fb.collection(st.db,'profiles'));
-    out.innerHTML='';
-    snap.forEach(function(doc){var p=doc.data(); var hay=(p.search||p.username||'').toLowerCase(); if(hay.indexOf(term)>-1){var row=document.createElement('div'); row.style.cssText='padding:8px;border:1px solid rgba(201,168,76,.35);border-radius:10px;display:flex;justify-content:space-between;align-items:center;'; row.innerHTML='<span style="color:#F0C040;">@'+esc(p.username)+'</span><button class="btn btn-blue" style="width:auto;padding:6px 10px;" onclick="ubProfileLive.follow(\''+esc(p.username)+'\')">FOLLOW</button>'; out.appendChild(row);}});
-  }
+  async function searchProfiles(term){ await fb(); var out=document.getElementById('ubProfileSearchResults'); if(!out) return; term=String(term||'').toLowerCase().trim(); if(term.length<2){out.innerHTML='';return;} var snap=await st.fb.getDocs(st.fb.collection(st.db,'profiles')); out.innerHTML=''; snap.forEach(function(doc){var p=doc.data(); var hay=(p.search||p.username||'').toLowerCase(); if(hay.indexOf(term)>-1){var row=document.createElement('div'); row.style.cssText='padding:8px;border:1px solid rgba(201,168,76,.35);border-radius:10px;display:flex;justify-content:space-between;align-items:center;'; row.innerHTML='<span style="color:#F0C040;">@'+esc(p.username)+'</span><button class="btn btn-blue" style="width:auto;padding:6px 10px;" onclick="ubProfileLive.follow(\''+esc(p.username)+'\')">FOLLOW</button>'; out.appendChild(row);}}); }
 
-  function boot(){ if(!ok()) return; profileTools(); refreshLiveProfiles(); }
+  function boot(){ if(!ok()) return; injectScrollFix(); profileTools(); refreshLiveProfiles(); }
   window.ubProfileLive={goLive:function(){setLive(true);},endLive:function(){setLive(false);},refresh:refreshLiveProfiles,open:openLive,follow:follow,chat:sendChat,superChat:sendSuperChat,search:searchProfiles};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
-  setTimeout(boot,800); setInterval(function(){profileTools();refreshLiveProfiles(); if(st.viewerTarget)refreshViewerCount(st.viewerTarget);},5000);
+  setTimeout(boot,800); setInterval(function(){injectScrollFix();profileTools();refreshLiveProfiles(); if(st.viewerTarget)refreshViewerCount(st.viewerTarget);},5000);
 })();
