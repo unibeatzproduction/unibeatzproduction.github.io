@@ -1,5 +1,5 @@
 // unifreestyle-profile-live.js
-// Live profile foundation: compact tools, horizontal live rail, cover support, follow, and live chat.
+// Live profile foundation: homepage live rail compact, profile live section preserved.
 (function(){
   'use strict';
 
@@ -124,8 +124,8 @@
     if(!profile || document.getElementById('ubProfileLiveTools')) return;
     var box=document.createElement('div');
     box.id='ubProfileLiveTools';
-    box.style.cssText='margin:8px 0 10px;padding:8px 10px;border-radius:12px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.22);';
-    box.innerHTML='<div style="display:flex;align-items:center;gap:8px;"><div style="font-family:Orbitron;color:#40D0FF;font-size:.45rem;letter-spacing:2px;min-width:92px;">PROFILE LIVE</div><button class="btn btn-gold" onclick="ubProfileLive.goLive()" style="padding:7px 10px;min-height:0;">🔴 GO LIVE</button><button class="btn btn-blue" onclick="ubProfileLive.endLive()" style="padding:7px 10px;min-height:0;">END</button></div>';
+    box.style.cssText='margin:14px 0;padding:14px;border-radius:14px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.28);';
+    box.innerHTML='<div style="font-family:Orbitron;color:#40D0FF;font-size:.5rem;letter-spacing:2px;margin-bottom:8px;">PROFILE LIVE</div><button class="btn btn-gold" onclick="ubProfileLive.goLive()">🔴 GO LIVE</button><button class="btn btn-blue" onclick="ubProfileLive.endLive()" style="margin-top:8px;">END LIVE</button><div style="font-size:.8rem;color:rgba(240,237,232,.65);margin-top:8px;">Live profiles appear on the homepage.</div>';
     profile.insertBefore(box,profile.firstChild);
   }
 
