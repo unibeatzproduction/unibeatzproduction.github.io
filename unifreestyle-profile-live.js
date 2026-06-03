@@ -3,7 +3,8 @@
 (function(){
   'use strict';
 
-  var st = { fb:null, db:null, chatUnsub:null };
+  var st = { fb:null, db:null, chatUnsub:null, viewerTarget:null };
+  var UBP_CUT = 0.10;
   function ok(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
   function toast(msg){ if(window.showToast) window.showToast(msg); else console.log('[profile-live]', msg); }
   function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
@@ -22,19 +23,22 @@
     await fb();
     var u=user(), name=uname();
     await st.fb.setDoc(st.fb.doc(st.db,'live_profiles',name),{
-      username:name,
-      displayName:u.name||name,
-      role:u.role||'artist',
-      avatar:u.avatar||'🎤',
-      photo:u.photo||u.avatarUrl||'',
-      cover:u.cover||u.coverPhoto||u.banner||'',
-      verified: u.verified !== false,
-      isLive:!!isLive,
-      startedAt:isLive?Date.now():0,
-      updatedAt:Date.now()
+      username:name, displayName:u.name||name, role:u.role||'artist', avatar:u.avatar||'🎤',
+      photo:u.photo||u.avatarUrl||'', cover:u.cover||u.coverPhoto||u.banner||'', verified: u.verified !== false,
+      isLive:!!isLive, startedAt:isLive?Date.now():0, updatedAt:Date.now()
     },{merge:true});
+    await ensurePublicProfile();
     toast(isLive?'🔴 You are live on your profile':'Live ended');
     refreshLiveProfiles();
+  }
+
+  async function ensurePublicProfile(){
+    await fb();
+    var u=user(), name=uname();
+    await st.fb.setDoc(st.fb.doc(st.db,'profiles',name),{
+      username:name, displayName:u.name||name, role:u.role||'artist', avatar:u.avatar||'🎤', photo:u.photo||u.avatarUrl||'',
+      cover:u.cover||u.coverPhoto||u.banner||'', verified:u.verified!==false, search:(name+' '+(u.name||'')).toLowerCase(), updatedAt:Date.now()
+    },{merge:true});
   }
 
   async function follow(target){
@@ -42,14 +46,39 @@
     var me=uname();
     if(!target || target===me) return;
     await st.fb.setDoc(st.fb.doc(st.db,'profile_follows',me+'_'+target),{follower:me,following:target,at:Date.now()},{merge:true});
+    await st.fb.setDoc(st.fb.doc(st.db,'profiles',target),{updatedAt:Date.now()},{merge:true});
     toast('✅ Following '+target);
+    updateFollowCounts(target);
+  }
+
+  async function updateFollowCounts(target){
+    await fb();
+    var followers=await st.fb.getDocs(st.fb.query(st.fb.collection(st.db,'profile_follows'),st.fb.where('following','==',target)));
+    var following=await st.fb.getDocs(st.fb.query(st.fb.collection(st.db,'profile_follows'),st.fb.where('follower','==',target)));
+    document.querySelectorAll('[data-followers]').forEach(function(el){ el.textContent=followers.size; });
+    document.querySelectorAll('[data-following]').forEach(function(el){ el.textContent=following.size; });
   }
 
   async function sendChat(target,msg){
     await fb();
     msg=String(msg||'').trim();
     if(!msg) return;
-    await st.fb.addDoc(st.fb.collection(st.db,'profile_live_chats',target,'messages'),{from:uname(),text:msg,at:Date.now()});
+    await st.fb.addDoc(st.fb.collection(st.db,'profile_live_chats',target,'messages'),{from:uname(),text:msg,type:'chat',at:Date.now()});
+  }
+
+  async function sendSuperChat(target,amount,emoji){
+    await fb();
+    amount=Number(amount||0);
+    if(!amount || amount<1){ toast('Enter an amount'); return; }
+    var ubp=Math.round(amount*UBP_CUT*100)/100;
+    var creator=Math.round((amount-ubp)*100)/100;
+    await st.fb.addDoc(st.fb.collection(st.db,'profile_live_chats',target,'messages'),{
+      from:uname(), type:'superchat', emoji:emoji||'🔥', amount:amount, creatorAmount:creator, ubpAmount:ubp, payout:'quarterly', at:Date.now()
+    });
+    await st.fb.addDoc(st.fb.collection(st.db,'creator_earnings'),{
+      creator:target, from:uname(), amount:amount, creatorAmount:creator, ubpAmount:ubp, platformCut:UBP_CUT, payout:'quarterly', status:'pending', at:Date.now()
+    });
+    toast('💰 Super Chat logged');
   }
 
   function homeRail(){
@@ -92,9 +121,9 @@
     m=document.createElement('div');
     m.id='ubProfileLiveModal';
     m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99999;display:none;color:#fff;overflow:auto;padding:18px;';
-    m.innerHTML='<div style="max-width:960px;margin:0 auto;"><button id="ubLiveClose" class="btn btn-gold" style="width:auto;margin-bottom:12px;">← CLOSE</button><div id="ubLiveHeader"></div><div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:12px;"><div id="ubLiveVideoBox" style="min-height:320px;border-radius:14px;border:1px solid rgba(64,208,255,.45);background:#05070d;display:flex;align-items:center;justify-content:center;color:#40D0FF;font-family:Orbitron;">LIVE PROFILE VIDEO</div><div style="border-radius:14px;border:1px solid rgba(201,168,76,.45);background:rgba(0,0,0,.35);padding:12px;"><div style="font-family:Orbitron;color:#40D0FF;font-size:.55rem;letter-spacing:2px;margin-bottom:8px;">LIVE CHAT</div><div id="ubLiveChatList" style="height:260px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;margin-bottom:8px;"></div><input id="ubLiveChatInput" placeholder="Talk live..." style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(64,208,255,.5);background:#05070d;color:#fff;margin-bottom:8px;"><button id="ubLiveSend" class="btn btn-blue">SEND CHAT</button></div></div></div>';
+    m.innerHTML='<div style="max-width:1000px;margin:0 auto;"><button id="ubLiveClose" class="btn btn-gold" style="width:auto;margin-bottom:12px;">← CLOSE</button><div id="ubLiveHeader"></div><div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:12px;"><div id="ubLiveVideoBox" style="min-height:320px;border-radius:14px;border:1px solid rgba(64,208,255,.45);background:#05070d;display:flex;align-items:center;justify-content:center;color:#40D0FF;font-family:Orbitron;">LIVE PROFILE VIDEO</div><div style="border-radius:14px;border:1px solid rgba(201,168,76,.45);background:rgba(0,0,0,.35);padding:12px;"><div style="font-family:Orbitron;color:#40D0FF;font-size:.55rem;letter-spacing:2px;margin-bottom:8px;">LIVE CHAT</div><div id="ubLiveChatList" style="height:245px;overflow:auto;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px;margin-bottom:8px;"></div><input id="ubLiveChatInput" placeholder="Talk live..." style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(64,208,255,.5);background:#05070d;color:#fff;margin-bottom:8px;"><button id="ubLiveSend" class="btn btn-blue">SEND CHAT</button><div style="display:grid;grid-template-columns:1fr 80px;gap:8px;margin-top:8px;"><select id="ubLiveEmoji" style="border-radius:8px;background:#05070d;color:#fff;border:1px solid rgba(201,168,76,.5);padding:8px;"><option>🔥</option><option>⚡</option><option>👑</option><option>🎤</option><option>💎</option></select><input id="ubLiveAmount" type="number" min="1" placeholder="$" style="border-radius:8px;background:#05070d;color:#fff;border:1px solid rgba(201,168,76,.5);padding:8px;"></div><button id="ubLiveSuper" class="btn btn-gold" style="margin-top:8px;">SUPER CHAT</button><div style="font-size:.7rem;color:rgba(240,237,232,.6);margin-top:7px;">90% creator / 10% UniBeatzProduction. Quarterly payout tracking.</div></div></div></div>';
     document.body.appendChild(m);
-    m.querySelector('#ubLiveClose').onclick=function(){m.style.display='none'; if(st.chatUnsub)try{st.chatUnsub();}catch(e){}};
+    m.querySelector('#ubLiveClose').onclick=function(){m.style.display='none'; if(st.chatUnsub)try{st.chatUnsub();}catch(e){}; leaveLiveViewer();};
     return m;
   }
 
@@ -102,9 +131,33 @@
     await fb();
     var m=modal();
     m.style.display='block';
-    m.querySelector('#ubLiveHeader').innerHTML='<div style="margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.35);"><div style="font-family:Bebas Neue;font-size:2rem;letter-spacing:2px;color:#F0C040;">@'+esc(target)+' LIVE</div><button class="btn btn-blue" style="width:auto;margin-top:8px;" onclick="ubProfileLive.follow(\''+esc(target)+'\')">FOLLOW</button></div>';
+    await joinLiveViewer(target);
+    updateFollowCounts(target);
+    m.querySelector('#ubLiveHeader').innerHTML='<div style="margin-bottom:12px;padding:12px;border-radius:14px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.35);"><div style="font-family:Bebas Neue;font-size:2rem;letter-spacing:2px;color:#F0C040;">@'+esc(target)+' LIVE</div><div style="font-family:Orbitron;font-size:.5rem;color:#40D0FF;letter-spacing:1.5px;margin-top:4px;">👁️ <span data-live-viewers>0</span> VIEWERS · <span data-followers>0</span> FOLLOWERS · <span data-following>0</span> FOLLOWING</div><button class="btn btn-blue" style="width:auto;margin-top:8px;" onclick="ubProfileLive.follow(\''+esc(target)+'\')">FOLLOW</button></div>';
     m.querySelector('#ubLiveSend').onclick=function(){var input=m.querySelector('#ubLiveChatInput'); sendChat(target,input.value); input.value='';};
+    m.querySelector('#ubLiveSuper').onclick=function(){sendSuperChat(target,m.querySelector('#ubLiveAmount').value,m.querySelector('#ubLiveEmoji').value);};
     listenChat(target);
+  }
+
+  async function joinLiveViewer(target){
+    await fb();
+    if(st.viewerTarget && st.viewerTarget!==target) await leaveLiveViewer();
+    st.viewerTarget=target;
+    await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',target+'_'+uname()),{profile:target,viewer:uname(),active:true,at:Date.now()},{merge:true});
+    refreshViewerCount(target);
+  }
+
+  async function leaveLiveViewer(){
+    if(!st.viewerTarget) return;
+    await fb();
+    await st.fb.setDoc(st.fb.doc(st.db,'live_profile_viewers',st.viewerTarget+'_'+uname()),{active:false,leftAt:Date.now()},{merge:true});
+    st.viewerTarget=null;
+  }
+
+  async function refreshViewerCount(target){
+    await fb();
+    var snap=await st.fb.getDocs(st.fb.query(st.fb.collection(st.db,'live_profile_viewers'),st.fb.where('profile','==',target),st.fb.where('active','==',true)));
+    document.querySelectorAll('[data-live-viewers]').forEach(function(el){el.textContent=snap.size;});
   }
 
   async function listenChat(target){
@@ -114,7 +167,7 @@
     var q=st.fb.query(st.fb.collection(st.db,'profile_live_chats',target,'messages'),st.fb.orderBy('at','asc'));
     st.chatUnsub=st.fb.onSnapshot(q,function(snap){
       list.innerHTML='';
-      snap.forEach(function(d){var x=d.data(); var row=document.createElement('div'); row.style.cssText='padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.86rem;'; row.innerHTML='<b style="color:#40D0FF;">'+esc(x.from)+':</b> '+esc(x.text); list.appendChild(row);});
+      snap.forEach(function(d){var x=d.data(); var row=document.createElement('div'); row.style.cssText='padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:.86rem;'; row.innerHTML=x.type==='superchat'?'<b style="color:#F0C040;">'+esc(x.emoji||'🔥')+' '+esc(x.from)+' sent $'+esc(x.amount)+'</b><div style="color:#40D0FF;font-size:.72rem;">Creator $'+esc(x.creatorAmount)+' · UBP $'+esc(x.ubpAmount)+'</div>':'<b style="color:#40D0FF;">'+esc(x.from)+':</b> '+esc(x.text); list.appendChild(row);});
       list.scrollTop=list.scrollHeight;
     });
   }
@@ -125,12 +178,25 @@
     var box=document.createElement('div');
     box.id='ubProfileLiveTools';
     box.style.cssText='margin:14px 0;padding:14px;border-radius:14px;border:1px solid rgba(64,208,255,.35);background:rgba(0,0,0,.28);';
-    box.innerHTML='<div style="font-family:Orbitron;color:#40D0FF;font-size:.5rem;letter-spacing:2px;margin-bottom:8px;">PROFILE LIVE</div><button class="btn btn-gold" onclick="ubProfileLive.goLive()">🔴 GO LIVE</button><button class="btn btn-blue" onclick="ubProfileLive.endLive()" style="margin-top:8px;">END LIVE</button><div style="font-size:.8rem;color:rgba(240,237,232,.65);margin-top:8px;">Live profiles appear on the homepage.</div>';
+    box.innerHTML='<div style="font-family:Orbitron;color:#40D0FF;font-size:.5rem;letter-spacing:2px;margin-bottom:8px;">PROFILE LIVE</div><button class="btn btn-gold" onclick="ubProfileLive.goLive()">🔴 GO LIVE</button><button class="btn btn-blue" onclick="ubProfileLive.endLive()" style="margin-top:8px;">END LIVE</button><div style="font-size:.8rem;color:rgba(240,237,232,.65);margin-top:8px;">Live profiles appear on the homepage.</div><div id="ubProfileSearchBox" style="margin-top:12px;"><input id="ubProfileSearchInput" placeholder="Search profiles..." style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(64,208,255,.5);background:#05070d;color:#fff;"><div id="ubProfileSearchResults" style="display:grid;gap:8px;margin-top:8px;"></div></div>';
     profile.insertBefore(box,profile.firstChild);
+    var input=box.querySelector('#ubProfileSearchInput');
+    input.addEventListener('input',function(){searchProfiles(input.value);});
+    ensurePublicProfile();
+  }
+
+  async function searchProfiles(term){
+    await fb();
+    var out=document.getElementById('ubProfileSearchResults'); if(!out) return;
+    term=String(term||'').toLowerCase().trim();
+    if(term.length<2){out.innerHTML='';return;}
+    var snap=await st.fb.getDocs(st.fb.collection(st.db,'profiles'));
+    out.innerHTML='';
+    snap.forEach(function(doc){var p=doc.data(); var hay=(p.search||p.username||'').toLowerCase(); if(hay.indexOf(term)>-1){var row=document.createElement('div'); row.style.cssText='padding:8px;border:1px solid rgba(201,168,76,.35);border-radius:10px;display:flex;justify-content:space-between;align-items:center;'; row.innerHTML='<span style="color:#F0C040;">@'+esc(p.username)+'</span><button class="btn btn-blue" style="width:auto;padding:6px 10px;" onclick="ubProfileLive.follow(\''+esc(p.username)+'\')">FOLLOW</button>'; out.appendChild(row);}});
   }
 
   function boot(){ if(!ok()) return; profileTools(); refreshLiveProfiles(); }
-  window.ubProfileLive={goLive:function(){setLive(true);},endLive:function(){setLive(false);},refresh:refreshLiveProfiles,open:openLive,follow:follow,chat:sendChat};
+  window.ubProfileLive={goLive:function(){setLive(true);},endLive:function(){setLive(false);},refresh:refreshLiveProfiles,open:openLive,follow:follow,chat:sendChat,superChat:sendSuperChat,search:searchProfiles};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
-  setTimeout(boot,800); setInterval(function(){profileTools();refreshLiveProfiles();},5000);
+  setTimeout(boot,800); setInterval(function(){profileTools();refreshLiveProfiles(); if(st.viewerTarget)refreshViewerCount(st.viewerTarget);},5000);
 })();
