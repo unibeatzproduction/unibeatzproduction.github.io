@@ -63,6 +63,8 @@ function addMainMobileInput(sec) {
     keepStudioVisible();
     setTimeout(keepStudioVisible, 300);
     setTimeout(keepStudioVisible, 800);
+    // Show loading toast IMMEDIATELY so user knows it's working
+    if (typeof showToast === 'function') showToast('🎵 Loading: ' + file.name.slice(0, 24) + '...');
     var fakeInput = { files: [file], value: '' };
     if (typeof window.handleAudioUpload === 'function') {
       window.handleAudioUpload(fakeInput, sec);
