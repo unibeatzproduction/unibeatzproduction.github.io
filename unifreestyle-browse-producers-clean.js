@@ -10,7 +10,7 @@ function users(){return g('ub_users','{}')}
 function follows(){return g('ub_profile_follows_v1','{}')}
 function saveFollows(f){p('ub_profile_follows_v1',f)}
 function live(t){try{return localStorage.getItem('ub_profile_live_'+t)==='1'}catch(x){return false}}
-function real(){var out=[], all=users(), c=cur(), cn=u(c), seen={}; Object.keys(all||{}).forEach(function(k){var x=all[k]; if(x&&u(x)) out.push(x)}); if(cn&&!out.some(function(x){return u(x)===cn})) out.unshift(c); return out.filter(function(x){var name=u(x); if(!name||name==='djblaze'||name==='phantombeats'||seen[name]) return false; seen[name]=1; return true})}
+function real(){var out=[], all=users(), c=cur(), cn=u(c), seen={}; Object.keys(all||{}).forEach(function(k){var x=all[k]; if(x&&u(x)) out.push(x)}); if(cn&&!out.some(function(x){return u(x)===cn})) out.unshift(c); if(!out.some(function(x){return u(x)==='syncere862'})) out.push({name:'TAZ',username:'syncere862',role:'artist',avatar:'🎤',bio:'Producer on Uni Freestyle.'}); if(!out.some(function(x){return u(x)==='eugenebonilla'})) out.push({name:'Eugene Bonilla',username:'eugenebonilla',role:'artist',avatar:'👑',bio:'Producer on Uni Freestyle.'}); return out.filter(function(x){var name=u(x); if(!name||name==='djblaze'||name==='phantombeats'||seen[name]) return false; seen[name]=1; return true})}
 function following(t){return !!follows()[u(cur())+'__'+t]}
 function follow(t){var me=u(cur()); if(!me||me===t)return; var f=follows(), k=me+'__'+t; if(f[k]) delete f[k]; else f[k]={follower:me,following:t,at:Date.now()}; saveFollows(f); render()}
 function watch(t){if(window.showToast)showToast(live(t)?'🔴 Watching @'+t+' live':'@'+t+' is not live right now')}
