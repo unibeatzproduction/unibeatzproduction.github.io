@@ -57,25 +57,12 @@ function addMainMobileInput(sec) {
   input.addEventListener('click', function () { keepStudioVisible(); });
 
   input.addEventListener('change', function () {
-    // Capture file IMMEDIATELY — before focus cycle clears it
-    var file = input.files && input.files[0] ? input.files[0] : null;
-    if (!file) return;
+    if (!input.files || !input.files[0]) return;
     keepStudioVisible();
-    setTimeout(keepStudioVisible, 300);
-    setTimeout(keepStudioVisible, 800);
-    // Show loading toast IMMEDIATELY so user knows it's working
-    if (typeof showToast === 'function') showToast('🎵 Loading: ' + file.name.slice(0, 24) + '...');
-    var fakeInput = { files: [file], value: '' };
     if (typeof window.handleAudioUpload === 'function') {
-      window.handleAudioUpload(fakeInput, sec);
+      window.handleAudioUpload(input, sec);
     } else {
-      setTimeout(function () {
-        if (typeof window.handleAudioUpload === 'function') {
-          window.handleAudioUpload(fakeInput, sec);
-        } else {
-          alert('Upload engine not ready yet. Refresh and try again.');
-        }
-      }, 800);
+      alert('Upload engine not ready yet. Refresh and try again.');
     }
   });
 }
