@@ -1,5 +1,5 @@
-// unipack-swing.js — v3
-// Patches switchSection to inject swing UI when MIDI tab opens
+// unipack-swing.js — v4
+// NO switchSection patch — uses MutationObserver instead
 
 (function () {
   if (!location.pathname.toLowerCase().includes('unipack.html')) return;
@@ -8,16 +8,7 @@
     if (document.getElementById('ub-swing-style')) return;
     var s = document.createElement('style');
     s.id = 'ub-swing-style';
-    s.textContent = `
-      .swing-wrap { display:flex; align-items:center; gap:8px; background:rgba(155,48,255,.08); border:1px solid rgba(155,48,255,.25); border-radius:8px; padding:6px 12px; margin-left:8px; }
-      .swing-label { font-family:'Orbitron',sans-serif; font-size:.44rem; letter-spacing:2px; color:rgba(240,237,232,.6); white-space:nowrap; }
-      .swing-slider { -webkit-appearance:none; appearance:none; width:90px; height:4px; border-radius:2px; background:linear-gradient(90deg,rgba(155,48,255,.4),rgba(155,48,255,.8)); outline:none; cursor:pointer; }
-      .swing-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#9B30FF; box-shadow:0 0 6px rgba(155,48,255,.7); cursor:pointer; }
-      .swing-display { font-family:'Orbitron',sans-serif; font-size:.5rem; font-weight:700; color:#9B30FF; min-width:32px; text-align:right; }
-      .swing-groove-row { display:flex; gap:6px; flex-wrap:wrap; padding:8px 12px; background:rgba(155,48,255,.04); border:1px solid rgba(155,48,255,.15); border-radius:8px; margin:6px 0; }
-      .groove-btn { padding:5px 10px; border-radius:6px; border:1px solid rgba(155,48,255,.3); background:rgba(155,48,255,.08); color:rgba(240,237,232,.7); font-family:'Orbitron',sans-serif; font-size:.42rem; letter-spacing:1.5px; cursor:pointer; transition:all .2s; }
-      .groove-btn:hover, .groove-btn.active { background:rgba(155,48,255,.25); border-color:#9B30FF; color:#fff; }
-    `;
+    s.textContent = '.swing-wrap{display:flex;align-items:center;gap:8px;background:rgba(155,48,255,.08);border:1px solid rgba(155,48,255,.25);border-radius:8px;padding:6px 12px;margin-left:8px;}.swing-label{font-family:"Orbitron",sans-serif;font-size:.44rem;letter-spacing:2px;color:rgba(240,237,232,.6);white-space:nowrap;}.swing-slider{-webkit-appearance:none;appearance:none;width:90px;height:4px;border-radius:2px;background:linear-gradient(90deg,rgba(155,48,255,.4),rgba(155,48,255,.8));outline:none;cursor:pointer;}.swing-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#9B30FF;box-shadow:0 0 6px rgba(155,48,255,.7);cursor:pointer;}.swing-display{font-family:"Orbitron",sans-serif;font-size:.5rem;font-weight:700;color:#9B30FF;min-width:32px;text-align:right;}.swing-groove-row{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;background:rgba(155,48,255,.04);border:1px solid rgba(155,48,255,.15);border-radius:8px;margin:6px 0;}.groove-btn{padding:5px 10px;border-radius:6px;border:1px solid rgba(155,48,255,.3);background:rgba(155,48,255,.08);color:rgba(240,237,232,.7);font-family:"Orbitron",sans-serif;font-size:.42rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s;}.groove-btn:hover,.groove-btn.active{background:rgba(155,48,255,.25);border-color:#9B30FF;color:#fff;}';
     document.head.appendChild(s);
   }
 
@@ -68,7 +59,6 @@
     if (window._ubSwingPatched) return;
     if (typeof window.startMidiPlay !== 'function') return;
     window._ubSwingPatched = true;
-
     window.startMidiPlay = function () {
       if (typeof ensureAudioContext === 'function') {
         var ctx = ensureAudioContext();
@@ -103,31 +93,29 @@
     };
   }
 
-  // Patch switchSection to catch MIDI tab open
-  function patchSwitchSection() {
-    if (window._ubSwitchPatched) return;
-    if (typeof window.switchSection !== 'function') return;
-    window._ubSwitchPatched = true;
-    var orig = window.switchSection;
-    window.switchSection = function (name) {
-      orig.apply(this, arguments);
-      if (name === 'midi') {
-        setTimeout(injectSwingUI, 50);
-        setTimeout(injectSwingUI, 300);
-      }
-    };
-  }
-
   function boot() {
     injectStyles();
+
+    // Watch for MIDI panel becoming active via class change
+    var observer = new MutationObserver(function () {
+      var panel = document.getElementById('panel-midi');
+      if (panel && panel.classList.contains('active')) {
+        injectSwingUI();
+      }
+    });
+
+    var workspace = document.querySelector('.workspace');
+    if (workspace) {
+      observer.observe(workspace, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    }
+
+    // Also poll as fallback
     var attempts = 0;
     var timer = setInterval(function () {
       attempts++;
-      patchSwitchSection();
-      if (typeof window.startMidiPlay === 'function' && !window._ubSwingPatched) patchMidiPlay();
-      // If MIDI panel already active on load
       var panel = document.getElementById('panel-midi');
       if (panel && panel.classList.contains('active')) injectSwingUI();
+      if (typeof window.startMidiPlay === 'function' && !window._ubSwingPatched) patchMidiPlay();
       if (attempts > 80) clearInterval(timer);
     }, 200);
   }
