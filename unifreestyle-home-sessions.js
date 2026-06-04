@@ -1,5 +1,5 @@
 // unifreestyle-home-sessions.js
-// Home cleanup: remove Instant Mode + make Open Freestyle / Beat Kill counts live.
+// Home cleanup: remove Instant Mode safely + live counts + top profile icon guard.
 (function(){
   'use strict';
 
@@ -10,7 +10,6 @@
   };
 
   function ok(){return location.pathname.toLowerCase().includes('unifreestyle.html');}
-  function log(){var a=[].slice.call(arguments);a.unshift('[home-sessions]');console.log.apply(console,a);}
   function getLocal(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||'{}');}catch(e){return {};}}
   function setLocal(v){try{localStorage.setItem(SESSION_KEY,JSON.stringify(v));}catch(e){}}
   function norm(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase();}
@@ -24,33 +23,36 @@
       '.ub-live-count::before{content:"⚡ ";}',
       '.ub-session-enter{cursor:pointer!important;}',
       '.ub-session-enter:hover{filter:brightness(1.12)!important;}',
-      '.ub-hidden-instant{display:none!important;}'
+      '#page-home .instant-card,#page-home .ub-hide-instant-section{display:none!important;}'
     ].join('');
     document.head.appendChild(s);
   }
 
-  function findCards(){
-    var cards=[];
-    var all=[].slice.call(document.querySelectorAll('section,article,div'));
-    all.forEach(function(el){
-      var txt=norm(el.textContent);
-      if(!txt)return;
-      if(txt.indexOf('open freestyle battle')>-1 && txt.length<700) cards.push({type:'open',el:el});
-      if(txt.indexOf('beat kill session')>-1 && txt.length<700) cards.push({type:'beatkill',el:el});
-    });
-    // Keep the largest reasonable parent card for each session, not nested duplicates.
-    var found={};
-    cards.forEach(function(c){
-      if(!found[c.type] || c.el.getBoundingClientRect().height>found[c.type].el.getBoundingClientRect().height){found[c.type]=c;}
-    });
-    return found;
+  function findSessionCards(){
+    return {
+      open:document.querySelector('#page-home .session-card.live') || findByTitle('open freestyle battle'),
+      beatkill:document.querySelector('#page-home .session-card.upcoming') || findByTitle('beat kill session')
+    };
+  }
+
+  function findByTitle(title){
+    var all=[].slice.call(document.querySelectorAll('#page-home .session-card,#page-home div'));
+    for(var i=0;i<all.length;i++){
+      var txt=norm(all[i].textContent);
+      if(txt.indexOf(title)>-1 && txt.length<500) return all[i].closest('.session-card') || all[i];
+    }
+    return null;
   }
 
   function removeInstantMode(){
-    [].slice.call(document.querySelectorAll('section,article,div')).forEach(function(el){
-      var txt=norm(el.textContent);
-      if(txt.indexOf('instant mode')>-1 || txt.indexOf('start instant battle')>-1 || txt.indexOf('battle now')>-1){
-        if(txt.length<900){el.classList.add('ub-hidden-instant');}
+    var home=document.getElementById('page-home');
+    if(!home)return;
+    var instant=home.querySelector('.instant-card');
+    if(instant) instant.style.display='none';
+    [].slice.call(home.querySelectorAll('.section-head')).forEach(function(el){
+      if(norm(el.textContent).indexOf('instant mode')>-1){
+        el.classList.add('ub-hide-instant-section');
+        el.style.display='none';
       }
     });
   }
@@ -64,40 +66,35 @@
   }
 
   function enhanceCard(type,el,count){
-    if(!el || el.dataset.ubSessionEnhanced==='1'){
-      updateCount(type,count);
-      return;
-    }
-    el.dataset.ubSessionEnhanced='1';
+    if(!el)return;
+    el.style.display='';
     el.dataset.ubSessionType=type;
     el.classList.add('ub-session-enter');
     replaceTextNode(el,/\d+\s+Artists\s+(in Lobby|Queued|Waiting)/i,count+' Artists Waiting');
     replaceTextNode(el,/Artists\s+(in Lobby|Queued)/i,'Artists Waiting');
 
-    var old=el.querySelector('[data-ub-live-count="'+type+'"]');
-    if(!old){
-      var target=null;
-      [].slice.call(el.querySelectorAll('*')).some(function(x){
-        if(/Artists\s+(in Lobby|Queued|Waiting)/i.test(x.textContent||'')){target=x;return true;}
-        return false;
-      });
-      if(target){
-        target.innerHTML='<span class="ub-live-count" data-ub-live-count="'+type+'">'+count+' Artists Waiting</span>';
+    var target=el.querySelector('[data-ub-live-count="'+type+'"]');
+    if(!target){
+      var lobby=el.querySelector('.session-lobby');
+      if(lobby){
+        lobby.innerHTML='<span class="ub-live-count" data-ub-live-count="'+type+'">'+count+' Artists Waiting</span>';
       }
     }
 
-    el.addEventListener('click',function(ev){
-      var tag=(ev.target&&ev.target.tagName||'').toLowerCase();
-      if(tag==='button' || tag==='a') return;
-      enterSession(type);
-    });
-
-    [].slice.call(el.querySelectorAll('button,a')).forEach(function(btn){
-      var t=norm(btn.textContent);
-      if(t==='join' || t.indexOf('enter')>-1 || t.indexOf('live now')>-1){
-        btn.onclick=function(e){e.preventDefault();enterSession(type);};
-      }
-    });
+    if(el.dataset.ubClickReady!=='1'){
+      el.dataset.ubClickReady='1';
+      el.addEventListener('click',function(ev){
+        var tag=(ev.target&&ev.target.tagName||'').toLowerCase();
+        if(tag==='button'||tag==='a')return;
+        enterSession(type);
+      });
+      [].slice.call(el.querySelectorAll('button,a')).forEach(function(btn){
+        var t=norm(btn.textContent);
+        if(t==='join'||t.indexOf('enter')>-1||t.indexOf('live now')>-1){
+          btn.onclick=function(e){e.preventDefault();e.stopPropagation();enterSession(type);};
+        }
+      });
+    }
   }
 
   function updateCount(type,count){
@@ -126,22 +123,36 @@
     return {open:Number(local.open||0),beatkill:Number(local.beatkill||0)};
   }
 
+  function forceTopProfileIcon(){
+    var home=document.getElementById('page-home');
+    if(!home)return;
+    [].slice.call(home.querySelectorAll('.top-bar .icon-btn')).forEach(function(btn){
+      if((btn.textContent||'').indexOf('👤')>-1){
+        btn.onclick=function(e){
+          if(e){e.preventDefault();e.stopPropagation();}
+          if(typeof window.goToPage==='function') window.goToPage('profile');
+          return false;
+        };
+      }
+    });
+  }
+
   function render(){
     if(!ok())return;
     css();
     removeInstantMode();
-    var cards=findCards();
+    forceTopProfileIcon();
+    var cards=findSessionCards();
     var counts=currentCounts();
-    if(cards.open) enhanceCard('open',cards.open.el,counts.open);
-    if(cards.beatkill) enhanceCard('beatkill',cards.beatkill.el,counts.beatkill);
+    enhanceCard('open',cards.open,counts.open);
+    enhanceCard('beatkill',cards.beatkill,counts.beatkill);
   }
 
   function wireFirebase(){
-    // Optional hook: if another script exposes Firebase counts later, this module will use them.
     window.ubHomeSessionsUpdate=function(counts){
       var data=getLocal();
-      if(typeof counts.open==='number') data.open=counts.open;
-      if(typeof counts.beatkill==='number') data.beatkill=counts.beatkill;
+      if(typeof counts.open==='number')data.open=counts.open;
+      if(typeof counts.beatkill==='number')data.beatkill=counts.beatkill;
       setLocal(data);
       updateCount('open',Number(data.open||0));
       updateCount('beatkill',Number(data.beatkill||0));
@@ -150,7 +161,7 @@
 
   function boot(){wireFirebase();render();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-  setTimeout(render,600);
-  setTimeout(render,1600);
+  setTimeout(render,400);
+  setTimeout(render,1200);
   setInterval(render,3000);
 })();
