@@ -147,6 +147,14 @@ function boot() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();
-setTimeout(boot, 800);
-setTimeout(boot, 1800);
-setTimeout(boot, 3200);
+
+// Re-run boot whenever studio page becomes active (catches tab switches and login)
+var _ubMobileObserver = new MutationObserver(function() {
+  var studio = document.getElementById('page-studio');
+  if (studio && studio.classList.contains('active')) boot();
+});
+var _ubMobileObserverTarget = document.body || document.documentElement;
+_ubMobileObserver.observe(_ubMobileObserverTarget, { attributes: true, subtree: true, attributeFilter: ['class'] });
+
+// One safety fallback only
+setTimeout(boot, 500);
