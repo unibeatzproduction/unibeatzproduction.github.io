@@ -1,5 +1,5 @@
 // unipack-mobile-upload-fix.js
-// Mobile UniPack upload fix — minimal focus guard, no aggressive page switching
+// Mobile UniPack upload fix — restored working version + new stems tab support
 
 function isUniPack() {
   return location.pathname.toLowerCase().includes('unipack.html');
@@ -9,16 +9,18 @@ function addStyle() {
   if (document.getElementById('ub-mobile-upload-style')) return;
   var style = document.createElement('style');
   style.id = 'ub-mobile-upload-style';
-  style.textContent = '.ub-mobile-file-row{margin:12px 0 14px;padding:12px;border:1px solid rgba(64,208,255,.42);border-radius:10px;background:rgba(0,170,255,.08)}.ub-mobile-file-label{display:block;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:2px;color:#40D0FF;margin-bottom:7px}.ub-mobile-file-input{display:block;width:100%;padding:12px;border-radius:8px;background:#070710;color:#fff;border:1px solid rgba(201,168,76,.45);font-size:.86rem}.ub-mobile-file-note{margin-top:7px;font-size:.72rem;color:rgba(240,237,232,.58);line-height:1.35}';
+  style.textContent = '.ub-mobile-file-row{margin:12px 0 14px;padding:12px;border:1px solid rgba(64,208,255,.42);border-radius:10px;background:rgba(0,170,255,.08)}.ub-mobile-file-label{display:block;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:2px;color:#40D0FF;margin-bottom:7px}.ub-mobile-file-input{display:block;width:100%;padding:12px;border-radius:8px;background:#070710;color:#fff;border:1px solid rgba(201,168,76,.45);font-size:.86rem}.ub-mobile-file-note{margin-top:7px;font-size:.72rem;color:rgba(240,237,232,.58);line-height:1.35}@media(min-width:900px){.ub-mobile-file-row{display:none!important}}';
   document.head.appendChild(style);
 }
 
-function ensureStudioActive() {
-  // Only switch to studio if we're not already on it
+function keepStudioVisible() {
+  if (typeof window.goPage === 'function') {
+    window.goPage('studio');
+    return;
+  }
   var studio = document.getElementById('page-studio');
   if (!studio) return;
-  if (studio.classList.contains('active')) return;
-  document.querySelectorAll('.page').forEach(function (p) { p.classList.remove('active'); });
+  document.querySelectorAll('.page').forEach(function (page) { page.classList.remove('active'); });
   studio.classList.add('active');
 }
 
@@ -27,11 +29,17 @@ function setupFocusGuard() {
   window._ubFocusGuardSetup = true;
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
-      setTimeout(ensureStudioActive, 100);
+      setTimeout(keepStudioVisible, 50);
+      setTimeout(keepStudioVisible, 300);
+      setTimeout(keepStudioVisible, 700);
     }
   });
+  window.addEventListener('focus', function () {
+    setTimeout(keepStudioVisible, 50);
+    setTimeout(keepStudioVisible, 300);
+  });
   window.addEventListener('pageshow', function () {
-    setTimeout(ensureStudioActive, 100);
+    setTimeout(keepStudioVisible, 50);
   });
 }
 
@@ -46,31 +54,38 @@ function addMainMobileInput(sec) {
 
   var input = row.querySelector('input');
 
+  input.addEventListener('click', function () { keepStudioVisible(); });
+
   input.addEventListener('change', function () {
-    // Capture file IMMEDIATELY before any async
+    // Capture file IMMEDIATELY — before focus cycle clears it
     var file = input.files && input.files[0] ? input.files[0] : null;
     if (!file) return;
-
+    keepStudioVisible();
+    setTimeout(keepStudioVisible, 300);
+    setTimeout(keepStudioVisible, 800);
     var fakeInput = { files: [file], value: '' };
-
-    function tryUpload() {
-      if (typeof window.handleAudioUpload === 'function') {
-        window.handleAudioUpload(fakeInput, sec);
-      }
+    if (typeof window.handleAudioUpload === 'function') {
+      window.handleAudioUpload(fakeInput, sec);
+    } else {
+      setTimeout(function () {
+        if (typeof window.handleAudioUpload === 'function') {
+          window.handleAudioUpload(fakeInput, sec);
+        } else {
+          alert('Upload engine not ready yet. Refresh and try again.');
+        }
+      }, 800);
     }
-
-    // Ensure studio page is visible first
-    ensureStudioActive();
-    setTimeout(tryUpload, 200);
   });
 }
 
 function addStemMobileInput() {
   if (document.getElementById('ubMobileStemRow')) return;
 
+  // Support new stems tab (panel-stems + ubStemDropZone) and old ub-stem-studio
   var stemDropZone = document.getElementById('ubStemDropZone');
   var stemPanel = document.getElementById('panel-stems');
-  var target = stemDropZone || stemPanel || document.getElementById('ub-stem-studio');
+  var oldStemBox = document.getElementById('ub-stem-studio');
+  var target = stemDropZone || oldStemBox || stemPanel;
   if (!target) return;
 
   var row = document.createElement('div');
@@ -80,25 +95,30 @@ function addStemMobileInput() {
 
   if (stemDropZone) {
     stemDropZone.insertAdjacentElement('afterend', row);
-  } else if (stemPanel) {
-    stemPanel.appendChild(row);
+  } else if (oldStemBox) {
+    oldStemBox.insertAdjacentElement('afterend', row);
   } else {
-    target.insertAdjacentElement('afterend', row);
+    stemPanel.appendChild(row);
   }
 
   var input = row.querySelector('input');
 
+  input.addEventListener('click', function () { keepStudioVisible(); });
+
   input.addEventListener('change', function () {
+    keepStudioVisible();
+    setTimeout(keepStudioVisible, 100);
+    setTimeout(keepStudioVisible, 500);
     if (!input.files || !input.files.length) return;
     var files = Array.from(input.files);
 
-    // Use global _ubAddStems if available (new stems tab)
+    // New stems tab — use _ubAddStems global
     if (typeof window._ubAddStems === 'function') {
       window._ubAddStems(files);
       return;
     }
 
-    // Try triggering ubStemInput directly
+    // Try DataTransfer into ubStemInput
     var stemInput = document.getElementById('ubStemInput');
     if (stemInput) {
       try {
