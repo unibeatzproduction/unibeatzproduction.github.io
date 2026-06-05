@@ -32,7 +32,10 @@
     addDoc,
     updateDoc,
     onSnapshot,
-    serverTimestamp
+    serverTimestamp,
+    query,
+    where,
+    orderBy,
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"; 
   
   // ═════ FIREBASE CONFIG ═════
@@ -57,7 +60,6 @@
   app,
   auth,
   db,
-
   collection,
   doc,
   getDoc,
@@ -67,7 +69,9 @@
   updateDoc,
   onSnapshot,
   serverTimestamp,
-
+  query,
+  where,
+  orderBy,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
