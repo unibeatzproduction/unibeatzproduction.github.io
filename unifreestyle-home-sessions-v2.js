@@ -33,13 +33,14 @@ function syncUsersFromFirestore() {
   }
   _syncDone = true;
   try {
-    fb.getDocs(fb.collection(fb.db, 'users')).then(function(snap) {
+    fb.getDocs(fb.collection(fb.db, 'profiles')).then(function(snap) {
       if (snap.empty) return;
       var all = users();
       var changed = false;
       snap.forEach(function(doc) {
         var d = doc.data();
-        var name = (d.username || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+        // Doc ID is the username
+        var name = (doc.id || d.username || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
         if (!name) return;
         // Skip fake/test users
         if (name === 'djblaze' || name === 'phantombeats') return;
@@ -47,20 +48,20 @@ function syncUsersFromFirestore() {
         if (!all[name]) {
           all[name] = {
             username: name,
-            name: d.name || d.displayName || niceName(name),
+            name: d.displayName || d.name || niceName(name),
             role: d.role || 'artist',
             avatar: d.avatar || '🎤',
             photo: d.photo || d.photoUrl || '',
             bio: d.bio || '',
-            email: d.email || '',
-            unipackTier: d.unipackTier || 'starter',
+            verified: d.verified || false,
           };
           changed = true;
         } else {
-          // Update photo/bio if they changed
+          // Update fields that may have changed
           if (d.photo || d.photoUrl) { all[name].photo = d.photo || d.photoUrl; changed = true; }
           if (d.bio) { all[name].bio = d.bio; changed = true; }
-          if (d.name || d.displayName) { all[name].name = d.name || d.displayName; changed = true; }
+          if (d.displayName || d.name) { all[name].name = d.displayName || d.name; changed = true; }
+          if (d.verified !== undefined) { all[name].verified = d.verified; changed = true; }
         }
       });
       if (changed) {
