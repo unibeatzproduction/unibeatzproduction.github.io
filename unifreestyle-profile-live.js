@@ -3,7 +3,7 @@
 (function(){
   'use strict';
 
-  var TOKEN_FN='https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+  var TOKEN_FN='https://getlivekittoken-vikmcq7yva-uc.a.run.app';
   var st={fb:null,db:null,chatUnsub:null,viewerTarget:null,room:null,liveRole:null};
   var UBP_CUT=0.10;
 
