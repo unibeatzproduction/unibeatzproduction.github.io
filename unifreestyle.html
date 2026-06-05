@@ -53,22 +53,35 @@
   auth.languageCode = "en";
 
   // Make Firebase available globally for the rest of the script
-  window.UB_FIREBASE = {
-    app,
-    auth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    sendEmailVerification,
-    sendPasswordResetEmail,
-    onAuthStateChanged,
-    signOut,
-    updateProfile,
-    GoogleAuthProvider,
-    signInWithPopup,
-    signInWithRedirect,
-    getRedirectResult,
-    ready: true,
-  };
+ window.UB_FIREBASE = {
+  app,
+  auth,
+  db,
+
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  onSnapshot,
+  serverTimestamp,
+
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  signOut,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+
+  ready: true,
+};
 
   // Notify any listener
   window.dispatchEvent(new Event("ub-firebase-ready"));
