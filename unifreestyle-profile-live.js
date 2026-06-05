@@ -23,14 +23,36 @@
   }
 
   async function fb(){
-    if(st.fb&&st.db)return st;
-    var g=window.UB_FIREBASE||{};
-    if(g.db&&g.collection){st.fb=g;st.db=g.db;return st;}
-    if(!g.app)throw new Error('Firebase not ready');
-    st.fb=await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
-    st.db=st.fb.getFirestore(g.app);
-    return st;
+  var g = window.UB_FIREBASE || {};
+
+  if (!g.app && !g.db) {
+    throw new Error('Firebase not ready');
   }
+
+  const fs = await import(
+    'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'
+  );
+
+  st.db = g.db || fs.getFirestore(g.app);
+
+  st.fb = {
+    db: st.db,
+    collection: g.collection || fs.collection,
+    doc: g.doc || fs.doc,
+    getDoc: g.getDoc || fs.getDoc,
+    getDocs: g.getDocs || fs.getDocs,
+    setDoc: g.setDoc || fs.setDoc,
+    addDoc: g.addDoc || fs.addDoc,
+    updateDoc: g.updateDoc || fs.updateDoc,
+    onSnapshot: g.onSnapshot || fs.onSnapshot,
+    query: g.query || fs.query,
+    where: g.where || fs.where,
+    orderBy: g.orderBy || fs.orderBy,
+    serverTimestamp: g.serverTimestamp || fs.serverTimestamp
+  };
+
+  return st;
+}
 
   async function waitLiveKit(){
     if(window.LivekitClient)return window.LivekitClient;
