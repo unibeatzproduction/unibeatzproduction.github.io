@@ -5,7 +5,7 @@
 (function(){
   'use strict';
 
-  var TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+  var TOKEN_FN='https://getlivekittoken-vikmcq7yva-uc.a.run.app';
   var st = { room:null, connected:false, username:null, role:null, battleRoom:null, camOn:true, micOn:true };
 
   function isFreestyle(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
