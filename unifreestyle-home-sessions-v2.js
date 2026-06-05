@@ -98,9 +98,39 @@ function patchButtons(){[].slice.call(document.querySelectorAll('button')).forEa
 function render(){css();cleanupHome();ensureBrowse();patchButtons();hydrateMissingFromFollows();if(document.querySelector('#page-browseproducer.active'))renderProducers()}
 window.ubHomeSessions={refresh:render,renderProducers:renderProducers,followProducer:followProducer,watchProducer:watchProducer,openProducerProfile:openProducerProfile};
 
+// Push current user's profile to Firestore so other devices can see them
+function pushSelfToFirestore() {
+  var cur = current();
+  if (!cur) return;
+  var name = uname(cur);
+  if (!name) return;
+  var fb = window.UB_FIREBASE;
+  if (!fb || !fb.ready) {
+    window.addEventListener('ub-firebase-ready', function() { pushSelfToFirestore(); }, { once: true });
+    return;
+  }
+  try {
+    var profileData = {
+      username: name,
+      displayName: cur.name || cur.displayName || niceName(name),
+      role: cur.role || 'artist',
+      avatar: cur.avatar || '🎤',
+      photo: cur.photo || cur.photoUrl || '',
+      bio: cur.bio || '',
+      verified: cur.verified || false,
+      updatedAt: Date.now(),
+    };
+    fb.setDoc(fb.doc(fb.db, 'profiles', name), profileData, { merge: true })
+      .then(function() { console.log('[UniFreestyle] Profile pushed to Firestore:', name); })
+      .catch(function(e) { console.warn('[UniFreestyle] Profile push failed:', e.message); });
+  } catch(e) {
+    console.warn('[UniFreestyle] pushSelfToFirestore error:', e);
+  }
+}
+
 // Boot
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){render();syncUsersFromFirestore();});
-else{render();syncUsersFromFirestore();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){render();pushSelfToFirestore();syncUsersFromFirestore();});
+else{render();pushSelfToFirestore();syncUsersFromFirestore();}
 setTimeout(render,400);
 setTimeout(render,1200);
 setInterval(render,1000);
