@@ -22,7 +22,19 @@
     signInWithRedirect,
     getRedirectResult,
   } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-
+  import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    addDoc,
+    updateDoc,
+    onSnapshot,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"; 
+  
   // ═════ FIREBASE CONFIG ═════
   const firebaseConfig = {
     apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
@@ -37,6 +49,7 @@
   // Initialize
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db = getFirestore(app);
   auth.languageCode = "en";
 
   // Make Firebase available globally for the rest of the script
