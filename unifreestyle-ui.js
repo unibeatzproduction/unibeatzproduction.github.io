@@ -7,6 +7,7 @@
   'use strict';
 
   var FOLLOWS = 'ub_profile_follows_v1';
+  var _dir = { profiles:{}, follows:{}, live:{}, syncing:false, lastSync:0, ready:false };
 
   function norm(s){ return String(s||'').replace(/\s+/g,' ').trim().toLowerCase(); }
   function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -21,7 +22,53 @@
   function getCurrent(){ return get('ub_current_user','null')||get('ub_user','null')||{}; }
   function getFollows(){ return get(FOLLOWS,'{}'); }
   function saveFollows(f){ set(FOLLOWS,f); }
-  function isLive(t){ try{ return localStorage.getItem('ub_profile_live_'+t)==='1'; }catch(e){ return false; } }
+  function getFb(){ var fb=window.UB_FIREBASE||{}; return (fb.db&&fb.collection&&fb.getDocs&&fb.setDoc)?fb:null; }
+  function isLive(t){ t=clean(t); if(_dir.live&&_dir.live[t]) return true; try{ return localStorage.getItem('ub_profile_live_'+t)==='1'; }catch(e){ return false; } }
+
+  function mergeProfile(out, raw, docId){
+    raw=raw||{};
+    var name=clean(raw.username||raw.searchUsername||raw.handle||docId||raw.name||raw.displayName);
+    if(!name||name==='djblaze'||name==='phantombeats') return;
+    var existing=out[name]||{};
+    out[name]=Object.assign({}, existing, {
+      username:name,
+      name:raw.displayName||raw.name||existing.name||niceName(name),
+      role:raw.role||existing.role||'artist',
+      avatar:raw.avatar||existing.avatar||'🎤',
+      photo:raw.photo||raw.photoUrl||raw.photoURL||existing.photo||'',
+      bio:raw.bio||existing.bio||'Producer on Uni Freestyle.',
+      verified:!!(raw.verified||existing.verified)
+    });
+  }
+
+  async function syncDirectory(force){
+    var now=Date.now();
+    if(_dir.syncing) return;
+    if(!force&&_dir.ready&&(now-_dir.lastSync)<5000) return;
+    var fb=getFb();
+    if(!fb) return;
+    _dir.syncing=true;
+    try{
+      var profiles={}, follows={}, live={};
+      var collections=['profiles','producer_profiles','users'];
+      for(var i=0;i<collections.length;i++){
+        try{
+          var snap=await fb.getDocs(fb.collection(fb.db,collections[i]));
+          snap.forEach(function(d){ mergeProfile(profiles,d.data(),d.id); });
+        }catch(e){ console.warn('[ui] '+collections[i]+' sync failed',e.message); }
+      }
+      try{
+        var fs=await fb.getDocs(fb.collection(fb.db,'profile_follows'));
+        fs.forEach(function(d){ var r=d.data()||{}; var follower=clean(r.follower), following=clean(r.following); if(follower&&following){ follows[follower+'__'+following]={follower:follower,following:following,active:r.active!==false,at:r.at||0}; }});
+      }catch(e){ console.warn('[ui] follow sync failed',e.message); }
+      try{
+        var ls=await fb.getDocs(fb.collection(fb.db,'live_profiles'));
+        ls.forEach(function(d){ var r=d.data()||{}; var name=clean(r.username||d.id); if(name&&r.isLive===true) live[name]=true; });
+      }catch(e){ console.warn('[ui] live sync failed',e.message); }
+      _dir.profiles=profiles; _dir.follows=follows; _dir.live=live; _dir.ready=true; _dir.lastSync=Date.now();
+      saveUsers(profiles); saveFollows(follows);
+    } finally { _dir.syncing=false; }
+  }
 
   // ═══════════════════════════════════════════════════
   // NAV FIX
@@ -98,22 +145,13 @@
   }
 
   function hydrateMissing(){
-    var all=getUsers(), f=getFollows(), changed=false;
-    Object.keys(f||{}).forEach(function(k){
-      var rec=f[k]||{};
-      var target=uname({username:rec.following})||String(k).split('__')[1]||'';
-      target=clean(target);
-      if(target&&target!=='djblaze'&&target!=='phantombeats'&&!all[target]){
-        all[target]={ username:target, name:niceName(target), role:'artist', avatar:'🎤', bio:'Producer on Uni Freestyle.' };
-        changed=true;
-      }
-    });
-    if(changed) saveUsers(all);
-    return all;
+    // Firestore is the source of truth now. localStorage is only cache/fallback.
+    if(_dir.ready) return _dir.profiles;
+    return getUsers();
   }
 
   function producerData(){
-    var out=[], all=hydrateMissing(), cur=getCurrent(), cn=uname(cur), seen={};
+    var out=[], all=_dir.ready?_dir.profiles:getUsers(), cur=getCurrent(), cn=uname(cur), seen={};
     Object.keys(all||{}).forEach(function(k){
       var x=all[k], r=norm(x&&x.role||'artist');
       if(x&&uname(x)&&['artist','dj','producer','fan','viewer','admin'].indexOf(r)>-1) out.push(x);
@@ -127,18 +165,29 @@
   }
 
   function countFollowers(t){
-    var f=getFollows(), c=0;
-    Object.keys(f||{}).forEach(function(k){ if(uname({username:(f[k]||{}).following})===t) c++; });
+    t=clean(t); var f=_dir.ready?_dir.follows:getFollows(), c=0;
+    Object.keys(f||{}).forEach(function(k){ var r=f[k]||{}; if(clean(r.following)===t&&r.active!==false) c++; });
     return c;
   }
 
-  function isFollowing(t){ var me=uname(getCurrent()); return !!(getFollows())[me+'__'+t]; }
+  function isFollowing(t){
+    var me=uname(getCurrent()), f=_dir.ready?_dir.follows:getFollows(), r=f[me+'__'+clean(t)];
+    return !!(r&&r.active!==false);
+  }
 
-  function followProducer(t){
-    var me=uname(getCurrent()); if(!me||me===t) return;
-    var f=getFollows(), k=me+'__'+t;
-    if(f[k]) delete f[k]; else f[k]={ follower:me, following:t, at:Date.now() };
-    saveFollows(f); renderProducers();
+  async function followProducer(t){
+    var me=uname(getCurrent()); t=clean(t); if(!me||me===t) return;
+    var fb=getFb(), key=me+'__'+t, willFollow=!isFollowing(t);
+    if(fb){
+      await fb.setDoc(fb.doc(fb.db,'profile_follows',key),{ follower:me, following:t, active:willFollow, at:Date.now() },{merge:true});
+    }
+    var f=getFollows();
+    if(willFollow) f[key]={ follower:me, following:t, active:true, at:Date.now() };
+    else if(f[key]) f[key].active=false;
+    saveFollows(f);
+    if(window.showToast) showToast(willFollow?'✅ Following @'+t:'Unfollowed @'+t);
+    await syncDirectory(true);
+    renderProducers();
   }
 
   function watchProducer(t){
@@ -154,6 +203,8 @@
   function renderProducers(){
     ensureBrowsePage();
     var list=document.getElementById('ubProducerList'); if(!list) return;
+    var shouldResync=!_dir.ready || (Date.now()-_dir.lastSync)>5000;
+    if(shouldResync) syncDirectory(false).then(function(){ if(document.querySelector('#page-browseproducer.active')) renderProducers(); });
     var q=norm((document.getElementById('ubProducerSearchInput')||{}).value||'');
     var data=producerData().filter(function(x){
       return !q||norm((x.name||'')+' '+(x.username||'')+' '+(x.bio||'')+' '+(x.role||'')).indexOf(q)>-1;
@@ -237,7 +288,7 @@
     cleanupHome();
     ensureBrowsePage();
     patchButtons();
-    hydrateMissing();
+    syncDirectory(false).then(function(){ if(document.querySelector('#page-browseproducer.active')) renderProducers(); });
     if(document.querySelector('#page-browseproducer.active')) renderProducers();
   }
 
@@ -263,5 +314,5 @@
 
   setTimeout(render,400);
   setTimeout(render,1200);
-  setInterval(render,1000);
+  setInterval(render,5000);
 })();
