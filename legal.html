@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Legal · UniBeatz Production</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#0a0a0f;--white:#f5f5f5;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;
+  --blue:#0066cc;--blue-bright:#40D0FF;--red:#ff3c3c;--green:#00C85A;--gray:#888;--purple:#9B30FF;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;line-height:1.6;min-height:100vh;}
+a{color:var(--gold);text-decoration:none;}a:hover{color:var(--gold-light);text-decoration:underline;}
+.nav{background:rgba(10,10,15,0.96);border-bottom:1px solid rgba(201,168,76,0.2);padding:14px 24px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--gold);}
+.nav-links{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.nav-links a{font-family:'Orbitron',sans-serif;font-size:0.62rem;letter-spacing:2.5px;color:var(--white);text-transform:uppercase;}
+.nav-links a:hover{color:var(--gold);text-decoration:none;}
+.legal-wrap{display:grid;grid-template-columns:240px 1fr;gap:30px;max-width:1200px;margin:0 auto;padding:30px 24px 80px;}
+@media(max-width:768px){.legal-wrap{grid-template-columns:1fr;gap:10px;}}
+.sidebar{position:sticky;top:80px;align-self:start;background:linear-gradient(160deg,#0a0a14,#040408);border:1px solid rgba(201,168,76,0.18);border-radius:8px;padding:18px 14px;max-height:calc(100vh - 110px);overflow-y:auto;}
+@media(max-width:768px){.sidebar{position:relative;top:0;}}
+.sidebar-title{font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(201,168,76,0.18);}
+.sidebar-link{display:block;padding:9px 10px;font-family:'Rajdhani',sans-serif;font-size:0.94rem;color:var(--white);border-radius:5px;cursor:pointer;text-decoration:none;transition:all 0.2s;margin-bottom:2px;}
+.sidebar-link:hover{background:rgba(201,168,76,0.1);color:var(--gold);text-decoration:none;}
+.sidebar-link.active{background:linear-gradient(135deg,rgba(201,168,76,0.15),rgba(201,168,76,0.05));color:var(--gold);font-weight:600;}
+.legal-content{background:linear-gradient(160deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:32px 30px;}
+.legal-header{margin-bottom:30px;padding-bottom:20px;border-bottom:1px solid rgba(201,168,76,0.15);}
+.legal-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:4px;color:var(--gold);margin-bottom:8px;}
+.legal-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:3px;color:var(--white);line-height:1.1;}
+.legal-meta{font-family:'Rajdhani',sans-serif;font-size:0.86rem;color:var(--gray);margin-top:8px;}
+.legal-section{margin-bottom:48px;scroll-margin-top:80px;}
+.legal-section h2{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:2px;color:var(--gold);margin-bottom:14px;padding-bottom:6px;border-bottom:1px solid rgba(201,168,76,0.2);}
+.legal-section h3{font-family:'Orbitron',sans-serif;font-size:0.72rem;letter-spacing:2.5px;color:var(--blue-bright);margin:22px 0 10px;}
+.legal-section p{font-family:'Rajdhani',sans-serif;font-size:1rem;color:var(--white);margin-bottom:14px;}
+.legal-section ul,.legal-section ol{margin:12px 0 16px 24px;}
+.legal-section li{font-family:'Rajdhani',sans-serif;font-size:0.98rem;color:var(--white);margin-bottom:8px;}
+.legal-section b{color:var(--gold-light);font-weight:600;}
+.tier-table{width:100%;border-collapse:collapse;margin:14px 0;background:#040408;border-radius:6px;overflow:hidden;border:1px solid rgba(201,168,76,0.2);}
+.tier-table th{background:linear-gradient(135deg,#1a1308,#0a0a14);padding:12px 14px;font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2px;color:var(--gold);text-align:left;}
+.tier-table td{padding:11px 14px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;color:var(--white);border-top:1px solid rgba(255,255,255,0.05);}
+.tier-table tr:hover td{background:rgba(201,168,76,0.04);}
+.tier-table .price-cell{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold);}
+.callout{border-left:3px solid var(--gold);background:rgba(201,168,76,0.06);padding:14px 18px;margin:18px 0;border-radius:0 6px 6px 0;}
+.callout-warn{border-left-color:var(--red);background:rgba(255,60,60,0.06);}
+.callout-info{border-left-color:var(--blue-bright);background:rgba(0,170,255,0.06);}
+.callout p{margin-bottom:0;}.callout strong{color:var(--gold-light);}
+.callout-warn strong{color:var(--red);}.callout-info strong{color:var(--blue-bright);}
+.legal-footer{text-align:center;padding:30px 20px;font-family:'Rajdhani',sans-serif;font-size:0.84rem;color:var(--gray);border-top:1px solid rgba(201,168,76,0.1);margin-top:40px;}
+.legal-footer span{color:var(--gold);}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="nav-logo">&#9889; UNIBEATZ</a>
+  <div class="nav-links">
+    <a href="index.html">&larr; Empire</a>
+    <a href="unipack.html">UniPack</a>
+    <a href="unifreestyle.html">UniFreestyle</a>
+    <a href="unibeatzworld.html">UniBeatz World</a>
+    <a href="mailto:unibeatzproduction@gmail.com">Contact</a>
+  </div>
+</nav>
+<div class="legal-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-title">&#128220; Legal Index</div>
+    <a class="sidebar-link active" href="#contact">&#128222; Contact</a>
+    <a class="sidebar-link" href="#tiers">&#128142; Membership Tiers</a>
+    <a class="sidebar-link" href="#bundles">&#127873; Bundles</a>
+    <a class="sidebar-link" href="#subscription-terms">&#128179; Subscription Terms</a>
+    <a class="sidebar-link" href="#beat-licenses">&#127925; Beat License Tiers</a>
+    <a class="sidebar-link" href="#beat-agreement">&#128196; Beat License Agreement</a>
+    <a class="sidebar-link" href="#refund">&#128184; Refund Policy</a>
+    <a class="sidebar-link" href="#privacy">&#128274; Privacy Policy</a>
+    <a class="sidebar-link" href="#terms">&#128221; Terms of Service</a>
+    <a class="sidebar-link" href="#dmca">&#128737; DMCA Policy</a>
+    <a class="sidebar-link" href="#disclaimer">&#9888; Disclaimer</a>
+  </aside>
+  <main class="legal-content">
+    <div class="legal-header">
+      <div class="legal-eyebrow">UniBeatz Production</div>
+      <h1 class="legal-title">Legal &amp; Licensing</h1>
+      <div class="legal-meta">Last updated: June 8, 2026 &middot; UniBeatz Production LLC</div>
+    </div>
+
+    <section class="legal-section" id="contact">
+      <h2>&#128222; Contact Information</h2>
+      <p><b>UniBeatz Production LLC</b><br/>A music production and digital tools company<br/>Orlando, FL &middot; United States</p>
+      <p><b>Email:</b> <a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a><br/><b>Website:</b> <a href="https://unibeatzproduction.com">unibeatzproduction.com</a></p>
+      <p>For licensing inquiries, exclusive beat purchases, custom production, business proposals, technical support, or refund requests, please reach out via email. We typically respond within 24-48 hours.</p>
+    </section>
+
+    <section class="legal-section" id="tiers">
+      <h2>&#128142; UniFreestyle Membership Tiers</h2>
+      <p>UniBeatz Production offers two membership tiers for UniFreestyle, giving artists, DJs, and producers access to exclusive features and perks.</p>
+      <table class="tier-table">
+        <thead><tr><th>Tier</th><th>Price</th><th>Includes</th></tr></thead>
+        <tbody>
+          <tr><td>&#128994; <b>Free</b></td><td class="price-cell">$0</td><td>Full access to battles, cypher room, live cam, beat browsing, and community features</td></tr>
+          <tr><td>&#128142; <b>UniBeatz Pass</b></td><td class="price-cell">$4.99/mo</td><td>Custom profile badge, priority battle matchmaking, exclusive monthly beat previews, save unlimited recordings</td></tr>
+          <tr><td>&#128081; <b>UniBeatz Elite</b></td><td class="price-cell">$9.99/mo</td><td>Everything in Pass + verified gold checkmark, exclusive beat pack monthly, custom DJ intro sound, early feature access, beat sales revenue share</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-info"><p><strong>Free users always have full platform access.</strong> Paid tiers are about status, identity, and exclusive perks — not locking core features behind a paywall.</p></div>
+    </section>
+
+    <section class="legal-section" id="bundles">
+      <h2>&#127873; UniFreestyle Bundles</h2>
+      <p>One-time purchase bundles unlock cosmetic upgrades, animations, and exclusive profile enhancements. All bundles are purely cosmetic — free users have full battle and cypher access.</p>
+      <table class="tier-table">
+        <thead><tr><th>Bundle</th><th>Price</th><th>Includes</th></tr></thead>
+        <tbody>
+          <tr><td>&#127381; <b>Starter Pack</b></td><td class="price-cell">$1.99</td><td>Custom profile theme and avatar frame</td></tr>
+          <tr><td>&#9876; <b>Battle Ready Pack</b></td><td class="price-cell">$2.99</td><td>Custom battle entrance animation and opponent intro sound effect</td></tr>
+          <tr><td>&#127908; <b>Producer Pack</b></td><td class="price-cell">$3.99</td><td>Beat maker profile badge, studio theme, and producer avatar frame</td></tr>
+          <tr><td>&#128293; <b>Street Cred Pack</b></td><td class="price-cell">$4.99</td><td>Street-style profile theme, graffiti avatar frame, and battle win badge</td></tr>
+          <tr><td>&#127926; <b>DJ Pack</b></td><td class="price-cell">$5.99</td><td>DJ profile badge, turntable avatar frame, custom DJ booth theme, and mixer sound effects</td></tr>
+          <tr><td>&#127942; <b>Champion Pack</b></td><td class="price-cell">$6.99</td><td>Gold trophy badge, champion profile border, exclusive winner entrance animation, and hall of fame profile highlight</td></tr>
+          <tr><td>&#127744; <b>Cypher Pack</b></td><td class="price-cell">$7.99</td><td>Exclusive cypher room theme, freestyle badge, cipher circle avatar frame, and priority cypher queue</td></tr>
+          <tr><td>&#128081; <b>Legend Pack</b></td><td class="price-cell">$8.99</td><td>Rare legend badge, animated profile border, exclusive legend entrance animation, and lifetime battle highlight reel</td></tr>
+          <tr><td>&#9889; <b>Empire Pack</b></td><td class="price-cell">$9.99</td><td>The ultimate bundle — all themes, all badges, all animations, empire profile border, and UniBeatz Empire title</td></tr>
+        </tbody>
+      </table>
+      <div class="callout"><p><strong>All bundle purchases are final.</strong> Bundles are one-time payments and do not auto-renew. See refund policy for exceptions.</p></div>
+    </section>
+
+    <section class="legal-section" id="subscription-terms">
+      <h2>&#128179; Subscription Terms</h2>
+      <h3>Billing &amp; Auto-Renewal</h3>
+      <p>Subscriptions are billed monthly in advance ($4.99 for UniBeatz Pass, $9.99 for UniBeatz Elite). Your subscription will <b>automatically renew</b> each month on the same date unless you cancel before the renewal date.</p>
+      <h3>Cancellation</h3>
+      <p>You may cancel at any time through your Stripe customer portal or by emailing <a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a> at least 24 hours before your next billing date. You retain access until the end of the current billing period.</p>
+      <h3>Price Changes</h3>
+      <p>We reserve the right to change subscription prices with at least <b>30 days written notice</b> via email. Existing subscribers may cancel before any new price applies.</p>
+      <h3>Payment Processing</h3>
+      <p>All payments are processed through Stripe, Inc., a PCI-DSS Level 1 certified payment processor. UniBeatz Production does not store credit card information.</p>
+    </section>
+
+    <section class="legal-section" id="beat-licenses">
+      <h2>&#127925; Beat License Tiers</h2>
+      <p>Beats sold via UniBeatz World marketplace are offered under three license tiers.</p>
+      <h3>&#129350; Basic License &mdash; $20-$30</h3>
+      <ul>
+        <li>Non-exclusive MP3 (tagged), up to 10,000 streams, 2,500 downloads</li>
+        <li>1 music video (max 100,000 views), non-commercial radio</li>
+        <li>Must credit "Prod. UniBeatz"</li>
+      </ul>
+      <h3>&#129349; Premium License &mdash; $50</h3>
+      <ul>
+        <li>Non-exclusive WAV (untagged) + 2 MP3 versions</li>
+        <li>Up to 100,000 streams, 10,000 downloads, 2 music videos</li>
+        <li>Commercial radio and live performance allowed</li>
+        <li>Must credit "Prod. UniBeatz"</li>
+      </ul>
+      <h3>&#129351; Full License &mdash; $150</h3>
+      <ul>
+        <li>Non-exclusive &mdash; 5 versions: tagged, untagged, tracked stems, extended, radio edit</li>
+        <li>Unlimited streams and performances</li>
+        <li>TV, film, and sync licensing rights</li>
+        <li>Must credit "Prod. UniBeatz"</li>
+      </ul>
+      <h3>&#127381; Exclusive Buyout &mdash; $300</h3>
+      <ul>
+        <li><b>Full exclusive ownership</b> &mdash; beat removed from store after purchase</li>
+        <li>All 5 versions included, unlimited commercial rights</li>
+        <li>Must credit "Prod. UniBeatz"</li>
+        <li>Producer retains 50% publishing unless master buyout negotiated</li>
+      </ul>
+    </section>
+
+    <section class="legal-section" id="beat-agreement">
+      <h2>&#128196; Beat License Agreement</h2>
+      <p>By purchasing a beat license from UniBeatz Production, you (the "Licensee") agree to the following terms with UniBeatz Production LLC (the "Licensor"):</p>
+      <h3>1. Grant of License</h3>
+      <p>Upon receipt of full payment, Licensor grants Licensee the non-transferable, limited rights specified in the purchased license tier to use the licensed beat for the creation of derivative musical works.</p>
+      <h3>2. Producer Credit Required</h3>
+      <p>Licensee must include <b>"Prod. UniBeatz"</b> in the song title, description, or metadata on all platforms and releases.</p>
+      <h3>3. Restrictions</h3>
+      <p>Licensee may NOT resell, sublicense, register for copyright, or use the beat in sample packs, beat marketplaces, or hate/violent content.</p>
+      <h3>4. Royalties</h3>
+      <p>Licensor retains 50% publishing (writer's share) for all non-exclusive licenses. Exclusive license splits are 50/50 unless a master buyout is negotiated separately.</p>
+      <h3>5. Governing Law</h3>
+      <p>This agreement is governed by the laws of the State of Florida, United States.</p>
+    </section>
+
+    <section class="legal-section" id="refund">
+      <h2>&#128184; Refund Policy</h2>
+      <h3>Subscription Refunds</h3>
+      <p>Subscriptions may be cancelled at any time. Pro-rated refunds for partial months are generally not provided. Exceptions for technical failures, accidental double-billing, or first-time subscribers within 7 days who haven't used premium features.</p>
+      <h3>Bundle Refunds</h3>
+      <div class="callout callout-warn"><p><strong>Bundle purchases are non-refundable</strong> once the content has been unlocked and applied to your profile.</p></div>
+      <h3>Beat License Refunds</h3>
+      <div class="callout callout-warn"><p><strong>Digital beat files are non-refundable</strong> once delivered. Exceptions: wrong product delivered, corrupted file, or proven exclusive violation.</p></div>
+    </section>
+
+    <section class="legal-section" id="privacy">
+      <h2>&#128274; Privacy Policy</h2>
+      <h3>Information We Collect</h3>
+      <ul>
+        <li><b>Account info:</b> Email, username, display name</li>
+        <li><b>Subscription info:</b> Stripe customer ID, tier, billing dates</li>
+        <li><b>Usage data:</b> Battle history, recording metadata</li>
+        <li><b>Analytics:</b> Anonymized page views via Firebase Analytics</li>
+      </ul>
+      <h3>What We DON'T Collect</h3>
+      <ul>
+        <li>Credit card numbers (Stripe handles all payment data)</li>
+        <li>Your audio files (processed locally in your browser)</li>
+        <li>Location data beyond what your IP reveals</li>
+      </ul>
+      <h3>Third Parties</h3>
+      <p>We share data only with Stripe (payments), Firebase/Google Cloud (auth and database), and Vercel (hosting). We do not sell your data. We do not run ads.</p>
+      <h3>Children's Privacy</h3>
+      <p>UniBeatz Production is not intended for users under 13. We do not knowingly collect data from minors.</p>
+    </section>
+
+    <section class="legal-section" id="terms">
+      <h2>&#128221; Terms of Service</h2>
+      <h3>1. Account Eligibility</h3>
+      <p>You must be at least 13 years old. You agree to provide accurate registration information and keep your password secure.</p>
+      <h3>2. Acceptable Use</h3>
+      <p>You agree NOT to upload infringing, illegal, hateful, or harmful content; hack or disrupt the service; resell account access; or use bots to scrape the platform.</p>
+      <h3>3. User Content</h3>
+      <p>You retain all rights to content you create. By using the service, you grant us a limited license to host and display your content solely for providing the service.</p>
+      <h3>4. Intellectual Property</h3>
+      <p>The UniBeatz Production name, logo, software, and branding are property of UniBeatz Production LLC. You may not use these without written permission.</p>
+      <h3>5. Limitation of Liability</h3>
+      <p>Our maximum liability is limited to the amount you paid in the last 12 months. We are not liable for indirect or consequential damages.</p>
+      <h3>6. Governing Law</h3>
+      <p>These terms are governed by the laws of the State of Florida, United States.</p>
+    </section>
+
+    <section class="legal-section" id="dmca">
+      <h2>&#128737; DMCA Policy</h2>
+      <p>We comply with the Digital Millennium Copyright Act. To file a DMCA notice, email <a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a> with subject "DMCA Notice" including: your contact info, identification of the copyrighted work, location of the infringing material, good-faith statement, and your signature.</p>
+      <p>Repeat infringers will have their accounts terminated.</p>
+    </section>
+
+    <section class="legal-section" id="disclaimer">
+      <h2>&#9888; Disclaimer</h2>
+      <p>The UniBeatz Production service is provided "AS IS" without warranties of any kind. We make no warranty that audio output meets any specific production or broadcast standard. Beat licensing operates under standard industry practice. Any information regarding music business or licensing is for informational purposes only and is not legal or financial advice.</p>
+    </section>
+  </main>
+</div>
+<footer class="legal-footer">
+  &copy; 2026 <span>UniBeatz Production LLC</span> &middot; All rights reserved &middot; Orlando, FL &middot; <a href="mailto:unibeatzproduction@gmail.com">unibeatzproduction@gmail.com</a>
+</footer>
+<script>
+const sections=document.querySelectorAll('.legal-section');
+const links=document.querySelectorAll('.sidebar-link');
+function updateActive(){
+  let active=sections[0].id;
+  sections.forEach(s=>{if(s.getBoundingClientRect().top-100<0)active=s.id;});
+  links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+active));
+}
+window.addEventListener('scroll',updateActive);
+links.forEach(l=>l.addEventListener('click',()=>setTimeout(updateActive,600)));
+</script>
+</body>
+</html>
