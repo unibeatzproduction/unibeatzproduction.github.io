@@ -8,21 +8,40 @@
   // ── Stripe Price IDs — fill in after creating products ──
   var PRICES = {
     // Super Chats
-    respect:    { id:'price_REPLACE_RESPECT',    amount:1.99,  label:'RESPECT',      emoji:'🤜' },
-    showlove:   { id:'price_REPLACE_SHOWLOVE',   amount:4.99,  label:'SHOW LOVE',    emoji:'🔥' },
-    runitup:    { id:'price_REPLACE_RUNITUP',    amount:9.99,  label:'RUN IT UP',    emoji:'💰' },
-    cakeup:     { id:'price_REPLACE_CAKEUP',     amount:19.99, label:'CAKE UP',      emoji:'💎' },
-    dropthebag: { id:'price_REPLACE_DROPTHEBAG', amount:49.99, label:'DROP THE BAG', emoji:'👑' },
+    respect:    { id:'price_1TgFc75uaWK3neNWAKdXWZuE', amount:1.99,  label:'RESPECT',      emoji:'🤜' },
+    showlove:   { id:'price_1TgFcu5uaWK3neNW6xPvgtgW', amount:4.99,  label:'SHOW LOVE',    emoji:'🔥' },
+    runitup:    { id:'price_1TgFdm5uaWK3neNWRj75pgP1', amount:9.99,  label:'RUN IT UP',    emoji:'💰' },
+    cakeup:     { id:'price_1TgFex5uaWK3neNWr07EDNY4', amount:19.99, label:'CAKE UP',      emoji:'💎' },
+    dropthebag: { id:'price_1TgFg05uaWK3neNW8TZr9EA6', amount:49.99, label:'DROP THE BAG', emoji:'👑' },
     // Bundles
-    comeup:     { id:'price_REPLACE_COMEUP',     amount:1.99,  label:'THE COME UP',  emoji:'🌱', bundle:true },
-    goldenera:  { id:'price_REPLACE_GOLDENERA',  amount:2.99,  label:'GOLDEN ERA',   emoji:'🥇', bundle:true },
-    trapking:   { id:'price_REPLACE_TRAPKING',   amount:3.99,  label:'TRAP KING',    emoji:'👿', bundle:true },
-    ciphergod:  { id:'price_REPLACE_CIPHERGOD',  amount:4.99,  label:'CIPHER GOD',   emoji:'🌀', bundle:true },
-    streetpoet: { id:'price_REPLACE_STREETPOET', amount:5.99,  label:'STREET POET',  emoji:'✍🏽', bundle:true },
-    thedon:     { id:'price_REPLACE_THEDON',     amount:6.99,  label:'THE DON',      emoji:'🎩', bundle:true },
-    slanguage:  { id:'price_REPLACE_SLANGUAGE',  amount:7.99,  label:'SLANGUAGE',    emoji:'🗣️', bundle:true },
-    warready:   { id:'price_REPLACE_WARREADY',   amount:8.99,  label:'WAR READY',    emoji:'⚔️', bundle:true },
-    empire:     { id:'price_REPLACE_EMPIRE',     amount:9.99,  label:'EMPIRE',       emoji:'⚡', bundle:true }
+    comeup:     { id:'price_1TgFNu5uaWK3neNWZFxivoNY', amount:1.99,  label:'THE COME UP',  emoji:'🌱', bundle:true },
+    goldenera:  { id:'price_1TgFQb5uaWK3neNW5CSrA0nN', amount:2.99,  label:'GOLDEN ERA',   emoji:'🥇', bundle:true },
+    trapking:   { id:'price_1TgFRZ5uaWK3neNWgPctPH0L', amount:3.99,  label:'TRAP KING',    emoji:'👿', bundle:true },
+    ciphergod:  { id:'price_1TgFSr5uaWK3neNWaITVw8O6', amount:4.99,  label:'CIPHER GOD',   emoji:'🌀', bundle:true },
+    streetpoet: { id:'price_1TgFU25uaWK3neNWqkX5QWAL', amount:5.99,  label:'STREET POET',  emoji:'✍🏽', bundle:true },
+    thedon:     { id:'price_1TgFV95uaWK3neNWcAFMyRPw', amount:6.99,  label:'THE DON',      emoji:'🎩', bundle:true },
+    slanguage:  { id:'price_1TgFWa5uaWK3neNWtptqOeda', amount:7.99,  label:'SLANGUAGE',    emoji:'🗣️', bundle:true },
+    warready:   { id:'price_1TgFYV5uaWK3neNWNAR9FVk1', amount:8.99,  label:'WAR READY',    emoji:'⚔️', bundle:true },
+    empire:     { id:'price_1TgFaQ5uaWK3neNWBr93eY1x', amount:9.99,  label:'EMPIRE',       emoji:'⚡', bundle:true }
+  };
+
+  // Stripe Payment Links — map each price to its buy.stripe.com link
+  // These open Stripe hosted checkout directly, no backend needed
+  var STRIPE_LINKS = {
+    respect:    'https://buy.stripe.com/price_1TgFc75uaWK3neNWAKdXWZuE',
+    showlove:   'https://buy.stripe.com/price_1TgFcu5uaWK3neNW6xPvgtgW',
+    runitup:    'https://buy.stripe.com/price_1TgFdm5uaWK3neNWRj75pgP1',
+    cakeup:     'https://buy.stripe.com/price_1TgFex5uaWK3neNWr07EDNY4',
+    dropthebag: 'https://buy.stripe.com/price_1TgFg05uaWK3neNW8TZr9EA6',
+    comeup:     'https://buy.stripe.com/price_1TgFNu5uaWK3neNWZFxivoNY',
+    goldenera:  'https://buy.stripe.com/price_1TgFQb5uaWK3neNW5CSrA0nN',
+    trapking:   'https://buy.stripe.com/price_1TgFRZ5uaWK3neNWgPctPH0L',
+    ciphergod:  'https://buy.stripe.com/price_1TgFSr5uaWK3neNWaITVw8O6',
+    streetpoet: 'https://buy.stripe.com/price_1TgFU25uaWK3neNWqkX5QWAL',
+    thedon:     'https://buy.stripe.com/price_1TgFV95uaWK3neNWcAFMyRPw',
+    slanguage:  'https://buy.stripe.com/price_1TgFWa5uaWK3neNWtptqOeda',
+    warready:   'https://buy.stripe.com/price_1TgFYV5uaWK3neNWNAR9FVk1',
+    empire:     'https://buy.stripe.com/price_1TgFaQ5uaWK3neNWBr93eY1x'
   };
 
   // Bundle perks definition
@@ -375,37 +394,33 @@
   }
 
   function initiateCheckout(key, amount, label, isSuperChat, message){
-    var p=PRICES[key];
-    // If price ID is set, open Stripe checkout
-    if(p.id && p.id.indexOf('REPLACE')===-1){
-      // Build Stripe checkout URL
-      var params=new URLSearchParams({
-        price_id: p.id,
-        type: isSuperChat?'superchat':'bundle',
-        key: key,
-        room: _activeRoom,
-        message: message||'',
-        username: myName()
-      });
-      window.open('https://checkout.unibeatzproduction.com/checkout?'+params.toString(),'_blank');
+    var p=PRICES[key]; if(!p) return;
+    var me=myName()||'guest';
+    var u=getCurrent();
+    // Build client_reference_id to track who bought what
+    // Format: username|key|room|message
+    var ref=encodeURIComponent(me+'|'+key+'|'+_activeRoom+'|'+(message||''));
+    var emailParam=u&&u.email?'?prefilled_email='+encodeURIComponent(u.email)+'&client_reference_id='+ref:'?client_reference_id='+ref;
+    // Stripe Payment Link URL — price ID maps directly to buy.stripe.com link
+    // Using the Stripe-hosted checkout page for security
+    var stripePayLink=STRIPE_LINKS[key];
+    if(stripePayLink){
+      window.open(stripePayLink+emailParam,'_blank');
+      toast('\uD83D\uDD25 Opening secure checkout...');
     } else {
-      // Price ID not set yet — demo mode
+      // Fallback demo mode
       if(isSuperChat){
-        // Fire blast immediately in demo mode
-        var me=myName()||'you';
         fireBlast(key, me, message);
-        closeSuperChatPanel();
-        // Still write to Firestore for others to see
         sendSuperChat(key, message, _activeRoom);
       } else {
-        // Bundle demo unlock
-        if(confirm('Unlock '+label+' for $'+amount.toFixed(2)+'?\n\n(Stripe not connected yet — this will unlock for demo)')){
+        if(confirm('Unlock '+label+' for $'+amount.toFixed(2)+'?')){
           unlockBundle(key);
-          closeSuperChatPanel();
         }
       }
     }
+    closeSuperChatPanel();
   }
+
 
   function activateBundle(key){
     if(!ownsBundle(key)) return;
@@ -427,9 +442,35 @@
   }
 
   // ── Boot ──
+  function handleStripeReturn(){
+    var params=new URLSearchParams(window.location.search);
+    if(params.get('sc_success')==='1'){
+      var key=params.get('sc_key');
+      var type=params.get('sc_type');
+      var room=params.get('sc_room')||'global';
+      var msg=params.get('sc_msg')||'';
+      var user=params.get('sc_user')||myName();
+      if(type==='bundle'&&key){
+        unlockBundle(key);
+        toast('\uD83D\uDD25 '+PRICES[key].label+' unlocked!');
+      }
+      if(type==='superchat'&&key){
+        setTimeout(function(){ fireBlast(key,user,msg); },1000);
+        sendSuperChat(key,msg,room);
+      }
+      // Clean URL
+      window.history.replaceState({},'',window.location.pathname);
+    }
+    if(params.get('sc_cancelled')==='1'){
+      toast('Checkout cancelled');
+      window.history.replaceState({},'',window.location.pathname);
+    }
+  }
+
   function boot(){
     injectCss();
     loadMyBundles();
+    handleStripeReturn();
 
     // Re-apply active bundle on load
     var active=read('ub_active_bundle',null);
