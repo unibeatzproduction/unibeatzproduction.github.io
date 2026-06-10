@@ -481,6 +481,33 @@
     await addMeToParticipants(clean);
     render();
     toast(clean==='dj'?'🎧 Joined as DJ':clean==='artist'?'🎤 Joined as Artist':'👁️ Watching');
+
+    // FIX: inject viewer chat panel for ALL roles in cypher
+    injectCypherChatPanel();
+
+    // Auto-start AI DJ after 1 minute if no human DJ joins
+    if(clean!=='dj'){
+      var _cypherAiCountdown=60;
+      var _cypherAiInterval=setInterval(function(){
+        _cypherAiCountdown--;
+        // Cancel if a human DJ has joined
+        if(st.cypherDoc&&st.cypherDoc.djUsername){
+          clearInterval(_cypherAiInterval); return;
+        }
+        if(_cypherAiCountdown===30) toast('🤖 AI DJ joining cypher in 30 seconds...');
+        if(_cypherAiCountdown===10) toast('🤖 AI DJ joining cypher in 10 seconds...');
+        if(_cypherAiCountdown<=0){
+          clearInterval(_cypherAiInterval);
+          // Still no human DJ?
+          if(!st.cypherDoc||!st.cypherDoc.djUsername){
+            if(window.ubBattle&&window.ubBattle.aiDj&&!window.ubBattle.aiDj.active()){
+              window.ubBattle.aiDj.start(CYPHER_ROOM);
+              toast('🤖 AI DJ is running the cypher!');
+            }
+          }
+        }
+      },1000);
+    }
   }
 
   async function cyStartSession(){
@@ -562,6 +589,63 @@
   }
 
   // ═══════════════════════════════════════════════════
+  // CYPHER VIEWER CHAT PANEL
+  // ═══════════════════════════════════════════════════
+  var _cypherChatUnsub=null;
+
+  function injectCypherChatPanel(){
+    if($('ubCypherChatPanel')) return;
+    var page=document.getElementById('page-cypher'); if(!page) return;
+    var body=page.querySelector('.page-body'); if(!body) return;
+
+    var panel=document.createElement('div');
+    panel.id='ubCypherChatPanel';
+    panel.style.cssText='margin-top:12px;border-radius:14px;border:1px solid rgba(64,208,255,.2);background:rgba(0,0,0,.3);overflow:hidden;';
+    panel.innerHTML=[
+      '<div style="padding:8px 12px;border-bottom:1px solid rgba(64,208,255,.12);font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;">&#128172; CYPHER LIVE CHAT</div>',
+      '<div id="ubCypherChatList" style="height:140px;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:4px;"></div>',
+      '<div style="display:grid;grid-template-columns:1fr auto;gap:6px;padding:8px 10px;border-top:1px solid rgba(64,208,255,.1);">',
+        '<input id="ubCypherChatInput" maxlength="200" placeholder="Say something..." style="background:#05070d;border:1px solid rgba(64,208,255,.35);border-radius:8px;color:#fff;padding:8px 10px;font-size:.85rem;outline:none;width:100%;box-sizing:border-box;">',
+        '<button id="ubCypherChatSend" style="border:0;border-radius:8px;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;font-family:Orbitron,sans-serif;font-size:.44rem;font-weight:900;padding:0 12px;cursor:pointer;white-space:nowrap;">SEND</button>',
+      '</div>'
+    ].join('');
+    body.appendChild(panel);
+
+    // Wire send
+    var input=$('ubCypherChatInput');
+    var sendBtn=$('ubCypherChatSend');
+    function doSend(){
+      var fb=getFb(); if(!fb) return;
+      var msg=(input&&input.value||'').trim(); if(!msg) return;
+      if(input) input.value='';
+      fb.setDoc(fb.doc(fb.db,'live_chats',CYPHER_ROOM),{room:CYPHER_ROOM,updatedAt:Date.now()},{merge:true}).catch(function(){});
+      fb.addDoc(fb.collection(fb.db,'live_chats',CYPHER_ROOM,'messages'),
+        {from:st.username||'guest', text:msg, at:Date.now()}).catch(function(e){ toast('Chat error: '+e.message); });
+    }
+    if(sendBtn) sendBtn.onclick=doSend;
+    if(input) input.addEventListener('keydown',function(e){ if(e.key==='Enter') doSend(); });
+
+    // Listen
+    var fb=getFb(); if(!fb) return;
+    fb.setDoc(fb.doc(fb.db,'live_chats',CYPHER_ROOM),{room:CYPHER_ROOM,updatedAt:Date.now()},{merge:true}).catch(function(){});
+    var q=fb.query(fb.collection(fb.db,'live_chats',CYPHER_ROOM,'messages'),fb.orderBy('at','asc'));
+    if(_cypherChatUnsub){ try{_cypherChatUnsub();}catch(e){} }
+    _cypherChatUnsub=fb.onSnapshot(q,function(snap){
+      var list=$('ubCypherChatList'); if(!list) return;
+      list.innerHTML='';
+      snap.forEach(function(doc){
+        var d=doc.data();
+        var row=document.createElement('div');
+        row.style.cssText='font-size:.82rem;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);';
+        var isMe=d.from===st.username;
+        row.innerHTML='<b style="color:'+(isMe?'#F0C040':'#40D0FF')+';">'+esc(d.from)+':</b> '+esc(d.text);
+        list.appendChild(row);
+      });
+      list.scrollTop=list.scrollHeight;
+    });
+  }
+
+  // ═══════════════════════════════════════════════════
   // HOME CARD
   // ═══════════════════════════════════════════════════
   function injectHomeCypherCard(){
@@ -597,11 +681,29 @@
 
     injectHomeCypherCard();
 
-    // Wire back button on cypher page
-    setTimeout(function(){
+    // FIX: Wire back button reliably using interval retry
+    // setTimeout(600) was racing — page may not be rendered yet
+    var _backBtnInterval=setInterval(function(){
       var back=document.querySelector('#page-cypher .top-bar .icon-btn');
-      if(back) back.onclick=async function(){ await leaveCypher(); if(window.goToPage) window.goToPage('home'); };
-    },600);
+      if(back){
+        clearInterval(_backBtnInterval);
+        back.onclick=async function(e){
+          e.preventDefault(); e.stopPropagation();
+          await leaveCypher();
+          if(window.goToPage) window.goToPage('home');
+        };
+      }
+    },200);
+    // Also wire any element with data-page="home" or href on cypher page
+    setTimeout(function(){
+      document.querySelectorAll('#page-cypher [onclick*="home"], #page-cypher .back-btn').forEach(function(el){
+        el.onclick=async function(e){
+          e.preventDefault(); e.stopPropagation();
+          await leaveCypher();
+          if(window.goToPage) window.goToPage('home');
+        };
+      });
+    },1000);
 
     // Re-inject home card if page changes
     var lastHome=null;
