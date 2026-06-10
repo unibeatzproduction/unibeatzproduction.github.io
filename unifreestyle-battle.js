@@ -312,14 +312,283 @@
   function panelShell(title,inner){ return '<div style="margin-top:14px;padding:14px;border-radius:14px;border:1px solid rgba(201,168,76,.45);background:rgba(0,0,0,.32);"><div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#40D0FF;margin-bottom:6px;">'+title+'</div>'+inner+'</div>'; }
   function scoreBox(name,key){ return '<div style="border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;"><div style="color:#F0C040;font-family:Bebas Neue,Arial,sans-serif;font-size:1.5rem;letter-spacing:2px;">'+name+'</div><div data-score="'+key+'" style="font-size:1.8rem;color:#40D0FF;font-family:Orbitron,sans-serif;">0</div><button class="btn btn-blue" onclick="ubBattle.score(\''+key+'\',1)">+1</button><button class="btn btn-blue" onclick="ubBattle.score(\''+key+'\',-1)">-1</button></div>'; }
 
-  function renderControlPanel(key){
-    var panel=document.getElementById('ubBattleControlPanel'); if(!panel) return;
-    if(key==='showdown') panel.innerHTML=panelShell('SHOWDOWN CONTROL','<div data-timer style="color:#F0C040;font-family:Orbitron;margin-bottom:10px;">waiting</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:10px;">'+scoreBox('TEAM A','teamA')+scoreBox('TEAM B','teamB')+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue" onclick="ubBattle.equipment()">🎧 DJ PANEL</button><button class="btn btn-blue" onclick="ubBattle.start(180)">⏱️ 3:00 TIMER</button><button class="btn btn-blue" onclick="ubBattle.resetScores()">RESET</button><button class="btn btn-gold" onclick="ubBattle.win(\'teamA\')">TEAM A WINS</button><button class="btn btn-gold" onclick="ubBattle.win(\'teamB\')">TEAM B WINS</button></div><div style="margin-top:8px;color:#F0C040;">Winner: <span data-winner>—</span></div>');
-    else if(key==='dogcage') panel.innerHTML=panelShell('DOG CAGE CONTROL','<div data-timer style="color:#F0C040;font-family:Orbitron;margin-bottom:10px;">waiting</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue" onclick="ubBattle.start(60)">⚡ QUICK</button><button class="btn btn-blue" onclick="ubBattle.start(120)">⏱️ STANDARD</button><button class="btn btn-blue" onclick="ubBattle.start(180)">🔥 EXTENDED</button><button class="btn btn-gold" onclick="ubBattle.win(\'artist1\')">ARTIST 1 WINS</button><button class="btn btn-gold" onclick="ubBattle.win(\'artist2\')">ARTIST 2 WINS</button></div><div style="margin-top:8px;color:#F0C040;">Winner: <span data-winner>—</span></div>');
-    else if(key==='djbattle') panel.innerHTML=panelShell('DJ BATTLE CONTROL','<div data-timer style="color:#F0C040;font-family:Orbitron;margin-bottom:10px;">waiting</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px;">'+scoreBox('DJ 1','dj1')+scoreBox('DJ 2','dj2')+'</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue" onclick="ubBattle.equipment()">🎚️ EQUIPMENT</button><button class="btn btn-blue" onclick="ubBattle.midi()">🎛️ MIDI SETUP</button><button class="btn btn-blue" onclick="ubBattle.start(180)">⏱️ START TIMER</button><button class="btn btn-gold" onclick="ubBattle.win(\'dj1\')">DJ 1 WINS</button><button class="btn btn-gold" onclick="ubBattle.win(\'dj2\')">DJ 2 WINS</button></div><div style="margin-top:8px;color:#F0C040;">Winner: <span data-winner>—</span></div>');
-    else if(key==='tournament') panel.innerHTML=panelShell('TOURNAMENT BRACKET','<div data-timer style="color:#F0C040;font-family:Orbitron;margin-bottom:10px;">waiting</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px;"><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">ROUND<br><span data-bracket-round style="color:#40D0FF;">1</span></div><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">MATCH<br><span data-bracket-match style="color:#40D0FF;">1</span></div><div style="border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;">CHAMPION<br><span data-bracket-champion style="color:#40D0FF;">—</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue" onclick="ubBattle.bracket(8)">8 ARTISTS</button><button class="btn btn-blue" onclick="ubBattle.bracket(16)">16 ARTISTS</button><button class="btn btn-blue" onclick="ubBattle.start(180)">⏱️ TIMER</button><button class="btn btn-gold" onclick="ubBattle.advance(\'artist1\')">ARTIST 1 ADVANCE</button><button class="btn btn-gold" onclick="ubBattle.advance(\'artist2\')">ARTIST 2 ADVANCE</button></div>');
-    else panel.innerHTML=panelShell('PRACTICE CONTROL','<div data-timer style="color:#F0C040;font-family:Orbitron;margin-bottom:10px;">waiting</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;"><button class="btn btn-blue" onclick="ubBattle.equipment()">🎵 AUDIO SETUP</button><button class="btn btn-gold" onclick="ubBattle.start(60)">▶ 60 SEC PRACTICE</button></div>');
+  function isDj(){ return liveSt.role==='dj'||liveSt.role==='dj1'||liveSt.role==='dj2'; }
+
+  function escHtml(s){ return String(s||'').replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  function djPanelShell(title,inner){ return '<div style="margin-top:14px;padding:14px;border-radius:14px;border:2px solid rgba(201,168,76,.7);background:rgba(0,0,0,.45);"><div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#F0C040;margin-bottom:4px;">🎧 DJ CONTROL PANEL</div><div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-bottom:10px;">'+title+'</div>'+inner+'</div>'; }
+
+  function viewerPanel(key, roomName){
+    // Build viewer panel via DOM to avoid escaping issues
+    var wrap=document.createElement('div');
+    wrap.id='ubViewerPanel';
+    wrap.style.cssText='margin-top:10px;';
+
+    // Scoreboard strip
+    var score=document.createElement('div');
+    score.style.cssText='display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 12px;border-radius:10px;border:1px solid rgba(201,168,76,.3);background:rgba(0,0,0,.3);margin-bottom:8px;';
+    score.innerHTML=
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.1rem;color:#F0C040;">TEAM A</div><div data-score="teamA" style="font-family:Orbitron,sans-serif;font-size:1.4rem;color:#40D0FF;">0</div></div>'+
+      '<div style="font-family:Orbitron,sans-serif;font-size:.44rem;color:rgba(240,237,232,.4);text-align:center;padding:0 8px;"><div data-timer style="color:#F0C040;font-size:.8rem;margin-bottom:2px;"></div><div>VS</div></div>'+
+      '<div style="text-align:center;"><div style="font-family:Bebas Neue,Arial,sans-serif;font-size:1.1rem;color:#F0C040;">TEAM B</div><div data-score="teamB" style="font-family:Orbitron,sans-serif;font-size:1.4rem;color:#40D0FF;">0</div></div>';
+    wrap.appendChild(score);
+
+    // Vote poll
+    var poll=document.createElement('div');
+    poll.id='ubVotePoll';
+    poll.style.cssText='padding:10px 12px;border-radius:10px;border:1px solid rgba(64,208,255,.25);background:rgba(0,0,0,.25);margin-bottom:8px;';
+    var pollTitle=document.createElement('div');
+    pollTitle.style.cssText='font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-bottom:8px;';
+    pollTitle.textContent="WHO'S WINNING?";
+    poll.appendChild(pollTitle);
+    var pollBtns=document.createElement('div');
+    pollBtns.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+    var btnA=document.createElement('button'); btnA.id='ubVoteA';
+    btnA.style.cssText='padding:10px;border-radius:10px;border:1px solid rgba(240,192,64,.4);background:rgba(240,192,64,.1);color:#F0C040;font-family:Orbitron,sans-serif;font-size:.48rem;font-weight:900;cursor:pointer;';
+    btnA.textContent='TEAM A'; btnA.onclick=function(){ castVote('teamA',roomName); };
+    var btnB=document.createElement('button'); btnB.id='ubVoteB';
+    btnB.style.cssText='padding:10px;border-radius:10px;border:1px solid rgba(64,208,255,.4);background:rgba(64,208,255,.1);color:#40D0FF;font-family:Orbitron,sans-serif;font-size:.48rem;font-weight:900;cursor:pointer;';
+    btnB.textContent='TEAM B'; btnB.onclick=function(){ castVote('teamB',roomName); };
+    pollBtns.appendChild(btnA); pollBtns.appendChild(btnB); poll.appendChild(pollBtns);
+    var results=document.createElement('div'); results.id='ubVoteResults'; results.style.cssText='margin-top:8px;display:none;';
+    var resultGrid=document.createElement('div'); resultGrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:4px;font-family:Orbitron,sans-serif;font-size:.4rem;color:rgba(240,237,232,.6);';
+    var barA=document.createElement('div'); barA.id='ubVoteBarA'; barA.style.cssText='background:rgba(240,192,64,.3);border-radius:4px;padding:4px 6px;text-align:center;';
+    var barB=document.createElement('div'); barB.id='ubVoteBarB'; barB.style.cssText='background:rgba(64,208,255,.3);border-radius:4px;padding:4px 6px;text-align:center;';
+    resultGrid.appendChild(barA); resultGrid.appendChild(barB); results.appendChild(resultGrid); poll.appendChild(results);
+    wrap.appendChild(poll);
+
+    // Live chat
+    var chatBox=document.createElement('div');
+    chatBox.style.cssText='border-radius:10px;border:1px solid rgba(64,208,255,.2);background:rgba(0,0,0,.22);overflow:hidden;';
+    var chatHead=document.createElement('div');
+    chatHead.style.cssText='padding:8px 10px;border-bottom:1px solid rgba(64,208,255,.12);font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;';
+    chatHead.textContent='LIVE CHAT';
+    var chatList=document.createElement('div'); chatList.id='ubBattleChatList';
+    chatList.style.cssText='height:130px;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:4px;';
+    var chatRow=document.createElement('div'); chatRow.style.cssText='display:grid;grid-template-columns:1fr auto;gap:6px;padding:8px;';
+    var chatInput=document.createElement('input'); chatInput.id='ubBattleChatInput'; chatInput.maxLength=200; chatInput.placeholder='Say something...';
+    chatInput.style.cssText='background:#05070d;border:1px solid rgba(64,208,255,.35);border-radius:8px;color:#fff;padding:8px 10px;font-size:.85rem;outline:none;';
+    chatInput.addEventListener('keydown',function(e){ if(e.key==='Enter') sendBattleChat(roomName); });
+    var chatSend=document.createElement('button');
+    chatSend.style.cssText='border:0;border-radius:8px;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;font-family:Orbitron,sans-serif;font-size:.44rem;font-weight:900;padding:0 12px;cursor:pointer;';
+    chatSend.textContent='SEND'; chatSend.onclick=function(){ sendBattleChat(roomName); };
+    chatRow.appendChild(chatInput); chatRow.appendChild(chatSend);
+    chatBox.appendChild(chatHead); chatBox.appendChild(chatList); chatBox.appendChild(chatRow);
+    wrap.appendChild(chatBox);
+
+    return wrap.outerHTML;
   }
+
+
+  function renderControlPanel(key){
+    var panel=document.getElementById('ubBattleControlPanel');
+    if(!panel){
+      // FIX: create control panel if it doesn't exist yet
+      panel=document.createElement('div');
+      panel.id='ubBattleControlPanel';
+      panel.style.cssText='margin-top:10px;';
+      var page=document.getElementById('page-battle-live');
+      var body=page?page.querySelector('.page-body'):null;
+      if(body) body.appendChild(panel);
+      else return; // truly no battle page
+    }
+    var roomName=modeState.room||'battle-room';
+    var isDJRole=isDj();
+    var vp=viewerPanel(key,roomName);
+
+    // Build DJ-only control HTML using DOM to avoid quote escaping issues
+    function makeDjPanel(title, buildFn){
+      var wrap=document.createElement('div');
+      wrap.style.cssText='margin-top:14px;padding:14px;border-radius:14px;border:2px solid rgba(201,168,76,.7);background:rgba(0,0,0,.45);';
+      wrap.innerHTML='<div style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#F0C040;margin-bottom:4px;">&#127911; DJ CONTROL PANEL</div><div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-bottom:10px;">'+title+'</div>';
+      buildFn(wrap);
+      return wrap;
+    }
+
+    function addBtn(parent,label,cls,fn){
+      var b=document.createElement('button'); b.className='btn '+(cls||'btn-blue');
+      b.textContent=label; b.onclick=fn; parent.appendChild(b); return b;
+    }
+
+    function addGrid(parent,cols){
+      var g=document.createElement('div');
+      g.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax('+(cols||120)+'px,1fr));gap:8px;margin-bottom:8px;';
+      parent.appendChild(g); return g;
+    }
+
+    panel.innerHTML=''; // clear
+    var vpDiv=document.createElement('div'); vpDiv.innerHTML=vp; panel.appendChild(vpDiv);
+
+    // FIX: wire chat input Enter key after DOM injection
+    var chatInput=panel.querySelector('#ubBattleChatInput');
+    if(chatInput) chatInput.addEventListener('keydown',function(e){ if(e.key==='Enter') sendBattleChat(roomName); });
+
+    // FIX: small delay so DOM is painted before snapshot listener tries to find #ubBattleChatList
+    setTimeout(function(){
+      startBattleChatListener(roomName);
+      startVoteListener(roomName);
+    }, 100);
+
+    if(!isDJRole){ return; }
+
+    // Build DJ panel based on mode
+    var djWrap=makeDjPanel(
+      key==='showdown'?'SHOWDOWN CONTROL':key==='dogcage'?'DOG CAGE CONTROL':key==='djbattle'?'DJ BATTLE CONTROL':key==='tournament'?'TOURNAMENT BRACKET':'PRACTICE CONTROL',
+      function(wrap){
+        if(key==='showdown'){
+          // Score boxes
+          var sg=addGrid(wrap,140);
+          ['teamA','teamB'].forEach(function(k,i){
+            var box=document.createElement('div');
+            box.style.cssText='border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;';
+            var nm=i===0?'TEAM A':'TEAM B';
+            box.innerHTML='<div style="color:#F0C040;font-family:Bebas Neue,Arial,sans-serif;font-size:1.3rem;letter-spacing:2px;">'+nm+'</div><div data-score="'+k+'" style="font-size:1.6rem;color:#40D0FF;font-family:Orbitron,sans-serif;">0</div>';
+            var bg=addGrid(box,60); bg.style.gridTemplateColumns='1fr 1fr';
+            var p1=document.createElement('button'); p1.className='btn btn-blue'; p1.textContent='+1'; p1.onclick=function(){ setScore(k,1); }; bg.appendChild(p1);
+            var m1=document.createElement('button'); m1.className='btn btn-blue'; m1.textContent='-1'; m1.onclick=function(){ setScore(k,-1); }; bg.appendChild(m1);
+            sg.appendChild(box);
+          });
+          var cg=addGrid(wrap,110);
+          addBtn(cg,'🎧 DJ PANEL','btn-blue',function(){ openEquipment(); });
+          addBtn(cg,'⏱️ 3:00','btn-blue',function(){ startTimer(180); });
+          addBtn(cg,'RESET','btn-blue',function(){ resetScores(); });
+          addBtn(cg,'TEAM A WINS','btn-gold',function(){ setWinner('teamA'); });
+          addBtn(cg,'TEAM B WINS','btn-gold',function(){ setWinner('teamB'); });
+          var wd=document.createElement('div'); wd.style.cssText='margin-top:8px;color:#F0C040;font-family:Orbitron,sans-serif;font-size:.5rem;';
+          wd.innerHTML='Winner: <span data-winner>—</span>'; wrap.appendChild(wd);
+        } else if(key==='dogcage'){
+          var cg=addGrid(wrap,110);
+          addBtn(cg,'⚡ QUICK','btn-blue',function(){ startTimer(60); });
+          addBtn(cg,'⏱️ STANDARD','btn-blue',function(){ startTimer(120); });
+          addBtn(cg,'🔥 EXTENDED','btn-blue',function(){ startTimer(180); });
+          addBtn(cg,'ARTIST 1 WINS','btn-gold',function(){ setWinner('artist1'); });
+          addBtn(cg,'ARTIST 2 WINS','btn-gold',function(){ setWinner('artist2'); });
+          var wd=document.createElement('div'); wd.style.cssText='margin-top:8px;color:#F0C040;font-family:Orbitron,sans-serif;font-size:.5rem;';
+          wd.innerHTML='Winner: <span data-winner>—</span>'; wrap.appendChild(wd);
+        } else if(key==='djbattle'){
+          var sg=addGrid(wrap,140);
+          ['dj1','dj2'].forEach(function(k,i){
+            var box=document.createElement('div');
+            box.style.cssText='border:1px solid rgba(64,208,255,.35);border-radius:10px;padding:10px;text-align:center;';
+            box.innerHTML='<div style="color:#F0C040;font-family:Bebas Neue,Arial,sans-serif;font-size:1.3rem;letter-spacing:2px;">'+(i===0?'DJ 1':'DJ 2')+'</div><div data-score="'+k+'" style="font-size:1.6rem;color:#40D0FF;font-family:Orbitron,sans-serif;">0</div>';
+            var bg=addGrid(box,60); bg.style.gridTemplateColumns='1fr 1fr';
+            var kk=k;
+            var p1=document.createElement('button'); p1.className='btn btn-blue'; p1.textContent='+1'; p1.onclick=function(){ setScore(kk,1); }; bg.appendChild(p1);
+            var m1=document.createElement('button'); m1.className='btn btn-blue'; m1.textContent='-1'; m1.onclick=function(){ setScore(kk,-1); }; bg.appendChild(m1);
+            sg.appendChild(box);
+          });
+          var cg=addGrid(wrap,110);
+          addBtn(cg,'🎚️ EQUIPMENT','btn-blue',function(){ openEquipment(); });
+          addBtn(cg,'🎛️ MIDI','btn-blue',function(){ openMidi(); });
+          addBtn(cg,'⏱️ START','btn-blue',function(){ startTimer(180); });
+          addBtn(cg,'DJ 1 WINS','btn-gold',function(){ setWinner('dj1'); });
+          addBtn(cg,'DJ 2 WINS','btn-gold',function(){ setWinner('dj2'); });
+          var wd=document.createElement('div'); wd.style.cssText='margin-top:8px;color:#F0C040;font-family:Orbitron,sans-serif;font-size:.5rem;';
+          wd.innerHTML='Winner: <span data-winner>—</span>'; wrap.appendChild(wd);
+        } else if(key==='tournament'){
+          var sg=addGrid(wrap,100);
+          ['ROUND','MATCH','CHAMPION'].forEach(function(lbl,i){
+            var box=document.createElement('div');
+            box.style.cssText='border:1px solid rgba(201,168,76,.35);border-radius:10px;padding:9px;color:#F0C040;text-align:center;font-family:Orbitron,sans-serif;font-size:.48rem;';
+            var attr=i===0?'data-bracket-round':i===1?'data-bracket-match':'data-bracket-champion';
+            box.innerHTML=lbl+'<br><span '+attr+' style="color:#40D0FF;">'+( i===2?'—':'1')+'</span>';
+            sg.appendChild(box);
+          });
+          var cg=addGrid(wrap,110);
+          addBtn(cg,'8 ARTISTS','btn-blue',function(){ pickBracketSize(8); });
+          addBtn(cg,'16 ARTISTS','btn-blue',function(){ pickBracketSize(16); });
+          addBtn(cg,'⏱️ TIMER','btn-blue',function(){ startTimer(180); });
+          addBtn(cg,'A1 ADVANCE','btn-gold',function(){ advanceTournament('artist1'); });
+          addBtn(cg,'A2 ADVANCE','btn-gold',function(){ advanceTournament('artist2'); });
+        } else {
+          // Practice
+          var cg=addGrid(wrap,120);
+          addBtn(cg,'🎵 AUDIO','btn-blue',function(){ openEquipment(); });
+          addBtn(cg,'▶ 60 SEC PRACTICE','btn-gold',function(){ startTimer(60); });
+          // AI DJ toggle
+          var aiBtn=addBtn(cg,_aiDjActive?'🤖 STOP AI DJ':'🤖 AI DJ ON','btn-blue',function(){
+            if(_aiDjActive) stopAiDj(); else startAiDj(roomName);
+            aiBtn.textContent=_aiDjActive?'🤖 STOP AI DJ':'🤖 AI DJ ON';
+          });
+        }
+      }
+    );
+    panel.appendChild(djWrap);
+    // FIX: already called above with delay, but ensure for DJ too
+    setTimeout(function(){
+      startBattleChatListener(roomName);
+      startVoteListener(roomName);
+    }, 150);
+  }
+
+
+  var _battleChatUnsub=null;
+  function startBattleChatListener(roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    if(_battleChatUnsub){ try{_battleChatUnsub();}catch(e){} }
+    fb.setDoc(fb.doc(fb.db,'live_chats',roomName),{room:roomName,updatedAt:Date.now()},{merge:true}).catch(function(){});
+    var q=fb.query(fb.collection(fb.db,'live_chats',roomName,'messages'),fb.orderBy('at','asc'));
+    _battleChatUnsub=fb.onSnapshot(q,function(snap){
+      var list=document.getElementById('ubBattleChatList'); if(!list) return;
+      list.innerHTML='';
+      snap.forEach(function(doc){
+        var d=doc.data();
+        var row=document.createElement('div');
+        row.style.cssText='font-size:.82rem;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);';
+        row.innerHTML='<b style="color:#40D0FF;">'+escHtml(d.from)+':</b> '+escHtml(d.text);
+        list.appendChild(row);
+      });
+      list.scrollTop=list.scrollHeight;
+    });
+  }
+
+  function sendBattleChat(roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    var input=document.getElementById('ubBattleChatInput'); if(!input) return;
+    var msg=input.value.trim(); if(!msg) return;
+    var u=currentUser(); var me=(u&&(u.username||u.name))||'guest';
+    input.value='';
+    fb.addDoc(fb.collection(fb.db,'live_chats',roomName,'messages'),{from:me,text:msg,at:Date.now()}).catch(function(){});
+  }
+
+  var _voteUnsub=null; var _myVote=null;
+  function startVoteListener(roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    if(_voteUnsub){ try{_voteUnsub();}catch(e){} }
+    _myVote=null;
+    var ref=fb.doc(fb.db,'battle_votes',roomName);
+    _voteUnsub=fb.onSnapshot(ref,function(snap){
+      if(!snap.exists()) return;
+      var d=snap.data()||{};
+      renderVoteResults(d.teamA||0,d.teamB||0);
+    });
+  }
+
+  function castVote(side,roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    var u=currentUser(); var me=(u&&(u.username||u.name))||'guest';
+    if(_myVote){ window.showToast&&showToast('Already voted'); return; }
+    _myVote=side;
+    var btnA=document.getElementById('ubVoteA'),btnB=document.getElementById('ubVoteB');
+    if(btnA){btnA.disabled=true;btnA.style.opacity=side==='teamA'?'1':'0.4';}
+    if(btnB){btnB.disabled=true;btnB.style.opacity=side==='teamB'?'1':'0.4';}
+    var update={voters:fb.arrayUnion(me)};
+    update[side]=fb.increment(1);
+    fb.setDoc(fb.doc(fb.db,'battle_votes',roomName),update,{merge:true}).catch(function(){});
+    window.showToast&&showToast('Vote cast!');
+  }
+
+  function renderVoteResults(a,b){
+    var results=document.getElementById('ubVoteResults'); if(!results) return;
+    var total=a+b; if(!total) return;
+    results.style.display='block';
+    var pA=Math.round(a/total*100),pB=Math.round(b/total*100);
+    var barA=document.getElementById('ubVoteBarA'),barB=document.getElementById('ubVoteBarB');
+    if(barA) barA.textContent=pA+'% ('+a+' votes)';
+    if(barB) barB.textContent=pB+'% ('+b+' votes)';
+  }
+
+
 
   function ensureBattlePage(){
     var page=document.getElementById('page-battle-live'); if(page) return page;
@@ -393,6 +662,8 @@
     renderState();
     loadPlatformBeats();
     startBeatListener();
+    // Auto-start AI DJ for instant/practice modes
+    checkAiDjAutoStart(key, mode.room);
   }
 
   function injectModeSelector(){
@@ -487,13 +758,151 @@
   }
 
   // Public API
+  // ── AI DJ System ──
+  var _aiDjActive=false;
+  var _aiDjTimer=null;
+  var _aiDjRound=0;
+  var _aiDjPool=[]; // loaded from platform_beats
+  var _aiDjRoomName='battle-instant-ai';
+  var INSTANT_MODES=['dogcage','practice'];
+
+  async function loadAiDjPool(){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    try{
+      var snap=await fb.getDocs(fb.collection(fb.db,'platform_beats'));
+      _aiDjPool=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        if(d.audioUrl) _aiDjPool.push(Object.assign({id:doc.id},d));
+      });
+    }catch(e){ console.warn('[aidj] pool load failed',e); }
+  }
+
+  function aiDjPickBeat(){
+    if(!_aiDjPool.length) return null;
+    return _aiDjPool[Math.floor(Math.random()*_aiDjPool.length)];
+  }
+
+  async function aiDjAnnounceWinner(roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    try{
+      var voteSnap=await fb.getDoc(fb.doc(fb.db,'battle_votes',roomName));
+      var votes=voteSnap.exists()?voteSnap.data():{};
+      var aVotes=votes.teamA||0, bVotes=votes.teamB||0;
+      var winner='';
+      if(aVotes>bVotes) winner='TEAM A';
+      else if(bVotes>aVotes) winner='TEAM B';
+      else winner='TIE';
+      // Post winner to chat
+      await fb.addDoc(fb.collection(fb.db,'live_chats',roomName,'messages'),{
+        from:'AI DJ',
+        text:'🏆 Round '+_aiDjRound+' Winner by votes: '+winner+' ('+aVotes+' vs '+bVotes+')',
+        at:Date.now(), type:'system'
+      });
+      // Reset votes for next round
+      await fb.setDoc(fb.doc(fb.db,'battle_votes',roomName),{teamA:0,teamB:0,voters:[]});
+      // Update battle state
+      setWinner(winner.toLowerCase().replace(' ',''));
+    }catch(e){ console.warn('[aidj] announce failed',e); }
+  }
+
+  async function aiDjStartRound(roomName){
+    var fb=window.UB_FIREBASE; if(!fb||!fb.db) return;
+    _aiDjRound++;
+    // Pick and set beat
+    var beat=aiDjPickBeat();
+    if(beat){
+      await fb.setDoc(fb.doc(fb.db,'battle_rooms','battle-room'),{
+        selectedBeat:{
+          name:beat.name||'AI Beat',
+          audioUrl:beat.audioUrl,
+          bpm:beat.bpm||'',
+          key:beat.key||'',
+          genre:beat.genre||'',
+          beatId:beat.id,
+          selectedBy:'AI DJ',
+          selectedAt:new Date().toISOString()
+        }
+      },{merge:true});
+    }
+    // Post to chat
+    await fb.addDoc(fb.collection(fb.db,'live_chats',roomName,'messages'),{
+      from:'AI DJ',
+      text:'\uD83C\uDFA7 Round '+_aiDjRound+' starting! Beat: '+(beat?beat.name:'Random')+(beat&&beat.bpm?' ('+beat.bpm+' BPM)':'')+'. Vote for who is winning! 3 minutes on the clock.',
+      at:Date.now(), type:'system'
+    });
+    // Start timer
+    startTimer(180);
+    // Schedule winner announcement after round
+    if(_aiDjTimer) clearTimeout(_aiDjTimer);
+    _aiDjTimer=setTimeout(function(){
+      aiDjAnnounceWinner(roomName).then(function(){
+        if(_aiDjActive){
+          // Small break between rounds
+          setTimeout(function(){ aiDjStartRound(roomName); }, 15000);
+        }
+      });
+    }, 185000); // 3min 5sec
+  }
+
+  async function startAiDj(roomName){
+    if(_aiDjActive){ toast('AI DJ already running'); return; }
+    roomName=roomName||_aiDjRoomName;
+    await loadAiDjPool();
+    if(!_aiDjPool.length){ toast('⚠️ No beats in pool. Upload beats to platform_beats first.'); return; }
+    _aiDjActive=true; _aiDjRound=0;
+    var fb=window.UB_FIREBASE;
+    if(fb&&fb.db){
+      await fb.setDoc(fb.doc(fb.db,'live_chats',roomName),{room:roomName,updatedAt:Date.now()},{merge:true}).catch(function(){});
+      await fb.addDoc(fb.collection(fb.db,'live_chats',roomName,'messages'),{
+        from:'AI DJ',text:'🤖 AI DJ is in the building! Instant battle starting in 10 seconds...',at:Date.now(),type:'system'
+      }).catch(function(){});
+    }
+    toast('🤖 AI DJ activated');
+    setTimeout(function(){ aiDjStartRound(roomName); }, 10000);
+  }
+
+  function stopAiDj(){
+    _aiDjActive=false;
+    if(_aiDjTimer){ clearTimeout(_aiDjTimer); _aiDjTimer=null; }
+    toast('AI DJ stopped');
+  }
+
+  // Auto-start AI DJ for instant battle mode
+  function checkAiDjAutoStart(key, roomName){
+    // All battle modes get AI DJ after 1 minute if no human DJ joins
+    if(_aiDjActive) return;
+    var hasDj=liveSt.connected&&(liveSt.role==='dj'||liveSt.role==='dj1'||liveSt.role==='dj2');
+    if(hasDj) return;
+
+    // Show countdown toast so users know AI DJ is coming
+    var countdown=60;
+    var countInterval=setInterval(function(){
+      countdown--;
+      if(_aiDjActive||liveSt.role==='dj'||liveSt.role==='dj1'||liveSt.role==='dj2'){
+        clearInterval(countInterval);
+        return;
+      }
+      if(countdown===30) window.showToast&&showToast('🤖 AI DJ joining in 30 seconds...');
+      if(countdown===10) window.showToast&&showToast('🤖 AI DJ joining in 10 seconds...');
+      if(countdown<=0){
+        clearInterval(countInterval);
+        // Final check — still no human DJ?
+        var stillNoDj=!(liveSt.connected&&(liveSt.role==='dj'||liveSt.role==='dj1'||liveSt.role==='dj2'));
+        if(stillNoDj && !_aiDjActive) startAiDj(roomName);
+      }
+    },1000);
+  }
+
   window.ubBattle = {
     modes:MODES, open:openMode, inject:injectModeSelector,
     score:setScore, resetScores:resetScores, start:startTimer, stop:stopTimer,
     win:setWinner, advance:advanceTournament, bracket:pickBracketSize,
     equipment:openEquipment, midi:openMidi,
     previewBeat:previewBeat, selectBeat:selectBeat, deleteBeat:deleteBeat,
-    leaveRoom:function(){ go('queue'); setTimeout(injectModeSelector,250); }
+    sendChat:sendBattleChat, vote:castVote,
+    aiDj:{ start:startAiDj, stop:stopAiDj, active:function(){ return _aiDjActive; } },
+    leaveRoom:function(){ stopAiDj(); go('queue'); setTimeout(injectModeSelector,250); }
   };
   // Backward compat
   window.ubBattleModes = window.ubBattle;
