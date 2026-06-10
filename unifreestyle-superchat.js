@@ -28,20 +28,20 @@
   // Stripe Payment Links — map each price to its buy.stripe.com link
   // These open Stripe hosted checkout directly, no backend needed
   var STRIPE_LINKS = {
-    respect:    'https://buy.stripe.com/price_1TgFc75uaWK3neNWAKdXWZuE',
-    showlove:   'https://buy.stripe.com/price_1TgFcu5uaWK3neNW6xPvgtgW',
-    runitup:    'https://buy.stripe.com/price_1TgFdm5uaWK3neNWRj75pgP1',
-    cakeup:     'https://buy.stripe.com/price_1TgFex5uaWK3neNWr07EDNY4',
-    dropthebag: 'https://buy.stripe.com/price_1TgFg05uaWK3neNW8TZr9EA6',
-    comeup:     'https://buy.stripe.com/price_1TgFNu5uaWK3neNWZFxivoNY',
-    goldenera:  'https://buy.stripe.com/price_1TgFQb5uaWK3neNW5CSrA0nN',
-    trapking:   'https://buy.stripe.com/price_1TgFRZ5uaWK3neNWgPctPH0L',
-    ciphergod:  'https://buy.stripe.com/price_1TgFSr5uaWK3neNWaITVw8O6',
-    streetpoet: 'https://buy.stripe.com/price_1TgFU25uaWK3neNWqkX5QWAL',
-    thedon:     'https://buy.stripe.com/price_1TgFV95uaWK3neNWcAFMyRPw',
-    slanguage:  'https://buy.stripe.com/price_1TgFWa5uaWK3neNWtptqOeda',
-    warready:   'https://buy.stripe.com/price_1TgFYV5uaWK3neNWNAR9FVk1',
-    empire:     'https://buy.stripe.com/price_1TgFaQ5uaWK3neNWBr93eY1x'
+    respect:    'https://buy.stripe.com/cNiaEQ77c0Gy6683T093y0r',
+    showlove:   'https://buy.stripe.com/eVq7sEdvAah83Y089g93y0s',
+    runitup:    'https://buy.stripe.com/4gM5kwfDIexoamo89g93y0t',
+    cakeup:     'https://buy.stripe.com/00weV6ezE74WfGIcpw93y0u',
+    dropthebag: 'https://buy.stripe.com/3cI7sE9fkcpgfGIaho93y0v',
+    comeup:     'https://buy.stripe.com/eVqfZa8bgfBs1PSgFM93y0h',
+    goldenera:  'https://buy.stripe.com/bJe00cbns4WOdyA4X493y0j',
+    trapking:   'https://buy.stripe.com/7sYbIUdvAgFw8egexE93y0k',
+    ciphergod:  'https://buy.stripe.com/8x2eV6gHMexo5240GO93y0l',
+    streetpoet: 'https://buy.stripe.com/fZu14g77ccpg8egbls93y0m',
+    thedon:     'https://buy.stripe.com/6oU9AM8bg74WbqsfBI93y0n',
+    slanguage:  'https://buy.stripe.com/6oUcMY8bgfBs524cpw93y0o',
+    warready:   'https://buy.stripe.com/4gM4gsfDI1KCbqs9dk93y0p',
+    empire:     'https://buy.stripe.com/9B6bIUbnsah8amo4X493y0q'
   };
 
   // Bundle perks definition
