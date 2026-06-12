@@ -3,110 +3,20 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Admin Radio Review · UniBeatz Production</title>
+<title>Uni Radio Admin · UniBeatz Production</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
-:root{--black:#05050a;--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--red:#ff3c3c;--green:#00cc66;--gray:#8d94a5}
-*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:radial-gradient(circle at 22% 12%,rgba(0,170,255,.16),transparent 30%),linear-gradient(160deg,#090912,#05050a);color:var(--white);font-family:'Rajdhani',sans-serif}.wrap{max-width:1220px;margin:auto;padding:24px 16px 44px}.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px}.brand{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:2px;color:var(--gold-light);line-height:.9}.sub{font-family:'Orbitron',sans-serif;font-size:.6rem;letter-spacing:2px;color:#9dc;margin-top:7px}.link{color:var(--blue-bright);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:.62rem;letter-spacing:2px}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0}.tab{border:1px solid rgba(201,168,76,.28);background:rgba(255,255,255,.04);color:#fff;border-radius:999px;padding:9px 12px;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:1.6px;text-transform:uppercase}.tab.active{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:14px 0}.stat{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:12px;padding:12px}.stat strong{display:block;font-size:1.6rem;color:var(--gold-light);font-family:'Bebas Neue',sans-serif}.stat span{font-family:'Orbitron',sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase;color:#b8c3d8}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:14px;margin-top:14px}.card{border:1px solid rgba(201,168,76,.25);background:linear-gradient(145deg,#090914,#05050a);border-radius:12px;padding:16px;display:grid;gap:9px;box-shadow:0 18px 45px rgba(0,0,0,.35)}.badge{font-family:'Orbitron',sans-serif;font-size:.53rem;letter-spacing:2px;padding:4px 9px;border-radius:999px;display:inline-block;width:max-content}.pending{border:1px solid #f0c040;color:#f0c040}.approved{border:1px solid var(--green);color:var(--green)}.rejected{border:1px solid var(--red);color:var(--red)}.featured{border:1px solid var(--blue);color:var(--blue-bright)}.btn{padding:10px 12px;border-radius:8px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;font-size:.56rem;letter-spacing:1.3px;text-transform:uppercase;font-weight:800}.ok{background:linear-gradient(135deg,#1a421f,#00cc66);color:#fff}.no{background:linear-gradient(135deg,#401010,#ff3c3c);color:#fff}.hold{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14)}.blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}textarea,select,input{width:100%;padding:10px;background:#05050a;border:1px solid rgba(201,168,76,.25);color:var(--white);border-radius:8px}textarea{min-height:78px;resize:vertical}.small{font-size:.88rem;color:#bcc5d8;line-height:1.35}.row{display:flex;gap:8px;flex-wrap:wrap}.empty{border:1px dashed rgba(255,255,255,.14);border-radius:12px;padding:22px;text-align:center;color:#aaa}.locked{max-width:560px;margin:70px auto;border:1px solid rgba(201,168,76,.3);background:#070710;border-radius:14px;padding:24px;text-align:center}.locked h2{font-family:'Bebas Neue',sans-serif;color:var(--gold-light);font-size:2rem}audio{width:100%}@media(max-width:650px){.brand{font-size:1.8rem}.grid{grid-template-columns:1fr}.row .btn{flex:1}}
+:root{--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#9aa3b8;--green:#00cc66;--red:#ff3c3c}*{box-sizing:border-box;margin:0;padding:0}body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),radial-gradient(circle at 80% 20%,rgba(201,168,76,.16),transparent 32%),linear-gradient(145deg,#030305,#0a0a14,#030305);color:var(--white);font-family:Rajdhani,sans-serif}.nav{position:sticky;top:0;z-index:20;background:rgba(5,8,14,.94);border-bottom:1px solid rgba(201,168,76,.55)}.nav-inner{max-width:1220px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}.brand{font-family:Bebas Neue,sans-serif;letter-spacing:2px;font-size:1.55rem;color:var(--gold-light);text-decoration:none}.links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}.links a,.links button{font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;text-decoration:none;background:transparent;border:0;cursor:pointer}.wrap{max-width:1220px;margin:auto;padding:24px 18px 50px}.hero,.panel,.locked{border:1px solid rgba(201,168,76,.34);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.88),rgba(0,0,0,.72));box-shadow:0 24px 70px rgba(0,0,0,.52)}.hero{padding:22px}.eyebrow{font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--blue-bright);text-transform:uppercase}.h1{font-family:Bebas Neue,sans-serif;font-size:clamp(3rem,8vw,5.8rem);line-height:.85;letter-spacing:3px;margin:10px 0}.h1 span{color:var(--gold-light)}.sub{max-width:760px;color:#cbd3e4;line-height:1.5}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}.stat{border:1px solid rgba(64,208,255,.22);border-radius:12px;background:rgba(255,255,255,.035);padding:12px}.stat b{font-family:Bebas Neue,sans-serif;color:var(--gold-light);font-size:2rem;letter-spacing:1px;display:block;line-height:1}.stat span{font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.6px;color:#aeb8cb;text-transform:uppercase}.grid{display:grid;grid-template-columns:1fr 360px;gap:14px;margin-top:16px}.panel{padding:14px}.panel h2{font-family:Bebas Neue,sans-serif;color:var(--gold-light);font-size:2rem;letter-spacing:2px;margin-bottom:10px}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.btn{border:0;border-radius:10px;padding:10px 12px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;cursor:pointer}.btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}.btn-blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}.btn-red{background:rgba(255,60,60,.11);border:1px solid rgba(255,60,60,.55);color:#ff7474}.btn-green{background:rgba(0,204,102,.12);border:1px solid rgba(0,204,102,.55);color:#5dff9e}.btn-small{padding:8px 9px;font-size:.45rem}.track-list{display:grid;gap:10px}.track{border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.035);padding:12px}.track-title{font-family:Bebas Neue,sans-serif;font-size:1.5rem;letter-spacing:1.5px;color:var(--gold-light);line-height:1}.track-meta{color:#cbd3e4;font-size:.92rem;margin-top:4px}.badge{display:inline-block;border:1px solid rgba(64,208,255,.42);border-radius:999px;padding:4px 9px;font-family:Orbitron,sans-serif;font-size:.43rem;letter-spacing:1.4px;color:var(--blue-bright);text-transform:uppercase;margin:4px 4px 0 0}.pending{border-color:rgba(240,192,64,.55);color:var(--gold-light)}.approved{border-color:rgba(0,204,102,.55);color:#5dff9e}.rejected{border-color:rgba(255,60,60,.55);color:#ff7474}.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.player{margin-top:10px;width:100%}.input,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.25);background:#090d18;color:var(--white);font-family:Rajdhani,sans-serif}textarea{min-height:86px;resize:vertical}.form{display:grid;gap:9px}.notice{min-height:22px;color:var(--blue-bright);margin-top:8px}.locked{max-width:480px;margin:70px auto;padding:20px;text-align:center}.locked h1{font-family:Bebas Neue,sans-serif;color:var(--gold-light);font-size:3rem;letter-spacing:2px}.hidden{display:none!important}.empty{padding:18px;border:1px dashed rgba(255,255,255,.14);border-radius:12px;color:#aeb8cb;text-align:center}.small{font-size:.82rem;color:#aeb8cb;line-height:1.35}.link{color:var(--blue-bright);word-break:break-all}.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:960px){.grid{grid-template-columns:1fr}.nav-inner{align-items:flex-start;flex-direction:column}}@media(max-width:520px){.two{grid-template-columns:1fr}.actions .btn{width:100%}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div><div class="brand">Uni Radio Admin Dashboard</div><div class="sub">Moderation • Copyright Safety • Genre Channel Routing</div></div>
-    <div class="row"><a class="link" href="radio.html">← Back to radio</a><a class="link" href="index.html">Empire</a></div>
-  </div>
-  <div id="adminStatus" class="small">Checking admin access...</div>
-  <div class="stats" id="stats" style="display:none"></div>
-  <div class="toolbar" id="toolbar" style="display:none">
-    <button class="tab active" data-filter="all">All</button>
-    <button class="tab" data-filter="pending">Pending</button>
-    <button class="tab" data-filter="approved">Approved</button>
-    <button class="tab" data-filter="rejected">Rejected</button>
-    <button class="tab" data-filter="featured">Featured</button>
-    <button class="tab" id="refreshBtn">Refresh</button>
-  </div>
-  <div id="moderationList" class="grid"></div>
-</div>
-<script type="module">
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, query, orderBy, getDocs, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
-
-const firebaseConfig = { apiKey:"AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4", authDomain:"unibeatzproduction-7ae31.firebaseapp.com", projectId:"unibeatzproduction-7ae31", storageBucket:"unibeatzproduction-7ae31.firebasestorage.app", messagingSenderId:"70667820609", appId:"1:70667820609:web:57762df5510e6b4000b0c0" };
-const ADMIN_EMAILS = ['unibeatzproduction@gmail.com','syncere862@gmail.com'];
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-window.UB_FIREBASE = { app, auth, db, onAuthStateChanged, ready: true };
-window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
-
-const moderationList = document.getElementById('moderationList');
-const adminStatus = document.getElementById('adminStatus');
-const toolbar = document.getElementById('toolbar');
-const stats = document.getElementById('stats');
-let allItems = [];
-let currentFilter = 'all';
-let currentUser = null;
-
-function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function badge(status, featured){return `<span class="badge ${status || 'pending'}">${String(status || 'pending').toUpperCase()}</span>${featured ? ' <span class="badge featured">FEATURED</span>' : ''}`;}
-function renderDenied(message){moderationList.className=''; moderationList.innerHTML=`<div class="locked"><h2>Access Denied</h2><p class="small">${esc(message)}</p><p class="small">Sign in with the UniBeatz admin Google account first.</p><button class="btn blue" onclick="window.UniBeatzAuth?.showLogin?.()">Sign In</button></div>`;}
-function channelsFromSelect(select){return Array.from(select.selectedOptions).map(o=>o.value);}
-function selectedOptionsHTML(values=[]){const opts=['Uni Radio Live','Podcast Replay','Genre Spotlight','Night Rotation','Featured Rotation'];return opts.map(o=>`<option ${values.includes(o)?'selected':''}>${o}</option>`).join('');}
-
-async function setStatus(id, status, notes, channels, featured=false){
-  await updateDoc(doc(db,'radio_submissions',id),{status,reviewNotes:notes||'',approvedFor:status==='approved'?channels:[],featured:status==='approved'?featured:false,reviewedAt:serverTimestamp(),reviewedBy:currentUser?.email||''});
-  await loadModeration();
-}
-async function toggleFeatured(id, isFeatured){
-  await updateDoc(doc(db,'radio_submissions',id),{featured:!isFeatured,reviewedAt:serverTimestamp(),reviewedBy:currentUser?.email||''});
-  await loadModeration();
-}
-function renderStats(){
-  const counts={all:allItems.length,pending:0,approved:0,rejected:0,featured:0};
-  allItems.forEach(({data})=>{counts[data.status||'pending']=(counts[data.status||'pending']||0)+1;if(data.featured)counts.featured++;});
-  stats.style.display='grid';
-  stats.innerHTML=`<div class="stat"><strong>${counts.all}</strong><span>Total</span></div><div class="stat"><strong>${counts.pending}</strong><span>Pending</span></div><div class="stat"><strong>${counts.approved}</strong><span>Approved</span></div><div class="stat"><strong>${counts.rejected}</strong><span>Rejected</span></div><div class="stat"><strong>${counts.featured}</strong><span>Featured</span></div>`;
-}
-function renderCards(){
-  moderationList.className='grid';
-  const list=allItems.filter(({data})=> currentFilter==='all' ? true : currentFilter==='featured' ? !!data.featured : (data.status||'pending')===currentFilter);
-  if(!list.length){moderationList.innerHTML='<div class="empty">No submissions in this view.</div>';return;}
-  moderationList.innerHTML='';
-  list.forEach(({id,data:d})=>{
-    const card=document.createElement('article');card.className='card';
-    card.innerHTML=`<div>${badge(d.status||'pending',d.featured)}</div><h3>${esc(d.trackTitle||'Untitled')} — ${esc(d.artistName||'Unknown Artist')}</h3><div class="small">Genre: ${esc(d.genre||'N/A')}<br>Contact: ${esc(d.email||'N/A')}<br>Submitted by: ${esc(d.submittedByEmail||'N/A')}</div><audio controls src="${esc(d.audioUrl||'')}"></audio><div class="small"><strong>Rights Declaration:</strong> ${esc(d.copyrightDeclaration||'N/A')}</div><label class="small">Route to channels</label><select class="channelSelect" multiple>${selectedOptionsHTML(d.approvedFor||[])}</select><label class="small">Review notes</label><textarea class="notes" placeholder="Copyright concerns, mix feedback, decision notes...">${esc(d.reviewNotes||'')}</textarea><div class="row"><button class="btn ok approve">Approve</button><button class="btn no reject">Reject</button><button class="btn hold pendingBtn">Hold</button><button class="btn blue featureBtn">${d.featured?'Unfeature':'Feature'}</button></div>`;
-    const notes=card.querySelector('.notes');const select=card.querySelector('.channelSelect');
-    card.querySelector('.approve').onclick=()=>setStatus(id,'approved',notes.value,channelsFromSelect(select),!!d.featured);
-    card.querySelector('.reject').onclick=()=>setStatus(id,'rejected',notes.value,[],false);
-    card.querySelector('.pendingBtn').onclick=()=>setStatus(id,'pending',notes.value,[],false);
-    card.querySelector('.featureBtn').onclick=()=>toggleFeatured(id,!!d.featured);
-    moderationList.appendChild(card);
-  });
-}
-async function loadModeration(){
-  adminStatus.textContent='Loading radio submissions...';
-  const snapshot=await getDocs(query(collection(db,'radio_submissions'),orderBy('createdAt','desc')));
-  allItems=snapshot.docs.map(d=>({id:d.id,data:d.data()}));
-  adminStatus.textContent=`Signed in as ${currentUser?.email || 'admin'} — radio moderation active.`;
-  toolbar.style.display='flex';
-  renderStats();renderCards();
-}
-
-document.querySelectorAll('.tab[data-filter]').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.tab[data-filter]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentFilter=btn.dataset.filter;renderCards();});
-document.getElementById('refreshBtn').onclick=()=>loadModeration();
-
-onAuthStateChanged(auth, async user=>{
-  currentUser=user;
-  if(!user){renderDenied('No account is signed in.');return;}
-  const token=await user.getIdTokenResult().catch(()=>null);
-  const email=(user.email||'').toLowerCase();
-  const isAdmin=token?.claims?.admin===true || ADMIN_EMAILS.includes(email);
-  if(!isAdmin){renderDenied(`Signed in as ${esc(user.email)}, but this is not an approved radio admin account.`);return;}
-  await loadModeration();
-});
-</script>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO ADMIN</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-program.html">DJ Program</a><a href="radio-premium.html">Premium</a><a href="index.html">Empire</a><button id="lockBtn" type="button">Lock</button></div></div></nav>
+<div id="lockScreen" class="locked"><div class="eyebrow">Admin Access</div><h1>Radio Admin</h1><p class="sub" style="margin:auto">Enter your radio admin code to moderate submissions and control the station.</p><div style="margin-top:14px"><input id="adminCode" class="input" type="password" placeholder="Admin code"/></div><button id="unlockBtn" class="btn btn-gold" style="margin-top:12px">Unlock Admin</button><div id="lockNotice" class="notice"></div></div>
+<main id="adminApp" class="wrap hidden">
+<section class="hero"><div class="eyebrow">Radio Moderation · UniBeatzProduction</div><h1 class="h1">Radio <span>Administration</span></h1><p class="sub">Approve tracks, feature records, reject unsafe submissions, and control the public radio station rotation.</p><div class="stats"><div class="stat"><b id="statTotal">0</b><span>Total</span></div><div class="stat"><b id="statPending">0</b><span>Pending</span></div><div class="stat"><b id="statApproved">0</b><span>Approved</span></div><div class="stat"><b id="statFeatured">0</b><span>Featured</span></div><div class="stat"><b id="statRejected">0</b><span>Rejected</span></div></div></section>
+<div class="grid"><section class="panel"><h2>Submission Queue</h2><div class="tabs"><button class="btn btn-gold" data-filter="pending">Pending</button><button class="btn btn-blue" data-filter="approved">Approved</button><button class="btn btn-blue" data-filter="featured">Featured</button><button class="btn btn-red" data-filter="rejected">Rejected</button><button class="btn btn-blue" data-filter="all">All</button><button id="reloadBtn" class="btn btn-blue">Reload</button></div><div id="adminList" class="track-list"><div class="empty">Loading submissions...</div></div></section><aside class="panel"><h2>Station Controls</h2><div class="form"><label class="small">Station Title</label><input id="stationTitle" class="input" placeholder="Empire Rotation"/><label class="small">Station Message / Announcement</label><textarea id="stationMessage" placeholder="Now live on UniBeatz Radio..."></textarea><label class="small">Current DJ / Host</label><input id="stationDj" class="input" placeholder="UniBeatz Radio"/><div class="two"><button id="saveStationBtn" class="btn btn-gold">Save Station</button><button id="clearNowBtn" class="btn btn-blue">Clear Now Playing</button></div><div id="stationNotice" class="notice"></div></div><hr style="border-color:rgba(255,255,255,.08);margin:16px 0"><h2>Admin Notes</h2><p class="small">Approved records appear on radio.html. Featured records rise to the top of the public rotation. Rejected records stay archived but hidden from listeners.</p></aside></div>
+</main>
 <script type="module" src="/unibeatz-notifications.js"></script>
+<script type="module" src="admin-radio.js"></script>
 </body>
 </html>
