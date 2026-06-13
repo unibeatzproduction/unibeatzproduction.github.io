@@ -33,23 +33,35 @@ const nowPlayingBadge = document.getElementById('nowPlayingBadge');
 
 let allApprovedTracks = [];
 let currentGenre = 'All';
+let lastAccountText = '';
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function setAccountText(text){
+  if(!accountBtn) return;
+  if(lastAccountText === text) return;
+  lastAccountText = text;
+  accountBtn.textContent = text;
+}
+function labelForUser(user, profile){
+  if(!user || user.isAnonymous) return 'Sign In';
+  return profile?.username || user.displayName || user.email || 'Account';
+}
 
 accountBtn.addEventListener('click', () => {
   if (window.UniBeatzAuth?.getUser?.()) window.UniBeatzAuth.showAccount();
-  else window.UniBeatzAuth?.showLogin?.();
+  else if (window.UniBeatzAuth?.showLogin) window.UniBeatzAuth.showLogin();
 });
 
 window.addEventListener('ub-auth-ready', (e) => {
   const user = e.detail?.user;
   const profile = e.detail?.profile;
-  accountBtn.textContent = user ? (profile?.username || user.email || 'Account') : 'Sign In';
+  setAccountText(labelForUser(user, profile));
 });
 
 onAuthStateChanged(auth, (user) => {
-  accountBtn.textContent = user && !user.isAnonymous ? (user.displayName || user.email || 'Account') : 'Sign In';
+  setAccountText(labelForUser(user));
 });
+setAccountText('Sign In');
 
 document.getElementById('openSubmit').addEventListener('click', ()=> modal.classList.add('open'));
 document.getElementById('closeSubmit').addEventListener('click', ()=> modal.classList.remove('open'));
