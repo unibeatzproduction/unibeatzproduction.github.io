@@ -1,4 +1,4 @@
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const ADMIN_CODE = '2345';
@@ -36,7 +36,24 @@ async function ensureAuth(){
   const fb = await waitForFb();
   if(!fb || !fb.app) throw new Error('Firebase not ready');
   const auth = fb.auth || getAuth(fb.app);
-  if(!auth.currentUser) await signInAnonymously(auth);
+  let user = auth.currentUser;
+
+if (!user || user.isAnonymous || ![
+  'syncere862@gmail.com',
+  'unibeatzproduction@gmail.com'
+].includes(user.email)) {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const result = await signInWithPopup(auth, provider);
+  user = result.user;
+}
+
+if (![
+  'syncere862@gmail.com',
+  'unibeatzproduction@gmail.com'
+].includes(user.email)) {
+  throw new Error('Not an approved radio admin.');
+}
   return { fb, auth, db: fb.db || getFirestore(fb.app) };
 }
 
