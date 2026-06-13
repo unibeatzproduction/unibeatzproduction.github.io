@@ -91,8 +91,7 @@ async function loadSubmissions(){
   list.innerHTML='<div class="empty">Loading submissions...</div>';
   try{
     const { db } = await ensureAuth();
-    const q=query(collection(db,'radio_submissions'),orderBy('createdAt','desc'));
-    const snap=await getDocs(q);
+    const snap = await getDocs(collection(db,'radio_submissions'));
     submissions=snap.docs.map(d=>({id:d.id,...d.data()}));
     updateStats();renderList();
   }catch(e){console.error(e);list.innerHTML='<div class="empty">Could not load submissions. Check Firebase rules/index or make sure unibeatz-notifications initializes Firebase.</div>';}
