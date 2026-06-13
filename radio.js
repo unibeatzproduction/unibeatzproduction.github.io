@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -39,6 +39,8 @@ let allApprovedTracks = [];
 let currentGenre = 'All';
 let currentTrackIndex = 0;
 let lastAccountText = '';
+let reactionCounts = {};
+let currentUserReaction = '';
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function setAccountText(text){
@@ -54,12 +56,111 @@ function labelForUser(user, profile){
 function filteredTracks(){
   return currentGenre === 'All' ? allApprovedTracks : allApprovedTracks.filter(t=>t.genre===currentGenre);
 }
+function currentTrack(){
+  return filteredTracks()[currentTrackIndex] || allApprovedTracks[0] || null;
+}
 function setPlayButton(){
   if(!playPauseBtn) return;
   playPauseBtn.textContent = radioPlayer && !radioPlayer.paused ? '⏸ Pause' : '▶ Play';
 }
 function setTrackCount(){
   if(trackCountLabel) trackCountLabel.textContent = `${allApprovedTracks.length} approved track${allApprovedTracks.length===1?'':'s'}`;
+}
+function getListenerId(){
+  let id = localStorage.getItem('ub_radio_listener_id');
+  if(!id){
+    id = 'listener_' + Date.now() + '_' + Math.random().toString(36).slice(2,10);
+    localStorage.setItem('ub_radio_listener_id', id);
+  }
+  return id;
+}
+function injectReactionButtons(){
+  if(document.getElementById('radioReactionBar')) return;
+  const controls = document.querySelector('.radio-controls');
+  if(!controls) return;
+  const bar = document.createElement('div');
+  bar.id = 'radioReactionBar';
+  bar.className = 'radio-reaction-bar';
+  bar.style.display = 'grid';
+  bar.style.gridTemplateColumns = '1fr 1fr';
+  bar.style.gap = '10px';
+  bar.style.marginTop = '10px';
+  bar.innerHTML = `
+    <button id="likeTrack" class="btn btn-blue" type="button">👍 Like <span id="likeCount">0</span></button>
+    <button id="dislikeTrack" class="btn btn-blue" type="button">👎 Dislike <span id="dislikeCount">0</span></button>
+  `;
+  controls.insertAdjacentElement('afterend', bar);
+  document.getElementById('likeTrack').addEventListener('click', ()=>saveReaction('like'));
+  document.getElementById('dislikeTrack').addEventListener('click', ()=>saveReaction('dislike'));
+}
+function updateReactionButtons(track){
+  injectReactionButtons();
+  const id = track?.id || '';
+  const counts = reactionCounts[id] || { likes:0, dislikes:0 };
+  const likeCount = document.getElementById('likeCount');
+  const dislikeCount = document.getElementById('dislikeCount');
+  const likeBtn = document.getElementById('likeTrack');
+  const dislikeBtn = document.getElementById('dislikeTrack');
+  if(likeCount) likeCount.textContent = counts.likes || 0;
+  if(dislikeCount) dislikeCount.textContent = counts.dislikes || 0;
+  if(likeBtn) likeBtn.className = 'btn ' + (currentUserReaction === 'like' ? 'btn-gold' : 'btn-blue');
+  if(dislikeBtn) dislikeBtn.className = 'btn ' + (currentUserReaction === 'dislike' ? 'btn-gold' : 'btn-blue');
+}
+async function loadReactionsForTrack(track){
+  if(!track?.id) return;
+  const listenerId = getListenerId();
+  try{
+    const q = query(collection(db, 'radio_reactions'), where('trackId', '==', track.id));
+    const snap = await getDocs(q);
+    let likes = 0, dislikes = 0, mine = '';
+    snap.forEach(d=>{
+      const data = d.data() || {};
+      if(data.reaction === 'like') likes++;
+      if(data.reaction === 'dislike') dislikes++;
+      if(data.listenerId === listenerId) mine = data.reaction || '';
+    });
+    reactionCounts[track.id] = { likes, dislikes };
+    if(currentTrack()?.id === track.id){
+      currentUserReaction = mine;
+      updateReactionButtons(track);
+    }
+  }catch(error){
+    console.warn('REACTION LOAD ERROR', error);
+  }
+}
+async function loadAllReactionCounts(){
+  await Promise.all(allApprovedTracks.map(t=>loadReactionsForTrack(t)));
+  renderApprovedTracks();
+}
+async function saveReaction(reaction){
+  const track = currentTrack();
+  if(!track?.id){
+    nowPlayingBadge.textContent = 'PLAY A TRACK FIRST';
+    return;
+  }
+  try{
+    if(!auth.currentUser) await signInAnonymously(auth);
+    const listenerId = getListenerId();
+    const reactionId = `${track.id}_${listenerId}`.replace(/[^a-zA-Z0-9_\-]/g,'_');
+    await setDoc(doc(db, 'radio_reactions', reactionId), {
+      trackId: track.id,
+      trackTitle: track.trackTitle || '',
+      artistName: track.artistName || '',
+      listenerId,
+      reaction,
+      uid: auth.currentUser?.uid || null,
+      isAnonymous: !!auth.currentUser?.isAnonymous,
+      updatedAt: serverTimestamp(),
+      createdAt: serverTimestamp()
+    }, { merge: true });
+    currentUserReaction = reaction;
+    await loadReactionsForTrack(track);
+    renderApprovedTracks();
+    nowPlayingBadge.textContent = reaction === 'like' ? 'THANKS FOR THE LIKE' : 'FEEDBACK SAVED';
+  }catch(error){
+    console.error('REACTION SAVE ERROR', error);
+    nowPlayingBadge.textContent = 'REACTION ERROR — CHECK FIREBASE RULES';
+  }
 }
 
 accountBtn.addEventListener('click', () => {
@@ -77,6 +178,7 @@ onAuthStateChanged(auth, (user) => {
   setAccountText(labelForUser(user));
 });
 setAccountText('Sign In');
+injectReactionButtons();
 
 document.getElementById('openSubmit').addEventListener('click', ()=> modal.classList.add('open'));
 document.getElementById('closeSubmit').addEventListener('click', ()=> modal.classList.remove('open'));
@@ -175,6 +277,7 @@ function renderGenreFilters(){
       currentTrackIndex = 0;
       renderApprovedTracks();
       renderGenreFilters();
+      loadReactionsForTrack(currentTrack()).catch(console.warn);
     });
     genreFilters.appendChild(btn);
   });
@@ -192,6 +295,7 @@ async function playTrack(index){
   radioPlayer.src = url;
   radioPlayer.load();
   updateNowPlaying(track);
+  await loadReactionsForTrack(track);
   renderApprovedTracks();
   await radioPlayer.play();
   setPlayButton();
@@ -208,10 +312,11 @@ function renderApprovedTracks(){
   approvedList.innerHTML='';
 
   filtered.forEach((track, index)=>{
+    const counts = reactionCounts[track.id] || { likes:0, dislikes:0 };
     const el=document.createElement('button');
     el.type='button';
     el.className='track' + (index === currentTrackIndex ? ' active' : '');
-    el.innerHTML=`<div class="name">${esc(track.trackTitle || 'Untitled')}</div><div class="desc">${esc(track.artistName || 'Unknown Artist')} · ${esc(track.genre || 'Radio')}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div>`;
+    el.innerHTML=`<div class="name">${esc(track.trackTitle || 'Untitled')}</div><div class="desc">${esc(track.artistName || 'Unknown Artist')} · ${esc(track.genre || 'Radio')}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div><div class="desc" style="margin-top:7px">👍 ${counts.likes || 0} · 👎 ${counts.dislikes || 0}</div>`;
     el.addEventListener('click', async ()=>{
       try { await playTrack(index); }
       catch (err) { console.error('RADIO PLAY ERROR', err, track); nowPlayingBadge.textContent = 'PLAY ERROR — CHECK FILE URL/RULES'; }
@@ -242,6 +347,9 @@ async function loadApproved() {
 
     if (snapshot.empty) {
       allApprovedTracks = [];
+      reactionCounts = {};
+      currentUserReaction = '';
+      updateReactionButtons(null);
       setTrackCount();
       approvedList.innerHTML = '<div class="channel">No approved tracks yet.</div>';
       return;
@@ -260,10 +368,12 @@ async function loadApproved() {
     setTrackCount();
     renderGenreFilters();
     renderApprovedTracks();
+    await loadAllReactionCounts();
 
     const firstTrack = filteredTracks()[0];
     if(firstTrack){
       updateNowPlaying(firstTrack);
+      await loadReactionsForTrack(firstTrack);
       resolveTrackUrl(firstTrack).then(url=>{ radioPlayer.src=url; radioPlayer.load(); setPlayButton(); }).catch(console.warn);
     }
   } catch (error) {
