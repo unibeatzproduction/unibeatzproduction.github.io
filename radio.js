@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, orderBy } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -62,6 +62,12 @@ form.addEventListener('submit', async (e) => {
   const formData = new FormData(form);
   const file = formData.get('audioFile');
 
+  if (!file || !file.size) {
+    notice.textContent = 'Please choose an audio file.';
+    notice.style.color = '#ff3c3c';
+    return;
+  }
+
   if (file.size > 25 * 1024 * 1024) {
     notice.textContent = 'File too large. Max upload size is 25MB.';
     notice.style.color = '#ff3c3c';
@@ -77,12 +83,17 @@ form.addEventListener('submit', async (e) => {
     const downloadURL = await getDownloadURL(fileRef);
 
     await addDoc(collection(db, 'radio_submissions'), {
-      artistName: formData.get('artistName'),
-      email: formData.get('email'),
-      trackTitle: formData.get('trackTitle'),
-      genre: formData.get('genre'),
-      copyrightDeclaration: formData.get('copyrightDeclaration'),
+      artistName: formData.get('artistName') || '',
+      email: formData.get('email') || '',
+      trackTitle: formData.get('trackTitle') || '',
+      artistLink: formData.get('artistLink') || '',
+      producerCredits: formData.get('producerCredits') || '',
+      genre: formData.get('genre') || '',
+      copyrightDeclaration: formData.get('copyrightDeclaration') || '',
+      rightsConfirm: !!formData.get('rightsConfirm'),
       audioUrl: downloadURL,
+      fileType: file.type || 'audio/mpeg',
+      fileName: file.name || safeName,
       storagePath: fileRef.fullPath,
       status: 'pending',
       featured: false,
@@ -101,15 +112,28 @@ form.addEventListener('submit', async (e) => {
     notice.style.color = '#00cc66';
   } catch (error) {
     console.error(error);
-    notice.textContent = 'Submission failed. Verify Firebase config and rules.';
+    notice.textContent = 'Submission failed: ' + (error.message || 'Verify Firebase config and rules.');
     notice.style.color = '#ff3c3c';
   }
 });
 
 function updateNowPlaying(track){
-  nowPlayingTitle.textContent = `Now Playing: ${track.trackTitle}`;
-  nowPlayingMeta.textContent = `${track.artistName} • ${track.genre}`;
+  nowPlayingTitle.textContent = `Now Playing: ${track.trackTitle || 'Untitled'}`;
+  nowPlayingMeta.textContent = `${track.artistName || 'Unknown Artist'} • ${track.genre || 'Radio'}`;
   nowPlayingBadge.textContent = track.featured ? 'FEATURED ROTATION' : 'APPROVED ROTATION';
+}
+
+async function resolveTrackUrl(track){
+  if (track.audioUrl) return track.audioUrl;
+  if (track.storagePath) {
+    const url = await getDownloadURL(ref(storage, track.storagePath));
+    track.audioUrl = url;
+    if (track.id) {
+      updateDoc(doc(db, 'radio_submissions', track.id), { audioUrl: url }).catch(console.warn);
+    }
+    return url;
+  }
+  throw new Error('Track is missing audioUrl and storagePath.');
 }
 
 function renderGenreFilters(){
@@ -144,11 +168,22 @@ function renderApprovedTracks(){
     const el=document.createElement('button');
     el.type='button';
     el.className='track';
-    el.innerHTML=`<div class="name">${esc(track.trackTitle)}</div><div class="desc">${esc(track.artistName)} · ${esc(track.genre)}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div>`;
-    el.addEventListener('click', ()=>{
-      radioPlayer.src=track.audioUrl;
-      radioPlayer.play();
-      updateNowPlaying(track);
+    el.innerHTML=`<div class="name">${esc(track.trackTitle || 'Untitled')}</div><div class="desc">${esc(track.artistName || 'Unknown Artist')} · ${esc(track.genre || 'Radio')}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div>`;
+    el.addEventListener('click', async ()=>{
+      try {
+        el.disabled = true;
+        const url = await resolveTrackUrl(track);
+        radioPlayer.pause();
+        radioPlayer.src = url;
+        radioPlayer.load();
+        updateNowPlaying(track);
+        await radioPlayer.play();
+      } catch (err) {
+        console.error('RADIO PLAY ERROR', err, track);
+        nowPlayingBadge.textContent = 'PLAY ERROR — CHECK FILE URL/RULES';
+      } finally {
+        el.disabled = false;
+      }
     });
     approvedList.appendChild(el);
   });
@@ -156,23 +191,40 @@ function renderApprovedTracks(){
 
 async function loadApproved() {
   approvedList.innerHTML = '<div class="channel">Loading approved tracks...</div>';
-  const q = query(collection(db, 'radio_submissions'), where('status', '==', 'approved'), orderBy('createdAt', 'desc'));
-  const snapshot = await getDocs(q);
+  try {
+    const q = query(collection(db, 'radio_submissions'), where('status', '==', 'approved'));
+    const snapshot = await getDocs(q);
 
-  if (snapshot.empty) {
-    approvedList.innerHTML = '<div class="channel">No approved tracks yet.</div>';
-    return;
-  }
+    if (snapshot.empty) {
+      approvedList.innerHTML = '<div class="channel">No approved tracks yet.</div>';
+      return;
+    }
 
-  allApprovedTracks = snapshot.docs.map(doc => doc.data())
-    .sort((a,b)=> Number(!!b.featured) - Number(!!a.featured));
+    allApprovedTracks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b)=> {
+        const featured = Number(!!b.featured) - Number(!!a.featured);
+        if(featured) return featured;
+        const ad=a.createdAt?.toMillis?a.createdAt.toMillis():0;
+        const bd=b.createdAt?.toMillis?b.createdAt.toMillis():0;
+        return bd-ad;
+      });
 
-  renderGenreFilters();
-  renderApprovedTracks();
+    renderGenreFilters();
+    renderApprovedTracks();
 
-  const firstTrack = allApprovedTracks[0];
-  if(firstTrack){
-    updateNowPlaying(firstTrack);
+    const firstTrack = allApprovedTracks[0];
+    if(firstTrack){
+      updateNowPlaying(firstTrack);
+      if(firstTrack.audioUrl){
+        radioPlayer.src = firstTrack.audioUrl;
+        radioPlayer.load();
+      } else if(firstTrack.storagePath){
+        resolveTrackUrl(firstTrack).then(url=>{ radioPlayer.src=url; radioPlayer.load(); }).catch(console.warn);
+      }
+    }
+  } catch (error) {
+    console.error('LOAD APPROVED ERROR', error);
+    approvedList.innerHTML = '<div class="channel">Could not load approved tracks: '+esc(error.message || error)+'</div>';
   }
 }
 
