@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -17,10 +17,7 @@ const db = getFirestore(app);
 window.UB_FIREBASE = { ...(window.UB_FIREBASE || {}), app, auth, db, ready: true };
 window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
 
-try { await getRedirectResult(auth); } catch (e) { console.warn('redirect result', e); }
-
 const ADMIN_CODE = '2345';
-const ADMIN_EMAILS = ['syncere862@gmail.com','unibeatzproduction@gmail.com'];
 const lockScreen = document.getElementById('lockScreen');
 const adminApp = document.getElementById('adminApp');
 const lockNotice = document.getElementById('lockNotice');
@@ -28,13 +25,15 @@ const list = document.getElementById('adminList');
 let submissions = [];
 let currentFilter = 'pending';
 let loadingNow = false;
+let loadedOnce = false;
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(v){try{if(v&&v.toDate)return v.toDate().toLocaleString();if(v)return new Date(v).toLocaleString();}catch(e){}return 'No date';}
 function unlocked(){return localStorage.getItem('ub_radio_admin_unlocked')==='yes';}
-function isAdminEmail(email){return ADMIN_EMAILS.includes(String(email||'').toLowerCase());}
-function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');loadSubmissions();}
+function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');if(!loadedOnce)loadSubmissions(true);}
+function showLock(){adminApp.classList.add('hidden');lockScreen.classList.remove('hidden');}
 function lock(){localStorage.removeItem('ub_radio_admin_unlocked');location.reload();}
+function boot(){if(unlocked())showAdmin();else showLock();}
 
 document.getElementById('unlockBtn').onclick=()=>{
   const code=document.getElementById('adminCode').value.trim();
@@ -44,17 +43,9 @@ document.getElementById('unlockBtn').onclick=()=>{
 document.getElementById('lockBtn').onclick=lock;
 
 async function ensureAdmin(){
-  let user = auth.currentUser;
-  if(!user || user.isAnonymous || !isAdminEmail(user.email)){
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    lockNotice.textContent='Redirecting to Google admin sign-in...';
-    lockNotice.style.color='#40D0FF';
-    await signInWithRedirect(auth, provider);
-    throw new Error('Redirecting to Google admin sign-in...');
-  }
-  if(!isAdminEmail(user.email)) throw new Error('Not approved admin email: '+(user.email || 'no email'));
-  return user;
+  if(!unlocked()) throw new Error('Admin code required.');
+  if(!auth.currentUser) await signInAnonymously(auth);
+  return auth.currentUser;
 }
 
 function statusClass(s){s=String(s||'pending').toLowerCase();return s==='approved'?'approved':s==='rejected'?'rejected':'pending';}
@@ -78,8 +69,8 @@ function filtered(){
 function mediaTag(t){
   const url=String(t.audioUrl||'');
   const type=String(t.fileType||t.contentType||'').toLowerCase();
-  if(type.startsWith('video/') || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)) return `<video class="player" controls src="${esc(url)}"></video>`;
-  return `<audio class="player" controls src="${esc(url)}"></audio>`;
+  if(type.startsWith('video/') || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)) return `<video class="player" controls preload="metadata" src="${esc(url)}"></video>`;
+  return `<audio class="player" controls preload="metadata" src="${esc(url)}"></audio>`;
 }
 function renderList(){
   const data=filtered();
@@ -93,20 +84,20 @@ function renderList(){
     <div class="actions"><button class="btn btn-green btn-small" onclick="radioAdmin.approve('${t.id}')">Approve</button><button class="btn btn-gold btn-small" onclick="radioAdmin.feature('${t.id}')">${t.featured?'Unfeature':'Feature'}</button><button class="btn btn-blue btn-small" onclick="radioAdmin.now('${t.id}')">Set Now Playing</button><button class="btn btn-red btn-small" onclick="radioAdmin.reject('${t.id}')">Reject</button><button class="btn btn-red btn-small" onclick="radioAdmin.remove('${t.id}')">Delete</button></div>
   </article>`).join('');
 }
-async function loadSubmissions(){
+async function loadSubmissions(force=false){
   if(loadingNow) return;
+  if(loadedOnce && !force) return;
   loadingNow = true;
-  list.innerHTML='<div class="empty">Loading submissions...</div>';
+  if(!loadedOnce) list.innerHTML='<div class="empty">Loading submissions...</div>';
   try{
-    const user = await ensureAdmin();
+    await ensureAdmin();
     const snap = await getDocs(collection(db,'radio_submissions'));
     submissions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
       const ad=a.createdAt?.toMillis?a.createdAt.toMillis():0;
       const bd=b.createdAt?.toMillis?b.createdAt.toMillis():0;
       return bd-ad;
     });
-    lockNotice.textContent='Signed in as '+user.email;
-    lockNotice.style.color='#5dff9e';
+    loadedOnce = true;
     updateStats();renderList();
   }catch(e){
     console.error(e);
@@ -115,15 +106,11 @@ async function loadSubmissions(){
     loadingNow = false;
   }
 }
-async function updateSubmission(id,patch){
-  await ensureAdmin();
-  await updateDoc(doc(db,'radio_submissions',id),{...patch,reviewedAt:serverTimestamp()});
-  await loadSubmissions();
-}
+async function updateSubmission(id,patch){await ensureAdmin();await updateDoc(doc(db,'radio_submissions',id),{...patch,reviewedAt:serverTimestamp()});loadedOnce=false;await loadSubmissions(true);}
 async function approve(id){await updateSubmission(id,{status:'approved',featured:false});}
 async function reject(id){await updateSubmission(id,{status:'rejected',featured:false});}
 async function feature(id){const t=submissions.find(x=>x.id===id);await updateSubmission(id,{status:'approved',featured:!t?.featured});}
-async function remove(id){if(!confirm('Delete this radio submission?'))return;await ensureAdmin();await deleteDoc(doc(db,'radio_submissions',id));await loadSubmissions();}
+async function remove(id){if(!confirm('Delete this radio submission?'))return;await ensureAdmin();await deleteDoc(doc(db,'radio_submissions',id));loadedOnce=false;await loadSubmissions(true);}
 async function setNow(id){
   const t=submissions.find(x=>x.id===id); if(!t)return;
   await ensureAdmin();
@@ -132,7 +119,7 @@ async function setNow(id){
 }
 
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{currentFilter=b.dataset.filter;renderList();});
-document.getElementById('reloadBtn').onclick=loadSubmissions;
+document.getElementById('reloadBtn').onclick=()=>{loadedOnce=false;loadSubmissions(true);};
 document.getElementById('saveStationBtn').onclick=async()=>{
   await ensureAdmin();
   await setDoc(doc(db,'radio_station','main'),{title:document.getElementById('stationTitle').value.trim()||'Empire Rotation',message:document.getElementById('stationMessage').value.trim(),dj:document.getElementById('stationDj').value.trim()||'UniBeatz Radio',updatedAt:serverTimestamp()},{merge:true});
@@ -143,9 +130,5 @@ document.getElementById('clearNowBtn').onclick=async()=>{
   await setDoc(doc(db,'radio_station','main'),{nowPlayingId:'',trackTitle:'',artistName:'',genre:'',audioUrl:'',updatedAt:serverTimestamp()},{merge:true});
   document.getElementById('stationNotice').textContent='Now Playing cleared.';
 };
-window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:loadSubmissions};
-
-onAuthStateChanged(auth,()=>{
-  if(unlocked() && adminApp && !adminApp.classList.contains('hidden')) loadSubmissions();
-});
-if(unlocked()) showAdmin();
+window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:()=>{loadedOnce=false;loadSubmissions(true);}};
+boot();
