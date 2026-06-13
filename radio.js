@@ -30,9 +30,14 @@ const genreFilters = document.getElementById('genreFilters');
 const nowPlayingTitle = document.getElementById('nowPlayingTitle');
 const nowPlayingMeta = document.getElementById('nowPlayingMeta');
 const nowPlayingBadge = document.getElementById('nowPlayingBadge');
+const playPauseBtn = document.getElementById('playPause');
+const nextTrackBtn = document.getElementById('nextTrack');
+const prevTrackBtn = document.getElementById('prevTrack');
+const trackCountLabel = document.getElementById('trackCountLabel');
 
 let allApprovedTracks = [];
 let currentGenre = 'All';
+let currentTrackIndex = 0;
 let lastAccountText = '';
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -45,6 +50,16 @@ function setAccountText(text){
 function labelForUser(user, profile){
   if(!user || user.isAnonymous) return 'Sign In';
   return profile?.username || user.displayName || user.email || 'Account';
+}
+function filteredTracks(){
+  return currentGenre === 'All' ? allApprovedTracks : allApprovedTracks.filter(t=>t.genre===currentGenre);
+}
+function setPlayButton(){
+  if(!playPauseBtn) return;
+  playPauseBtn.textContent = radioPlayer && !radioPlayer.paused ? '⏸ Pause' : '▶ Play';
+}
+function setTrackCount(){
+  if(trackCountLabel) trackCountLabel.textContent = `${allApprovedTracks.length} approved track${allApprovedTracks.length===1?'':'s'}`;
 }
 
 accountBtn.addEventListener('click', () => {
@@ -140,9 +155,7 @@ async function resolveTrackUrl(track){
   if (track.storagePath) {
     const url = await getDownloadURL(ref(storage, track.storagePath));
     track.audioUrl = url;
-    if (track.id) {
-      updateDoc(doc(db, 'radio_submissions', track.id), { audioUrl: url }).catch(console.warn);
-    }
+    if (track.id) updateDoc(doc(db, 'radio_submissions', track.id), { audioUrl: url }).catch(console.warn);
     return url;
   }
   throw new Error('Track is missing audioUrl and storagePath.');
@@ -159,6 +172,7 @@ function renderGenreFilters(){
     btn.textContent=genre;
     btn.addEventListener('click', ()=>{
       currentGenre=genre;
+      currentTrackIndex = 0;
       renderApprovedTracks();
       renderGenreFilters();
     });
@@ -166,8 +180,25 @@ function renderGenreFilters(){
   });
 }
 
+async function playTrack(index){
+  const tracks = filteredTracks();
+  if(!tracks.length) return;
+  if(index < 0) index = tracks.length - 1;
+  if(index >= tracks.length) index = 0;
+  currentTrackIndex = index;
+  const track = tracks[currentTrackIndex];
+  const url = await resolveTrackUrl(track);
+  radioPlayer.pause();
+  radioPlayer.src = url;
+  radioPlayer.load();
+  updateNowPlaying(track);
+  renderApprovedTracks();
+  await radioPlayer.play();
+  setPlayButton();
+}
+
 function renderApprovedTracks(){
-  const filtered=currentGenre==='All' ? allApprovedTracks : allApprovedTracks.filter(t=>t.genre===currentGenre);
+  const filtered = filteredTracks();
 
   if(!filtered.length){
     approvedList.innerHTML='<div class="channel">No approved tracks in this category yet.</div>';
@@ -176,30 +207,32 @@ function renderApprovedTracks(){
 
   approvedList.innerHTML='';
 
-  filtered.forEach((track)=>{
+  filtered.forEach((track, index)=>{
     const el=document.createElement('button');
     el.type='button';
-    el.className='track';
+    el.className='track' + (index === currentTrackIndex ? ' active' : '');
     el.innerHTML=`<div class="name">${esc(track.trackTitle || 'Untitled')}</div><div class="desc">${esc(track.artistName || 'Unknown Artist')} · ${esc(track.genre || 'Radio')}</div><div class="badge" style="margin-top:8px">${track.featured ? 'FEATURED' : 'APPROVED'}</div>`;
     el.addEventListener('click', async ()=>{
-      try {
-        el.disabled = true;
-        const url = await resolveTrackUrl(track);
-        radioPlayer.pause();
-        radioPlayer.src = url;
-        radioPlayer.load();
-        updateNowPlaying(track);
-        await radioPlayer.play();
-      } catch (err) {
-        console.error('RADIO PLAY ERROR', err, track);
-        nowPlayingBadge.textContent = 'PLAY ERROR — CHECK FILE URL/RULES';
-      } finally {
-        el.disabled = false;
-      }
+      try { await playTrack(index); }
+      catch (err) { console.error('RADIO PLAY ERROR', err, track); nowPlayingBadge.textContent = 'PLAY ERROR — CHECK FILE URL/RULES'; }
     });
     approvedList.appendChild(el);
   });
 }
+
+playPauseBtn?.addEventListener('click', async ()=>{
+  try{
+    if(!radioPlayer.src){ await playTrack(currentTrackIndex); return; }
+    if(radioPlayer.paused){ await radioPlayer.play(); }
+    else{ radioPlayer.pause(); }
+    setPlayButton();
+  }catch(err){ console.error('RADIO PLAY ERROR', err); nowPlayingBadge.textContent='PLAY ERROR — TAP A TRACK'; }
+});
+nextTrackBtn?.addEventListener('click', ()=>playTrack(currentTrackIndex + 1).catch(console.error));
+prevTrackBtn?.addEventListener('click', ()=>playTrack(currentTrackIndex - 1).catch(console.error));
+radioPlayer?.addEventListener('play', setPlayButton);
+radioPlayer?.addEventListener('pause', setPlayButton);
+radioPlayer?.addEventListener('ended', ()=>playTrack(currentTrackIndex + 1).catch(console.error));
 
 async function loadApproved() {
   approvedList.innerHTML = '<div class="channel">Loading approved tracks...</div>';
@@ -208,6 +241,8 @@ async function loadApproved() {
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
+      allApprovedTracks = [];
+      setTrackCount();
       approvedList.innerHTML = '<div class="channel">No approved tracks yet.</div>';
       return;
     }
@@ -221,18 +256,15 @@ async function loadApproved() {
         return bd-ad;
       });
 
+    currentTrackIndex = 0;
+    setTrackCount();
     renderGenreFilters();
     renderApprovedTracks();
 
-    const firstTrack = allApprovedTracks[0];
+    const firstTrack = filteredTracks()[0];
     if(firstTrack){
       updateNowPlaying(firstTrack);
-      if(firstTrack.audioUrl){
-        radioPlayer.src = firstTrack.audioUrl;
-        radioPlayer.load();
-      } else if(firstTrack.storagePath){
-        resolveTrackUrl(firstTrack).then(url=>{ radioPlayer.src=url; radioPlayer.load(); }).catch(console.warn);
-      }
+      resolveTrackUrl(firstTrack).then(url=>{ radioPlayer.src=url; radioPlayer.load(); setPlayButton(); }).catch(console.warn);
     }
   } catch (error) {
     console.error('LOAD APPROVED ERROR', error);
