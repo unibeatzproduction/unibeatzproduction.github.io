@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -16,8 +16,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.UB_FIREBASE = { ...(window.UB_FIREBASE || {}), app, auth, db, ready: true };
 window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
+try { await getRedirectResult(auth); } catch(e) { console.warn('[radio admin] redirect result', e); }
 
 const ADMIN_CODE = '2345';
+const ADMIN_EMAILS = ['syncere862@gmail.com','unibeatzproduction@gmail.com'];
 const lockScreen = document.getElementById('lockScreen');
 const adminApp = document.getElementById('adminApp');
 const lockNotice = document.getElementById('lockNotice');
@@ -26,27 +28,52 @@ let submissions = [];
 let currentFilter = 'pending';
 let loadingNow = false;
 let loadedOnce = false;
+let triedAutoLoad = false;
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(v){try{if(v&&v.toDate)return v.toDate().toLocaleString();if(v)return new Date(v).toLocaleString();}catch(e){}return 'No date';}
 function unlocked(){return localStorage.getItem('ub_radio_admin_unlocked')==='yes';}
-function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');if(!loadedOnce)loadSubmissions(true);}
+function isAdminEmail(email){return ADMIN_EMAILS.includes(String(email||'').toLowerCase());}
+function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');if(!loadedOnce&&!triedAutoLoad){triedAutoLoad=true;loadSubmissions(true);}}
 function showLock(){adminApp.classList.add('hidden');lockScreen.classList.remove('hidden');}
 function lock(){localStorage.removeItem('ub_radio_admin_unlocked');location.reload();}
 function boot(){if(unlocked())showAdmin();else showLock();}
 function setNotice(msg,color='#40D0FF'){const n=document.getElementById('stationNotice')||lockNotice;if(n){n.textContent=msg;n.style.color=color;}}
+function setLockNotice(msg,color='#40D0FF'){if(lockNotice){lockNotice.textContent=msg;lockNotice.style.color=color;}}
 
 document.getElementById('unlockBtn').onclick=()=>{
   const code=document.getElementById('adminCode').value.trim();
   if(code===ADMIN_CODE){localStorage.setItem('ub_radio_admin_unlocked','yes');showAdmin();}
-  else{lockNotice.textContent='Wrong admin code.';lockNotice.style.color='#ff7474';}
+  else{setLockNotice('Wrong admin code.','#ff7474');}
 };
 document.getElementById('lockBtn').onclick=lock;
 
+async function googleAdminSignIn(){
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  try{
+    await signInWithPopup(auth, provider);
+  }catch(e){
+    if(e && (e.code==='auth/popup-blocked' || e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request')){
+      await signInWithRedirect(auth, provider);
+    }else{
+      throw e;
+    }
+  }
+}
+
 async function ensureAdmin(){
   if(!unlocked()) throw new Error('Admin code required.');
-  if(!auth.currentUser) await signInAnonymously(auth);
-  return auth.currentUser;
+  let user = auth.currentUser;
+  if(!user || user.isAnonymous || !isAdminEmail(user.email)){
+    setNotice('Google admin sign-in required.');
+    await googleAdminSignIn();
+    user = auth.currentUser;
+  }
+  if(!user || !isAdminEmail(user.email)){
+    throw new Error('Not approved admin email. Use syncere862@gmail.com or unibeatzproduction@gmail.com.');
+  }
+  return user;
 }
 
 function statusClass(s){s=String(s||'pending').toLowerCase();return s==='approved'?'approved':s==='rejected'?'rejected':'pending';}
@@ -98,7 +125,7 @@ async function loadSubmissions(force=false){
   loadingNow = true;
   if(!loadedOnce) list.innerHTML='<div class="empty">Loading submissions...</div>';
   try{
-    await ensureAdmin();
+    const user = await ensureAdmin();
     const snap = await getDocs(collection(db,'radio_submissions'));
     submissions=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
       const ad=a.createdAt?.toMillis?a.createdAt.toMillis():0;
@@ -106,6 +133,7 @@ async function loadSubmissions(force=false){
       return bd-ad;
     });
     loadedOnce = true;
+    setNotice('Signed in as '+user.email,'#5dff9e');
     updateStats();renderList();
   }catch(e){
     console.error(e);
@@ -147,7 +175,9 @@ async function runAction(action,id){
   }
 }
 
+let touchHandledAt=0;
 list.addEventListener('click',(e)=>{
+  if(Date.now()-touchHandledAt<700) return;
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
   e.preventDefault();
@@ -157,6 +187,7 @@ list.addEventListener('click',(e)=>{
 list.addEventListener('touchend',(e)=>{
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
+  touchHandledAt=Date.now();
   e.preventDefault();
   e.stopPropagation();
   runAction(btn.dataset.action,btn.dataset.id);
@@ -181,4 +212,8 @@ document.getElementById('clearNowBtn').onclick=async()=>{
   }catch(e){setNotice('Clear failed: '+(e.message||e),'#ff7474');}
 };
 window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:()=>{loadedOnce=false;loadSubmissions(true);}};
+
+onAuthStateChanged(auth,(user)=>{
+  if(unlocked() && user && !user.isAnonymous && isAdminEmail(user.email) && !loadedOnce) loadSubmissions(true);
+});
 boot();
