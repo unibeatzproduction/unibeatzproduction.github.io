@@ -28,22 +28,34 @@ let submissions = [];
 let currentFilter = 'pending';
 let loadingNow = false;
 let loadedOnce = false;
-let triedAutoLoad = false;
+let authReady = false;
+let authUser = null;
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(v){try{if(v&&v.toDate)return v.toDate().toLocaleString();if(v)return new Date(v).toLocaleString();}catch(e){}return 'No date';}
 function unlocked(){return localStorage.getItem('ub_radio_admin_unlocked')==='yes';}
 function isAdminEmail(email){return ADMIN_EMAILS.includes(String(email||'').toLowerCase());}
-function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');if(!loadedOnce&&!triedAutoLoad){triedAutoLoad=true;loadSubmissions(true);}}
+function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remove('hidden');}
 function showLock(){adminApp.classList.add('hidden');lockScreen.classList.remove('hidden');}
 function lock(){localStorage.removeItem('ub_radio_admin_unlocked');location.reload();}
-function boot(){if(unlocked())showAdmin();else showLock();}
 function setNotice(msg,color='#40D0FF'){const n=document.getElementById('stationNotice')||lockNotice;if(n){n.textContent=msg;n.style.color=color;}}
 function setLockNotice(msg,color='#40D0FF'){if(lockNotice){lockNotice.textContent=msg;lockNotice.style.color=color;}}
+function renderAuthState(){
+  if(!unlocked()){showLock();return;}
+  showAdmin();
+  if(!authReady){setNotice('Checking Google admin session...');return;}
+  if(authUser && isAdminEmail(authUser.email)){
+    setNotice('Signed in as '+authUser.email,'#5dff9e');
+    if(!loadedOnce) loadSubmissions(true);
+  }else{
+    setNotice('Tap Reload or any action to sign in with your admin Google account.');
+    if(!loadedOnce) list.innerHTML='<div class="empty">Admin unlocked. Google admin sign-in required before moderation.</div>';
+  }
+}
 
 document.getElementById('unlockBtn').onclick=()=>{
   const code=document.getElementById('adminCode').value.trim();
-  if(code===ADMIN_CODE){localStorage.setItem('ub_radio_admin_unlocked','yes');showAdmin();}
+  if(code===ADMIN_CODE){localStorage.setItem('ub_radio_admin_unlocked','yes');renderAuthState();}
   else{setLockNotice('Wrong admin code.','#ff7474');}
 };
 document.getElementById('lockBtn').onclick=lock;
@@ -54,7 +66,7 @@ async function googleAdminSignIn(){
   try{
     await signInWithPopup(auth, provider);
   }catch(e){
-    if(e && (e.code==='auth/popup-blocked' || e.code==='auth/popup-closed-by-user' || e.code==='auth/cancelled-popup-request')){
+    if(e && (e.code==='auth/popup-blocked' || e.code==='auth/cancelled-popup-request')){
       await signInWithRedirect(auth, provider);
     }else{
       throw e;
@@ -64,9 +76,10 @@ async function googleAdminSignIn(){
 
 async function ensureAdmin(){
   if(!unlocked()) throw new Error('Admin code required.');
+  if(!authReady) throw new Error('Google auth still loading. Wait one second and try again.');
   let user = auth.currentUser;
   if(!user || user.isAnonymous || !isAdminEmail(user.email)){
-    setNotice('Google admin sign-in required.');
+    setNotice('Opening Google admin sign-in...');
     await googleAdminSignIn();
     user = auth.currentUser;
   }
@@ -161,7 +174,6 @@ async function setNow(id){
   await setDoc(doc(db,'radio_station','main'),{nowPlayingId:id,trackTitle:t.trackTitle||'',artistName:t.artistName||'',genre:t.genre||'',audioUrl:t.audioUrl||'',featured:!!t.featured,updatedAt:serverTimestamp()},{merge:true});
   setNotice('Now Playing updated.','#5dff9e');
 }
-
 async function runAction(action,id){
   try{
     if(action==='approve') return await approve(id);
@@ -180,16 +192,14 @@ list.addEventListener('click',(e)=>{
   if(Date.now()-touchHandledAt<700) return;
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   runAction(btn.dataset.action,btn.dataset.id);
 });
 list.addEventListener('touchend',(e)=>{
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
   touchHandledAt=Date.now();
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   runAction(btn.dataset.action,btn.dataset.id);
 },{passive:false});
 
@@ -214,6 +224,8 @@ document.getElementById('clearNowBtn').onclick=async()=>{
 window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:()=>{loadedOnce=false;loadSubmissions(true);}};
 
 onAuthStateChanged(auth,(user)=>{
-  if(unlocked() && user && !user.isAnonymous && isAdminEmail(user.email) && !loadedOnce) loadSubmissions(true);
+  authReady=true;
+  authUser=user;
+  renderAuthState();
 });
-boot();
+renderAuthState();
