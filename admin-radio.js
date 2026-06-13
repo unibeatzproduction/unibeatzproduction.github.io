@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -17,6 +17,8 @@ const db = getFirestore(app);
 window.UB_FIREBASE = { ...(window.UB_FIREBASE || {}), app, auth, db, ready: true };
 window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
 
+try { await getRedirectResult(auth); } catch (e) { console.warn('redirect result', e); }
+
 const ADMIN_CODE = '2345';
 const ADMIN_EMAILS = ['syncere862@gmail.com','unibeatzproduction@gmail.com'];
 const lockScreen = document.getElementById('lockScreen');
@@ -25,6 +27,7 @@ const lockNotice = document.getElementById('lockNotice');
 const list = document.getElementById('adminList');
 let submissions = [];
 let currentFilter = 'pending';
+let loadingNow = false;
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function fmtDate(v){try{if(v&&v.toDate)return v.toDate().toLocaleString();if(v)return new Date(v).toLocaleString();}catch(e){}return 'No date';}
@@ -39,15 +42,16 @@ document.getElementById('unlockBtn').onclick=()=>{
   else{lockNotice.textContent='Wrong admin code.';lockNotice.style.color='#ff7474';}
 };
 document.getElementById('lockBtn').onclick=lock;
-if(unlocked()) showAdmin();
 
 async function ensureAdmin(){
   let user = auth.currentUser;
   if(!user || user.isAnonymous || !isAdminEmail(user.email)){
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const result = await signInWithPopup(auth, provider);
-    user = result.user;
+    lockNotice.textContent='Redirecting to Google admin sign-in...';
+    lockNotice.style.color='#40D0FF';
+    await signInWithRedirect(auth, provider);
+    throw new Error('Redirecting to Google admin sign-in...');
   }
   if(!isAdminEmail(user.email)) throw new Error('Not approved admin email: '+(user.email || 'no email'));
   return user;
@@ -90,6 +94,8 @@ function renderList(){
   </article>`).join('');
 }
 async function loadSubmissions(){
+  if(loadingNow) return;
+  loadingNow = true;
   list.innerHTML='<div class="empty">Loading submissions...</div>';
   try{
     const user = await ensureAdmin();
@@ -105,6 +111,8 @@ async function loadSubmissions(){
   }catch(e){
     console.error(e);
     list.innerHTML='<div class="empty">Admin error: '+esc(e.code || '')+' '+esc(e.message || e)+'</div>';
+  } finally {
+    loadingNow = false;
   }
 }
 async function updateSubmission(id,patch){
@@ -136,3 +144,8 @@ document.getElementById('clearNowBtn').onclick=async()=>{
   document.getElementById('stationNotice').textContent='Now Playing cleared.';
 };
 window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:loadSubmissions};
+
+onAuthStateChanged(auth,()=>{
+  if(unlocked() && adminApp && !adminApp.classList.contains('hidden')) loadSubmissions();
+});
+if(unlocked()) showAdmin();
