@@ -1,3 +1,4 @@
+import './admin-radio-workflow-panel.js';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 
 const ADMIN_EMAILS = ['syncere862@gmail.com','unibeatzproduction@gmail.com'];
@@ -15,7 +16,12 @@ function notice(msg, color = '#40D0FF'){
   }
 }
 
+function cleanAdminNav(){
+  document.querySelectorAll('a[href="radio-premium.html"]').forEach(a => a.remove());
+}
+
 function buildControls(){
+  cleanAdminNav();
   if(document.getElementById('radioAdminGoogleControls')) return;
   const adminApp = document.getElementById('adminApp');
   const hero = adminApp?.querySelector('.hero');
@@ -98,6 +104,7 @@ window.radioAdminGoogleSignIn = signInAdmin;
 window.radioAdminGoogleSignOut = signOutAdmin;
 
 function boot(){
+  cleanAdminNav();
   buildControls();
   updateControls(auth.currentUser);
 }
