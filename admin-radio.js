@@ -34,6 +34,7 @@ function showAdmin(){lockScreen.classList.add('hidden');adminApp.classList.remov
 function showLock(){adminApp.classList.add('hidden');lockScreen.classList.remove('hidden');}
 function lock(){localStorage.removeItem('ub_radio_admin_unlocked');location.reload();}
 function boot(){if(unlocked())showAdmin();else showLock();}
+function setNotice(msg,color='#40D0FF'){const n=document.getElementById('stationNotice')||lockNotice;if(n){n.textContent=msg;n.style.color=color;}}
 
 document.getElementById('unlockBtn').onclick=()=>{
   const code=document.getElementById('adminCode').value.trim();
@@ -72,6 +73,7 @@ function mediaTag(t){
   if(type.startsWith('video/') || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url)) return `<video class="player" controls preload="metadata" src="${esc(url)}"></video>`;
   return `<audio class="player" controls preload="metadata" src="${esc(url)}"></audio>`;
 }
+function button(action,id,label,cls){return `<button type="button" class="btn ${cls} btn-small" data-action="${action}" data-id="${esc(id)}">${label}</button>`;}
 function renderList(){
   const data=filtered();
   if(!data.length){list.innerHTML=`<div class="empty">No ${currentFilter} submissions.</div>`;return;}
@@ -81,7 +83,13 @@ function renderList(){
     <div><span class="badge ${statusClass(t.status)}">${esc(t.status||'pending')}</span>${t.featured?'<span class="badge approved">featured</span>':''}</div></div>
     ${mediaTag(t)}
     <div class="small" style="margin-top:7px"><b>Email:</b> ${esc(t.email||'No email')}<br><b>Producer/Credits:</b> ${esc(t.producerCredits||'Not saved')}<br><b>Rights:</b> ${esc(t.copyrightDeclaration||'No rights note')}<br>${t.artistLink?'<b>Link:</b> <span class="link">'+esc(t.artistLink)+'</span>':''}</div>
-    <div class="actions"><button class="btn btn-green btn-small" onclick="radioAdmin.approve('${t.id}')">Approve</button><button class="btn btn-gold btn-small" onclick="radioAdmin.feature('${t.id}')">${t.featured?'Unfeature':'Feature'}</button><button class="btn btn-blue btn-small" onclick="radioAdmin.now('${t.id}')">Set Now Playing</button><button class="btn btn-red btn-small" onclick="radioAdmin.reject('${t.id}')">Reject</button><button class="btn btn-red btn-small" onclick="radioAdmin.remove('${t.id}')">Delete</button></div>
+    <div class="actions">
+      ${button('approve',t.id,'Approve','btn-green')}
+      ${button('feature',t.id,t.featured?'Unfeature':'Feature','btn-gold')}
+      ${button('now',t.id,'Set Now Playing','btn-blue')}
+      ${button('reject',t.id,'Reject','btn-red')}
+      ${button('remove',t.id,'Delete','btn-red')}
+    </div>
   </article>`).join('');
 }
 async function loadSubmissions(force=false){
@@ -106,29 +114,71 @@ async function loadSubmissions(force=false){
     loadingNow = false;
   }
 }
-async function updateSubmission(id,patch){await ensureAdmin();await updateDoc(doc(db,'radio_submissions',id),{...patch,reviewedAt:serverTimestamp()});loadedOnce=false;await loadSubmissions(true);}
+async function updateSubmission(id,patch){
+  setNotice('Saving...');
+  await ensureAdmin();
+  await updateDoc(doc(db,'radio_submissions',id),{...patch,reviewedAt:serverTimestamp()});
+  loadedOnce=false;
+  await loadSubmissions(true);
+  setNotice('Saved.','#5dff9e');
+}
 async function approve(id){await updateSubmission(id,{status:'approved',featured:false});}
 async function reject(id){await updateSubmission(id,{status:'rejected',featured:false});}
 async function feature(id){const t=submissions.find(x=>x.id===id);await updateSubmission(id,{status:'approved',featured:!t?.featured});}
-async function remove(id){if(!confirm('Delete this radio submission?'))return;await ensureAdmin();await deleteDoc(doc(db,'radio_submissions',id));loadedOnce=false;await loadSubmissions(true);}
+async function remove(id){if(!confirm('Delete this radio submission?'))return;setNotice('Deleting...');await ensureAdmin();await deleteDoc(doc(db,'radio_submissions',id));loadedOnce=false;await loadSubmissions(true);setNotice('Deleted.','#5dff9e');}
 async function setNow(id){
   const t=submissions.find(x=>x.id===id); if(!t)return;
+  setNotice('Updating Now Playing...');
   await ensureAdmin();
   await setDoc(doc(db,'radio_station','main'),{nowPlayingId:id,trackTitle:t.trackTitle||'',artistName:t.artistName||'',genre:t.genre||'',audioUrl:t.audioUrl||'',featured:!!t.featured,updatedAt:serverTimestamp()},{merge:true});
-  document.getElementById('stationNotice').textContent='Now Playing updated.';
+  setNotice('Now Playing updated.','#5dff9e');
 }
+
+async function runAction(action,id){
+  try{
+    if(action==='approve') return await approve(id);
+    if(action==='reject') return await reject(id);
+    if(action==='feature') return await feature(id);
+    if(action==='now') return await setNow(id);
+    if(action==='remove') return await remove(id);
+  }catch(e){
+    console.error(e);
+    setNotice('Action failed: '+(e.code||'')+' '+(e.message||e),'#ff7474');
+  }
+}
+
+list.addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  runAction(btn.dataset.action,btn.dataset.id);
+});
+list.addEventListener('touchend',(e)=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  runAction(btn.dataset.action,btn.dataset.id);
+},{passive:false});
 
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{currentFilter=b.dataset.filter;renderList();});
 document.getElementById('reloadBtn').onclick=()=>{loadedOnce=false;loadSubmissions(true);};
 document.getElementById('saveStationBtn').onclick=async()=>{
-  await ensureAdmin();
-  await setDoc(doc(db,'radio_station','main'),{title:document.getElementById('stationTitle').value.trim()||'Empire Rotation',message:document.getElementById('stationMessage').value.trim(),dj:document.getElementById('stationDj').value.trim()||'UniBeatz Radio',updatedAt:serverTimestamp()},{merge:true});
-  document.getElementById('stationNotice').textContent='Station saved.';
+  try{
+    setNotice('Saving station...');
+    await ensureAdmin();
+    await setDoc(doc(db,'radio_station','main'),{title:document.getElementById('stationTitle').value.trim()||'Empire Rotation',message:document.getElementById('stationMessage').value.trim(),dj:document.getElementById('stationDj').value.trim()||'UniBeatz Radio',updatedAt:serverTimestamp()},{merge:true});
+    setNotice('Station saved.','#5dff9e');
+  }catch(e){setNotice('Station save failed: '+(e.message||e),'#ff7474');}
 };
 document.getElementById('clearNowBtn').onclick=async()=>{
-  await ensureAdmin();
-  await setDoc(doc(db,'radio_station','main'),{nowPlayingId:'',trackTitle:'',artistName:'',genre:'',audioUrl:'',updatedAt:serverTimestamp()},{merge:true});
-  document.getElementById('stationNotice').textContent='Now Playing cleared.';
+  try{
+    setNotice('Clearing Now Playing...');
+    await ensureAdmin();
+    await setDoc(doc(db,'radio_station','main'),{nowPlayingId:'',trackTitle:'',artistName:'',genre:'',audioUrl:'',updatedAt:serverTimestamp()},{merge:true});
+    setNotice('Now Playing cleared.','#5dff9e');
+  }catch(e){setNotice('Clear failed: '+(e.message||e),'#ff7474');}
 };
 window.radioAdmin={approve,reject,feature,remove,now:setNow,reload:()=>{loadedOnce=false;loadSubmissions(true);}};
 boot();
