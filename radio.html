@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- UniBeatz Radio Station clean player-first layout v4 Bronx atmosphere -->
+<!-- UniBeatz Radio Station clean player-first layout v5 custom radio controls -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>UniBeatz Radio Station · UniBeatz Production</title>
@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="street-art street-left">90s<br/>Boom Bap</div><div class="street-art street-right">Respect<br/>The Art</div><div class="street-art street-floor">From The Bronx To The World</div>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Radio Station</a><button id="radioAccountBtn" type="button">Sign In</button></div></div></nav>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Radio Station</a><a href="admin-radio.html">Admin</a><button id="radioAccountBtn" type="button">Sign In</button></div></div></nav>
 
 <main class="wrap">
   <section class="hero">
@@ -19,7 +19,15 @@
       <h1 class="h1">UniBeatz <span>Radio</span> Station</h1>
       <p class="sub">A premium indie-first station with moderated submissions, genre channels, and approved records only.</p>
       <div class="station"><div class="cover">📻</div><div class="meta"><h3 id="nowPlayingTitle">Featured Station: Empire Rotation</h3><p id="nowPlayingMeta">Approved drops, underground heat, curated podcasts, DJ sets, and independent artist records.</p><span class="badge" id="nowPlayingBadge">Google Sign-In + Broadcasts Live</span></div></div>
-      <div class="player"><audio id="radioPlayer" controls style="width:100%"></audio><button id="refreshApproved" class="btn btn-blue" type="button">Refresh</button></div>
+      <div class="player uni-player">
+        <audio id="radioPlayer" preload="metadata"></audio>
+        <div class="radio-controls" aria-label="UniBeatz Radio Controls">
+          <button id="prevTrack" class="btn btn-blue" type="button">◀ Previous</button>
+          <button id="playPause" class="btn btn-gold play-main" type="button">▶ Play</button>
+          <button id="nextTrack" class="btn btn-blue" type="button">Next ▶</button>
+        </div>
+        <div class="radio-mini-row"><span id="trackCountLabel">0 approved tracks</span><button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button></div>
+      </div>
     </article>
     <article class="panel">
       <div class="eyebrow">ARTIST PORTAL</div><h2 class="section-title" style="margin-top:2px">Submit to UniBeatz Radio Station</h2><p class="sub">Tracks are reviewed for originality, rights safety, and platform fit before any channel placement.</p><button id="openSubmit" class="btn btn-gold btn-full" type="button" style="margin-top:12px">Submit Your Music</button><div id="formNotice" class="notice"></div>
@@ -28,7 +36,7 @@
   </section>
   <section><h2 class="section-title">Approved Tracks</h2><div id="genreFilters" class="genre-filters"></div><div id="approvedList" class="track-list"></div></section>
 </main>
-<div id="submitModal" class="modal-wrap" aria-hidden="true"><div class="modal"><button class="x" id="closeSubmit" aria-label="Close">✕</button><div class="eyebrow">INDIE ARTIST UPLOAD</div><h3 class="section-title" style="margin-top:3px">Submission Form</h3><form id="artistForm" class="form"><input class="input" name="artistName" placeholder="Artist Name" required/><input class="input" name="email" type="email" placeholder="Contact Email" required/><input class="input" name="trackTitle" placeholder="Track Title" required/><input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/><input class="input" name="producerCredits" placeholder="Producer / beat credits" required/><select name="genre" required><option value="">Select Genre Channel</option><option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Country</option><option>Lo‑Fi</option><option>Podcast</option><option>Producer Showcase</option><option>Freestyle Sessions</option><option>Live DJ Sets</option><option>Instrumentals</option></select><textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea><label class="small" style="display:flex;gap:8px;align-items:flex-start"><input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px"> I confirm this submission is fully authorized for review and possible radio placement.</label><input class="input" name="audioFile" type="file" accept="audio/*,image/*" required/><button class="btn btn-gold" type="submit">Submit for Review</button></form></div></div>
+<div id="submitModal" class="modal-wrap" aria-hidden="true"><div class="modal"><button class="x" id="closeSubmit" aria-label="Close">✕</button><div class="eyebrow">INDIE ARTIST UPLOAD</div><h3 class="section-title" style="margin-top:3px">Submission Form</h3><form id="artistForm" class="form"><input class="input" name="artistName" placeholder="Artist Name" required/><input class="input" name="email" type="email" placeholder="Contact Email" required/><input class="input" name="trackTitle" placeholder="Track Title" required/><input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/><input class="input" name="producerCredits" placeholder="Producer / beat credits" required/><select name="genre" required><option value="">Select Genre Channel</option><option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Country</option><option>Lo‑Fi</option><option>Podcast</option><option>Producer Showcase</option><option>Freestyle Sessions</option><option>Live DJ Sets</option><option>Instrumentals</option></select><textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea><label class="small" style="display:flex;gap:8px;align-items:flex-start"><input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px"> I confirm this submission is fully authorized for review and possible radio placement.</label><input class="input" name="audioFile" type="file" accept="audio/*" required/><button class="btn btn-gold" type="submit">Submit for Review</button></form></div></div>
 <script type="module" src="radio.js"></script>
 <script type="module" src="/unibeatz-notifications.js"></script>
 </body>
