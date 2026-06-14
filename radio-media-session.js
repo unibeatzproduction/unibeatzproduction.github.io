@@ -1,4 +1,4 @@
-const DEFAULT_ARTWORK = '/unibeatz-radio-cover.svg';
+const DEFAULT_ARTWORK = '/unibeatz-radio-cover-v2.svg?v=2';
 
 function text(id, fallback = '') {
   return document.getElementById(id)?.textContent?.trim() || fallback;
@@ -29,11 +29,7 @@ function updateMediaSession() {
       artist,
       album: 'UniBeatz Radio',
       artwork: [
-        {
-          src: DEFAULT_ARTWORK,
-          sizes: '512x512',
-          type: 'image/svg+xml'
-        }
+        { src: DEFAULT_ARTWORK, sizes: '512x512', type: 'image/svg+xml' }
       ]
     });
 
@@ -58,9 +54,7 @@ function setupMediaControls() {
 
   try {
     navigator.mediaSession.setActionHandler('play', async () => {
-      try {
-        await player?.play();
-      } catch (e) {}
+      try { await player?.play(); } catch (e) {}
       updateMediaSession();
     });
 
@@ -112,30 +106,13 @@ function boot() {
 
   const title = document.getElementById('nowPlayingTitle');
   const meta = document.getElementById('nowPlayingMeta');
-
   const observer = new MutationObserver(updateMediaSession);
 
-  if (title) {
-    observer.observe(title, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  }
-
-  if (meta) {
-    observer.observe(meta, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  }
+  if (title) observer.observe(title, { childList: true, subtree: true, characterData: true });
+  if (meta) observer.observe(meta, { childList: true, subtree: true, characterData: true });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
-} else {
-  boot();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
 
 window.addEventListener('ub-firebase-ready', boot);
