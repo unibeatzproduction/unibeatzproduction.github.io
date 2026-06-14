@@ -61,7 +61,7 @@ async function tryResumeAudio(reason = 'resume') {
   if (!audio || !listenerStartedAudio || userPausedAudio || !shouldResumeAudio || !audio.src) return;
 
   const now = Date.now();
-  if (now - lastResumeAttempt < 800) return;
+  if (now - lastResumeAttempt < 700) return;
   lastResumeAttempt = now;
 
   try {
@@ -74,20 +74,17 @@ async function tryResumeAudio(reason = 'resume') {
   }
 }
 
-function markUserAudioIntent() {
-  const audio = player();
-  listenerStartedAudio = true;
-  if (audio && !audio.paused) {
-    shouldResumeAudio = true;
-    userPausedAudio = false;
-  }
-  updateMediaSession();
-}
-
 function markManualPause() {
   userPausedAudio = true;
   shouldResumeAudio = false;
   lastManualPauseAt = Date.now();
+  updateMediaSession();
+}
+
+function markKeepPlaying() {
+  listenerStartedAudio = true;
+  shouldResumeAudio = true;
+  userPausedAudio = false;
   updateMediaSession();
 }
 
@@ -96,30 +93,27 @@ function setupMediaControls() {
 
   try {
     navigator.mediaSession.setActionHandler('play', async () => {
-      listenerStartedAudio = true;
-      shouldResumeAudio = true;
-      userPausedAudio = false;
+      markKeepPlaying();
       try { await player()?.play(); } catch (e) {}
       updateMediaSession();
     });
 
+    // Android can fire Media Session pause during notification/lockscreen transitions.
+    // Do not let that kill the station. Use the page button to manually pause.
     navigator.mediaSession.setActionHandler('pause', () => {
-      markManualPause();
-      player()?.pause();
+      markKeepPlaying();
+      setTimeout(() => tryResumeAudio('notification-pause-ignored'), 100);
+      setTimeout(() => tryResumeAudio('notification-pause-ignored-late'), 900);
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-      listenerStartedAudio = true;
-      shouldResumeAudio = true;
-      userPausedAudio = false;
+      markKeepPlaying();
       document.getElementById('prevTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
 
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-      listenerStartedAudio = true;
-      shouldResumeAudio = true;
-      userPausedAudio = false;
+      markKeepPlaying();
       document.getElementById('nextTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
@@ -155,28 +149,22 @@ function setupMobilePersistence() {
       const a = player();
       listenerStartedAudio = true;
       if (a && a.paused) markManualPause();
-      else {
-        shouldResumeAudio = true;
-        userPausedAudio = false;
-        updateMediaSession();
-      }
-    }, 160);
+      else markKeepPlaying();
+    }, 180);
   }, { passive: true });
 
   audio.addEventListener('play', () => {
-    listenerStartedAudio = true;
-    shouldResumeAudio = true;
-    userPausedAudio = false;
-    updateMediaSession();
+    markKeepPlaying();
   });
 
   audio.addEventListener('pause', () => {
-    // Android may pause HTML audio during lock/unlock. Do not treat that as user intent.
     const justManual = Date.now() - lastManualPauseAt < 900;
-    if (!justManual && listenerStartedAudio && !document.hidden) {
+    if (!justManual && listenerStartedAudio) {
       shouldResumeAudio = true;
-      setTimeout(() => tryResumeAudio('pause-interruption'), 350);
-      setTimeout(() => tryResumeAudio('pause-interruption-late'), 1400);
+      userPausedAudio = false;
+      setTimeout(() => tryResumeAudio('audio-pause-interruption'), 160);
+      setTimeout(() => tryResumeAudio('audio-pause-interruption-late'), 1000);
+      setTimeout(() => tryResumeAudio('audio-pause-interruption-last'), 2400);
     }
     updateMediaSession();
   });
@@ -189,8 +177,9 @@ function setupMobilePersistence() {
   document.addEventListener('visibilitychange', () => {
     updateMediaSession();
     if (listenerStartedAudio && !userPausedAudio) shouldResumeAudio = true;
-    setTimeout(() => tryResumeAudio(document.hidden ? 'hidden' : 'visible'), 250);
-    setTimeout(() => tryResumeAudio('visibility-late'), 1400);
+    setTimeout(() => tryResumeAudio(document.hidden ? 'hidden' : 'visible'), 180);
+    setTimeout(() => tryResumeAudio('visibility-late'), 1100);
+    setTimeout(() => tryResumeAudio('visibility-last'), 2500);
   });
 
   window.addEventListener('focus', () => tryResumeAudio('focus'));
