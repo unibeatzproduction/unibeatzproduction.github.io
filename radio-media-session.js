@@ -3,7 +3,9 @@ const DEFAULT_ARTWORK = '/unibeatz-radio-cover-v2.svg?v=2';
 let booted = false;
 let listenerStartedAudio = false;
 let shouldResumeAudio = false;
+let userPausedAudio = false;
 let lastResumeAttempt = 0;
+let lastManualPauseAt = 0;
 
 function text(id, fallback = '') {
   return document.getElementById(id)?.textContent?.trim() || fallback;
@@ -56,15 +58,16 @@ function updateMediaSession() {
 
 async function tryResumeAudio(reason = 'resume') {
   const audio = player();
-  if (!audio || !listenerStartedAudio || !shouldResumeAudio || !audio.src) return;
+  if (!audio || !listenerStartedAudio || userPausedAudio || !shouldResumeAudio || !audio.src) return;
 
   const now = Date.now();
-  if (now - lastResumeAttempt < 1200) return;
+  if (now - lastResumeAttempt < 800) return;
   lastResumeAttempt = now;
 
   try {
     await audio.play();
     shouldResumeAudio = true;
+    userPausedAudio = false;
     updateMediaSession();
   } catch (error) {
     console.warn(`[radio background ${reason}]`, error);
@@ -74,7 +77,17 @@ async function tryResumeAudio(reason = 'resume') {
 function markUserAudioIntent() {
   const audio = player();
   listenerStartedAudio = true;
-  shouldResumeAudio = !!audio && !audio.paused;
+  if (audio && !audio.paused) {
+    shouldResumeAudio = true;
+    userPausedAudio = false;
+  }
+  updateMediaSession();
+}
+
+function markManualPause() {
+  userPausedAudio = true;
+  shouldResumeAudio = false;
+  lastManualPauseAt = Date.now();
   updateMediaSession();
 }
 
@@ -85,19 +98,20 @@ function setupMediaControls() {
     navigator.mediaSession.setActionHandler('play', async () => {
       listenerStartedAudio = true;
       shouldResumeAudio = true;
+      userPausedAudio = false;
       try { await player()?.play(); } catch (e) {}
       updateMediaSession();
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
-      shouldResumeAudio = false;
+      markManualPause();
       player()?.pause();
-      updateMediaSession();
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
       listenerStartedAudio = true;
       shouldResumeAudio = true;
+      userPausedAudio = false;
       document.getElementById('prevTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
@@ -105,6 +119,7 @@ function setupMediaControls() {
     navigator.mediaSession.setActionHandler('nexttrack', () => {
       listenerStartedAudio = true;
       shouldResumeAudio = true;
+      userPausedAudio = false;
       document.getElementById('nextTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
@@ -136,17 +151,33 @@ function setupMobilePersistence() {
   audio.preload = 'auto';
 
   document.getElementById('playPause')?.addEventListener('click', () => {
-    setTimeout(markUserAudioIntent, 80);
+    setTimeout(() => {
+      const a = player();
+      listenerStartedAudio = true;
+      if (a && a.paused) markManualPause();
+      else {
+        shouldResumeAudio = true;
+        userPausedAudio = false;
+        updateMediaSession();
+      }
+    }, 160);
   }, { passive: true });
 
   audio.addEventListener('play', () => {
     listenerStartedAudio = true;
     shouldResumeAudio = true;
+    userPausedAudio = false;
     updateMediaSession();
   });
 
   audio.addEventListener('pause', () => {
-    if (!document.hidden) shouldResumeAudio = false;
+    // Android may pause HTML audio during lock/unlock. Do not treat that as user intent.
+    const justManual = Date.now() - lastManualPauseAt < 900;
+    if (!justManual && listenerStartedAudio && !document.hidden) {
+      shouldResumeAudio = true;
+      setTimeout(() => tryResumeAudio('pause-interruption'), 350);
+      setTimeout(() => tryResumeAudio('pause-interruption-late'), 1400);
+    }
     updateMediaSession();
   });
 
@@ -157,15 +188,18 @@ function setupMobilePersistence() {
 
   document.addEventListener('visibilitychange', () => {
     updateMediaSession();
-    if (!document.hidden) tryResumeAudio('visible');
+    if (listenerStartedAudio && !userPausedAudio) shouldResumeAudio = true;
+    setTimeout(() => tryResumeAudio(document.hidden ? 'hidden' : 'visible'), 250);
+    setTimeout(() => tryResumeAudio('visibility-late'), 1400);
   });
 
   window.addEventListener('focus', () => tryResumeAudio('focus'));
   window.addEventListener('pageshow', () => tryResumeAudio('pageshow'));
   window.addEventListener('resume', () => tryResumeAudio('resume'));
+  window.addEventListener('online', () => tryResumeAudio('online'));
 
   document.addEventListener('freeze', () => {
-    shouldResumeAudio = listenerStartedAudio && !audio.paused;
+    shouldResumeAudio = listenerStartedAudio && !userPausedAudio;
     updateMediaSession();
   });
 }
