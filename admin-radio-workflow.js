@@ -1,3 +1,4 @@
+import './admin-radio-automation.js';
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
@@ -194,7 +195,6 @@ async function handleAssetAction(e){
     note('Workflow update failed: '+(error.message||error),'#ff7474');
   }
 }
-
 function boot(){
   if(document.getElementById('adminApp')) buildPanel();
 }
