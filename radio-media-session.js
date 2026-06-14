@@ -1,5 +1,10 @@
 const DEFAULT_ARTWORK = '/unibeatz-radio-cover-v2.svg?v=2';
 
+let booted = false;
+let listenerStartedAudio = false;
+let shouldResumeAudio = false;
+let lastResumeAttempt = 0;
+
 function text(id, fallback = '') {
   return document.getElementById(id)?.textContent?.trim() || fallback;
 }
@@ -16,30 +21,32 @@ function cleanArtist(value) {
   return raw.split('•')[0]?.trim() || 'UniBeatzProduction';
 }
 
+function player() {
+  return document.getElementById('radioPlayer');
+}
+
 function updateMediaSession() {
   if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
 
+  const audio = player();
   const title = cleanTitle(text('nowPlayingTitle', 'UniBeatz Radio'));
   const artist = cleanArtist(text('nowPlayingMeta', 'UniBeatzProduction'));
-  const player = document.getElementById('radioPlayer');
 
   try {
     navigator.mediaSession.metadata = new MediaMetadata({
       title,
       artist,
       album: 'UniBeatz Radio',
-      artwork: [
-        { src: DEFAULT_ARTWORK, sizes: '512x512', type: 'image/svg+xml' }
-      ]
+      artwork: [{ src: DEFAULT_ARTWORK, sizes: '512x512', type: 'image/svg+xml' }]
     });
 
-    navigator.mediaSession.playbackState = player && !player.paused ? 'playing' : 'paused';
+    navigator.mediaSession.playbackState = audio && !audio.paused ? 'playing' : 'paused';
 
-    if ('setPositionState' in navigator.mediaSession && player && Number.isFinite(player.duration)) {
+    if ('setPositionState' in navigator.mediaSession && audio && Number.isFinite(audio.duration)) {
       navigator.mediaSession.setPositionState({
-        duration: player.duration || 0,
-        playbackRate: player.playbackRate || 1,
-        position: player.currentTime || 0
+        duration: audio.duration || 0,
+        playbackRate: audio.playbackRate || 1,
+        position: audio.currentTime || 0
       });
     }
   } catch (error) {
@@ -47,41 +54,72 @@ function updateMediaSession() {
   }
 }
 
+async function tryResumeAudio(reason = 'resume') {
+  const audio = player();
+  if (!audio || !listenerStartedAudio || !shouldResumeAudio || !audio.src) return;
+
+  const now = Date.now();
+  if (now - lastResumeAttempt < 1200) return;
+  lastResumeAttempt = now;
+
+  try {
+    await audio.play();
+    shouldResumeAudio = true;
+    updateMediaSession();
+  } catch (error) {
+    console.warn(`[radio background ${reason}]`, error);
+  }
+}
+
+function markUserAudioIntent() {
+  const audio = player();
+  listenerStartedAudio = true;
+  shouldResumeAudio = !!audio && !audio.paused;
+  updateMediaSession();
+}
+
 function setupMediaControls() {
   if (!('mediaSession' in navigator)) return;
 
-  const player = document.getElementById('radioPlayer');
-
   try {
     navigator.mediaSession.setActionHandler('play', async () => {
-      try { await player?.play(); } catch (e) {}
+      listenerStartedAudio = true;
+      shouldResumeAudio = true;
+      try { await player()?.play(); } catch (e) {}
       updateMediaSession();
     });
 
     navigator.mediaSession.setActionHandler('pause', () => {
-      player?.pause();
+      shouldResumeAudio = false;
+      player()?.pause();
       updateMediaSession();
     });
 
     navigator.mediaSession.setActionHandler('previoustrack', () => {
+      listenerStartedAudio = true;
+      shouldResumeAudio = true;
       document.getElementById('prevTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
 
     navigator.mediaSession.setActionHandler('nexttrack', () => {
+      listenerStartedAudio = true;
+      shouldResumeAudio = true;
       document.getElementById('nextTrack')?.click();
       setTimeout(updateMediaSession, 300);
     });
 
     navigator.mediaSession.setActionHandler('seekbackward', () => {
-      if (!player) return;
-      player.currentTime = Math.max(0, player.currentTime - 10);
+      const audio = player();
+      if (!audio) return;
+      audio.currentTime = Math.max(0, audio.currentTime - 10);
       updateMediaSession();
     });
 
     navigator.mediaSession.setActionHandler('seekforward', () => {
-      if (!player || !Number.isFinite(player.duration)) return;
-      player.currentTime = Math.min(player.duration, player.currentTime + 10);
+      const audio = player();
+      if (!audio || !Number.isFinite(audio.duration)) return;
+      audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
       updateMediaSession();
     });
   } catch (error) {
@@ -89,20 +127,66 @@ function setupMediaControls() {
   }
 }
 
+function setupMobilePersistence() {
+  const audio = player();
+  if (!audio) return;
+
+  audio.setAttribute('playsinline', '');
+  audio.setAttribute('webkit-playsinline', '');
+  audio.preload = 'auto';
+
+  document.getElementById('playPause')?.addEventListener('click', () => {
+    setTimeout(markUserAudioIntent, 80);
+  }, { passive: true });
+
+  audio.addEventListener('play', () => {
+    listenerStartedAudio = true;
+    shouldResumeAudio = true;
+    updateMediaSession();
+  });
+
+  audio.addEventListener('pause', () => {
+    if (!document.hidden) shouldResumeAudio = false;
+    updateMediaSession();
+  });
+
+  audio.addEventListener('stalled', () => tryResumeAudio('stalled'));
+  audio.addEventListener('suspend', () => updateMediaSession());
+  audio.addEventListener('waiting', () => updateMediaSession());
+  audio.addEventListener('canplay', () => tryResumeAudio('canplay'));
+
+  document.addEventListener('visibilitychange', () => {
+    updateMediaSession();
+    if (!document.hidden) tryResumeAudio('visible');
+  });
+
+  window.addEventListener('focus', () => tryResumeAudio('focus'));
+  window.addEventListener('pageshow', () => tryResumeAudio('pageshow'));
+  window.addEventListener('resume', () => tryResumeAudio('resume'));
+
+  document.addEventListener('freeze', () => {
+    shouldResumeAudio = listenerStartedAudio && !audio.paused;
+    updateMediaSession();
+  });
+}
+
 function boot() {
-  const player = document.getElementById('radioPlayer');
+  if (booted) return;
+  booted = true;
 
   setupMediaControls();
+  setupMobilePersistence();
   updateMediaSession();
 
-  player?.addEventListener('play', updateMediaSession);
-  player?.addEventListener('pause', updateMediaSession);
-  player?.addEventListener('loadedmetadata', updateMediaSession);
-  player?.addEventListener('durationchange', updateMediaSession);
-  player?.addEventListener('timeupdate', () => {
-    if (Math.floor(player.currentTime) % 10 === 0) updateMediaSession();
+  const audio = player();
+  audio?.addEventListener('play', updateMediaSession);
+  audio?.addEventListener('pause', updateMediaSession);
+  audio?.addEventListener('loadedmetadata', updateMediaSession);
+  audio?.addEventListener('durationchange', updateMediaSession);
+  audio?.addEventListener('timeupdate', () => {
+    if (Math.floor(audio.currentTime) % 15 === 0) updateMediaSession();
   });
-  player?.addEventListener('ended', updateMediaSession);
+  audio?.addEventListener('ended', updateMediaSession);
 
   const title = document.getElementById('nowPlayingTitle');
   const meta = document.getElementById('nowPlayingMeta');
