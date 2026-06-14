@@ -16,6 +16,7 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const auth = getAuth(app);
+
 window.UB_FIREBASE = { app, auth, db, storage, onAuthStateChanged, ready: true };
 window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
 
@@ -42,9 +43,15 @@ let currentTrackIndex = 0;
 let lastAccountText = '';
 let reactionCounts = {};
 let currentUserReaction = '';
-let songsSinceAnnouncement = 0;
-let nextAssetIndex = 0;
-let forceSongNext = false;
+let userStartedRadio = false;
+let autoAdvanceLocked = false;
+
+if (radioPlayer) {
+  radioPlayer.setAttribute('playsinline', '');
+  radioPlayer.setAttribute('webkit-playsinline', '');
+  radioPlayer.preload = 'auto';
+  radioPlayer.autoplay = false;
+}
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function labelForUser(user, profile){return (!user || user.isAnonymous) ? 'Sign In' : (profile?.username || user.displayName || user.email || 'Account');}
@@ -66,12 +73,14 @@ function buildPlaybackQueue(){
   const shows = assets.filter(a=>['podcast','dj_set'].includes(a.type));
   const queue=[];
   let songCount=0;
+
   songs.forEach(song=>{
     queue.push(song);
     songCount++;
     const due=inserts.filter(a=>Number(rule(a,'insertEverySongs',a.type==='station_drop'?3:4))>0 && songCount % Number(rule(a,'insertEverySongs',a.type==='station_drop'?3:4))===0);
-    if(due.length) queue.push(due[(songCount + due.length) % due.length]);
+    if(due.length) queue.push(due[(songCount - 1) % due.length]);
   });
+
   if(!queue.length) queue.push(...songs);
   if(shows.length) queue.push(...shows);
   playbackQueue = queue;
@@ -93,6 +102,7 @@ function injectReactionButtons(){
   document.getElementById('likeTrack').addEventListener('click',()=>saveReaction('like'));
   document.getElementById('dislikeTrack').addEventListener('click',()=>saveReaction('dislike'));
 }
+
 function updateReactionButtons(track){
   injectReactionButtons();
   const id=track?.id||'';
@@ -104,6 +114,7 @@ function updateReactionButtons(track){
   if(likeBtn) likeBtn.className='btn '+(currentUserReaction==='like'?'btn-gold':'btn-blue');
   if(dislikeBtn) dislikeBtn.className='btn '+(currentUserReaction==='dislike'?'btn-gold':'btn-blue');
 }
+
 async function loadReactionsForTrack(track){
   if(!track?.id) return;
   const listenerId=getListenerId();
@@ -116,7 +127,9 @@ async function loadReactionsForTrack(track){
     if(currentTrack()?.id===track.id){currentUserReaction=mine;updateReactionButtons(track);}
   }catch(error){console.warn('REACTION LOAD ERROR',error);}
 }
+
 async function loadAllReactionCounts(){await Promise.all(playbackQueue.map(t=>loadReactionsForTrack(t))); renderApprovedTracks();}
+
 async function saveReaction(reaction){
   const track=currentTrack();
   if(!track?.id){nowPlayingBadge.textContent='PLAY A TRACK FIRST';return;}
@@ -164,7 +177,9 @@ function updateNowPlaying(track){
   nowPlayingTitle.textContent=`Now Playing: ${titleOf(track)}`;
   nowPlayingMeta.textContent=`${artistOf(track)} • ${track.genre || (isAnnouncement(track)?'Announcement':'Radio')}`;
   nowPlayingBadge.textContent=isAnnouncement(track) ? 'STATION ANNOUNCEMENT' : (track.featured ? 'FEATURED ROTATION' : 'APPROVED ROTATION');
+  window.dispatchEvent(new CustomEvent('ub-radio-now-playing', { detail: { track } }));
 }
+
 async function resolveTrackUrl(track){
   if(track.audioUrl) return track.audioUrl;
   if(track.storagePath){
@@ -175,34 +190,95 @@ async function resolveTrackUrl(track){
   }
   throw new Error('Track is missing audioUrl and storagePath.');
 }
+
 function renderGenreFilters(){
   if(!genreFilters) return;
   const genres=['All',...new Set(allApprovedTracks.map(t=>t.genre).filter(Boolean))];
   genreFilters.innerHTML='';
   genres.forEach((genre)=>{const btn=document.createElement('button');btn.type='button';btn.className='btn '+(genre===currentGenre?'btn-gold':'btn-blue');btn.style.margin='4px';btn.textContent=genre;btn.addEventListener('click',()=>{currentGenre=genre;currentTrackIndex=0;buildPlaybackQueue();renderApprovedTracks();renderGenreFilters();loadReactionsForTrack(currentTrack()).catch(console.warn);});genreFilters.appendChild(btn);});
 }
-async function playTrack(index){
+
+async function startAudioWithRetry(track, url, auto=false){
+  if(!radioPlayer) return;
+
+  radioPlayer.autoplay = true;
+  radioPlayer.setAttribute('autoplay', 'true');
+
+  try{
+    await radioPlayer.play();
+    setPlayButton();
+    return;
+  }catch(firstError){
+    console.warn('RADIO PLAY RETRY 1', firstError);
+  }
+
+  await new Promise(resolve=>setTimeout(resolve, auto ? 180 : 80));
+
+  try{
+    await radioPlayer.play();
+    setPlayButton();
+    return;
+  }catch(secondError){
+    console.warn('RADIO PLAY RETRY 2', secondError);
+  }
+
+  await new Promise(resolve=>setTimeout(resolve, 900));
+
+  try{
+    await radioPlayer.play();
+    setPlayButton();
+    return;
+  }catch(thirdError){
+    console.error('RADIO AUTOPLAY BLOCKED', thirdError, track);
+    nowPlayingBadge.textContent = auto ? 'MOBILE PAUSED — TAP PLAY TO CONTINUE' : 'PLAY ERROR — TAP PLAY AGAIN';
+    setPlayButton();
+  }
+}
+
+async function playTrack(index, options={}){
   const tracks=filteredTracks();
   if(!tracks.length) return;
+
   if(index<0) index=tracks.length-1;
   if(index>=tracks.length) index=0;
+
   currentTrackIndex=index;
   const track=tracks[currentTrackIndex];
   const url=await resolveTrackUrl(track);
-  radioPlayer.pause();
-  radioPlayer.src=url;
-  radioPlayer.load();
+
+  const sameUrl = radioPlayer.src === url;
   updateNowPlaying(track);
   await loadReactionsForTrack(track);
   renderApprovedTracks();
-  await radioPlayer.play();
-  setPlayButton();
+
+  // IMPORTANT MOBILE FIX:
+  // Do NOT call pause() + load() during auto-advance.
+  // That breaks the original mobile user audio session.
+  if(!sameUrl){
+    radioPlayer.src = url;
+  }
+
+  await startAudioWithRetry(track, url, !!options.auto);
 }
+
 async function playNextAuto(){
-  const tracks=filteredTracks();
-  if(!tracks.length) return;
-  await playTrack(currentTrackIndex+1);
+  if(autoAdvanceLocked) return;
+  autoAdvanceLocked = true;
+
+  try{
+    const tracks=filteredTracks();
+    if(!tracks.length) return;
+
+    const nextIndex = currentTrackIndex + 1 >= tracks.length ? 0 : currentTrackIndex + 1;
+    await playTrack(nextIndex, { auto:true });
+  }catch(error){
+    console.error('AUTO NEXT FAILED', error);
+    nowPlayingBadge.textContent='AUTO NEXT FAILED — TAP PLAY';
+  }finally{
+    setTimeout(()=>{ autoAdvanceLocked=false; }, 600);
+  }
 }
+
 function renderApprovedTracks(){
   if(!approvedList) return;
   const filtered=filteredTracks();
@@ -214,17 +290,78 @@ function renderApprovedTracks(){
     el.type='button';
     el.className='track'+(index===currentTrackIndex?' active':'');
     el.innerHTML=`<div class="name">${esc(titleOf(track))}</div><div class="desc">${esc(artistOf(track))} · ${esc(track.genre || (isAnnouncement(track)?'Announcement':'Radio'))}</div><div class="badge" style="margin-top:8px">${isAnnouncement(track)?'ANNOUNCEMENT':(track.featured?'FEATURED':'APPROVED')}</div><div class="desc" style="margin-top:7px">👍 ${counts.likes||0} · 👎 ${counts.dislikes||0}</div>`;
-    el.addEventListener('click',async()=>{try{await playTrack(index);}catch(err){console.error('RADIO PLAY ERROR',err,track);nowPlayingBadge.textContent='PLAY ERROR — CHECK FILE URL/RULES';}});
+    el.addEventListener('click',async()=>{try{userStartedRadio=true;await playTrack(index,{auto:false});}catch(err){console.error('RADIO PLAY ERROR',err,track);nowPlayingBadge.textContent='PLAY ERROR — CHECK FILE URL/RULES';}});
     approvedList.appendChild(el);
   });
 }
 
-playPauseBtn?.addEventListener('click',async()=>{try{if(!radioPlayer.src){await playTrack(currentTrackIndex);return;} if(radioPlayer.paused) await radioPlayer.play(); else radioPlayer.pause(); setPlayButton();}catch(err){console.error('RADIO PLAY ERROR',err);nowPlayingBadge.textContent='PLAY ERROR — TAP A TRACK';}});
-nextTrackBtn?.addEventListener('click',()=>playTrack(currentTrackIndex+1).catch(console.error));
-prevTrackBtn?.addEventListener('click',()=>playTrack(currentTrackIndex-1).catch(console.error));
-radioPlayer?.addEventListener('play',setPlayButton);
+playPauseBtn?.addEventListener('click',async()=>{
+  try{
+    userStartedRadio=true;
+
+    if(!radioPlayer.src){
+      await playTrack(currentTrackIndex,{auto:false});
+      return;
+    }
+
+    if(radioPlayer.paused){
+      await radioPlayer.play();
+      radioPlayer.autoplay = true;
+      radioPlayer.setAttribute('autoplay','true');
+    } else {
+      radioPlayer.pause();
+      radioPlayer.autoplay = false;
+      radioPlayer.removeAttribute('autoplay');
+    }
+
+    setPlayButton();
+  }catch(err){
+    console.error('RADIO PLAY ERROR',err);
+    nowPlayingBadge.textContent='PLAY ERROR — TAP A TRACK';
+  }
+});
+
+nextTrackBtn?.addEventListener('click',()=>{userStartedRadio=true;playTrack(currentTrackIndex+1,{auto:false}).catch(console.error);});
+prevTrackBtn?.addEventListener('click',()=>{userStartedRadio=true;playTrack(currentTrackIndex-1,{auto:false}).catch(console.error);});
+
+radioPlayer?.addEventListener('play',()=>{
+  userStartedRadio=true;
+  radioPlayer.autoplay = true;
+  radioPlayer.setAttribute('autoplay','true');
+  setPlayButton();
+});
+
 radioPlayer?.addEventListener('pause',setPlayButton);
-radioPlayer?.addEventListener('ended',()=>playNextAuto().catch(console.error));
+
+radioPlayer?.addEventListener('ended',()=>{
+  if(userStartedRadio){
+    playNextAuto().catch(console.error);
+  }
+});
+
+radioPlayer?.addEventListener('error',()=>{
+  console.error('RADIO PLAYER ERROR', radioPlayer.error);
+  nowPlayingBadge.textContent='AUDIO ERROR — SKIPPING';
+  setTimeout(()=>playNextAuto().catch(console.error), 800);
+});
+
+radioPlayer?.addEventListener('canplay',()=>{
+  if(userStartedRadio && radioPlayer.autoplay && radioPlayer.paused){
+    radioPlayer.play().catch(()=>{});
+  }
+});
+
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && userStartedRadio && radioPlayer?.paused && radioPlayer?.src){
+    radioPlayer.play().catch(()=>{});
+  }
+});
+
+window.addEventListener('focus',()=>{
+  if(userStartedRadio && radioPlayer?.paused && radioPlayer?.src){
+    radioPlayer.play().catch(()=>{});
+  }
+});
 
 async function loadApproved(){
   if(approvedList) approvedList.innerHTML='<div class="channel">Loading radio rotation...</div>';
@@ -232,20 +369,44 @@ async function loadApproved(){
     const tracksQ=query(collection(db,'radio_submissions'),where('status','==','approved'));
     const assetsQ=query(collection(db,'radio_assets'),where('active','==',true));
     const [trackSnap, assetSnap] = await Promise.all([getDocs(tracksQ), getDocs(assetsQ).catch(()=>({empty:true,docs:[]}))]);
+
     allApprovedTracks = trackSnap.docs.map(d=>({id:d.id,collectionName:'radio_submissions',kind:'track',...d.data()})).sort((a,b)=>{
       const ao=Number(a.autoOrder ?? a.sortOrder ?? 9999), bo=Number(b.autoOrder ?? b.sortOrder ?? 9999);
       if(ao!==bo) return ao-bo;
       const featured=Number(!!b.featured)-Number(!!a.featured); if(featured) return featured;
       const ad=a.createdAt?.toMillis?a.createdAt.toMillis():0, bd=b.createdAt?.toMillis?b.createdAt.toMillis():0; return bd-ad;
     });
-    allRadioAssets = assetSnap.docs.map(d=>({id:d.id,collectionName:'radio_assets',kind:'asset',...d.data()})).filter(a=>a.audioUrl || a.storagePath).sort((a,b)=>Number(a.autoOrder ?? a.sortOrder ?? 9999)-Number(b.autoOrder ?? b.sortOrder ?? 9999));
+
+    allRadioAssets = assetSnap.docs.map(d=>({id:d.id,collectionName:'radio_assets',kind:'asset',...d.data()}))
+      .filter(a=>a.audioUrl || a.storagePath)
+      .sort((a,b)=>Number(a.autoOrder ?? a.sortOrder ?? 9999)-Number(b.autoOrder ?? b.sortOrder ?? 9999));
+
     buildPlaybackQueue();
-    reactionCounts={}; currentUserReaction=''; currentTrackIndex=0;
-    setTrackCount(); renderGenreFilters(); renderApprovedTracks(); await loadAllReactionCounts();
+    reactionCounts={};
+    currentUserReaction='';
+    currentTrackIndex=0;
+
+    setTrackCount();
+    renderGenreFilters();
+    renderApprovedTracks();
+    await loadAllReactionCounts();
+
     const firstTrack=filteredTracks()[0];
-    if(firstTrack){updateNowPlaying(firstTrack); await loadReactionsForTrack(firstTrack); resolveTrackUrl(firstTrack).then(url=>{radioPlayer.src=url;radioPlayer.load();setPlayButton();}).catch(console.warn);}
+    if(firstTrack){
+      updateNowPlaying(firstTrack);
+      await loadReactionsForTrack(firstTrack);
+      resolveTrackUrl(firstTrack).then(url=>{
+        radioPlayer.src=url;
+        radioPlayer.preload='auto';
+        setPlayButton();
+      }).catch(console.warn);
+    }
+
     if(!playbackQueue.length && approvedList) approvedList.innerHTML='<div class="channel">No approved songs or announcements yet.</div>';
-  }catch(error){console.error('LOAD RADIO ERROR',error); if(approvedList) approvedList.innerHTML='<div class="channel">Could not load radio rotation: '+esc(error.message||error)+'</div>';}
+  }catch(error){
+    console.error('LOAD RADIO ERROR',error);
+    if(approvedList) approvedList.innerHTML='<div class="channel">Could not load radio rotation: '+esc(error.message||error)+'</div>';
+  }
 }
 
 document.getElementById('refreshApproved')?.addEventListener('click',loadApproved);
