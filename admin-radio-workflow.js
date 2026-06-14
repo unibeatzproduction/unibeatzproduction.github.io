@@ -25,6 +25,9 @@ function getTypeLabel(type){
   if(type==='dj_set') return 'DJ Set';
   return 'Radio Asset';
 }
+function getLaneLabel(lane){
+  return lane === 'open_format' ? 'DJ 2: Open Format / Shows' : 'DJ 1: Culture / Streets';
+}
 function buildPanel(){
   if(built) return;
   const app=document.getElementById('adminApp');
@@ -32,11 +35,16 @@ function buildPanel(){
   app.insertAdjacentHTML('beforeend', `
     <section class="panel" id="radioWorkflowPanel" style="margin-top:16px">
       <h2>DJ Workflow / Upload Panel</h2>
-      <p class="small">Upload podcasts, voiceovers, station drops, and DJ set files. Use the move buttons to build the station order.</p>
+      <p class="small">Upload podcasts, voiceovers, station drops, and DJ set files into the correct DJ lane. This keeps the culture drops separate while still only needing 2 DJs.</p>
       <div class="grid" style="grid-template-columns:360px 1fr;margin-top:14px">
         <div class="panel" style="box-shadow:none">
           <h2 style="font-size:1.5rem">Upload Radio Asset</h2>
           <div class="form">
+            <label class="small">DJ Lane</label>
+            <select id="radioDjLane" class="input">
+              <option value="culture">DJ 1: Culture / Streets — Hip-Hop, Boom Bap, Trap, Drill, R&B, Afrobeats</option>
+              <option value="open_format">DJ 2: Open Format / Shows — Country, Lo-Fi, Podcast, Instrumentals, Live DJ Sets</option>
+            </select>
             <label class="small">Asset Type</label>
             <select id="radioAssetType" class="input">
               <option value="voiceover">Voiceover</option>
@@ -44,10 +52,13 @@ function buildPanel(){
               <option value="podcast">Podcast</option>
               <option value="dj_set">DJ Set</option>
             </select>
+            <label class="small">Genre / Show Catalog</label>
+            <select id="radioAssetGenre" class="input">
+              <option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Freestyle Sessions</option><option>Producer Showcase</option>
+              <option>Country</option><option>Lo-Fi</option><option>Podcast</option><option>Instrumentals</option><option>Live DJ Sets</option><option>General Station</option>
+            </select>
             <label class="small">Title</label>
-            <input id="radioAssetTitle" class="input" placeholder="Example: Built From Pressure Radio Drop" />
-            <label class="small">Genre / Show</label>
-            <input id="radioAssetGenre" class="input" placeholder="Example: Hip-Hop, Podcast, Empire Rotation" />
+            <input id="radioAssetTitle" class="input" placeholder="Example: Built From Pressure Hip-Hop Drop" />
             <label class="small">Audio File</label>
             <input id="radioAssetFile" class="input" type="file" accept="audio/*" />
             <button id="uploadRadioAsset" class="btn btn-gold" type="button">Upload To Radio Workflow</button>
@@ -56,8 +67,9 @@ function buildPanel(){
           </div>
         </div>
         <div class="panel" style="box-shadow:none">
-          <h2 style="font-size:1.5rem">DJ Rotation Order</h2>
-          <p class="small">Active assets can be used for station drops, podcast episodes, transitions, and DJ equipment workflow later.</p>
+          <h2 style="font-size:1.5rem">2-DJ Catalog Split</h2>
+          <p class="small"><b>DJ 1 Culture/Streets:</b> Hip-Hop, Boom Bap, Trap, Drill, R&B, Afrobeats, Freestyle, Producer Showcase.</p>
+          <p class="small"><b>DJ 2 Open Format/Shows:</b> Country, Lo-Fi, Podcast, Instrumentals, Live DJ Sets, General Station.</p>
           <div id="radioAssetList" class="track-list" style="margin-top:10px"><div class="empty">Loading radio workflow assets...</div></div>
         </div>
       </div>
@@ -71,6 +83,7 @@ function buildPanel(){
 }
 async function uploadAsset(){
   if(!isAdmin()){note('Google admin sign-in required before uploading.','#ff7474');return;}
+  const lane=document.getElementById('radioDjLane').value;
   const type=document.getElementById('radioAssetType').value;
   const title=document.getElementById('radioAssetTitle').value.trim();
   const genre=document.getElementById('radioAssetGenre').value.trim();
@@ -81,11 +94,13 @@ async function uploadAsset(){
   try{
     note('Uploading radio asset...');
     const safeName=`${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g,'_')}`;
-    const fileRef=ref(storage, `radio-assets/${type}/${safeName}`);
+    const fileRef=ref(storage, `radio-assets/${lane}/${type}/${safeName}`);
     await uploadBytes(fileRef,file,{contentType:file.type||'audio/mpeg'});
     const audioUrl=await getDownloadURL(fileRef);
-    const maxOrder=radioAssets.reduce((m,a)=>Math.max(m,Number(a.sortOrder||0)),0);
+    const maxOrder=radioAssets.filter(a=>(a.djLane||'culture')===lane).reduce((m,a)=>Math.max(m,Number(a.sortOrder||0)),0);
     await addDoc(collection(db,'radio_assets'),{
+      djLane: lane,
+      djLaneLabel: getLaneLabel(lane),
       type,
       title,
       genre,
@@ -100,9 +115,8 @@ async function uploadAsset(){
       updatedAt:serverTimestamp()
     });
     document.getElementById('radioAssetTitle').value='';
-    document.getElementById('radioAssetGenre').value='';
     document.getElementById('radioAssetFile').value='';
-    note('Uploaded to DJ workflow.','#5dff9e');
+    note('Uploaded to '+getLaneLabel(lane)+'.','#5dff9e');
     await loadAssets();
   }catch(error){
     console.error(error);
@@ -115,7 +129,11 @@ async function loadAssets(){
   list.innerHTML='<div class="empty">Loading radio workflow assets...</div>';
   try{
     const snap=await getDocs(collection(db,'radio_assets'));
-    radioAssets=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>Number(a.sortOrder||0)-Number(b.sortOrder||0));
+    radioAssets=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+      const laneA=(a.djLane||'culture'); const laneB=(b.djLane||'culture');
+      if(laneA!==laneB) return laneA.localeCompare(laneB);
+      return Number(a.sortOrder||0)-Number(b.sortOrder||0);
+    });
     renderAssets();
   }catch(error){
     console.error(error);
@@ -126,10 +144,10 @@ function renderAssets(){
   const list=document.getElementById('radioAssetList');
   if(!list) return;
   if(!radioAssets.length){list.innerHTML='<div class="empty">No podcasts, voiceovers, station drops, or DJ sets uploaded yet.</div>';return;}
-  list.innerHTML=radioAssets.map((a,i)=>`
+  list.innerHTML=radioAssets.map((a)=>`
     <article class="track">
       <div class="track-title">${esc(a.title||'Untitled')}</div>
-      <div class="track-meta">${esc(getTypeLabel(a.type))} · ${esc(a.genre||'Radio')} · Order ${Number(a.sortOrder||0)}</div>
+      <div class="track-meta">${esc(getLaneLabel(a.djLane||'culture'))} · ${esc(getTypeLabel(a.type))} · ${esc(a.genre||'Radio')} · Order ${Number(a.sortOrder||0)}</div>
       <div><span class="badge ${a.active?'approved':'rejected'}">${a.active?'active':'inactive'}</span></div>
       <audio class="player" controls preload="metadata" src="${esc(a.audioUrl||'')}"></audio>
       <div class="actions">
@@ -159,15 +177,15 @@ async function handleAssetAction(e){
       if(!confirm('Delete this radio workflow asset?')) return;
       await deleteDoc(doc(db,'radio_assets',id));
     }
-    if(action==='up' && index>0){
-      const a=radioAssets[index], b=radioAssets[index-1];
-      await updateDoc(doc(db,'radio_assets',a.id),{sortOrder:Number(b.sortOrder||0),updatedAt:serverTimestamp()});
-      await updateDoc(doc(db,'radio_assets',b.id),{sortOrder:Number(a.sortOrder||0),updatedAt:serverTimestamp()});
-    }
-    if(action==='down' && index<radioAssets.length-1){
-      const a=radioAssets[index], b=radioAssets[index+1];
-      await updateDoc(doc(db,'radio_assets',a.id),{sortOrder:Number(b.sortOrder||0),updatedAt:serverTimestamp()});
-      await updateDoc(doc(db,'radio_assets',b.id),{sortOrder:Number(a.sortOrder||0),updatedAt:serverTimestamp()});
+    if((action==='up' || action==='down')){
+      const a=radioAssets[index];
+      const laneAssets=radioAssets.filter(x=>(x.djLane||'culture')===(a.djLane||'culture'));
+      const laneIndex=laneAssets.findIndex(x=>x.id===id);
+      const swap=action==='up'?laneAssets[laneIndex-1]:laneAssets[laneIndex+1];
+      if(swap){
+        await updateDoc(doc(db,'radio_assets',a.id),{sortOrder:Number(swap.sortOrder||0),updatedAt:serverTimestamp()});
+        await updateDoc(doc(db,'radio_assets',swap.id),{sortOrder:Number(a.sortOrder||0),updatedAt:serverTimestamp()});
+      }
     }
     note('DJ workflow updated.','#5dff9e');
     await loadAssets();
