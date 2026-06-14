@@ -1,26 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="UniBeatz Radio Built From Pressure">
   <defs>
-    <radialGradient id="bg" cx="35%" cy="25%" r="75%">
-      <stop offset="0" stop-color="#063b63"/>
-      <stop offset="0.45" stop-color="#07111f"/>
-      <stop offset="1" stop-color="#030305"/>
+    <radialGradient id="bg" cx="50%" cy="42%" r="72%">
+      <stop offset="0" stop-color="#071b2d"/>
+      <stop offset="0.58" stop-color="#05070d"/>
+      <stop offset="1" stop-color="#050507"/>
     </radialGradient>
     <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="#8B6914"/>
-      <stop offset="0.55" stop-color="#C9A84C"/>
+      <stop offset="0" stop-color="#7b5a10"/>
+      <stop offset="0.5" stop-color="#C9A84C"/>
       <stop offset="1" stop-color="#F0C040"/>
     </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="5" result="blur"/>
+    <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000000" flood-opacity="0.55"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="58" fill="url(#bg)"/>
-  <path d="M78 92 L142 144 L207 92 L257 154 L309 92 L370 144 L434 92 L402 210 H110 Z" fill="url(#gold)" opacity="0.95"/>
-  <path d="M255 58 L220 202 H278 L238 454 L335 174 H278 Z" fill="#40D0FF" filter="url(#glow)" opacity="0.92"/>
-  <circle cx="256" cy="276" r="116" fill="none" stroke="#C9A84C" stroke-width="18" opacity="0.9"/>
-  <circle cx="256" cy="276" r="64" fill="none" stroke="#40D0FF" stroke-width="10" opacity="0.9"/>
-  <text x="256" y="360" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="46" fill="#F0C040" letter-spacing="2">UNIBEATZ</text>
-  <text x="256" y="402" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="32" fill="#F0EDE8" letter-spacing="4">RADIO</text>
-  <text x="256" y="444" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#40D0FF" letter-spacing="3">BUILT FROM PRESSURE</text>
+
+  <rect width="512" height="512" rx="64" fill="url(#bg)"/>
+  <rect x="34" y="34" width="444" height="444" rx="50" fill="none" stroke="#C9A84C" stroke-width="3" opacity="0.35"/>
+  <rect x="56" y="56" width="400" height="400" rx="42" fill="none" stroke="#00AAFF" stroke-width="2" opacity="0.18"/>
+
+  <!-- Safe centered logo group: leaves roughly 95px padding on all important edges -->
+  <g filter="url(#softShadow)">
+    <path d="M148 122 L190 154 L225 120 L256 160 L287 120 L322 154 L364 122 L346 194 H166 Z" fill="url(#gold)" opacity="0.96"/>
+    <circle cx="190" cy="118" r="9" fill="#F0C040"/>
+    <circle cx="256" cy="112" r="10" fill="#F0C040"/>
+    <circle cx="322" cy="118" r="9" fill="#F0C040"/>
+  </g>
+
+  <g filter="url(#blueGlow)">
+    <path d="M258 142 L230 244 H272 L238 362 L312 226 H270 L292 142 Z" fill="#40D0FF" opacity="0.95"/>
+    <path d="M150 254 C186 214 326 214 362 254" fill="none" stroke="#40D0FF" stroke-width="10" stroke-linecap="round" opacity="0.86"/>
+    <path d="M164 282 C198 319 314 319 348 282" fill="none" stroke="#C9A84C" stroke-width="10" stroke-linecap="round" opacity="0.82"/>
+    <circle cx="256" cy="266" r="44" fill="none" stroke="#F0C040" stroke-width="10" opacity="0.9"/>
+    <circle cx="256" cy="266" r="22" fill="#050507" stroke="#40D0FF" stroke-width="6"/>
+  </g>
+
+  <text x="256" y="388" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="34" fill="#F0C040" letter-spacing="2">UNIBEATZ</text>
+  <text x="256" y="424" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="25" fill="#F0EDE8" letter-spacing="5">RADIO</text>
+  <text x="256" y="454" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="13" fill="#40D0FF" letter-spacing="3">BUILT FROM PRESSURE</text>
 </svg>
