@@ -1,0 +1,28 @@
+{
+  "name": "UniBeatz Radio Station",
+  "short_name": "UniBeatz Radio",
+  "description": "Independent hip-hop radio. Live365-powered 24/7 broadcast. Built From Pressure.",
+  "start_url": "/radio.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#C9A84C",
+  "background_color": "#030305",
+  "categories": ["music", "entertainment"],
+  "lang": "en-US",
+  "icons": [
+    { "src": "/unibeatz-radio-cover-v2.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icons/radio-192.png",         "sizes": "192x192", "type": "image/png",     "purpose": "any maskable" },
+    { "src": "/icons/radio-512.png",         "sizes": "512x512", "type": "image/png",     "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/unibeatz-radio-cover-v2.svg", "sizes": "512x512", "type": "image/svg+xml", "label": "UniBeatz Radio Station" }
+  ],
+  "shortcuts": [
+    { "name": "Listen Now",      "url": "/radio.html",           "description": "Open radio player"    },
+    { "name": "Submit Music",    "url": "/radio.html#submit",    "description": "Submit your track"     },
+    { "name": "Apply To DJ",     "url": "/radio-dj-apply.html", "description": "Apply to become a DJ"  }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

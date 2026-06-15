@@ -1,0 +1,66 @@
+════════════════════════════════════════════════════
+RADIO.HTML — replace ALL script tags at bottom of body with:
+════════════════════════════════════════════════════
+
+<script type="module" src="radio.js"></script>
+<script type="module" src="radio-player.js"></script>
+<script type="module" src="radio-premium-popup.js"></script>
+<script src="radio-pwa-register.js"></script>
+
+════════════════════════════════════════════════════
+RADIO.HTML <head> — add these PWA tags:
+════════════════════════════════════════════════════
+
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="UniBeatz Radio"/>
+<meta name="theme-color" content="#C9A84C"/>
+<link rel="manifest" href="/radio-manifest.json"/>
+<link rel="apple-touch-icon" href="/icons/radio-192.png"/>
+
+════════════════════════════════════════════════════
+ADMIN-RADIO.HTML — replace ALL script tags at bottom with:
+════════════════════════════════════════════════════
+
+<script type="module" src="admin-radio.js"></script>
+<script type="module" src="admin-radio-panels.js"></script>
+
+════════════════════════════════════════════════════
+DELETE THESE FILES (no longer needed):
+════════════════════════════════════════════════════
+
+radio-live365.js           → merged into radio.js
+radio-background.js        → merged into radio-player.js
+radio-live-features.js     → merged into radio-player.js
+radio-media-session.js     → merged into radio-player.js
+admin-radio-auth-controls.js   → merged into admin-radio.js
+admin-radio-workflow.js        → merged into admin-radio-panels.js
+admin-radio-workflow-panel.js  → merged into admin-radio-panels.js
+admin-radio-automation.js      → merged into admin-radio-panels.js
+
+════════════════════════════════════════════════════
+FINAL FILE COUNT: 15 files
+════════════════════════════════════════════════════
+
+LISTENER SIDE:
+1.  radio.html
+2.  radio.css
+3.  radio.js                  ← Firebase + Live365 bridge + reactions
+4.  radio-player.js           ← Media session + background + live features
+5.  radio-premium-popup.js    ← $9.99 upsell
+6.  radio-sw.js               ← PWA service worker
+7.  radio-manifest.json       ← PWA manifest
+8.  radio-pwa-register.js     ← PWA install prompt
+
+ADMIN:
+9.  admin-radio.html
+10. admin-radio.js            ← Core + fixed auth (no more infinite loop)
+11. admin-radio-panels.js     ← Workflow + automation merged
+
+PAGES (keep as-is):
+12. radio-dj-deck.html + radio-dj-deck.js   (2 files)
+13. radio-dj-apply.html + radio-dj-apply.js (2 files)
+14. radio-dj-program.html
+15. radio-premium.html
+
