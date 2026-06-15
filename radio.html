@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- UniBeatz Radio Station compact player-first homepage v6 -->
+<!-- UniBeatz Radio Station Live365 connected homepage v7 -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>UniBeatz Radio Station · UniBeatz Production</title>
@@ -14,7 +14,12 @@
   .compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
   #genreFilters,#approvedList{display:none!important}
   .approved-home-hidden{display:none!important}
-  @media(max-width:930px){.compact-home{grid-template-columns:1fr}.compact-tools{gap:12px}}
+  .live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:hidden}
+  .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
+  .live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
+  .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
+  .stream-fallback{width:100%;margin-top:10px}
+  @media(max-width:930px){.compact-home{grid-template-columns:1fr}.compact-tools{gap:12px}.live365-frame{height:316px}}
 </style>
 </head>
 <body>
@@ -24,20 +29,16 @@
 <main class="wrap">
   <section class="compact-home">
     <article class="panel">
-      <div class="eyebrow">UNIBEATZPRODUCTION • LIVE CURATION</div>
+      <div class="eyebrow">UNIBEATZPRODUCTION • LIVE365 BROADCAST</div>
       <h1 class="h1">UniBeatz <span>Radio</span> Station</h1>
-      <p class="sub">A premium indie-first station with approved records, station drops, podcasts, DJ sets, and live listener tools.</p>
-      <div class="station"><div class="cover">📻</div><div class="meta"><h3 id="nowPlayingTitle">Featured Station: Empire Rotation</h3><p id="nowPlayingMeta">Approved drops, underground heat, curated podcasts, DJ sets, and independent artist records.</p><span class="badge" id="nowPlayingBadge">Google Sign-In + Broadcasts Live</span></div></div>
-      <div class="player uni-player">
-        <audio id="radioPlayer" preload="metadata"></audio>
-        <div class="radio-controls" aria-label="UniBeatz Radio Controls">
-          <button id="prevTrack" class="btn btn-blue" type="button">◀ Previous</button>
-          <button id="playPause" class="btn btn-gold play-main" type="button">▶ Play</button>
-          <button id="nextTrack" class="btn btn-blue" type="button">Next ▶</button>
-        </div>
-        <div class="radio-mini-row"><span id="trackCountLabel">Radio ready</span><button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button></div>
+      <p class="sub">A premium indie-first station with approved records, station drops, podcasts, DJ sets, and Live365-powered 24/7 playback.</p>
+      <div class="station"><div class="cover">📻</div><div class="meta"><h3 id="nowPlayingTitle">Live Now: UniBeatz Radio</h3><p id="nowPlayingMeta">Powered by Live365 · Empire Rotation · Independent artists · DJ sets · Built From Pressure.</p><span class="badge" id="nowPlayingBadge">LIVE365 STREAM CONNECTED</span></div></div>
+      <div class="player uni-player live365-box">
+        <iframe class="live365-frame" title="UniBeatz Radio Live365 Player" src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3" allow="autoplay; encrypted-media" loading="lazy"></iframe>
+        <audio id="radioPlayer" class="stream-fallback" controls preload="none" src="https://streaming.live365.com/a01878"></audio>
+        <div class="live365-mini"><span id="trackCountLabel">24/7 Live365 rotation</span><a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station</a><button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button></div>
       </div>
-      <div class="compact-note">Listener tools load under the player: likes, dislikes, favorites, replay requests, live listener count, chat, and compact now-playing queue.</div>
+      <div class="compact-note">The station player is now connected to Live365. Upload and schedule tracks inside Live365; artist submissions still come through your UniBeatz review system.</div>
     </article>
 
     <div class="compact-tools">
@@ -62,7 +63,7 @@
 </main>
 <div id="submitModal" class="modal-wrap" aria-hidden="true"><div class="modal"><button class="x" id="closeSubmit" aria-label="Close">✕</button><div class="eyebrow">INDIE ARTIST UPLOAD</div><h3 class="section-title" style="margin-top:3px">Submission Form</h3><form id="artistForm" class="form"><input class="input" name="artistName" placeholder="Artist Name" required/><input class="input" name="email" type="email" placeholder="Contact Email" required/><input class="input" name="trackTitle" placeholder="Track Title" required/><input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/><input class="input" name="producerCredits" placeholder="Producer / beat credits" required/><select name="genre" required><option value="">Select Genre Channel</option><option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Country</option><option>Lo‑Fi</option><option>Podcast</option><option>Producer Showcase</option><option>Freestyle Sessions</option><option>Live DJ Sets</option><option>Instrumentals</option></select><textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea><label class="small" style="display:flex;gap:8px;align-items:flex-start"><input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px"> I confirm this submission is fully authorized for review and possible radio placement.</label><input class="input" name="audioFile" type="file" accept="audio/*" required/><button class="btn btn-gold" type="submit">Submit for Review</button></form></div></div>
 <script type="module" src="radio.js"></script>
-<script type="module" src="radio-enhancements.js"></script>
+<script type="module" src="radio-live365.js"></script>
 <script type="module" src="radio-premium-popup.js"></script>
 <script type="module" src="radio-media-session.js"></script>
 <script type="module" src="/unibeatz-notifications.js"></script>
