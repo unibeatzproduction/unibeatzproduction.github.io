@@ -1,72 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- UniBeatz Radio Station Live365 connected homepage v7 -->
+<!-- UniBeatz Radio Station v9 — Live365 + Genre Channels -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="UniBeatz Radio"/>
+<meta name="theme-color" content="#C9A84C"/>
+<link rel="manifest" href="/radio-manifest.json"/>
+<link rel="apple-touch-icon" href="/icons/radio-192.png"/>
 <title>UniBeatz Radio Station · UniBeatz Production</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="radio.css"/>
 <style>
   .compact-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
   .compact-tools{display:grid;gap:14px}
-  .compact-submit{min-height:auto}
   .compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
-  #genreFilters,#approvedList{display:none!important}
-  .approved-home-hidden{display:none!important}
   .live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:hidden}
   .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
   .live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
   .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
-  .stream-fallback{width:100%;margin-top:10px}
-  @media(max-width:930px){.compact-home{grid-template-columns:1fr}.compact-tools{gap:12px}.live365-frame{height:316px}}
+  .stream-fallback{width:100%;margin-top:10px;display:none}
+
+  /* ── Genre Channels ── */
+  #genreChannelsSection{margin-top:20px}
+  .channels-header{margin-bottom:14px}
+  .channels-title{font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;line-height:1}
+  .channels-sub{font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-top:4px}
+  .genre-pill-row{display:flex;flex-wrap:wrap;gap:8px}
+  .genre-pill{border:1px solid rgba(201,168,76,.35);background:rgba(0,0,0,.3);color:#F0EDE8;border-radius:999px;padding:9px 16px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .genre-pill:hover{border-color:#F0C040;color:#F0C040;background:rgba(201,168,76,.08)}
+  .genre-pill.active{background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;border-color:#F0C040;font-weight:900}
+  .genre-pill.main-pill{border-color:rgba(64,208,255,.5);color:#40D0FF}
+  .genre-pill.main-pill.active{background:linear-gradient(135deg,#003a5f,#0077cc,#00AAFF);color:#fff;border-color:#00AAFF}
+
+  /* ── Mini now-playing bar (shows when genre channel is active) ── */
+  #channelBar{display:none;margin-top:14px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(0,0,0,.4);padding:12px 14px;align-items:center;gap:12px}
+  #channelBar.visible{display:flex}
+  #channelBarDot{width:8px;height:8px;border-radius:50%;background:#F0C040;animation:chPulse 1.2s infinite;flex-shrink:0}
+  @keyframes chPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+  #channelBarInfo{flex:1;min-width:0}
+  #channelBarTitle{font-family:Bebas Neue,sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:#F0C040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #channelBarArtist{font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#8d94a5;margin-top:2px}
+  .ch-ctrl{border:0;background:transparent;color:#F0C040;font-size:1.1rem;cursor:pointer;padding:4px 6px;flex-shrink:0}
+  #channelAudio{display:none}
+  .ch-ctrl.liked{color:#F0C040}
+  .ch-ctrl.disliked{color:#ff7474}
+
+  /* hidden compat */
+  #genreFilters,#approvedList{display:none!important}
+  .approved-home-hidden{display:none!important}
+
+  @media(max-width:930px){
+    .compact-home{grid-template-columns:1fr}
+    .live365-frame{height:260px}
+  }
+  @media(max-width:560px){
+    .genre-pill{font-size:.42rem;padding:8px 12px}
+  }
 </style>
 </head>
 <body>
-<div class="street-art street-left">90s<br/>Boom Bap</div><div class="street-art street-right">Respect<br/>The Art</div><div class="street-art street-floor">From The Bronx To The World</div>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="index.html">⚡ UNIBEATZ</a><div class="links"><a href="index.html">Empire</a><a href="unibeatzworld.html">World</a><a href="radio.html">Radio Station</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button id="radioAccountBtn" type="button">Sign In</button></div></div></nav>
+<div class="street-art street-left">90s<br/>Boom Bap</div>
+<div class="street-art street-right">Respect<br/>The Art</div>
+<div class="street-art street-floor">From The Bronx To The World</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">⚡ UNIBEATZ</a>
+    <div class="links">
+      <a href="index.html">Empire</a>
+      <a href="unibeatzworld.html">World</a>
+      <a href="radio.html">Radio Station</a>
+      <a href="radio-dj-apply.html">Apply To DJ</a>
+      <a href="admin-radio.html">Admin</a>
+      <button id="radioAccountBtn" type="button">Sign In</button>
+    </div>
+  </div>
+</nav>
 
 <main class="wrap">
+
+  <!-- Main Station + Tools -->
   <section class="compact-home">
     <article class="panel">
       <div class="eyebrow">UNIBEATZPRODUCTION • LIVE365 BROADCAST</div>
       <h1 class="h1">UniBeatz <span>Radio</span> Station</h1>
       <p class="sub">A premium indie-first station with approved records, station drops, podcasts, DJ sets, and Live365-powered 24/7 playback.</p>
-      <div class="station"><div class="cover">📻</div><div class="meta"><h3 id="nowPlayingTitle">Live Now: UniBeatz Radio</h3><p id="nowPlayingMeta">Powered by Live365 · Empire Rotation · Independent artists · DJ sets · Built From Pressure.</p><span class="badge" id="nowPlayingBadge">LIVE365 STREAM CONNECTED</span></div></div>
-      <div class="player uni-player live365-box">
-        <iframe class="live365-frame" title="UniBeatz Radio Live365 Player" src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3" allow="autoplay; encrypted-media" loading="lazy"></iframe>
-        <audio id="radioPlayer" class="stream-fallback" controls preload="none" src="https://streaming.live365.com/a01878"></audio>
-        <div class="live365-mini"><span id="trackCountLabel">24/7 Live365 rotation</span><a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station</a><button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button></div>
+      <div class="station">
+        <div class="cover">📻</div>
+        <div class="meta">
+          <h3 id="nowPlayingTitle">Live Now: UniBeatz Radio</h3>
+          <p id="nowPlayingMeta">Powered by Live365 · Empire Rotation · Independent artists · DJ sets · Built From Pressure.</p>
+          <span class="badge" id="nowPlayingBadge">LIVE365 STREAM CONNECTED</span>
+        </div>
       </div>
-      <div class="compact-note">The station player is now connected to Live365. Upload and schedule tracks inside Live365; artist submissions still come through your UniBeatz review system.</div>
+      <div class="player uni-player live365-box">
+        <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
+          src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
+          allow="autoplay; encrypted-media" loading="lazy"></iframe>
+        <audio id="radioPlayer" class="stream-fallback" controls preload="none"
+          src="https://streaming.live365.com/a01878" playsinline webkit-playsinline></audio>
+        <div class="live365-mini">
+          <span id="trackCountLabel">24/7 Live365 rotation</span>
+          <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
+          <button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button>
+        </div>
+      </div>
+      <div class="compact-note">Main station powered by Live365. Switch to a genre channel below to hear approved tracks by style.</div>
     </article>
 
     <div class="compact-tools">
       <article class="panel compact-submit">
         <div class="eyebrow">ARTIST PORTAL</div>
         <h2 class="section-title" style="margin-top:2px">Submit to UniBeatz Radio</h2>
-        <p class="sub">Send music for review. Approved records move into admin/DJ rotation, not an endless public catalog.</p>
+        <p class="sub">Send music for review. Approved records go into your genre channel automatically.</p>
         <button id="openSubmit" class="btn btn-gold btn-full" type="button" style="margin-top:12px">Submit Your Music</button>
         <div id="formNotice" class="notice"></div>
       </article>
-
       <article class="panel compact-submit">
         <div class="eyebrow">DJ HOST PATH</div>
         <h2 class="section-title" style="margin-top:2px">Apply To DJ</h2>
-        <p class="sub">Two DJ lanes keep the station clean: Culture/Streets and Open Format/Shows.</p>
+        <p class="sub">Two DJ lanes: Culture/Streets and Open Format/Shows.</p>
         <a class="btn btn-blue btn-full" href="radio-dj-apply.html" style="margin-top:12px">Apply To DJ</a>
       </article>
     </div>
   </section>
 
-  <section class="approved-home-hidden"><h2 class="section-title">Approved Tracks</h2><div id="genreFilters" class="genre-filters"></div><div id="approvedList" class="track-list"></div></section>
+  <!-- Genre Channels -->
+  <section id="genreChannelsSection" class="panel">
+    <div class="channels-header">
+      <div class="channels-title">🎵 Genre Channels</div>
+      <div class="channels-sub">Tap a channel to switch · Plays approved tracks in that genre</div>
+    </div>
+
+    <div class="genre-pill-row" id="genrePillRow">
+      <button class="genre-pill main-pill active" data-genre="live365">📻 Main Station</button>
+      <button class="genre-pill" data-genre="Hip-Hop">🔥 Hip-Hop</button>
+      <button class="genre-pill" data-genre="Boom Bap">🥁 Boom Bap</button>
+      <button class="genre-pill" data-genre="Trap">⚡ Trap</button>
+      <button class="genre-pill" data-genre="Drill">🔩 Drill</button>
+      <button class="genre-pill" data-genre="R&B">💜 R&B</button>
+      <button class="genre-pill" data-genre="Afrobeats">🌍 Afrobeats</button>
+      <button class="genre-pill" data-genre="Freestyle Sessions">🎤 Freestyle</button>
+      <button class="genre-pill" data-genre="Producer Showcase">🎛️ Producer</button>
+      <button class="genre-pill" data-genre="Lo-Fi">🌊 Lo-Fi</button>
+      <button class="genre-pill" data-genre="Country">🤠 Country</button>
+      <button class="genre-pill" data-genre="Podcast">🎙️ Podcast</button>
+      <button class="genre-pill" data-genre="Instrumentals">🎹 Instrumentals</button>
+    </div>
+
+    <!-- Mini now-playing bar — only visible when a genre channel is active -->
+    <div id="channelBar">
+      <div id="channelBarDot"></div>
+      <div id="channelBarInfo">
+        <div id="channelBarTitle">—</div>
+        <div id="channelBarArtist">Genre Channel</div>
+      </div>
+      <button class="ch-ctrl" id="chPrev" title="Previous">⏮</button>
+      <button class="ch-ctrl" id="chPlay" title="Play/Pause">▶</button>
+      <button class="ch-ctrl" id="chNext" title="Next">⏭</button>
+      <button class="ch-ctrl" id="chLike"    title="Like">👍 <span id="chLikeCount">0</span></button>
+      <button class="ch-ctrl" id="chDislike" title="Dislike">👎 <span id="chDislikeCount">0</span></button>
+    </div>
+    <audio id="channelAudio" playsinline webkit-playsinline></audio>
+  </section>
+
+  <!-- Hidden — kept for JS compat -->
+  <section class="approved-home-hidden">
+    <h2 class="section-title">Approved Tracks</h2>
+    <div id="genreFilters"></div>
+    <div id="approvedList"></div>
+  </section>
+
 </main>
-<div id="submitModal" class="modal-wrap" aria-hidden="true"><div class="modal"><button class="x" id="closeSubmit" aria-label="Close">✕</button><div class="eyebrow">INDIE ARTIST UPLOAD</div><h3 class="section-title" style="margin-top:3px">Submission Form</h3><form id="artistForm" class="form"><input class="input" name="artistName" placeholder="Artist Name" required/><input class="input" name="email" type="email" placeholder="Contact Email" required/><input class="input" name="trackTitle" placeholder="Track Title" required/><input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/><input class="input" name="producerCredits" placeholder="Producer / beat credits" required/><select name="genre" required><option value="">Select Genre Channel</option><option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Country</option><option>Lo‑Fi</option><option>Podcast</option><option>Producer Showcase</option><option>Freestyle Sessions</option><option>Live DJ Sets</option><option>Instrumentals</option></select><textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea><label class="small" style="display:flex;gap:8px;align-items:flex-start"><input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px"> I confirm this submission is fully authorized for review and possible radio placement.</label><input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/><button class="btn btn-gold" type="submit">Submit for Review</button></form></div></div>
+
+<!-- Submit Modal -->
+<div id="submitModal" class="modal-wrap" aria-hidden="true">
+  <div class="modal">
+    <button class="x" id="closeSubmit" aria-label="Close">✕</button>
+    <div class="eyebrow">INDIE ARTIST UPLOAD</div>
+    <h3 class="section-title" style="margin-top:3px">Submission Form</h3>
+    <form id="artistForm" class="form">
+      <input class="input" name="artistName" placeholder="Artist Name" required/>
+      <input class="input" name="email" type="email" placeholder="Contact Email" required/>
+      <input class="input" name="trackTitle" placeholder="Track Title" required/>
+      <input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/>
+      <input class="input" name="producerCredits" placeholder="Producer / beat credits" required/>
+      <select name="genre" required>
+        <option value="">Select Genre Channel</option>
+        <option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option>
+        <option>Drill</option><option>R&B</option><option>Afrobeats</option>
+        <option>Country</option><option>Lo-Fi</option><option>Podcast</option>
+        <option>Producer Showcase</option><option>Freestyle Sessions</option>
+        <option>Live DJ Sets</option><option>Instrumentals</option>
+      </select>
+      <textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea>
+      <label class="small" style="display:flex;gap:8px;align-items:flex-start">
+        <input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px">
+        I confirm this submission is fully authorized for review and possible radio placement.
+      </label>
+      <input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/>
+      <p class="small" style="color:#8d94a5;margin-top:2px;">MP3 or WAV · Max 100MB</p>
+      <button class="btn btn-gold" type="submit">Submit for Review</button>
+    </form>
+  </div>
+</div>
+
 <script type="module" src="radio.js"></script>
+<script type="module" src="radio-player.js"></script>
 <script type="module" src="radio-premium-popup.js"></script>
 <script type="module" src="/unibeatz-notifications.js"></script>
-<script type="module" src="radio-player.js"></script>
 <script src="radio-pwa-register.js"></script>
-  
+
+<!-- Genre Channel Engine -->
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+const app = getApps().length ? getApp() : initializeApp({
+  apiKey:'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+  authDomain:'unibeatzproduction-7ae31.firebaseapp.com',
+  projectId:'unibeatzproduction-7ae31',
+  storageBucket:'unibeatzproduction-7ae31.firebasestorage.app',
+  messagingSenderId:'70667820609',
+  appId:'1:70667820609:web:57762df5510e6b4000b0c0'
+});
+const db = getFirestore(app);
+
+let allTracks    = [];
+let queue        = [];
+let queueIndex   = 0;
+let currentGenre = 'live365';
+
+const audio   = document.getElementById('channelAudio');
+const bar     = document.getElementById('channelBar');
+const barTitle  = document.getElementById('channelBarTitle');
+const barArtist = document.getElementById('channelBarArtist');
+const chPlay  = document.getElementById('chPlay');
+
+// Load all approved tracks once silently
+async function loadTracks(){
+  try{
+    const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
+    allTracks = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  } catch(e){ console.warn('[channels]', e); }
+}
+
+function switchGenre(genre){
+  currentGenre = genre;
+
+  if(genre === 'live365'){
+    // Back to main — stop channel audio, hide bar
+    audio.pause();
+    audio.src = '';
+    bar.classList.remove('visible');
+    return;
+  }
+
+  // Filter tracks for this genre
+  queue = allTracks
+    .filter(t => t.genre === genre && t.audioUrl)
+    .sort((a,b) => Number(b.featured||0) - Number(a.featured||0));
+
+  queueIndex = 0;
+
+  if(!queue.length){
+    barTitle.textContent  = 'No tracks yet in ' + genre;
+    barArtist.textContent = 'Submit music above to be first';
+    bar.classList.add('visible');
+    audio.pause();
+    return;
+  }
+
+  playIndex(0);
+  bar.classList.add('visible');
+}
+
+function playIndex(index){
+  if(!queue.length) return;
+  if(index < 0) index = queue.length - 1;
+  if(index >= queue.length) index = 0;
+  queueIndex = index;
+  const track = queue[queueIndex];
+  audio.src = track.audioUrl;
+  audio.load();
+  audio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
+  barTitle.textContent  = track.trackTitle  || 'Untitled';
+  barArtist.textContent = (track.artistName || 'Unknown') + ' · ' + currentGenre;
+  // Update currentTrackId and load reactions
+  currentTrackId = track.id || '';
+  document.getElementById('chLikeCount').textContent    = '0';
+  document.getElementById('chDislikeCount').textContent = '0';
+  document.getElementById('chLike').className    = 'ch-ctrl';
+  document.getElementById('chDislike').className = 'ch-ctrl';
+  if(currentTrackId) setTimeout(() => loadReactions(currentTrackId), 400);
+}
+
+// Controls
+audio.addEventListener('ended', () => playIndex(queueIndex + 1));
+audio.addEventListener('play',  () => { chPlay.textContent = '⏸'; });
+audio.addEventListener('pause', () => { chPlay.textContent = '▶'; });
+
+chPlay.addEventListener('click', () => {
+  if(!audio.src || audio.src === window.location.href){
+    if(queue.length) playIndex(0);
+    return;
+  }
+  audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+});
+document.getElementById('chPrev').addEventListener('click', () => playIndex(queueIndex - 1));
+document.getElementById('chNext').addEventListener('click', () => playIndex(queueIndex + 1));
+
+// Pill clicks
+document.querySelectorAll('.genre-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    switchGenre(pill.dataset.genre);
+  });
+});
+
+loadTracks();
+
+// ── Like / Dislike ──
+let currentTrackId = '';
+let myReaction = '';
+
+async function loadReactions(trackId){
+  if(!trackId) return;
+  try{
+    const { collection: col, query: q, where: wh, getDocs: gd, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const listenerId = localStorage.getItem('ub_radio_listener_id') || 'guest';
+    const snap = await gd(q(col(db,'radio_reactions'), wh('trackId','==',trackId)));
+    let likes=0, dislikes=0, mine='';
+    snap.forEach(d => {
+      const data = d.data();
+      if(data.reaction==='like') likes++;
+      if(data.reaction==='dislike') dislikes++;
+      if(data.listenerId===listenerId) mine = data.reaction||'';
+    });
+    document.getElementById('chLikeCount').textContent    = likes;
+    document.getElementById('chDislikeCount').textContent = dislikes;
+    myReaction = mine;
+    document.getElementById('chLike').className    = 'ch-ctrl' + (mine==='like'?' liked':'');
+    document.getElementById('chDislike').className = 'ch-ctrl' + (mine==='dislike'?' disliked':'');
+  } catch(e){ console.warn('[reactions]', e); }
+}
+
+async function saveReaction(reaction){
+  if(!currentTrackId) return;
+  try{
+    const { getAuth, signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js');
+    const { doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const auth = getAuth();
+    if(!auth.currentUser) await signInAnonymously(auth);
+    let listenerId = localStorage.getItem('ub_radio_listener_id');
+    if(!listenerId){ listenerId='listener_'+Date.now()+'_'+Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id',listenerId); }
+    const reactionId = (currentTrackId+'_'+listenerId).replace(/[^a-zA-Z0-9_-]/g,'_');
+    await setDoc(doc(db,'radio_reactions',reactionId),{
+      trackId:currentTrackId, listenerId, reaction,
+      uid: auth.currentUser?.uid||null,
+      updatedAt: serverTimestamp(), createdAt: serverTimestamp()
+    },{merge:true});
+    myReaction = reaction;
+    await loadReactions(currentTrackId);
+  } catch(e){ console.warn('[reaction save]', e); }
+}
+
+document.getElementById('chLike').addEventListener('click',    () => saveReaction('like'));
+document.getElementById('chDislike').addEventListener('click', () => saveReaction('dislike'));
+
+// Hook into playIndex to reset reactions on track change
+const _origPlayIndex = playIndex;
+window._chPlayIndex = function(index){
+  _origPlayIndex(index);
+  // Reset counts while loading
+  document.getElementById('chLikeCount').textContent    = '0';
+  document.getElementById('chDislikeCount').textContent = '0';
+  document.getElementById('chLike').className    = 'ch-ctrl';
+  document.getElementById('chDislike').className = 'ch-ctrl';
+  // Load after short delay to let track set
+  setTimeout(() => {
+    const track = queue[queueIndex];
+    if(track?.id){ currentTrackId = track.id; loadReactions(track.id); }
+  }, 300);
+};
+</script>
+
 </body>
 </html>
