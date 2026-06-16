@@ -111,6 +111,11 @@ modal?.addEventListener('click', e => {
 // Wire on DOMContentLoaded too in case modal is already open
 document.addEventListener('DOMContentLoaded', wireFileInput);
 
+// Wire submit button click (type=button to avoid mobile issues)
+document.getElementById('radioSubmitBtn')?.addEventListener('click', () => {
+  form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+});
+
 form?.addEventListener('submit', async e => {
   e.preventDefault();
   setNotice('Preparing upload...', '#40D0FF');
