@@ -87,12 +87,21 @@ function setupMediaControls(){
 async function tryResume(){
   if(!listenerStarted || userPaused || !shouldResume) return;
   const now = Date.now();
-  if(now - lastResume < 600) return;
+  if(now - lastResume < 300) return; // reduced throttle for notification recovery
   lastResume = now;
   for(const audio of allPlayers()){
     if(!audio.src || audio.src === window.location.href) continue;
-    if(!audio.paused) return; // already playing, done
-    try{ await audio.play(); break; } catch(e){}
+    if(!audio.paused) return; // already playing
+    try{
+      await audio.play();
+      navigator.mediaSession && (navigator.mediaSession.playbackState = 'playing');
+      updateMediaSession();
+      break;
+    } catch(e){
+      // NotAllowedError = browser blocked autoplay after focus loss
+      // Try again after a short wait
+      if(e.name === 'NotAllowedError') setTimeout(tryResume, 800);
+    }
   }
 }
 
@@ -148,13 +157,25 @@ function attachToAudio(audio){
 
   audio.addEventListener('pause', () => {
     const justManual = Date.now() - lastManualPause < 900;
-    if(!justManual && listenerStarted){
-      shouldResume = true; userPaused = false;
-      setTimeout(tryResume, 200);
-      setTimeout(tryResume, 1000);
-      setTimeout(tryResume, 2500);
+    if(justManual){
+      // User intentionally paused — respect it
+      updateMediaSession();
+      return;
     }
+    if(!listenerStarted){ updateMediaSession(); return; }
+    // Notification or system interrupted — fight back
+    // Android audio focus loss: retry aggressively
+    shouldResume = true; userPaused = false;
+    setTimeout(tryResume, 100);  // immediate
+    setTimeout(tryResume, 500);  // after notification sound ends (~500ms)
+    setTimeout(tryResume, 1200); // fallback
+    setTimeout(tryResume, 2500); // last resort
     updateMediaSession();
+  });
+
+  // Android audio focus: also listen for the 'interrupted' event
+  audio.addEventListener('waiting', () => {
+    if(listenerStarted && !userPaused) setTimeout(tryResume, 300);
   });
 
   audio.addEventListener('stalled', () => tryResume());
