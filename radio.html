@@ -96,9 +96,21 @@
         <span class="badge" style="margin-left:auto;">LIVE</span>
       </div>
       <div class="player uni-player live365-box">
+        <!-- Desktop: Live365 iframe -->
         <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
           src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
           allow="autoplay; encrypted-media" loading="lazy"></iframe>
+
+        <!-- Mobile: direct stream for background play support -->
+        <div id="live365Mobile" style="display:none;text-align:center;padding:16px 0;">
+          <audio id="mainStationAudio" preload="auto" playsinline webkit-playsinline
+            style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;"
+            src="https://streaming.live365.com/a01878"></audio>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;margin-bottom:4px;">📻 UniBeatz Radio</div>
+          <div style="font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;margin-bottom:14px;">LIVE365 · 24/7 BROADCAST</div>
+          <button id="mainStationPlay" class="btn btn-gold" style="min-width:160px;font-size:.6rem;">▶ Play Station</button>
+        </div>
+
         <div class="live365-mini">
           <span id="trackCountLabel">24/7 Live365 rotation</span>
           <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
@@ -321,6 +333,49 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
     switchGenre(pill.dataset.genre);
   });
 });
+
+// ── Mobile detection: swap iframe for direct audio stream ──
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if(isMobile){
+  document.getElementById('live365Frame').style.display = 'none';
+  document.getElementById('live365Mobile').style.display = 'block';
+}
+
+// Main station play button (mobile only)
+const mainAudio   = document.getElementById('mainStationAudio');
+const mainPlayBtn = document.getElementById('mainStationPlay');
+
+mainPlayBtn?.addEventListener('click', async () => {
+  if(!mainAudio) return;
+  if(mainAudio.paused){
+    try{
+      await mainAudio.play();
+      mainPlayBtn.textContent = '⏸ Pause Station';
+      if('mediaSession' in navigator){
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: 'UniBeatz Radio',
+          artist: 'UniBeatzProduction',
+          album: 'Live365 · 24/7 Broadcast',
+          artwork: [{ src: '/unibeatz-radio-cover-v2.svg', sizes: '512x512', type: 'image/svg+xml' }]
+        });
+        navigator.mediaSession.playbackState = 'playing';
+        // Lock screen controls for main station
+        navigator.mediaSession.setActionHandler('play',  () => { mainAudio.play().catch(()=>{}); mainPlayBtn.textContent = '⏸ Pause Station'; navigator.mediaSession.playbackState = 'playing'; });
+        navigator.mediaSession.setActionHandler('pause', () => { mainAudio.pause(); mainPlayBtn.textContent = '▶ Play Station'; navigator.mediaSession.playbackState = 'paused'; });
+        navigator.mediaSession.setActionHandler('nexttrack', null);
+        navigator.mediaSession.setActionHandler('previoustrack', null);
+      }
+    } catch(e){ mainPlayBtn.textContent = '▶ Play Station'; }
+  } else {
+    mainAudio.pause();
+    mainPlayBtn.textContent = '▶ Play Station';
+    if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+  }
+});
+
+mainAudio?.addEventListener('play',  () => { mainPlayBtn && (mainPlayBtn.textContent = '⏸ Pause Station'); });
+mainAudio?.addEventListener('pause', () => { mainPlayBtn && (mainPlayBtn.textContent = '▶ Play Station'); });
+mainAudio?.addEventListener('error', () => { mainPlayBtn && (mainPlayBtn.textContent = '⚠ Stream Error'); });
 
 loadTracks();
 
