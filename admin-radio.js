@@ -231,7 +231,7 @@ function renderList(){
       ${btn('now',     t.id, 'Set Now Playing', 'btn-blue')}
       ${btn('reject',  t.id, 'Reject', 'btn-red')}
       ${btn('remove',  t.id, 'Delete', 'btn-red')}
-    </div>
+      <a class="btn btn-blue btn-small" href="${esc(t.audioUrl||'')}" download="${esc((t.trackTitle||'track').replace(/[^a-zA-Z0-9 _-]/g,'_'))}.${(t.fileType||'').includes('wav')?'wav':'mp3'}" target="_blank" rel="noopener">⬇ Download for Live365</a>\n    </div>
   </article>`).join('');
 }
 
