@@ -111,12 +111,17 @@ modal?.addEventListener('click', e => {
 // Wire on DOMContentLoaded too in case modal is already open
 document.addEventListener('DOMContentLoaded', wireFileInput);
 
-// Wire submit button click (type=button to avoid mobile issues)
+// Wire submit button — guarded to prevent double submission
+let _submitting = false;
 document.getElementById('radioSubmitBtn')?.addEventListener('click', () => {
+  if(_submitting) return;
   form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 });
 
 form?.addEventListener('submit', async e => {
+  if(_submitting) return;
+  _submitting = true;
+  setTimeout(() => { _submitting = false; }, 8000); // reset after 8s
   e.preventDefault();
   setNotice('Preparing upload...', '#40D0FF');
 
@@ -209,6 +214,7 @@ form?.addEventListener('submit', async e => {
     // Success
     form.reset();
     _selectedFile = null;
+    _submitting = false;
     modal?.classList.remove('open');
     setNotice('✅ Submitted! Pending admin review.', '#00cc66');
 
@@ -222,6 +228,7 @@ form?.addEventListener('submit', async e => {
     else if(err.message?.includes('network'))  msg = 'Network error. Check your connection and try again.';
     else if(err.message?.includes('read'))     msg = 'Could not read file. Try selecting it again.';
     else msg = 'Error: ' + (err.message || 'Unknown error');
+    _submitting = false;
     setNotice(msg, '#ff3c3c');
   }
 });
