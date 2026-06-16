@@ -126,7 +126,7 @@ function setupMobilePersistence(){
 // ════════════════════════════════════
 let featuresBuilt = false;
 
-async function buildLiveFeatures(){
+async function buildLiveFeatures(){ return; // Disabled — genre channel engine handles playback and chat
   if(featuresBuilt) return;
   const fb = window.UB_FIREBASE;
   if(!fb?.db) return;
@@ -295,8 +295,7 @@ function boot(){
   if(meta)  obs.observe(meta,  { childList: true, subtree: true, characterData: true });
 
   // Build live features after Firebase is ready
-  if(window.UB_FIREBASE?.db) buildLiveFeatures();
-  else window.addEventListener('ub-firebase-ready', buildLiveFeatures, { once: true });
+  // Live features disabled — genre channel engine in radio.html handles playback
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
