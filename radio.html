@@ -44,7 +44,6 @@
   #channelBarTitle{font-family:Bebas Neue,sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:#F0C040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #channelBarArtist{font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#8d94a5;margin-top:2px}
   .ch-ctrl{border:0;background:transparent;color:#F0C040;font-size:1.1rem;cursor:pointer;padding:4px 6px;flex-shrink:0}
-  #channelAudio{display:none}
   .ch-ctrl.liked{color:#F0C040}
   .ch-ctrl.disliked{color:#ff7474}
 
@@ -162,7 +161,7 @@
       <button class="ch-ctrl" id="chLike"    title="Like">👍 <span id="chLikeCount">0</span></button>
       <button class="ch-ctrl" id="chDislike" title="Dislike">👎 <span id="chDislikeCount">0</span></button>
     </div>
-    <audio id="channelAudio" playsinline webkit-playsinline></audio>
+    <audio id="channelAudio" preload="auto" playsinline webkit-playsinline style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;"></audio>
   </section>
 
   <!-- Hidden stubs for JS compat -->
