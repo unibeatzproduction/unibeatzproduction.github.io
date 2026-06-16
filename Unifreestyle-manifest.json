@@ -3,6 +3,7 @@
   "short_name": "UniFreestyle",
   "description": "Face to Face Live Rap Battles · Real Rankings · UniBeatz Production",
   "start_url": "/unifreestyle.html",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#030305",
@@ -12,9 +13,8 @@
     { "src": "/icons/unifreestyle-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "categories": ["entertainment", "music", "social"],
-  "screenshots": [],
   "shortcuts": [
-    { "name": "Join Battle", "url": "/unifreestyle.html#queue", "description": "Jump into a battle" },
-    { "name": "Cypher Room", "url": "/unifreestyle.html#cypher", "description": "Join the cypher" }
+    { "name": "Join Battle", "url": "/unifreestyle.html", "description": "Jump into a battle" },
+    { "name": "Cypher Room", "url": "/unifreestyle.html", "description": "Join the cypher" }
   ]
 }
