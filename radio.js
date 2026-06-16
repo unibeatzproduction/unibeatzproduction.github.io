@@ -1,7 +1,5 @@
 // radio.js — UniBeatz Radio Station
 // PURPOSE: Artist submission form + Firebase setup + Live365 bridge + reactions
-// Audio playback is handled by: Live365 iframe (main) + genre channel engine (radio.html)
-// This file does NOT auto-play any tracks.
 
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
@@ -50,7 +48,6 @@ async function loadTrackCount(){
 }
 
 // ── Helpers ──
-function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function setAccountText(text){
   const btn = document.getElementById('radioAccountBtn');
   if(btn) btn.textContent = text;
@@ -59,6 +56,10 @@ function getListenerId(){
   let id = localStorage.getItem('ub_radio_listener_id');
   if(!id){ id = 'listener_' + Date.now() + '_' + Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id', id); }
   return id;
+}
+function setNotice(msg, color){
+  const notice = document.getElementById('formNotice');
+  if(notice){ notice.textContent = msg; notice.style.color = color || '#40D0FF'; }
 }
 
 // ── Account button ──
@@ -72,57 +73,155 @@ window.addEventListener('ub-auth-ready', e => setAccountText(
 onAuthStateChanged(auth, user => setAccountText(!user || user.isAnonymous ? 'Sign In' : (user.displayName || user.email || 'Account')));
 
 // ── Submit modal ──
-const modal  = document.getElementById('submitModal');
-const form   = document.getElementById('artistForm');
-const notice = document.getElementById('formNotice');
+const modal = document.getElementById('submitModal');
+const form  = document.getElementById('artistForm');
 
-document.getElementById('openSubmit')?.addEventListener('click',  () => modal?.classList.add('open'));
-document.getElementById('closeSubmit')?.addEventListener('click', () => modal?.classList.remove('open'));
-modal?.addEventListener('click', e => { if(e.target === modal) modal.classList.remove('open'); });
+// Track selected file directly from input — more reliable on mobile than FormData
+let _selectedFile = null;
+
+// Wire up file input directly
+function wireFileInput(){
+  const fileInput = document.getElementById('audioFileInput') || form?.querySelector('input[type="file"]');
+  if(!fileInput) return;
+  fileInput.addEventListener('change', e => {
+    const files = e.target.files;
+    if(files && files.length > 0){
+      _selectedFile = files[0];
+      const name = _selectedFile.name || 'Unknown';
+      const sizeMB = (_selectedFile.size / (1024*1024)).toFixed(1);
+      setNotice('📎 ' + name + ' (' + sizeMB + 'MB) — ready to submit', '#5dff9e');
+    } else {
+      _selectedFile = null;
+    }
+  });
+}
+
+document.getElementById('openSubmit')?.addEventListener('click', () => {
+  modal?.classList.add('open');
+  setTimeout(wireFileInput, 100);
+});
+document.getElementById('closeSubmit')?.addEventListener('click', () => {
+  modal?.classList.remove('open');
+  _selectedFile = null;
+});
+modal?.addEventListener('click', e => {
+  if(e.target === modal){ modal.classList.remove('open'); _selectedFile = null; }
+});
+
+// Wire on DOMContentLoaded too in case modal is already open
+document.addEventListener('DOMContentLoaded', wireFileInput);
 
 form?.addEventListener('submit', async e => {
   e.preventDefault();
-  if(!notice) return;
-  notice.textContent = 'Uploading track for moderation...';
-  notice.style.color = '#40D0FF';
-  const fd   = new FormData(form);
-  const file = fd.get('audioFile');
-  if(!file?.size){ notice.textContent = 'Choose an audio file.'; notice.style.color = '#ff3c3c'; return; }
-  if(file.size > 100 * 1024 * 1024){ notice.textContent = 'Max 100MB (MP3 or WAV).'; notice.style.color = '#ff3c3c'; return; }
+  setNotice('Preparing upload...', '#40D0FF');
+
+  // Get form values directly from DOM — more reliable on mobile than FormData
+  const artistName        = document.getElementById('artistName')?.value?.trim()        || form.querySelector('[name="artistName"]')?.value?.trim()        || '';
+  const email             = document.getElementById('artistEmail')?.value?.trim()        || form.querySelector('[name="email"]')?.value?.trim()              || '';
+  const trackTitle        = document.getElementById('trackTitle')?.value?.trim()         || form.querySelector('[name="trackTitle"]')?.value?.trim()         || '';
+  const artistLink        = document.getElementById('artistLink')?.value?.trim()         || form.querySelector('[name="artistLink"]')?.value?.trim()         || '';
+  const producerCredits   = document.getElementById('producerCredits')?.value?.trim()    || form.querySelector('[name="producerCredits"]')?.value?.trim()    || '';
+  const genre             = document.getElementById('genreSelect')?.value               || form.querySelector('[name="genre"]')?.value                       || '';
+  const copyrightDecl     = form.querySelector('[name="copyrightDeclaration"]')?.value   || '';
+  const rightsConfirm     = !!form.querySelector('[name="rightsConfirm"]')?.checked;
+
+  // Get file — prefer directly tracked file, fall back to FormData, fall back to input
+  let file = _selectedFile;
+  if(!file){
+    const fileInput = form.querySelector('input[type="file"]');
+    if(fileInput && fileInput.files && fileInput.files.length > 0){
+      file = fileInput.files[0];
+    }
+  }
+  if(!file){
+    try{
+      const fd = new FormData(form);
+      const fdFile = fd.get('audioFile');
+      if(fdFile instanceof File && fdFile.size > 0) file = fdFile;
+    } catch(err){ console.warn('[radio] FormData fallback failed:', err); }
+  }
+
+  // Validate
+  if(!artistName){ setNotice('Artist name is required.', '#ff3c3c'); return; }
+  if(!trackTitle){ setNotice('Track title is required.', '#ff3c3c'); return; }
+  if(!file){ setNotice('Please select an audio file (MP3 or WAV).', '#ff3c3c'); return; }
+  if(file.size === 0){ setNotice('File appears empty. Try selecting it again.', '#ff3c3c'); return; }
+  if(file.size > 100 * 1024 * 1024){ setNotice('Max file size is 100MB.', '#ff3c3c'); return; }
+
+  const ext         = (file.name || '').split('.').pop().toLowerCase();
+  const contentType = ext === 'wav' ? 'audio/wav'
+                    : ext === 'mp3' ? 'audio/mpeg'
+                    : (file.type && file.type.startsWith('audio/')) ? file.type
+                    : 'audio/mpeg';
+
+  const sizeMB = (file.size / (1024*1024)).toFixed(1);
+  setNotice('Uploading ' + sizeMB + 'MB — please wait...', '#40D0FF');
+
   try{
-    if(!auth.currentUser) await signInAnonymously(auth);
-    const ext         = file.name.split('.').pop().toLowerCase();
-    const contentType = ext === 'wav' ? 'audio/wav' : (file.type || 'audio/mpeg');
-    const safeName    = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const fileRef     = ref(storage, 'radio-submissions/' + safeName);
-    await uploadBytes(fileRef, file, { contentType });
+    // Sign in anonymously if needed
+    if(!auth.currentUser){
+      setNotice('Authenticating...', '#40D0FF');
+      await signInAnonymously(auth);
+    }
+
+    const safeName = Date.now() + '-' + (file.name || 'track').replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const fileRef  = ref(storage, 'radio-submissions/' + safeName);
+
+    setNotice('Uploading audio (' + sizeMB + 'MB)...', '#40D0FF');
+
+    // Read file as ArrayBuffer first — fixes mobile Safari/Android Chrome issues
+    // where the File object becomes invalid after async operations
+    const arrayBuffer = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = e => resolve(e.target.result);
+      reader.onerror = () => reject(new Error('Could not read file. Try again.'));
+      reader.readAsArrayBuffer(file);
+    });
+
+    const uint8 = new Uint8Array(arrayBuffer);
+    await uploadBytes(fileRef, uint8, { contentType });
     const audioUrl = await getDownloadURL(fileRef);
+
+    setNotice('Saving submission...', '#40D0FF');
+
     await addDoc(collection(db, 'radio_submissions'), {
-      artistName: fd.get('artistName') || '', email: fd.get('email') || '',
-      trackTitle: fd.get('trackTitle') || '', artistLink: fd.get('artistLink') || '',
-      producerCredits: fd.get('producerCredits') || '', genre: fd.get('genre') || '',
-      copyrightDeclaration: fd.get('copyrightDeclaration') || '',
-      rightsConfirm: !!fd.get('rightsConfirm'),
-      audioUrl, fileType: contentType, fileName: file.name || safeName,
-      storagePath: fileRef.fullPath, status: 'pending', featured: false,
+      artistName, email, trackTitle, artistLink,
+      producerCredits, genre, copyrightDeclaration: copyrightDecl,
+      rightsConfirm, audioUrl,
+      fileType: contentType,
+      fileName: file.name || safeName,
+      fileSizeBytes: file.size,
+      storagePath: fileRef.fullPath,
+      status: 'pending', featured: false,
       reviewNotes: '', approvedFor: [],
       submittedByUid: auth.currentUser?.uid || null,
-      submittedByEmail: auth.currentUser?.email || fd.get('email'),
+      submittedByEmail: auth.currentUser?.email || email,
       isAnonymousSubmission: !!auth.currentUser?.isAnonymous,
+      submittedFrom: /Android|iPhone|iPad/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
       createdAt: serverTimestamp(), reviewedAt: null
     });
+
+    // Success
     form.reset();
+    _selectedFile = null;
     modal?.classList.remove('open');
-    notice.textContent = 'Submitted! Pending admin review.';
-    notice.style.color = '#00cc66';
+    setNotice('✅ Submitted! Pending admin review.', '#00cc66');
+
   } catch(err){
-    console.error(err);
-    notice.textContent = 'Submission failed: ' + (err.message || 'Check Firebase config.');
-    notice.style.color = '#ff3c3c';
+    console.error('[radio submit]', err);
+    // Show specific errors so user knows what happened
+    let msg = 'Submission failed.';
+    if(err.code === 'storage/unauthorized')   msg = 'Upload blocked — storage permissions error. Contact admin.';
+    else if(err.code === 'storage/quota-exceeded') msg = 'Storage full. Contact admin.';
+    else if(err.code === 'storage/retry-limit-exceeded') msg = 'Upload timed out. Check your connection and try again.';
+    else if(err.message?.includes('network'))  msg = 'Network error. Check your connection and try again.';
+    else if(err.message?.includes('read'))     msg = 'Could not read file. Try selecting it again.';
+    else msg = 'Error: ' + (err.message || 'Unknown error');
+    setNotice(msg, '#ff3c3c');
   }
 });
 
-// ── Reactions (used by genre channel engine in radio.html) ──
+// ── Reactions ──
 window.ubRadioReaction = async function(trackId, reaction){
   try{
     if(!auth.currentUser) await signInAnonymously(auth);
