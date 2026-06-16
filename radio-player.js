@@ -1,244 +1,225 @@
 // radio-player.js — UniBeatz Radio
-// Background play persistence + Media Session (lock screen controls)
-// Targets: #channelAudio (genre channels) + Live365 iframe stream
-// Does NOT inject any UI panels
+// Background play + Media Session for BOTH:
+// #mainStationAudio (Live365 direct stream, mobile)
+// #channelAudio (genre channel player)
 
 const DEFAULT_ARTWORK = '/unibeatz-radio-cover-v2.svg';
-let booted = false;
-let listenerStartedAudio = false;
-let shouldResumeAudio    = false;
-let userPausedAudio      = false;
-let lastManualPauseAt    = 0;
-let lastResumeAttempt    = 0;
+let booted            = false;
+let listenerStarted   = false;
+let shouldResume      = false;
+let userPaused        = false;
+let lastManualPause   = 0;
+let lastResume        = 0;
+let _keepAliveCtx     = null;
+let _wakeLock         = null;
 
-// Target the genre channel audio element
-function player(){ return document.getElementById('channelAudio'); }
+// Returns whichever player is currently active
+function activePlayer(){
+  const main    = document.getElementById('mainStationAudio');
+  const channel = document.getElementById('channelAudio');
+  if(main    && !main.paused    && main.src)    return main;
+  if(channel && !channel.paused && channel.src) return channel;
+  // Neither playing — return whichever has a src
+  if(main?.src    && main.src    !== window.location.href) return main;
+  if(channel?.src && channel.src !== window.location.href) return channel;
+  return channel;
+}
 
+function allPlayers(){
+  return [
+    document.getElementById('mainStationAudio'),
+    document.getElementById('channelAudio')
+  ].filter(Boolean);
+}
+
+// ── Media Session ──
 function updateMediaSession(){
-  if(!('mediaSession' in navigator) || !window.MediaMetadata) return;
-  const audio   = player();
-  const title   = document.getElementById('channelBarTitle')?.textContent?.trim()  || 'UniBeatz Radio';
-  const artist  = document.getElementById('channelBarArtist')?.textContent?.trim() || 'UniBeatzProduction';
+  if(!('mediaSession' in navigator)) return;
+  const audio = activePlayer();
+  // Title from channel bar or default
+  const title  = document.getElementById('channelBarTitle')?.textContent?.trim() || 'UniBeatz Radio';
+  const artist = document.getElementById('channelBarArtist')?.textContent?.trim() || 'UniBeatzProduction';
   try{
     navigator.mediaSession.metadata = new MediaMetadata({
       title, artist, album: 'UniBeatz Radio',
       artwork: [{ src: DEFAULT_ARTWORK, sizes: '512x512', type: 'image/svg+xml' }]
     });
-    navigator.mediaSession.playbackState = audio && !audio.paused ? 'playing' : 'paused';
+    navigator.mediaSession.playbackState = (audio && !audio.paused) ? 'playing' : 'paused';
     if('setPositionState' in navigator.mediaSession && audio && Number.isFinite(audio.duration) && audio.duration > 0){
       navigator.mediaSession.setPositionState({
-        duration: audio.duration, playbackRate: 1, position: Math.min(audio.currentTime, audio.duration)
+        duration: audio.duration, playbackRate: 1,
+        position: Math.min(audio.currentTime, audio.duration)
       });
     }
   } catch(e){}
-}
-
-function markKeepPlaying(){ listenerStartedAudio = true; shouldResumeAudio = true; userPausedAudio = false; updateMediaSession(); }
-function markManualPause(){ userPausedAudio = true; shouldResumeAudio = false; lastManualPauseAt = Date.now(); updateMediaSession(); }
-
-async function tryResumeAudio(){
-  const audio = player();
-  if(!audio || !audio.src || audio.src === window.location.href) return;
-  if(!listenerStartedAudio || userPausedAudio || !shouldResumeAudio) return;
-  const now = Date.now();
-  if(now - lastResumeAttempt < 700) return;
-  lastResumeAttempt = now;
-  try{ await audio.play(); markKeepPlaying(); } catch(e){}
 }
 
 function setupMediaControls(){
   if(!('mediaSession' in navigator)) return;
   try{
     navigator.mediaSession.setActionHandler('play', async () => {
-      markKeepPlaying();
-      try{ await player()?.play(); } catch(e){}
+      listenerStarted = true; shouldResume = true; userPaused = false;
+      const a = activePlayer();
+      try{ await a?.play(); } catch(e){}
       updateMediaSession();
     });
-    // Don't kill station on notification pause — resume immediately
+    // Android fires pause from notification — don't let it kill the station
     navigator.mediaSession.setActionHandler('pause', () => {
-      markKeepPlaying();
-      setTimeout(tryResumeAudio, 100);
-      setTimeout(tryResumeAudio, 900);
+      setTimeout(tryResume, 150);
+      setTimeout(tryResume, 1000);
     });
     navigator.mediaSession.setActionHandler('previoustrack', () => {
-      markKeepPlaying();
       document.getElementById('chPrev')?.click();
       setTimeout(updateMediaSession, 300);
     });
     navigator.mediaSession.setActionHandler('nexttrack', () => {
-      markKeepPlaying();
       document.getElementById('chNext')?.click();
       setTimeout(updateMediaSession, 300);
     });
     try{
-      navigator.mediaSession.setActionHandler('seekbackward', () => {
-        const a = player(); if(a) a.currentTime = Math.max(0, a.currentTime - 10);
-      });
-      navigator.mediaSession.setActionHandler('seekforward', () => {
-        const a = player(); if(a && Number.isFinite(a.duration)) a.currentTime = Math.min(a.duration, a.currentTime + 10);
-      });
-    } catch(e){}
+      navigator.mediaSession.setActionHandler('seekbackward', () => { const a=activePlayer(); if(a) a.currentTime=Math.max(0,a.currentTime-10); });
+      navigator.mediaSession.setActionHandler('seekforward',  () => { const a=activePlayer(); if(a&&Number.isFinite(a.duration)) a.currentTime=Math.min(a.duration,a.currentTime+10); });
+    }catch(e){}
   } catch(e){ console.warn('[media controls]', e); }
 }
 
-function setupMobilePersistence(){
-  const audio = player();
-  if(!audio) return;
+// ── Resume ──
+async function tryResume(){
+  if(!listenerStarted || userPaused || !shouldResume) return;
+  const now = Date.now();
+  if(now - lastResume < 600) return;
+  lastResume = now;
+  for(const audio of allPlayers()){
+    if(!audio.src || audio.src === window.location.href) continue;
+    if(!audio.paused) return; // already playing, done
+    try{ await audio.play(); break; } catch(e){}
+  }
+}
+
+// ── Wake Lock (Android) ──
+async function requestWakeLock(){
+  if(!('wakeLock' in navigator)) return;
+  try{
+    if(_wakeLock) return;
+    _wakeLock = await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+  } catch(e){}
+}
+
+// ── Silent keep-alive loop (iOS) ──
+function startKeepAlive(){
+  if(_keepAliveCtx) return;
+  try{
+    _keepAliveCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bufferSize = _keepAliveCtx.sampleRate;
+    const buf  = _keepAliveCtx.createBuffer(1, bufferSize, _keepAliveCtx.sampleRate);
+    const gain = _keepAliveCtx.createGain();
+    gain.gain.value = 0.001;
+    gain.connect(_keepAliveCtx.destination);
+    function loop(){
+      const src = _keepAliveCtx.createBufferSource();
+      src.buffer = buf;
+      src.connect(gain);
+      src.onended = () => { if(_keepAliveCtx) loop(); };
+      src.start(0);
+    }
+    loop();
+  } catch(e){}
+}
+
+// ── Attach listeners to an audio element ──
+function attachToAudio(audio){
+  if(!audio || audio._ubAttached) return;
+  audio._ubAttached = true;
 
   audio.setAttribute('playsinline', '');
   audio.setAttribute('webkit-playsinline', '');
   audio.setAttribute('x-webkit-airplay', 'allow');
-  audio.preload = 'auto';
+  if(!audio.preload || audio.preload === 'none') audio.preload = 'auto';
 
-  // Track play/pause button state
-  document.getElementById('chPlay')?.addEventListener('click', () => {
-    setTimeout(() => {
-      const a = player();
-      listenerStartedAudio = true;
-      if(a?.paused) markManualPause(); else markKeepPlaying();
-    }, 180);
-  }, { passive: true });
-
-  audio.addEventListener('play', () => {
-    markKeepPlaying();
-    // Android Chrome needs explicit playbackState to keep session alive through lock
-    if('mediaSession' in navigator){
-      navigator.mediaSession.playbackState = 'playing';
-    }
+  audio.addEventListener('play', async () => {
+    listenerStarted = true; shouldResume = true; userPaused = false;
+    navigator.mediaSession && (navigator.mediaSession.playbackState = 'playing');
+    updateMediaSession();
+    startKeepAlive();
+    await requestWakeLock();
+    if(_keepAliveCtx?.state === 'suspended') _keepAliveCtx.resume().catch(()=>{});
   });
 
   audio.addEventListener('pause', () => {
-    const justManual = Date.now() - lastManualPauseAt < 900;
-    if(!justManual && listenerStartedAudio){
-      shouldResumeAudio = true;
-      userPausedAudio   = false;
-      setTimeout(tryResumeAudio, 160);
-      setTimeout(tryResumeAudio, 1000);
-      setTimeout(tryResumeAudio, 2400);
+    const justManual = Date.now() - lastManualPause < 900;
+    if(!justManual && listenerStarted){
+      shouldResume = true; userPaused = false;
+      setTimeout(tryResume, 200);
+      setTimeout(tryResume, 1000);
+      setTimeout(tryResume, 2500);
     }
     updateMediaSession();
   });
 
-  audio.addEventListener('stalled', tryResumeAudio);
-  audio.addEventListener('canplay', tryResumeAudio);
-  audio.addEventListener('play',    updateMediaSession);
-  audio.addEventListener('pause',   updateMediaSession);
+  audio.addEventListener('stalled', () => tryResume());
+  audio.addEventListener('canplay', () => { if(shouldResume && !userPaused) tryResume(); });
   audio.addEventListener('loadedmetadata', updateMediaSession);
-  audio.addEventListener('ended',   updateMediaSession);
-  audio.addEventListener('timeupdate', () => {
-    if(Math.floor(audio.currentTime) % 15 === 0) updateMediaSession();
-  });
+  audio.addEventListener('ended', updateMediaSession);
+  audio.addEventListener('timeupdate', () => { if(Math.floor(audio.currentTime)%15===0) updateMediaSession(); });
+}
 
-  // Resume on visibility change (switching apps, lock screen)
-  document.addEventListener('visibilitychange', () => {
-    updateMediaSession();
-    if(listenerStartedAudio && !userPausedAudio) shouldResumeAudio = true;
-    setTimeout(tryResumeAudio, 180);
-    setTimeout(tryResumeAudio, 1100);
-    setTimeout(tryResumeAudio, 2500);
-  });
-
-  window.addEventListener('focus',    tryResumeAudio);
-  window.addEventListener('pageshow', tryResumeAudio);
-  window.addEventListener('online',   tryResumeAudio);
-  window.addEventListener('resume',   tryResumeAudio);
-
-  // iOS + Android keep-alive
-  // A one-time silent buffer loop keeps the audio session alive through lock screen
-  // Must be triggered by a user gesture first
-  let _keepAliveCtx = null;
-  let _keepAliveNode = null;
-
-  function startKeepAlive(){
-    if(_keepAliveCtx) return;
-    try{
-      _keepAliveCtx = new (window.AudioContext || window.webkitAudioContext)();
-      // Create a looping silent buffer — 1 second of silence, loops forever
-      // This is the key: a looping BufferSource keeps iOS audio session alive
-      // through screen lock, unlike a one-shot oscillator
-      const bufferSize = _keepAliveCtx.sampleRate;
-      const silentBuffer = _keepAliveCtx.createBuffer(1, bufferSize, _keepAliveCtx.sampleRate);
-      // Buffer is already zeroed (silence)
-      const gain = _keepAliveCtx.createGain();
-      gain.gain.value = 0.001; // near-silent but non-zero
-      gain.connect(_keepAliveCtx.destination);
-
-      function loopSilence(){
-        _keepAliveNode = _keepAliveCtx.createBufferSource();
-        _keepAliveNode.buffer = silentBuffer;
-        _keepAliveNode.connect(gain);
-        _keepAliveNode.onended = () => {
-          if(_keepAliveCtx) loopSilence(); // keep looping
-        };
-        _keepAliveNode.start(0);
-      }
-      loopSilence();
-      console.log('[radio] Keep-alive audio loop started');
-    } catch(e){ console.warn('[radio] Keep-alive failed:', e); }
-  }
-
-  // Also request Wake Lock to prevent screen from sleeping on Android
-  async function requestWakeLock(){
-    if(!('wakeLock' in navigator)) return;
-    try{
-      await navigator.wakeLock.request('screen');
-      console.log('[radio] Wake lock active');
-    } catch(e){}
-  }
-
-  // Release and re-request wake lock when page becomes visible again
+// ── Visibility / focus events ──
+function setupWindowEvents(){
   document.addEventListener('visibilitychange', async () => {
-    if(document.visibilityState === 'visible' && listenerStartedAudio){
-      requestWakeLock();
-      // Resume keep-alive context if it got suspended
-      if(_keepAliveCtx && _keepAliveCtx.state === 'suspended'){
-        try{ await _keepAliveCtx.resume(); } catch(e){}
-      }
+    updateMediaSession();
+    if(document.visibilityState === 'visible'){
+      if(listenerStarted && !userPaused) shouldResume = true;
+      setTimeout(tryResume, 200);
+      setTimeout(tryResume, 1200);
+      setTimeout(tryResume, 2600);
+      await requestWakeLock();
+      if(_keepAliveCtx?.state === 'suspended') _keepAliveCtx.resume().catch(()=>{});
     }
   });
+  window.addEventListener('focus',    () => { if(shouldResume) tryResume(); });
+  window.addEventListener('pageshow', () => { if(shouldResume) tryResume(); });
+  window.addEventListener('online',   () => { if(shouldResume) tryResume(); });
+  window.addEventListener('resume',   () => { if(shouldResume) tryResume(); });
 
-  // Start everything on first user tap
-  document.addEventListener('click', async function onFirstTap(){
-    startKeepAlive();
-    await requestWakeLock();
-    document.removeEventListener('click', onFirstTap);
-  }, { once: true });
-
-  // Also start on first play
-  audio.addEventListener('play', async () => {
-    startKeepAlive();
-    await requestWakeLock();
-    // Resume keep-alive if suspended
-    if(_keepAliveCtx && _keepAliveCtx.state === 'suspended'){
-      try{ await _keepAliveCtx.resume(); } catch(e){}
-    }
-  }, { once: true });
+  // Track manual pause from our buttons
+  ['chPlay', 'mainStationPlay'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', () => {
+      setTimeout(() => {
+        listenerStarted = true;
+        const a = activePlayer();
+        if(a?.paused){ userPaused = true; shouldResume = false; lastManualPause = Date.now(); }
+        else { userPaused = false; shouldResume = true; }
+      }, 200);
+    }, { passive: true });
+  });
 }
 
-// Watch channelBarTitle for changes to update lock screen metadata
+// ── Watch now-playing text for lock screen updates ──
 function watchNowPlaying(){
-  const title  = document.getElementById('channelBarTitle');
-  const artist = document.getElementById('channelBarArtist');
   const obs = new MutationObserver(updateMediaSession);
-  if(title)  obs.observe(title,  { childList: true, subtree: true, characterData: true });
-  if(artist) obs.observe(artist, { childList: true, subtree: true, characterData: true });
+  ['channelBarTitle','channelBarArtist'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) obs.observe(el, { childList:true, subtree:true, characterData:true });
+  });
 }
 
+// ── Boot ──
 function boot(){
   if(booted) return;
   booted = true;
   setupMediaControls();
-  // Wait for channelAudio to exist (injected by radio.html inline script)
-  const tryBoot = () => {
-    if(document.getElementById('channelAudio')){
-      setupMobilePersistence();
-      watchNowPlaying();
-      updateMediaSession();
-    } else {
-      setTimeout(tryBoot, 300);
-    }
-  };
-  tryBoot();
+  setupWindowEvents();
+  watchNowPlaying();
+
+  // Attach to both players — retry until they exist
+  function tryAttach(){
+    const attached = allPlayers().filter(a => a._ubAttached).length;
+    allPlayers().forEach(attachToAudio);
+    if(attached < 2) setTimeout(tryAttach, 500);
+  }
+  tryAttach();
+  updateMediaSession();
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
