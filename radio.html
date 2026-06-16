@@ -22,7 +22,6 @@
   .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
   .live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
   .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
-  .stream-fallback{width:100%;margin-top:10px;display:none}
 
   /* ── Genre Channels ── */
   #genreChannelsSection{margin-top:20px}
@@ -89,20 +88,18 @@
       <div class="eyebrow">UNIBEATZPRODUCTION • LIVE365 BROADCAST</div>
       <h1 class="h1">UniBeatz <span>Radio</span> Station</h1>
       <p class="sub">A premium indie-first station with approved records, station drops, podcasts, DJ sets, and Live365-powered 24/7 playback.</p>
-      <div class="station">
-        <div class="cover">📻</div>
-        <div class="meta">
-          <h3 id="nowPlayingTitle">Live Now: UniBeatz Radio</h3>
-          <p id="nowPlayingMeta">Powered by Live365 · Empire Rotation · Independent artists · DJ sets · Built From Pressure.</p>
-          <span class="badge" id="nowPlayingBadge">LIVE365 STREAM CONNECTED</span>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+        <span style="font-size:1.8rem;">📻</span>
+        <div>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:1.2rem;letter-spacing:2px;color:#F0C040;">Live Now: UniBeatz Radio</div>
+          <div style="font-size:.85rem;color:#8d94a5;">Powered by Live365 · 24/7 Broadcast · Built From Pressure</div>
         </div>
+        <span class="badge" style="margin-left:auto;">LIVE</span>
       </div>
       <div class="player uni-player live365-box">
         <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
           src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
           allow="autoplay; encrypted-media" loading="lazy"></iframe>
-        <audio id="radioPlayer" class="stream-fallback" controls preload="none"
-          src="https://streaming.live365.com/a01878" playsinline webkit-playsinline></audio>
         <div class="live365-mini">
           <span id="trackCountLabel">24/7 Live365 rotation</span>
           <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
@@ -168,7 +165,10 @@
     <audio id="channelAudio" playsinline webkit-playsinline></audio>
   </section>
 
-  <!-- Hidden — kept for JS compat -->
+  <!-- Hidden stubs for JS compat -->
+  <span id="nowPlayingTitle" style="display:none"></span>
+  <span id="nowPlayingMeta" style="display:none"></span>
+  <span id="nowPlayingBadge" style="display:none"></span>
   <section class="approved-home-hidden">
     <h2 class="section-title">Approved Tracks</h2>
     <div id="genreFilters"></div>
