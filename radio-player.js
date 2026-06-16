@@ -99,7 +99,13 @@ function setupMobilePersistence(){
     }, 180);
   }, { passive: true });
 
-  audio.addEventListener('play', markKeepPlaying);
+  audio.addEventListener('play', () => {
+    markKeepPlaying();
+    // Android Chrome needs explicit playbackState to keep session alive through lock
+    if('mediaSession' in navigator){
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  });
 
   audio.addEventListener('pause', () => {
     const justManual = Date.now() - lastManualPauseAt < 900;
@@ -137,20 +143,75 @@ function setupMobilePersistence(){
   window.addEventListener('online',   tryResumeAudio);
   window.addEventListener('resume',   tryResumeAudio);
 
-  // iOS keep-alive — silent AudioContext keeps audio session open after screen lock
-  document.addEventListener('click', function onFirstTap(){
-    if(!/iPad|iPhone|iPod/.test(navigator.userAgent)) return;
+  // iOS + Android keep-alive
+  // A one-time silent buffer loop keeps the audio session alive through lock screen
+  // Must be triggered by a user gesture first
+  let _keepAliveCtx = null;
+  let _keepAliveNode = null;
+
+  function startKeepAlive(){
+    if(_keepAliveCtx) return;
     try{
-      const ctx  = new (window.AudioContext || window.webkitAudioContext)();
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      gain.gain.value = 0.001; // near-silent — iOS requires non-zero to keep session
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      console.log('[radio] iOS audio session locked in');
+      _keepAliveCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // Create a looping silent buffer — 1 second of silence, loops forever
+      // This is the key: a looping BufferSource keeps iOS audio session alive
+      // through screen lock, unlike a one-shot oscillator
+      const bufferSize = _keepAliveCtx.sampleRate;
+      const silentBuffer = _keepAliveCtx.createBuffer(1, bufferSize, _keepAliveCtx.sampleRate);
+      // Buffer is already zeroed (silence)
+      const gain = _keepAliveCtx.createGain();
+      gain.gain.value = 0.001; // near-silent but non-zero
+      gain.connect(_keepAliveCtx.destination);
+
+      function loopSilence(){
+        _keepAliveNode = _keepAliveCtx.createBufferSource();
+        _keepAliveNode.buffer = silentBuffer;
+        _keepAliveNode.connect(gain);
+        _keepAliveNode.onended = () => {
+          if(_keepAliveCtx) loopSilence(); // keep looping
+        };
+        _keepAliveNode.start(0);
+      }
+      loopSilence();
+      console.log('[radio] Keep-alive audio loop started');
+    } catch(e){ console.warn('[radio] Keep-alive failed:', e); }
+  }
+
+  // Also request Wake Lock to prevent screen from sleeping on Android
+  async function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    try{
+      await navigator.wakeLock.request('screen');
+      console.log('[radio] Wake lock active');
     } catch(e){}
+  }
+
+  // Release and re-request wake lock when page becomes visible again
+  document.addEventListener('visibilitychange', async () => {
+    if(document.visibilityState === 'visible' && listenerStartedAudio){
+      requestWakeLock();
+      // Resume keep-alive context if it got suspended
+      if(_keepAliveCtx && _keepAliveCtx.state === 'suspended'){
+        try{ await _keepAliveCtx.resume(); } catch(e){}
+      }
+    }
+  });
+
+  // Start everything on first user tap
+  document.addEventListener('click', async function onFirstTap(){
+    startKeepAlive();
+    await requestWakeLock();
     document.removeEventListener('click', onFirstTap);
+  }, { once: true });
+
+  // Also start on first play
+  audio.addEventListener('play', async () => {
+    startKeepAlive();
+    await requestWakeLock();
+    // Resume keep-alive if suspended
+    if(_keepAliveCtx && _keepAliveCtx.state === 'suspended'){
+      try{ await _keepAliveCtx.resume(); } catch(e){}
+    }
   }, { once: true });
 }
 
