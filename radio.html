@@ -202,7 +202,7 @@
         <input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px">
         I confirm this submission is fully authorized for review and possible radio placement.
       </label>
-      <input class="input" name="audioFile" type="file" accept="audio/*" required/>
+      <input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/>
       <p class="small" style="color:#8d94a5;margin-top:2px;">MP3 or WAV · Max 100MB</p>
       <button class="btn btn-gold" type="submit">Submit for Review</button>
     </form>
@@ -210,6 +210,7 @@
 </div>
 
 <script type="module" src="radio.js"></script>
+<script type="module" src="radio-player.js"></script>
 <script type="module" src="radio-premium-popup.js"></script>
 <script type="module" src="/unibeatz-notifications.js"></script>
 <script src="radio-pwa-register.js"></script>
