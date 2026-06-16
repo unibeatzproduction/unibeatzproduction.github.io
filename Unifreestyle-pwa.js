@@ -78,6 +78,75 @@ window.addEventListener('DOMContentLoaded', () => {
   if(Date.now() - dismissed < 86400000) return; // 24 hours
 });
 
+// ── Permanent Install Button ──
+// Injects an "Install App" button into the home page action row
+function injectInstallButton(){
+  if(window.matchMedia('(display-mode: standalone)').matches) return; // already installed
+  if(document.getElementById('ubPwaInstallBtn')) return;
+
+  // Try to inject into home action row
+  const actionRow = document.querySelector('.home-action-row');
+  if(!actionRow) return;
+
+  const btn = document.createElement('button');
+  btn.id = 'ubPwaInstallBtn';
+  btn.className = 'btn btn-blue';
+  btn.innerHTML = '📲 Install App';
+  btn.style.cssText = 'font-size:.48rem;';
+  btn.addEventListener('click', async () => {
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if(outcome === 'accepted') btn.remove();
+    } else {
+      // Fallback — show manual instructions
+      alert('To install:\n\nChrome Android: Tap ⋮ menu → Add to Home Screen\nChrome Desktop: Look for install icon in address bar\nSafari iOS: Tap Share → Add to Home Screen');
+    }
+  });
+  actionRow.appendChild(btn);
+}
+
+// Also add to settings page
+function injectInstallInSettings(){
+  if(window.matchMedia('(display-mode: standalone)').matches) return;
+  if(document.getElementById('ubPwaInstallSettings')) return;
+  const supportList = document.querySelector('#page-settings .settings-list:last-of-type');
+  if(!supportList) return;
+  const item = document.createElement('div');
+  item.id = 'ubPwaInstallSettings';
+  item.className = 'settings-item';
+  item.innerHTML = \`
+    <div class="settings-icon">📲</div>
+    <div class="settings-info"><div class="settings-label">Install App</div><div class="settings-sub">Add UniFreestyle to your home screen</div></div>
+    <div class="settings-arrow">›</div>
+  \`;
+  item.addEventListener('click', async () => {
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+    } else {
+      alert('To install:\n\nChrome Android: Tap ⋮ menu → Add to Home Screen\nChrome Desktop: Look for install icon in address bar\nSafari iOS: Tap Share → Add to Home Screen');
+    }
+  });
+  supportList.insertBefore(item, supportList.firstChild);
+}
+
+// Inject buttons when DOM is ready and when navigating to home/settings
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(injectInstallButton, 500);
+  setTimeout(injectInstallInSettings, 500);
+});
+
+// Watch for page navigation (goToPage calls)
+const _origGoToPagePwa = window.goToPage;
+window.goToPage = function(name){
+  if(typeof _origGoToPagePwa === 'function') _origGoToPagePwa(name);
+  if(name === 'home') setTimeout(injectInstallButton, 300);
+  if(name === 'settings') setTimeout(injectInstallInSettings, 300);
+};
+
 // Track install
 window.addEventListener('appinstalled', () => {
   console.log('[UniFreestyle PWA] installed to home screen');
