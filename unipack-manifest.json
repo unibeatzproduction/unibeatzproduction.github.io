@@ -1,0 +1,19 @@
+{
+  "name": "UniBeatz Pack Studio",
+  "short_name": "Pack Studio",
+  "description": "Turn Your Beat Into A Sample Pack · UniBeatz Production",
+  "start_url": "/unipack.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030305",
+  "theme_color": "#C9A84C",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["music", "productivity"],
+  "shortcuts": [
+    { "name": "Open Studio", "url": "/unipack.html" }
+  ]
+}
