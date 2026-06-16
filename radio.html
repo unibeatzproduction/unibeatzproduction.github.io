@@ -118,6 +118,28 @@
         </div>
       </div>
       <div class="compact-note">Main station powered by Live365. Switch to a genre channel below to hear approved tracks by style.</div>
+
+      <!-- Mobile background play banner -->
+      <div id="mobileAppBanner" style="display:none;margin-top:12px;border:1px solid rgba(240,192,64,.4);border-radius:12px;background:rgba(240,192,64,.06);padding:12px 14px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:1.5rem;flex-shrink:0;">📱</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:2px;color:#F0C040;line-height:1;">Background Play on Mobile</div>
+            <div style="font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#8d94a5;margin-top:3px;">Download the Live365 app · Search "UniBeatz Radio"</div>
+          </div>
+          <a href="https://play.google.com/store/apps/details?id=com.live365.android" target="_blank" rel="noopener"
+            style="border:0;border-radius:8px;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:1.5px;font-weight:900;padding:8px 12px;text-decoration:none;white-space:nowrap;flex-shrink:0;">
+            GET APP ↗
+          </a>
+        </div>
+      </div>
+
+      <script>
+        // Show banner on Android
+        if(/Android/i.test(navigator.userAgent)){
+          document.getElementById('mobileAppBanner').style.display = 'block';
+        }
+      </script>
     </article>
 
     <div class="compact-tools">
@@ -213,9 +235,9 @@
         <input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px">
         I confirm this submission is fully authorized for review and possible radio placement.
       </label>
-      <input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/>
+      <input class="input" name="audioFile" type="file" accept="audio/*" required/>
       <p class="small" style="color:#8d94a5;margin-top:2px;">MP3 or WAV · Max 100MB</p>
-      <button class="btn btn-gold" type="submit">Submit for Review</button>
+      <button class="btn btn-gold" type="button" id="radioSubmitBtn">Submit for Review</button>
     </form>
   </div>
 </div>
