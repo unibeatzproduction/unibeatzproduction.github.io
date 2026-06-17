@@ -19,11 +19,9 @@
   .compact-tools{display:grid;gap:14px}
   .compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
   .live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:hidden}
-  .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
+  .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22;transition:opacity .3s;}
   .live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
   .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
-
-  /* ── Genre Channels ── */
   #genreChannelsSection{margin-top:20px}
   .channels-header{margin-bottom:14px}
   .channels-title{font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;line-height:1}
@@ -34,8 +32,6 @@
   .genre-pill.active{background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;border-color:#F0C040;font-weight:900}
   .genre-pill.main-pill{border-color:rgba(64,208,255,.5);color:#40D0FF}
   .genre-pill.main-pill.active{background:linear-gradient(135deg,#003a5f,#0077cc,#00AAFF);color:#fff;border-color:#00AAFF}
-
-  /* ── Mini now-playing bar (shows when genre channel is active) ── */
   #channelBar{display:none;margin-top:14px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(0,0,0,.4);padding:12px 14px;align-items:center;gap:12px}
   #channelBar.visible{display:flex}
   #channelBarDot{width:8px;height:8px;border-radius:50%;background:#F0C040;animation:chPulse 1.2s infinite;flex-shrink:0}
@@ -46,18 +42,10 @@
   .ch-ctrl{border:0;background:transparent;color:#F0C040;font-size:1.1rem;cursor:pointer;padding:4px 6px;flex-shrink:0}
   .ch-ctrl.liked{color:#F0C040}
   .ch-ctrl.disliked{color:#ff7474}
-
-  /* hidden compat */
   #genreFilters,#approvedList{display:none!important}
   .approved-home-hidden{display:none!important}
-
-  @media(max-width:930px){
-    .compact-home{grid-template-columns:1fr}
-    .live365-frame{height:260px}
-  }
-  @media(max-width:560px){
-    .genre-pill{font-size:.42rem;padding:8px 12px}
-  }
+  @media(max-width:930px){.compact-home{grid-template-columns:1fr}.live365-frame{height:260px}}
+  @media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}}
 </style>
 </head>
 <body>
@@ -80,8 +68,6 @@
 </nav>
 
 <main class="wrap">
-
-  <!-- Main Station + Tools -->
   <section class="compact-home">
     <article class="panel">
       <div class="eyebrow">UNIBEATZPRODUCTION • LIVE365 BROADCAST</div>
@@ -96,12 +82,9 @@
         <span class="badge" style="margin-left:auto;">LIVE</span>
       </div>
       <div class="player uni-player live365-box">
-        <!-- Desktop: Live365 iframe -->
         <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
           src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
           allow="autoplay; encrypted-media" loading="lazy"></iframe>
-
-        <!-- Mobile: direct stream for background play support -->
         <div id="live365Mobile" style="display:none;text-align:center;padding:16px 0;">
           <audio id="mainStationAudio" preload="auto" playsinline webkit-playsinline
             style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;"
@@ -110,7 +93,6 @@
           <div style="font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;margin-bottom:14px;">LIVE365 · 24/7 BROADCAST</div>
           <button id="mainStationPlay" class="btn btn-gold" style="min-width:160px;font-size:.6rem;">▶ Play Station</button>
         </div>
-
         <div class="live365-mini">
           <span id="trackCountLabel">24/7 Live365 rotation</span>
           <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
@@ -118,8 +100,6 @@
         </div>
       </div>
       <div class="compact-note">Main station powered by Live365. Switch to a genre channel below to hear approved tracks by style.</div>
-
-      <!-- Mobile background play banner -->
       <div id="mobileAppBanner" style="display:none;margin-top:12px;border:1px solid rgba(240,192,64,.4);border-radius:12px;background:rgba(240,192,64,.06);padding:12px 14px;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span style="font-size:1.5rem;flex-shrink:0;">📱</span>
@@ -133,13 +113,7 @@
           </a>
         </div>
       </div>
-
-      <script>
-        // Show banner on Android
-        if(/Android/i.test(navigator.userAgent)){
-          document.getElementById('mobileAppBanner').style.display = 'block';
-        }
-      </script>
+      <script>if(/Android/i.test(navigator.userAgent)) document.getElementById('mobileAppBanner').style.display='block';</script>
     </article>
 
     <div class="compact-tools">
@@ -159,13 +133,11 @@
     </div>
   </section>
 
-  <!-- Genre Channels -->
   <section id="genreChannelsSection" class="panel">
     <div class="channels-header">
       <div class="channels-title">🎵 Genre Channels</div>
       <div class="channels-sub">Tap a channel to switch · Plays approved tracks in that genre</div>
     </div>
-
     <div class="genre-pill-row" id="genrePillRow">
       <button class="genre-pill main-pill active" data-genre="live365">📻 Main Station</button>
       <button class="genre-pill" data-genre="Hip-Hop">🔥 Hip-Hop</button>
@@ -181,8 +153,6 @@
       <button class="genre-pill" data-genre="Podcast">🎙️ Podcast</button>
       <button class="genre-pill" data-genre="Instrumentals">🎹 Instrumentals</button>
     </div>
-
-    <!-- Mini now-playing bar — only visible when a genre channel is active -->
     <div id="channelBar">
       <div id="channelBarDot"></div>
       <div id="channelBarInfo">
@@ -192,13 +162,12 @@
       <button class="ch-ctrl" id="chPrev" title="Previous">⏮</button>
       <button class="ch-ctrl" id="chPlay" title="Play/Pause">▶</button>
       <button class="ch-ctrl" id="chNext" title="Next">⏭</button>
-      <button class="ch-ctrl" id="chLike"    title="Like">👍 <span id="chLikeCount">0</span></button>
+      <button class="ch-ctrl" id="chLike" title="Like">👍 <span id="chLikeCount">0</span></button>
       <button class="ch-ctrl" id="chDislike" title="Dislike">👎 <span id="chDislikeCount">0</span></button>
     </div>
     <audio id="channelAudio" preload="auto" playsinline webkit-playsinline style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;"></audio>
   </section>
 
-  <!-- Hidden stubs for JS compat -->
   <span id="nowPlayingTitle" style="display:none"></span>
   <span id="nowPlayingMeta" style="display:none"></span>
   <span id="nowPlayingBadge" style="display:none"></span>
@@ -207,7 +176,6 @@
     <div id="genreFilters"></div>
     <div id="approvedList"></div>
   </section>
-
 </main>
 
 <!-- Submit Modal -->
@@ -263,18 +231,43 @@ const app = getApps().length ? getApp() : initializeApp({
 });
 const db = getFirestore(app);
 
-let allTracks    = [];
-let queue        = [];
-let queueIndex   = 0;
+let allTracks  = [];
+let queue      = [];
+let queueIndex = 0;
 let currentGenre = 'live365';
+let currentTrackId = '';
+let myReaction = '';
 
-const audio   = document.getElementById('channelAudio');
-const bar     = document.getElementById('channelBar');
+const audio     = document.getElementById('channelAudio');
+const bar       = document.getElementById('channelBar');
 const barTitle  = document.getElementById('channelBarTitle');
 const barArtist = document.getElementById('channelBarArtist');
-const chPlay  = document.getElementById('chPlay');
+const chPlay    = document.getElementById('chPlay');
+const mainAudio = document.getElementById('mainStationAudio');
+const live365Frame = document.getElementById('live365Frame');
+const mainPlayBtn  = document.getElementById('mainStationPlay');
+const isMobile  = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-// Load all approved tracks once silently
+// ── Mobile: swap iframe for direct stream ──
+if(isMobile){
+  if(live365Frame) live365Frame.style.display = 'none';
+  document.getElementById('live365Mobile').style.display = 'block';
+}
+
+// ── Stop main station helper ──
+function stopMainStation(){
+  if(mainAudio){ mainAudio.pause(); }
+  if(mainPlayBtn) mainPlayBtn.textContent = '▶ Play Station';
+  if(live365Frame) live365Frame.style.opacity = '0.4';
+  if('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+}
+
+// ── Restore main station helper ──
+function restoreMainStation(){
+  if(live365Frame) live365Frame.style.opacity = '1';
+}
+
+// ── Load approved tracks ──
 async function loadTracks(){
   try{
     const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
@@ -282,18 +275,22 @@ async function loadTracks(){
   } catch(e){ console.warn('[channels]', e); }
 }
 
+// ── Switch genre — stops whichever source is playing ──
 function switchGenre(genre){
   currentGenre = genre;
 
   if(genre === 'live365'){
-    // Back to main — stop channel audio, hide bar
+    // Stop genre channel, restore main station UI
     audio.pause();
     audio.src = '';
     bar.classList.remove('visible');
+    restoreMainStation();
     return;
   }
 
-  // Filter tracks for this genre
+  // Stop main station before starting genre channel
+  stopMainStation();
+
   queue = allTracks
     .filter(t => t.genre === genre && t.audioUrl)
     .sort((a,b) => Number(b.featured||0) - Number(a.featured||0));
@@ -323,7 +320,6 @@ function playIndex(index){
   audio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
   barTitle.textContent  = track.trackTitle  || 'Untitled';
   barArtist.textContent = (track.artistName || 'Unknown') + ' · ' + currentGenre;
-  // Update currentTrackId and load reactions
   currentTrackId = track.id || '';
   document.getElementById('chLikeCount').textContent    = '0';
   document.getElementById('chDislikeCount').textContent = '0';
@@ -332,7 +328,7 @@ function playIndex(index){
   if(currentTrackId) setTimeout(() => loadReactions(currentTrackId), 400);
 }
 
-// Controls
+// ── Controls ──
 audio.addEventListener('ended', () => playIndex(queueIndex + 1));
 audio.addEventListener('play',  () => { chPlay.textContent = '⏸'; });
 audio.addEventListener('pause', () => { chPlay.textContent = '▶'; });
@@ -347,7 +343,7 @@ chPlay.addEventListener('click', () => {
 document.getElementById('chPrev').addEventListener('click', () => playIndex(queueIndex - 1));
 document.getElementById('chNext').addEventListener('click', () => playIndex(queueIndex + 1));
 
-// Pill clicks
+// ── Pill clicks ──
 document.querySelectorAll('.genre-pill').forEach(pill => {
   pill.addEventListener('click', () => {
     document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
@@ -356,34 +352,20 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
   });
 });
 
-// ── Mobile detection: swap iframe for direct audio stream ──
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-if(isMobile){
-  document.getElementById('live365Frame').style.display = 'none';
-  document.getElementById('live365Mobile').style.display = 'block';
-}
-
-// Main station play button (mobile only)
-const mainAudio   = document.getElementById('mainStationAudio');
-const mainPlayBtn = document.getElementById('mainStationPlay');
-
+// ── Main station play button (mobile) ──
 mainPlayBtn?.addEventListener('click', async () => {
   if(!mainAudio) return;
+  // Stop genre channel if playing
+  if(!audio.paused){ audio.pause(); audio.src = ''; bar.classList.remove('visible'); document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active')); document.querySelector('.genre-pill.main-pill')?.classList.add('active'); }
   if(mainAudio.paused){
     try{
       await mainAudio.play();
       mainPlayBtn.textContent = '⏸ Pause Station';
       if('mediaSession' in navigator){
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: 'UniBeatz Radio',
-          artist: 'UniBeatzProduction',
-          album: 'Live365 · 24/7 Broadcast',
-          artwork: [{ src: '/unibeatz-radio-cover-v2.svg', sizes: '512x512', type: 'image/svg+xml' }]
-        });
+        navigator.mediaSession.metadata = new MediaMetadata({ title:'UniBeatz Radio', artist:'UniBeatzProduction', album:'Live365 · 24/7 Broadcast', artwork:[{ src:'/unibeatz-radio-cover-v2.svg', sizes:'512x512', type:'image/svg+xml' }] });
         navigator.mediaSession.playbackState = 'playing';
-        // Lock screen controls for main station
-        navigator.mediaSession.setActionHandler('play',  () => { mainAudio.play().catch(()=>{}); mainPlayBtn.textContent = '⏸ Pause Station'; navigator.mediaSession.playbackState = 'playing'; });
-        navigator.mediaSession.setActionHandler('pause', () => { mainAudio.pause(); mainPlayBtn.textContent = '▶ Play Station'; navigator.mediaSession.playbackState = 'paused'; });
+        navigator.mediaSession.setActionHandler('play',  () => { mainAudio.play().catch(()=>{}); mainPlayBtn.textContent='⏸ Pause Station'; navigator.mediaSession.playbackState='playing'; });
+        navigator.mediaSession.setActionHandler('pause', () => { mainAudio.pause(); mainPlayBtn.textContent='▶ Play Station'; navigator.mediaSession.playbackState='paused'; });
         navigator.mediaSession.setActionHandler('nexttrack', null);
         navigator.mediaSession.setActionHandler('previoustrack', null);
       }
@@ -395,34 +377,26 @@ mainPlayBtn?.addEventListener('click', async () => {
   }
 });
 
-mainAudio?.addEventListener('play',  () => { mainPlayBtn && (mainPlayBtn.textContent = '⏸ Pause Station'); });
-mainAudio?.addEventListener('pause', () => { mainPlayBtn && (mainPlayBtn.textContent = '▶ Play Station'); });
-mainAudio?.addEventListener('error', () => { mainPlayBtn && (mainPlayBtn.textContent = '⚠ Stream Error'); });
+mainAudio?.addEventListener('play',  () => { if(mainPlayBtn) mainPlayBtn.textContent = '⏸ Pause Station'; });
+mainAudio?.addEventListener('pause', () => { if(mainPlayBtn) mainPlayBtn.textContent = '▶ Play Station'; });
+mainAudio?.addEventListener('error', () => { if(mainPlayBtn) mainPlayBtn.textContent = '⚠ Stream Error'; });
 
 loadTracks();
 
-// ── Like / Dislike ──
-let currentTrackId = '';
-let myReaction = '';
-
+// ── Reactions ──
 async function loadReactions(trackId){
   if(!trackId) return;
   try{
-    const { collection: col, query: q, where: wh, getDocs: gd, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { collection:col, query:q, where:wh, getDocs:gd } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
     const listenerId = localStorage.getItem('ub_radio_listener_id') || 'guest';
     const snap = await gd(q(col(db,'radio_reactions'), wh('trackId','==',trackId)));
     let likes=0, dislikes=0, mine='';
-    snap.forEach(d => {
-      const data = d.data();
-      if(data.reaction==='like') likes++;
-      if(data.reaction==='dislike') dislikes++;
-      if(data.listenerId===listenerId) mine = data.reaction||'';
-    });
+    snap.forEach(d => { const x=d.data(); if(x.reaction==='like') likes++; if(x.reaction==='dislike') dislikes++; if(x.listenerId===listenerId) mine=x.reaction||''; });
     document.getElementById('chLikeCount').textContent    = likes;
     document.getElementById('chDislikeCount').textContent = dislikes;
     myReaction = mine;
-    document.getElementById('chLike').className    = 'ch-ctrl' + (mine==='like'?' liked':'');
-    document.getElementById('chDislike').className = 'ch-ctrl' + (mine==='dislike'?' disliked':'');
+    document.getElementById('chLike').className    = 'ch-ctrl'+(mine==='like'?' liked':'');
+    document.getElementById('chDislike').className = 'ch-ctrl'+(mine==='dislike'?' disliked':'');
   } catch(e){ console.warn('[reactions]', e); }
 }
 
@@ -436,11 +410,7 @@ async function saveReaction(reaction){
     let listenerId = localStorage.getItem('ub_radio_listener_id');
     if(!listenerId){ listenerId='listener_'+Date.now()+'_'+Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id',listenerId); }
     const reactionId = (currentTrackId+'_'+listenerId).replace(/[^a-zA-Z0-9_-]/g,'_');
-    await setDoc(doc(db,'radio_reactions',reactionId),{
-      trackId:currentTrackId, listenerId, reaction,
-      uid: auth.currentUser?.uid||null,
-      updatedAt: serverTimestamp(), createdAt: serverTimestamp()
-    },{merge:true});
+    await setDoc(doc(db,'radio_reactions',reactionId),{ trackId:currentTrackId, listenerId, reaction, uid:auth.currentUser?.uid||null, updatedAt:serverTimestamp(), createdAt:serverTimestamp() },{merge:true});
     myReaction = reaction;
     await loadReactions(currentTrackId);
   } catch(e){ console.warn('[reaction save]', e); }
@@ -448,22 +418,6 @@ async function saveReaction(reaction){
 
 document.getElementById('chLike').addEventListener('click',    () => saveReaction('like'));
 document.getElementById('chDislike').addEventListener('click', () => saveReaction('dislike'));
-
-// Hook into playIndex to reset reactions on track change
-const _origPlayIndex = playIndex;
-window._chPlayIndex = function(index){
-  _origPlayIndex(index);
-  // Reset counts while loading
-  document.getElementById('chLikeCount').textContent    = '0';
-  document.getElementById('chDislikeCount').textContent = '0';
-  document.getElementById('chLike').className    = 'ch-ctrl';
-  document.getElementById('chDislike').className = 'ch-ctrl';
-  // Load after short delay to let track set
-  setTimeout(() => {
-    const track = queue[queueIndex];
-    if(track?.id){ currentTrackId = track.id; loadReactions(track.id); }
-  }, 300);
-};
 </script>
 
 </body>
