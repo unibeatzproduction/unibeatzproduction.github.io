@@ -2390,7 +2390,19 @@ setTimeout(() => {
 <script src="unifreestyle-recorder.js"></script> 
 <script src="unifreestyle-superchat.js"></script>
 <script src="unifreestyle-pwa.js"></script>
-  
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/unifreestyle-sw.js', { scope: '/' })
+      .then(function (reg) {
+        console.log('[UniFreestyle PWA] Service worker registered:', reg.scope);
+      })
+      .catch(function (err) {
+        console.warn('[UniFreestyle PWA] Service worker failed:', err);
+      });
+  });
+}
+</script>  
 </body>
 </html>
 </body>
