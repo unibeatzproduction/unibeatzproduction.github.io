@@ -1,6 +1,5 @@
 // unifreestyle-sw.js — UniFreestyle Battle App Service Worker
 const CACHE_NAME = 'unifreestyle-v2';
-
 const STATIC_ASSETS = [
   '/unifreestyle.html',
   '/unifreestyle.css',
@@ -11,80 +10,53 @@ const STATIC_ASSETS = [
   '/unifreestyle-ui.js',
   '/unifreestyle-superchat.js',
   '/unifreestyle-manifest.json',
-  '/icons/unifreestyle-192.png',
-  '/icons/unifreestyle-512.png',
-  '/unibeatz-auth.js'
+  '/logo.png',
+  '/unibeatz-auth.js',
 ];
 
-// Install — cache static assets
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => Promise.allSettled(
-        STATIC_ASSETS.map(url => cache.add(url).catch(() => null))
-      ))
-      .then(() => self.skipWaiting())
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(STATIC_ASSETS.map(url => cache.add(url).catch(() => {})))
+    ).then(() => self.skipWaiting())
   );
 });
 
-// Activate — delete old caches
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch — network-only for live services, cache fallback for static files
-self.addEventListener('fetch', event => {
-  const url = new URL(event.request.url);
-
-  const networkOnlyDomains = [
-    'livekit.cloud',
-    'firebaseapp.com',
-    'firestore.googleapis.com',
-    'cloudfunctions.net',
-    'firebasestorage.app',
-    'googleapis.com',
-    'gstatic.com',
-    'stripe.com',
-    'fonts.googleapis.com',
-    'fonts.gstatic.com'
+self.addEventListener('fetch', e => {
+  const url = new URL(e.request.url);
+  const networkOnly = [
+    'livekit.cloud', 'firebaseapp.com', 'firestore.googleapis.com',
+    'cloudfunctions.net', 'firebasestorage.app', 'googleapis.com',
+    'jsdelivr.net', 'gstatic.com', 'stripe.com', 'fonts.googleapis.com'
   ];
-
-  if (networkOnlyDomains.some(domain => url.hostname.includes(domain))) {
-    return;
-  }
-
-  if (event.request.method === 'GET') {
-    event.respondWith(
-      caches.match(event.request).then(cached => {
-        return cached || fetch(event.request).then(response => {
-          if (response && response.status === 200 && response.type !== 'opaque') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+  if(networkOnly.some(d => url.hostname.includes(d))) return;
+  if(e.request.method === 'GET'){
+    e.respondWith(
+      caches.match(e.request).then(cached => {
+        const fetchPromise = fetch(e.request).then(res => {
+          if(res && res.status === 200 && res.type !== 'opaque'){
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
           }
-          return response;
+          return res;
         }).catch(() => cached);
+        return cached || fetchPromise;
       })
     );
   }
 });
 
-// Push notifications
-self.addEventListener('push', event => {
-  let data = {};
-
-  try {
-    data = event.data ? event.data.json() : {};
-  } catch (e) {
-    data = {};
-  }
-
-  event.waitUntil(
+self.addEventListener('push', e => {
+  const data = e.data?.json() || {};
+  e.waitUntil(
     self.registration.showNotification(data.title || 'UniFreestyle Battle', {
       body: data.body || 'New activity in your battle!',
       icon: '/icons/unifreestyle-192.png',
@@ -96,11 +68,7 @@ self.addEventListener('push', event => {
   );
 });
 
-// Notification click
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-
-  event.waitUntil(
-    clients.openWindow(event.notification.data?.url || '/unifreestyle.html')
-  );
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.openWindow(e.notification.data?.url || '/unifreestyle.html'));
 });
