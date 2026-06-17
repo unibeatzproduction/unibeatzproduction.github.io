@@ -10,7 +10,8 @@ const STATIC_ASSETS = [
   '/unifreestyle-ui.js',
   '/unifreestyle-superchat.js',
   '/unifreestyle-manifest.json',
-  '/logo.png',
+  '/icons/unifreestyle-192.png',
+  '/icons/unifreestyle-512.png',
   '/unibeatz-auth.js',
 ];
 
