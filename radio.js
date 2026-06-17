@@ -61,6 +61,16 @@ function setNotice(msg, color){
   const notice = document.getElementById('formNotice');
   if(notice){ notice.textContent = msg; notice.style.color = color || '#40D0FF'; }
 }
+function showSubmitModal(){
+  if(modal) modal.classList.add('open');
+}
+function hideSubmitModal(){
+  if(modal) modal.classList.remove('open');
+}
+function failSubmit(msg){
+  _submitting = false;
+  setNotice(msg, '#ff3c3c');
+}
 
 // ── Account button ──
 document.getElementById('radioAccountBtn')?.addEventListener('click', () => {
@@ -78,12 +88,26 @@ const form  = document.getElementById('artistForm');
 
 // Track selected file directly from input — more reliable on mobile than FormData
 let _selectedFile = null;
+let _filePickerActive = false;
+let _submitting = false;
 
 // Wire up file input directly
 function wireFileInput(){
   const fileInput = document.getElementById('audioFileInput') || form?.querySelector('input[type="file"]');
-  if(!fileInput) return;
+  if(!fileInput || fileInput.dataset.ubRadioWired === 'yes') return;
+  fileInput.dataset.ubRadioWired = 'yes';
+
+  fileInput.addEventListener('click', () => {
+    _filePickerActive = true;
+    sessionStorage.setItem('ub_radio_submit_open', 'yes');
+    showSubmitModal();
+  });
+
   fileInput.addEventListener('change', e => {
+    _filePickerActive = false;
+    sessionStorage.setItem('ub_radio_submit_open', 'yes');
+    showSubmitModal();
+
     const files = e.target.files;
     if(files && files.length > 0){
       _selectedFile = files[0];
@@ -92,38 +116,61 @@ function wireFileInput(){
       setNotice('📎 ' + name + ' (' + sizeMB + 'MB) — ready to submit', '#5dff9e');
     } else {
       _selectedFile = null;
+      setNotice('No file selected yet.', '#ffcc66');
     }
   });
 }
 
+// Mobile file pickers can blur/focus the page and accidentally leave the modal closed.
+// Restore it after the picker closes if the user was in submission mode.
+window.addEventListener('focus', () => {
+  if(_filePickerActive || sessionStorage.getItem('ub_radio_submit_open') === 'yes'){
+    setTimeout(() => { showSubmitModal(); wireFileInput(); }, 120);
+  }
+});
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && (_filePickerActive || sessionStorage.getItem('ub_radio_submit_open') === 'yes')){
+    setTimeout(() => { showSubmitModal(); wireFileInput(); }, 120);
+  }
+});
+
 document.getElementById('openSubmit')?.addEventListener('click', () => {
-  modal?.classList.add('open');
+  sessionStorage.setItem('ub_radio_submit_open', 'yes');
+  showSubmitModal();
   setTimeout(wireFileInput, 100);
 });
 document.getElementById('closeSubmit')?.addEventListener('click', () => {
-  modal?.classList.remove('open');
+  hideSubmitModal();
   _selectedFile = null;
+  _filePickerActive = false;
+  sessionStorage.removeItem('ub_radio_submit_open');
 });
+
+// Do NOT close the modal from backdrop taps on mobile. The file picker can trigger a backdrop click.
 modal?.addEventListener('click', e => {
-  if(e.target === modal){ modal.classList.remove('open'); _selectedFile = null; }
+  if(e.target === modal){
+    e.preventDefault();
+    e.stopPropagation();
+    showSubmitModal();
+  }
 });
 
 // Wire on DOMContentLoaded too in case modal is already open
 document.addEventListener('DOMContentLoaded', wireFileInput);
 
 // Wire submit button — guarded to prevent double submission
-let _submitting = false;
 document.getElementById('radioSubmitBtn')?.addEventListener('click', () => {
   if(_submitting) return;
   form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 });
 
 form?.addEventListener('submit', async e => {
+  e.preventDefault();
   if(_submitting) return;
   _submitting = true;
-  setTimeout(() => { _submitting = false; }, 8000); // reset after 8s
-  e.preventDefault();
+  setTimeout(() => { _submitting = false; }, 30000); // safety reset
   setNotice('Preparing upload...', '#40D0FF');
+  showSubmitModal();
 
   // Get form values directly from DOM — more reliable on mobile than FormData
   const artistName        = document.getElementById('artistName')?.value?.trim()        || form.querySelector('[name="artistName"]')?.value?.trim()        || '';
@@ -152,11 +199,11 @@ form?.addEventListener('submit', async e => {
   }
 
   // Validate
-  if(!artistName){ setNotice('Artist name is required.', '#ff3c3c'); return; }
-  if(!trackTitle){ setNotice('Track title is required.', '#ff3c3c'); return; }
-  if(!file){ setNotice('Please select an audio file (MP3 or WAV).', '#ff3c3c'); return; }
-  if(file.size === 0){ setNotice('File appears empty. Try selecting it again.', '#ff3c3c'); return; }
-  if(file.size > 100 * 1024 * 1024){ setNotice('Max file size is 100MB.', '#ff3c3c'); return; }
+  if(!artistName){ failSubmit('Artist name is required.'); return; }
+  if(!trackTitle){ failSubmit('Track title is required.'); return; }
+  if(!file){ failSubmit('Please select an audio file (MP3 or WAV).'); return; }
+  if(file.size === 0){ failSubmit('File appears empty. Try selecting it again.'); return; }
+  if(file.size > 100 * 1024 * 1024){ failSubmit('Max file size is 100MB.'); return; }
 
   const ext         = (file.name || '').split('.').pop().toLowerCase();
   const contentType = ext === 'wav' ? 'audio/wav'
@@ -168,6 +215,14 @@ form?.addEventListener('submit', async e => {
   setNotice('Uploading ' + sizeMB + 'MB — please wait...', '#40D0FF');
 
   try{
+    // Read file BEFORE auth/network calls — fixes mobile browsers invalidating File after picker close.
+    const arrayBuffer = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = ev => resolve(ev.target.result);
+      reader.onerror = () => reject(new Error('Could not read file. Try again.'));
+      reader.readAsArrayBuffer(file);
+    });
+
     // Sign in anonymously if needed
     if(!auth.currentUser){
       setNotice('Authenticating...', '#40D0FF');
@@ -178,15 +233,6 @@ form?.addEventListener('submit', async e => {
     const fileRef  = ref(storage, 'radio-submissions/' + safeName);
 
     setNotice('Uploading audio (' + sizeMB + 'MB)...', '#40D0FF');
-
-    // Read file as ArrayBuffer first — fixes mobile Safari/Android Chrome issues
-    // where the File object becomes invalid after async operations
-    const arrayBuffer = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload  = e => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Could not read file. Try again.'));
-      reader.readAsArrayBuffer(file);
-    });
 
     const uint8 = new Uint8Array(arrayBuffer);
     await uploadBytes(fileRef, uint8, { contentType });
@@ -214,22 +260,25 @@ form?.addEventListener('submit', async e => {
     // Success
     form.reset();
     _selectedFile = null;
+    _filePickerActive = false;
     _submitting = false;
-    modal?.classList.remove('open');
+    sessionStorage.removeItem('ub_radio_submit_open');
     setNotice('✅ Submitted! Pending admin review.', '#00cc66');
+    setTimeout(() => hideSubmitModal(), 900);
 
   } catch(err){
     console.error('[radio submit]', err);
     // Show specific errors so user knows what happened
     let msg = 'Submission failed.';
-    if(err.code === 'storage/unauthorized')   msg = 'Upload blocked — storage permissions error. Contact admin.';
+    if(err.code === 'storage/unauthorized')        msg = 'Upload blocked — storage permissions error. Contact admin.';
     else if(err.code === 'storage/quota-exceeded') msg = 'Storage full. Contact admin.';
     else if(err.code === 'storage/retry-limit-exceeded') msg = 'Upload timed out. Check your connection and try again.';
-    else if(err.message?.includes('network'))  msg = 'Network error. Check your connection and try again.';
-    else if(err.message?.includes('read'))     msg = 'Could not read file. Try selecting it again.';
+    else if(err.message?.includes('network'))      msg = 'Network error. Check your connection and try again.';
+    else if(err.message?.includes('read'))         msg = 'Could not read file. Try selecting it again.';
     else msg = 'Error: ' + (err.message || 'Unknown error');
     _submitting = false;
     setNotice(msg, '#ff3c3c');
+    showSubmitModal();
   }
 });
 
