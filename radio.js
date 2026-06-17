@@ -118,6 +118,12 @@ let _submitting = false;
 
 // Open / close
 document.getElementById('openSubmit')?.addEventListener('click', () => {
+  // Always reset state when opening modal fresh
+  if(!_submitting){
+    setProgress(0);
+    setNotice('');
+    setSubmitLocked(false, 'Submit for Review');
+  }
   showSubmitModal();
   ensureProgressBar();
 });
@@ -163,6 +169,12 @@ if(fileInput){
 document.getElementById('radioSubmitBtn')?.addEventListener('click', function(){
   if(_submitting) return;
   doSubmit();
+});
+
+// Also set onclick directly as a fallback for mobile browsers that lose event listeners
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('radioSubmitBtn');
+  if(btn) btn.onclick = function(){ if(!_submitting) doSubmit(); };
 });
 
 async function doSubmit(){
@@ -275,6 +287,13 @@ function reset(){
   _submitting = false;
   setSubmitLocked(false, 'Submit for Review');
   setProgress(0);
+  // Re-wire button in case DOM lost the listener
+  var btn = document.getElementById('radioSubmitBtn');
+  if(btn){
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.onclick = function(){ if(!_submitting) doSubmit(); };
+  }
 }
 
 // ── Reactions ──
