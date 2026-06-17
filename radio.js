@@ -57,10 +57,12 @@ function getListenerId(){
   if(!id){ id = 'listener_' + Date.now() + '_' + Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id', id); }
   return id;
 }
+
 function setNotice(msg, color){
   const notice = document.getElementById('formNotice');
   if(notice){ notice.textContent = msg; notice.style.color = color || '#40D0FF'; }
 }
+
 function showSubmitModal(){
   const modal = document.getElementById('submitModal');
   if(modal) modal.classList.add('open');
@@ -68,6 +70,35 @@ function showSubmitModal(){
 function hideSubmitModal(){
   const modal = document.getElementById('submitModal');
   if(modal) modal.classList.remove('open');
+}
+
+// ── Progress bar (inject once) ──
+function ensureProgressBar(){
+  if(document.getElementById('ubRadioProgress')) return;
+  const bar = document.createElement('div');
+  bar.id = 'ubRadioProgress';
+  bar.style.cssText = 'display:none;margin:10px 0 4px;border-radius:999px;height:8px;background:rgba(255,255,255,.1);overflow:hidden;';
+  bar.innerHTML = '<div id="ubRadioProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s;"></div>';
+  const notice = document.getElementById('formNotice');
+  if(notice) notice.insertAdjacentElement('beforebegin', bar);
+}
+
+function setProgress(pct){
+  const bar = document.getElementById('ubRadioProgress');
+  const fill = document.getElementById('ubRadioProgressFill');
+  if(!bar || !fill) return;
+  if(pct <= 0){ bar.style.display = 'none'; fill.style.width = '0%'; return; }
+  bar.style.display = 'block';
+  fill.style.width = Math.min(100, pct) + '%';
+}
+
+// ── Lock submit button during upload ──
+function setSubmitLocked(locked, label){
+  const btn = document.getElementById('radioSubmitBtn');
+  if(!btn) return;
+  btn.disabled = locked;
+  btn.textContent = label || 'Submit for Review';
+  btn.style.opacity = locked ? '0.6' : '1';
 }
 
 // ── Account button ──
@@ -86,21 +117,29 @@ let _selectedFile = null;
 let _submitting = false;
 
 // Open / close
-document.getElementById('openSubmit')?.addEventListener('click', () => showSubmitModal());
+document.getElementById('openSubmit')?.addEventListener('click', () => {
+  showSubmitModal();
+  ensureProgressBar();
+});
 document.getElementById('closeSubmit')?.addEventListener('click', () => {
+  if(_submitting) return; // don't let them close during upload
   hideSubmitModal();
   _selectedFile = null;
   _submitting = false;
   setNotice('');
+  setProgress(0);
+  setSubmitLocked(false);
 });
 
-// Track file selection — read ArrayBuffer immediately on mobile before anything else
+// ── File input — read ArrayBuffer immediately on selection ──
 const fileInput = form?.querySelector('input[type="file"]');
 if(fileInput){
   fileInput.addEventListener('change', function(){
     const file = this.files && this.files[0];
-    if(!file){ _selectedFile = null; return; }
-    // Read into ArrayBuffer immediately — mobile browsers invalidate File object after picker closes
+    if(!file){ _selectedFile = null; setNotice('No file selected.', '#ffcc66'); return; }
+
+    setNotice('Reading file...', '#40D0FF');
+
     const reader = new FileReader();
     reader.onload = function(ev){
       _selectedFile = {
@@ -110,17 +149,17 @@ if(fileInput){
         type: file.type
       };
       const sizeMB = (file.size / (1024*1024)).toFixed(1);
-      setNotice('📎 ' + file.name + ' (' + sizeMB + 'MB) ready', '#5dff9e');
+      setNotice('✅ ' + file.name + ' (' + sizeMB + 'MB) — tap Submit to upload', '#5dff9e');
     };
     reader.onerror = function(){
       _selectedFile = null;
-      setNotice('Could not read file. Try again.', '#ff3c3c');
+      setNotice('❌ Could not read file. Please try again.', '#ff3c3c');
     };
     reader.readAsArrayBuffer(file);
   });
 }
 
-// Submit button — type="button" with guard
+// ── Submit button ──
 document.getElementById('radioSubmitBtn')?.addEventListener('click', function(){
   if(_submitting) return;
   doSubmit();
@@ -129,9 +168,12 @@ document.getElementById('radioSubmitBtn')?.addEventListener('click', function(){
 async function doSubmit(){
   if(_submitting) return;
   _submitting = true;
-  setNotice('Preparing upload...', '#40D0FF');
+  ensureProgressBar();
+  showSubmitModal(); // keep modal open
+  setSubmitLocked(true, '⏳ Uploading...');
+  setProgress(5);
+  setNotice('Starting upload...', '#40D0FF');
 
-  // Read all fields by name attribute
   const f = form;
   const val = name => (f.querySelector('[name="' + name + '"]')?.value || '').trim();
   const artistName      = val('artistName');
@@ -143,39 +185,50 @@ async function doSubmit(){
   const copyrightDecl   = val('copyrightDeclaration');
   const rightsConfirm   = !!f.querySelector('[name="rightsConfirm"]')?.checked;
 
-  // Validate text fields
-  if(!artistName){ setNotice('Artist name is required.', '#ff3c3c'); _submitting = false; return; }
-  if(!trackTitle){ setNotice('Track title is required.', '#ff3c3c'); _submitting = false; return; }
-  if(!genre){ setNotice('Please select a genre.', '#ff3c3c'); _submitting = false; return; }
-  if(!rightsConfirm){ setNotice('Please confirm your rights.', '#ff3c3c'); _submitting = false; return; }
-  if(!_selectedFile){ setNotice('Please select an audio file first.', '#ff3c3c'); _submitting = false; return; }
-  if(_selectedFile.size > 100 * 1024 * 1024){ setNotice('Max file size is 100MB.', '#ff3c3c'); _submitting = false; return; }
+  // Validate
+  if(!artistName){      setNotice('❌ Artist name is required.', '#ff3c3c'); reset(); return; }
+  if(!trackTitle){      setNotice('❌ Track title is required.', '#ff3c3c'); reset(); return; }
+  if(!genre){           setNotice('❌ Please select a genre.', '#ff3c3c'); reset(); return; }
+  if(!rightsConfirm){   setNotice('❌ Please confirm your rights.', '#ff3c3c'); reset(); return; }
+  if(!_selectedFile){   setNotice('❌ Please select an audio file first.', '#ff3c3c'); reset(); return; }
+  if(_selectedFile.size > 100 * 1024 * 1024){ setNotice('❌ Max file size is 100MB.', '#ff3c3c'); reset(); return; }
 
   try{
     const ext = (_selectedFile.name || '').split('.').pop().toLowerCase();
-    const contentType = ext === 'wav' ? 'audio/wav'
-                      : ext === 'mp3' ? 'audio/mpeg'
+    const contentType = ext === 'wav'  ? 'audio/wav'
+                      : ext === 'mp3'  ? 'audio/mpeg'
                       : (_selectedFile.type && _selectedFile.type.startsWith('audio/')) ? _selectedFile.type
                       : 'audio/mpeg';
 
     const sizeMB = (_selectedFile.size / (1024*1024)).toFixed(1);
-    setNotice('Uploading ' + sizeMB + 'MB...', '#40D0FF');
 
-    // Sign in anonymously if needed
-    if(!auth.currentUser){
-      setNotice('Authenticating...', '#40D0FF');
-      await signInAnonymously(auth);
-    }
+    // Auth
+    setProgress(15);
+    setNotice('Authenticating...', '#40D0FF');
+    if(!auth.currentUser) await signInAnonymously(auth);
+
+    // Upload
+    setProgress(25);
+    setNotice('Uploading ' + sizeMB + 'MB — keep this screen open...', '#40D0FF');
 
     const safeName = Date.now() + '-' + (_selectedFile.name || 'track').replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const fileRef  = ref(storage, 'radio-submissions/' + safeName);
+    const uint8    = new Uint8Array(_selectedFile.buffer);
 
-    // Upload from the ArrayBuffer we captured at file pick time
-    const uint8 = new Uint8Array(_selectedFile.buffer);
+    // Simulate progress while uploading (real progress needs XMLHttpRequest)
+    let fakePct = 25;
+    const fakeTimer = setInterval(() => {
+      fakePct = Math.min(fakePct + 5, 85);
+      setProgress(fakePct);
+      setNotice('Uploading ' + sizeMB + 'MB (' + Math.round(fakePct) + '%) — keep this screen open...', '#40D0FF');
+    }, 800);
+
     await uploadBytes(fileRef, uint8, { contentType });
-    const audioUrl = await getDownloadURL(fileRef);
+    clearInterval(fakeTimer);
 
-    setNotice('Saving submission...', '#40D0FF');
+    setProgress(90);
+    setNotice('Saving your submission...', '#40D0FF');
+    const audioUrl = await getDownloadURL(fileRef);
 
     await addDoc(collection(db, 'radio_submissions'), {
       artistName, email, trackTitle, artistLink,
@@ -196,23 +249,32 @@ async function doSubmit(){
     });
 
     // Success
+    setProgress(100);
+    setNotice('✅ Submitted! We will review your track soon.', '#00cc66');
+    setSubmitLocked(false, 'Submit for Review');
     form.reset();
     _selectedFile = null;
     _submitting = false;
-    setNotice('✅ Submitted! Pending admin review.', '#00cc66');
-    setTimeout(() => hideSubmitModal(), 1500);
+    setTimeout(() => { setProgress(0); hideSubmitModal(); }, 2500);
 
   } catch(err){
     console.error('[radio submit]', err);
-    _submitting = false;
-    let msg = 'Submission failed.';
-    if(err.code === 'storage/unauthorized')             msg = 'Upload blocked — storage permissions error.';
-    else if(err.code === 'storage/quota-exceeded')      msg = 'Storage full. Contact admin.';
-    else if(err.code === 'storage/retry-limit-exceeded') msg = 'Upload timed out. Check connection and try again.';
-    else if(err.message?.includes('network'))           msg = 'Network error. Check connection and try again.';
-    else                                                msg = 'Error: ' + (err.message || 'Unknown error');
+    clearInterval(window._radioFakeTimer);
+    let msg = '❌ Upload failed. Please try again.';
+    if(err.code === 'storage/unauthorized')              msg = '❌ Upload blocked — contact admin.';
+    else if(err.code === 'storage/quota-exceeded')       msg = '❌ Storage full — contact admin.';
+    else if(err.code === 'storage/retry-limit-exceeded') msg = '❌ Upload timed out. Check your connection.';
+    else if(err.message?.includes('network'))            msg = '❌ Network error. Check connection and try again.';
     setNotice(msg, '#ff3c3c');
+    setProgress(0);
+    reset();
   }
+}
+
+function reset(){
+  _submitting = false;
+  setSubmitLocked(false, 'Submit for Review');
+  setProgress(0);
 }
 
 // ── Reactions ──
