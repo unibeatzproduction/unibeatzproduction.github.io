@@ -57,12 +57,10 @@ function getListenerId(){
   if(!id){ id = 'listener_' + Date.now() + '_' + Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id', id); }
   return id;
 }
-
 function setNotice(msg, color){
   const notice = document.getElementById('formNotice');
   if(notice){ notice.textContent = msg; notice.style.color = color || '#40D0FF'; }
 }
-
 function showSubmitModal(){
   const modal = document.getElementById('submitModal');
   if(modal) modal.classList.add('open');
@@ -71,8 +69,28 @@ function hideSubmitModal(){
   const modal = document.getElementById('submitModal');
   if(modal) modal.classList.remove('open');
 }
+function setProgress(pct){
+  const bar  = document.getElementById('ubRadioProgress');
+  const fill = document.getElementById('ubRadioProgressFill');
+  if(!bar||!fill) return;
+  if(pct<=0){ bar.style.display='none'; fill.style.width='0%'; return; }
+  bar.style.display='block';
+  fill.style.width = Math.min(100,pct)+'%';
+}
+function setSubmitLocked(locked, label){
+  const btn = document.getElementById('radioSubmitBtn');
+  if(!btn) return;
+  btn.disabled = locked;
+  btn.textContent = label || 'Submit for Review';
+  btn.style.opacity = locked ? '0.6' : '1';
+}
+function reset(){
+  _submitting = false;
+  setSubmitLocked(false, 'Submit for Review');
+  setProgress(0);
+}
 
-// ── Progress bar (inject once) ──
+// ── Inject progress bar once ──
 function ensureProgressBar(){
   if(document.getElementById('ubRadioProgress')) return;
   const bar = document.createElement('div');
@@ -81,24 +99,6 @@ function ensureProgressBar(){
   bar.innerHTML = '<div id="ubRadioProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s;"></div>';
   const notice = document.getElementById('formNotice');
   if(notice) notice.insertAdjacentElement('beforebegin', bar);
-}
-
-function setProgress(pct){
-  const bar = document.getElementById('ubRadioProgress');
-  const fill = document.getElementById('ubRadioProgressFill');
-  if(!bar || !fill) return;
-  if(pct <= 0){ bar.style.display = 'none'; fill.style.width = '0%'; return; }
-  bar.style.display = 'block';
-  fill.style.width = Math.min(100, pct) + '%';
-}
-
-// ── Lock submit button during upload ──
-function setSubmitLocked(locked, label){
-  const btn = document.getElementById('radioSubmitBtn');
-  if(!btn) return;
-  btn.disabled = locked;
-  btn.textContent = label || 'Submit for Review';
-  btn.style.opacity = locked ? '0.6' : '1';
 }
 
 // ── Account button ──
@@ -111,49 +111,26 @@ window.addEventListener('ub-auth-ready', e => setAccountText(
 ));
 onAuthStateChanged(auth, user => setAccountText(!user || user.isAnonymous ? 'Sign In' : (user.displayName || user.email || 'Account')));
 
-// ── Submit modal ──
+// ── State ──
 const form = document.getElementById('artistForm');
 let _selectedFile = null;
-let _submitting = false;
+let _submitting   = false;
+let _fileInputWired = false;
 
-// Open / close
-document.getElementById('openSubmit')?.addEventListener('click', () => {
-  // Always reset state when opening modal fresh
-  if(!_submitting){
-    setProgress(0);
-    setNotice('');
-    setSubmitLocked(false, 'Submit for Review');
-  }
-  showSubmitModal();
-  ensureProgressBar();
-});
-document.getElementById('closeSubmit')?.addEventListener('click', () => {
-  if(_submitting) return; // don't let them close during upload
-  hideSubmitModal();
-  _selectedFile = null;
-  _submitting = false;
-  setNotice('');
-  setProgress(0);
-  setSubmitLocked(false);
-});
+// ── Wire file input — called every time modal opens ──
+function wireFileInput(){
+  if(_fileInputWired) return;
+  const fileInput = form?.querySelector('input[type="file"]');
+  if(!fileInput) return;
+  _fileInputWired = true;
 
-// ── File input — read ArrayBuffer immediately on selection ──
-const fileInput = form?.querySelector('input[type="file"]');
-if(fileInput){
   fileInput.addEventListener('change', function(){
     const file = this.files && this.files[0];
     if(!file){ _selectedFile = null; setNotice('No file selected.', '#ffcc66'); return; }
-
     setNotice('Reading file...', '#40D0FF');
-
     const reader = new FileReader();
     reader.onload = function(ev){
-      _selectedFile = {
-        buffer: ev.target.result,
-        name: file.name,
-        size: file.size,
-        type: file.type
-      };
+      _selectedFile = { buffer: ev.target.result, name: file.name, size: file.size, type: file.type };
       const sizeMB = (file.size / (1024*1024)).toFixed(1);
       setNotice('✅ ' + file.name + ' (' + sizeMB + 'MB) — tap Submit to upload', '#5dff9e');
     };
@@ -165,29 +142,51 @@ if(fileInput){
   });
 }
 
-// ── Submit button ──
-document.getElementById('radioSubmitBtn')?.addEventListener('click', function(){
+// ── Open modal ──
+document.getElementById('openSubmit')?.addEventListener('click', () => {
+  if(!_submitting){
+    setProgress(0);
+    setNotice('');
+    setSubmitLocked(false, 'Submit for Review');
+  }
+  showSubmitModal();
+  ensureProgressBar();
+  wireFileInput();
+});
+
+// ── Close modal ──
+document.getElementById('closeSubmit')?.addEventListener('click', () => {
+  if(_submitting) return;
+  hideSubmitModal();
+  _selectedFile = null;
+  _submitting   = false;
+  setNotice('');
+  setProgress(0);
+  setSubmitLocked(false);
+});
+
+// ── Submit button — wired two ways for mobile reliability ──
+function handleSubmitClick(){
   if(_submitting) return;
   doSubmit();
-});
-
-// Also set onclick directly as a fallback for mobile browsers that lose event listeners
+}
+document.getElementById('radioSubmitBtn')?.addEventListener('click', handleSubmitClick);
 document.addEventListener('DOMContentLoaded', function(){
-  var btn = document.getElementById('radioSubmitBtn');
-  if(btn) btn.onclick = function(){ if(!_submitting) doSubmit(); };
+  const btn = document.getElementById('radioSubmitBtn');
+  if(btn) btn.onclick = handleSubmitClick;
 });
 
+// ── Core submit function ──
 async function doSubmit(){
   if(_submitting) return;
   _submitting = true;
-  ensureProgressBar();
-  showSubmitModal(); // keep modal open
+  showSubmitModal();
   setSubmitLocked(true, '⏳ Uploading...');
   setProgress(5);
   setNotice('Starting upload...', '#40D0FF');
 
-  const f = form;
-  const val = name => (f.querySelector('[name="' + name + '"]')?.value || '').trim();
+  // Read all fields by name
+  const val = name => (form?.querySelector('[name="' + name + '"]')?.value || '').trim();
   const artistName      = val('artistName');
   const email           = val('email');
   const trackTitle      = val('trackTitle');
@@ -195,31 +194,28 @@ async function doSubmit(){
   const producerCredits = val('producerCredits');
   const genre           = val('genre');
   const copyrightDecl   = val('copyrightDeclaration');
-  const rightsConfirm   = !!f.querySelector('[name="rightsConfirm"]')?.checked;
+  const rightsConfirm   = !!form?.querySelector('[name="rightsConfirm"]')?.checked;
 
   // Validate
-  if(!artistName){      setNotice('❌ Artist name is required.', '#ff3c3c'); reset(); return; }
-  if(!trackTitle){      setNotice('❌ Track title is required.', '#ff3c3c'); reset(); return; }
-  if(!genre){           setNotice('❌ Please select a genre.', '#ff3c3c'); reset(); return; }
-  if(!rightsConfirm){   setNotice('❌ Please confirm your rights.', '#ff3c3c'); reset(); return; }
-  if(!_selectedFile){   setNotice('❌ Please select an audio file first.', '#ff3c3c'); reset(); return; }
+  if(!artistName)    { setNotice('❌ Artist name is required.', '#ff3c3c');       reset(); return; }
+  if(!trackTitle)    { setNotice('❌ Track title is required.', '#ff3c3c');       reset(); return; }
+  if(!genre)         { setNotice('❌ Please select a genre.', '#ff3c3c');         reset(); return; }
+  if(!rightsConfirm) { setNotice('❌ Please confirm your rights.', '#ff3c3c');    reset(); return; }
+  if(!_selectedFile) { setNotice('❌ Please select an audio file first.', '#ff3c3c'); reset(); return; }
   if(_selectedFile.size > 100 * 1024 * 1024){ setNotice('❌ Max file size is 100MB.', '#ff3c3c'); reset(); return; }
 
   try{
     const ext = (_selectedFile.name || '').split('.').pop().toLowerCase();
-    const contentType = ext === 'wav'  ? 'audio/wav'
-                      : ext === 'mp3'  ? 'audio/mpeg'
-                      : (_selectedFile.type && _selectedFile.type.startsWith('audio/')) ? _selectedFile.type
+    const contentType = ext === 'wav' ? 'audio/wav'
+                      : ext === 'mp3' ? 'audio/mpeg'
+                      : (_selectedFile.type?.startsWith('audio/')) ? _selectedFile.type
                       : 'audio/mpeg';
-
     const sizeMB = (_selectedFile.size / (1024*1024)).toFixed(1);
 
-    // Auth
     setProgress(15);
     setNotice('Authenticating...', '#40D0FF');
     if(!auth.currentUser) await signInAnonymously(auth);
 
-    // Upload
     setProgress(25);
     setNotice('Uploading ' + sizeMB + 'MB — keep this screen open...', '#40D0FF');
 
@@ -227,13 +223,13 @@ async function doSubmit(){
     const fileRef  = ref(storage, 'radio-submissions/' + safeName);
     const uint8    = new Uint8Array(_selectedFile.buffer);
 
-    // Simulate progress while uploading (real progress needs XMLHttpRequest)
+    // Fake progress ticker
     let fakePct = 25;
     const fakeTimer = setInterval(() => {
-      fakePct = Math.min(fakePct + 5, 85);
+      fakePct = Math.min(fakePct + 4, 85);
       setProgress(fakePct);
       setNotice('Uploading ' + sizeMB + 'MB (' + Math.round(fakePct) + '%) — keep this screen open...', '#40D0FF');
-    }, 800);
+    }, 900);
 
     await uploadBytes(fileRef, uint8, { contentType });
     clearInterval(fakeTimer);
@@ -265,34 +261,20 @@ async function doSubmit(){
     setNotice('✅ Submitted! We will review your track soon.', '#00cc66');
     setSubmitLocked(false, 'Submit for Review');
     form.reset();
-    _selectedFile = null;
-    _submitting = false;
+    _selectedFile   = null;
+    _submitting     = false;
+    _fileInputWired = false; // allow re-wire on next open
     setTimeout(() => { setProgress(0); hideSubmitModal(); }, 2500);
 
   } catch(err){
     console.error('[radio submit]', err);
-    clearInterval(window._radioFakeTimer);
     let msg = '❌ Upload failed. Please try again.';
     if(err.code === 'storage/unauthorized')              msg = '❌ Upload blocked — contact admin.';
     else if(err.code === 'storage/quota-exceeded')       msg = '❌ Storage full — contact admin.';
     else if(err.code === 'storage/retry-limit-exceeded') msg = '❌ Upload timed out. Check your connection.';
     else if(err.message?.includes('network'))            msg = '❌ Network error. Check connection and try again.';
     setNotice(msg, '#ff3c3c');
-    setProgress(0);
     reset();
-  }
-}
-
-function reset(){
-  _submitting = false;
-  setSubmitLocked(false, 'Submit for Review');
-  setProgress(0);
-  // Re-wire button in case DOM lost the listener
-  var btn = document.getElementById('radioSubmitBtn');
-  if(btn){
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.onclick = function(){ if(!_submitting) doSubmit(); };
   }
 }
 
