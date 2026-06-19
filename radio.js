@@ -59,7 +59,7 @@ function setProgress(pct){
   fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
 }
 function setSubmitLocked(locked, label){
-  const btn = document.getElementById('radioSubmitBtn') || form?.querySelector('button[type="submit"]');
+  const btn = document.getElementById('radioSubmitBtn') || form?.querySelector('button[type="submit"]') || form?.querySelector('button[type="button"]');
   if(!btn) return;
   btn.disabled = locked;
   btn.textContent = label || 'Submit for Review';
@@ -122,10 +122,15 @@ window.addEventListener('ub-auth-ready', e => {
 onAuthStateChanged(auth, user => setAccountText(!user || user.isAnonymous ? 'Sign In' : (user.displayName || user.email || 'Account')));
 
 function wireSubmissionForm(){
-  if(!form) return;
+  if(!form || form.dataset.ubSubmitWired === 'yes') return;
+  form.dataset.ubSubmitWired = 'yes';
+
   const fileInput = form.querySelector('input[type="file"]');
-  const submitBtn = form.querySelector('button[type="submit"]');
-  if(submitBtn && !submitBtn.id) submitBtn.id = 'radioSubmitBtn';
+  const submitBtn = form.querySelector('#radioSubmitBtn') || form.querySelector('button[type="submit"]') || form.querySelector('button[type="button"]');
+  if(submitBtn){
+    submitBtn.id = 'radioSubmitBtn';
+    submitBtn.type = 'button';
+  }
 
   fileInput?.addEventListener('change', () => {
     const file = fileInput.files && fileInput.files[0];
@@ -141,6 +146,18 @@ function wireSubmissionForm(){
     e.stopPropagation();
     await submitArtistTrack();
   });
+
+  submitBtn?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await submitArtistTrack();
+  });
+
+  submitBtn?.addEventListener('touchend', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    await submitArtistTrack();
+  }, { passive: false });
 }
 
 async function submitArtistTrack(){
@@ -272,7 +289,9 @@ window.ubRadioReaction = async function(trackId, reaction){
     localStorage.setItem('ub_radio_listener_id', listenerId);
     const reactionId = (trackId + '_' + listenerId).replace(/[^a-zA-Z0-9_-]/g, '_');
     await setDoc(doc(db, 'radio_reactions', reactionId), {
-      trackId, listenerId, reaction,
+      trackId,
+      listenerId,
+      reaction,
       uid: user.uid,
       isAnonymous: !!user.isAnonymous,
       updatedAt: serverTimestamp(),
