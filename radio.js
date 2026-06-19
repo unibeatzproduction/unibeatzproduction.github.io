@@ -10,7 +10,7 @@ const firebaseConfig = {
   apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
   authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
   projectId: 'unibeatzproduction-7ae31',
-  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+  storageBucket: 'unibeatzproduction-7ae31.appspot.com',
   messagingSenderId: '70667820609',
   appId: '1:70667820609:web:57762df5510e6b4000b0c0'
 };
