@@ -58,10 +58,18 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
 .locked h1{font-family:Bebas Neue,sans-serif;color:var(--gold-light);font-size:3rem;letter-spacing:2px}
 .hidden{display:none!important}
 .notice{min-height:22px;color:var(--blue-bright);margin-top:8px}
+
+.lock-screen{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),linear-gradient(145deg,#030305,#0a0a14);display:flex;align-items:center;justify-content:center;}
+.lock-box{border:1px solid rgba(201,168,76,.5);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.95),rgba(0,0,0,.9));padding:28px;width:min(400px,90vw);text-align:center;}
+.hidden{display:none!important}
+
+.lock-screen{position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),linear-gradient(145deg,#030305,#0a0a14);display:flex;align-items:center;justify-content:center;}
+.lock-box{border:1px solid rgba(201,168,76,.5);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.95),rgba(0,0,0,.9));padding:28px;width:min(400px,90vw);text-align:center;}
+.ub-hidden{display:none!important}
 </style>
 </head>
 <body>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO DJ DECK</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button id="lockBtn" type="button" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;background:transparent;border:0;cursor:pointer;">Lock</button></div></div></nav>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO DJ DECK</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button id="lockBtn" type="button" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ff7474;background:transparent;border:1px solid rgba(255,60,60,.4);border-radius:8px;padding:6px 10px;cursor:pointer;">🔒 Lock</button></div></div></nav>
 
 <div id="lockScreen" class="locked">
   <div class="eyebrow">DJ Access</div>
@@ -234,6 +242,104 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
     document.getElementById('lockScreen').style.display = 'block';
     document.getElementById('djApp').classList.add('hidden');
   });
+})();
+</script>
+
+
+<div id="lockScreen" class="lock-screen hidden">
+  <div class="lock-box">
+    <div style="font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:#40D0FF;margin-bottom:8px;">DJ ACCESS</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:3rem;letter-spacing:2px;color:#F0C040;line-height:1;margin-bottom:12px;">DJ DECK</div>
+    <p style="color:#cbd3e4;margin-bottom:16px;">Enter your admin code to unlock.</p>
+    <input id="lockInput" type="password" placeholder="Admin code" style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:#090d18;color:#F0EDE8;font-family:Rajdhani,sans-serif;font-size:1rem;margin-bottom:10px;"/>
+    <button id="lockUnlockBtn" style="width:100%;border:0;border-radius:10px;padding:12px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a;">UNLOCK</button>
+    <div id="lockError" style="min-height:22px;color:#ff3c3c;margin-top:8px;font-family:Orbitron,sans-serif;font-size:.48rem;"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var CODE = 'empire2026';
+  var KEY  = 'ub_dj_deck_auth';
+  var screen = document.getElementById('lockScreen');
+  var input  = document.getElementById('lockInput');
+  var err    = document.getElementById('lockError');
+
+  function lock(){
+    sessionStorage.removeItem(KEY);
+    screen.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ if(input) input.focus(); }, 100);
+  }
+
+  function unlock(){
+    sessionStorage.setItem(KEY, '1');
+    screen.classList.add('hidden');
+    document.body.style.overflow = '';
+    if(err) err.textContent = '';
+  }
+
+  // Check session on load
+  if(sessionStorage.getItem(KEY) !== '1') lock();
+
+  document.getElementById('lockUnlockBtn')?.addEventListener('click', function(){
+    if(input && input.value === CODE){ unlock(); }
+    else { if(err) err.textContent = 'Incorrect code.'; }
+  });
+
+  input?.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('lockUnlockBtn').click();
+  });
+
+  document.getElementById('lockBtn')?.addEventListener('click', lock);
+})();
+</script>
+
+
+<div id="lockScreen" class="lock-screen">
+  <div class="lock-box">
+    <div style="font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:#40D0FF;margin-bottom:8px;">DJ ACCESS</div>
+    <div style="font-family:Bebas Neue,sans-serif;font-size:3rem;letter-spacing:2px;color:#F0C040;line-height:1;margin-bottom:12px;">DJ DECK</div>
+    <p style="color:#cbd3e4;margin-bottom:16px;font-family:Rajdhani,sans-serif;">Enter your admin code to unlock.</p>
+    <input id="lockInput" type="password" placeholder="Admin code" style="width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:#090d18;color:#F0EDE8;font-family:Rajdhani,sans-serif;font-size:1rem;margin-bottom:10px;"/>
+    <button id="lockUnlockBtn" style="width:100%;border:0;border-radius:10px;padding:12px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a;">UNLOCK</button>
+    <div id="lockError" style="min-height:22px;color:#ff3c3c;margin-top:8px;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:1.5px;"></div>
+  </div>
+</div>
+<script>
+(function(){
+  var CODE = 'empire2026';
+  var KEY  = 'ub_dj_deck_auth';
+  var screen = document.getElementById('lockScreen');
+  var input  = document.getElementById('lockInput');
+  var err    = document.getElementById('lockError');
+
+  function lock(){
+    sessionStorage.removeItem(KEY);
+    screen.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setTimeout(function(){ if(input) input.focus(); }, 100);
+  }
+  function unlock(){
+    sessionStorage.setItem(KEY, '1');
+    screen.style.display = 'none';
+    document.body.style.overflow = '';
+    if(err) err.textContent = '';
+    if(input) input.value = '';
+  }
+
+  // Start locked unless session says otherwise
+  if(sessionStorage.getItem(KEY) === '1') unlock();
+  else lock();
+
+  document.getElementById('lockUnlockBtn')?.addEventListener('click', function(){
+    if(input && input.value === CODE) unlock();
+    else if(err) err.textContent = 'Incorrect code.';
+  });
+  input?.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') document.getElementById('lockUnlockBtn').click();
+  });
+  document.getElementById('lockBtn')?.addEventListener('click', lock);
 })();
 </script>
 
