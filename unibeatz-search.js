@@ -1,17 +1,302 @@
-// unibeatz-search.js
-// Functional UniBeatz site/content search + shared utility repairs.
-const SEARCH_LINKS=[{title:"Beat Store",url:"/index.html#beats",text:"beats beat store licenses hip hop trap r&b drill afrobeats purchase stream"},{title:"Full Beat Catalog",url:"/unibeatzworld.html?open=beats",text:"full catalog beats marketplace licenses unibeatzworld"},{title:"Artist Battles",url:"/index.html#battles",text:"battles freestyle app artist live vote leaderboard"},{title:"All Platforms",url:"/index.html#platforms",text:"platforms empire unibeatzworld unipack radio battle merch studio"},{title:"Membership",url:"/index.html#membership",text:"membership tiers subscriptions pro customer visitor"},{title:"UniBeatz World",url:"/unibeatzworld.html",text:"unibeatzworld beats songs merch unipack soundpacks catalog"},{title:"UniPack",url:"/unipack.html",text:"unipack sample pack plugin beat chop wav midi export producer"},{title:"Uni Freestyle Battle",url:"/unifreestyle.html",text:"freestyle battle artist dj vote live battle app"},{title:"Uni Radio",url:"/radio.html",text:"radio station music submissions approved tracks hip hop r&b podcast"},{title:"Legal",url:"/legal.html",text:"legal terms refund license exclusive wav rights contracts"},{title:"Admin Radio",url:"/admin-radio.html",text:"admin radio approve submissions review tracks"}];
-const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function pageResults(term){const q=term.toLowerCase().trim(),items=[];document.querySelectorAll("section[id],main,article,.platform-card,.coming-card,.plan-card,.beat-slide,.video-slide").forEach(el=>{const text=(el.innerText||el.textContent||"").replace(/\s+/g," ").trim();if(!text||text.length<8)return;if(!q||text.toLowerCase().includes(q)){const id=el.id||el.closest("section[id]")?.id||"";items.push({title:id?id.replace(/[-_]/g," ").replace(/\b\w/g,c=>c.toUpperCase()):"This Page Result",url:id?`#${id}`:location.pathname,text:text.slice(0,180)})}});return items.slice(0,12)}
-function globalResults(term){const q=term.toLowerCase().trim();return q?SEARCH_LINKS.filter(i=>`${i.title} ${i.text}`.toLowerCase().includes(q)):SEARCH_LINKS}
-function openSearch(){document.getElementById("ub-search-modal")?.remove();const modal=document.createElement("div");modal.id="ub-search-modal";modal.innerHTML=`<style>#ub-search-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.78);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding:88px 18px 18px;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}#ub-search-modal .ub-card{width:min(760px,100%);background:linear-gradient(135deg,#0d0d18,#070710);border:1px solid rgba(201,168,76,.48);border-radius:18px;box-shadow:0 28px 90px rgba(0,0,0,.75),0 0 28px rgba(0,170,255,.14);overflow:hidden}#ub-search-modal .ub-head{display:flex;gap:10px;align-items:center;padding:14px;border-bottom:1px solid rgba(255,255,255,.08)}#ub-search-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:13px 14px;font-size:16px;outline:none}#ub-search-input:focus{border-color:#C9A84C}#ub-search-close{background:transparent;border:0;color:#aaa;font-size:26px;cursor:pointer;padding:5px 8px}#ub-search-results{max-height:62vh;overflow:auto;padding:10px}.ub-result{display:block;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);border-radius:12px;padding:13px 14px;margin-bottom:10px}.ub-result-title{font-weight:900;color:#F0C040;margin-bottom:4px}.ub-result-text{font-size:13px;opacity:.74;line-height:1.35}.ub-empty{padding:22px;text-align:center;color:#aaa}</style><div class="ub-card"><div class="ub-head"><input id="ub-search-input" placeholder="Search beats, radio, battle, UniPack, legal, membership..." autofocus><button id="ub-search-close">×</button></div><div id="ub-search-results"></div></div>`;document.body.appendChild(modal);const input=document.getElementById("ub-search-input"),results=document.getElementById("ub-search-results"),close=()=>modal.remove();document.getElementById("ub-search-close").onclick=close;modal.onclick=e=>{if(e.target===modal)close()};function render(){const q=input.value.trim(),seen=new Set(),unique=[...pageResults(q),...globalResults(q)].filter(i=>{const k=i.url+i.title;if(seen.has(k))return false;seen.add(k);return true}).slice(0,18);results.innerHTML=unique.length?unique.map(i=>`<a class="ub-result" href="${i.url}"><div class="ub-result-title">${i.title}</div><div class="ub-result-text">${i.text}</div></a>`).join(""):`<div class="ub-empty">No results found.</div>`}input.addEventListener("input",render);setTimeout(()=>input.focus(),30);render()}
-function injectSharedUtilityFixes(){if(document.getElementById("ub-shared-utility-fixes"))return;const style=document.createElement("style");style.id="ub-shared-utility-fixes";style.textContent=`body #ub-auth-float{top:72px!important;right:24px!important;z-index:299!important}@media(max-width:860px){body #ub-auth-float{top:72px!important;right:16px!important}}`;document.head.appendChild(style)}
-function wireSearchButtons(){document.querySelectorAll(".nav-icon-btn").forEach(btn=>{if((btn.textContent||"").includes("🔍"))btn.onclick=openSearch;if((btn.textContent||"").includes("🔔"))btn.onclick=()=>window.UniBeatzPush?.openCenter?.()})}
-function makeWave(){return `<div class="product-img-glow"></div><div style="display:flex;align-items:center;gap:2px;height:50px;"><span>▁▃▅▇▅▃▁</span></div>`}
-async function loadAllWorldBeats(){const grid=document.getElementById('worldBeatsGrid');if(!grid||!window._fb)return;try{const f=window._fb,snap=await f.getDocs(f.query(f.collection(f.db,'marketplace_beats'),f.orderBy('createdAt','desc'))),items=snap.docs.map(d=>({id:d.id,...d.data()}));if(!items.length)return;grid.innerHTML='';items.forEach(b=>{const card=document.createElement('div');card.className='product-card reveal visible';const img=b.coverUrl&&String(b.coverUrl).startsWith('http')?`background-image:url('${String(b.coverUrl).replace(/'/g,'')}');background-size:cover;background-position:center;`:'';card.innerHTML=`<div class="product-img" style="${img}">${img?'':makeWave()}</div><div class="product-body"><div class="product-cat">${esc(b.tag||'Hip-Hop')}</div><div class="product-name">${esc(b.name||'Untitled Beat')}</div><div class="product-desc">${esc(b.bpm||'?')} BPM · Key: ${esc(b.key||'?')}</div><div class="product-footer" style="margin-top:10px;"><div class="product-price">$${esc(b.basicPrice||50)}</div><button class="btn-buy">LICENSE</button></div></div>`;const buy=card.querySelector('.btn-buy');buy.onclick=()=>window.openBeatModal&&window.openBeatModal(b.id);grid.appendChild(card)})}catch(e){console.warn('Full beat catalog load failed',e)}}
-function openWorldBeatsModal(){const modal=document.getElementById('modal-beats');if(modal){document.querySelectorAll('.section-modal').forEach(m=>m.classList.remove('active'));document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));modal.classList.add('active');document.body.style.overflow='hidden';document.querySelectorAll('.cat-tab')[0]?.classList.add('active');setTimeout(loadAllWorldBeats,400);setTimeout(loadAllWorldBeats,1200);return true}if(typeof window.openSection==='function'){window.openSection('beats');setTimeout(loadAllWorldBeats,400);return true}return false}
-function fixWorldBeatButtons(){document.querySelectorAll('a[href="index.html#beats"],a[href="/index.html#beats"],a[href="#featured"],a[href="unibeatzworld.html#featured"],a[href="#"]').forEach(a=>{const label=(a.textContent||"").toLowerCase();if(label.includes("view full beat store")||label.includes("open beat store")||label.includes("full catalog")){a.href="#";a.textContent="Back to UniBeatz World";a.onclick=e=>{e.preventDefault();document.querySelectorAll('.section-modal').forEach(m=>m.classList.remove('active'));document.body.style.overflow=''}}})}
-function repairBeatStore(){const path=location.pathname.toLowerCase(),params=new URLSearchParams(location.search);if(path.includes('unibeatzworld.html')){fixWorldBeatButtons();setTimeout(fixWorldBeatButtons,800);setTimeout(loadAllWorldBeats,1600);if(params.get('open')==='beats'||location.hash==='#beats'||location.hash==='#featured'){setTimeout(openWorldBeatsModal,250);setTimeout(openWorldBeatsModal,900);setTimeout(openWorldBeatsModal,1800)}return}if(!path.endsWith('/')&&!path.endsWith('/index.html')&&path!=='')return;const fullCatalog=document.querySelector('.see-more[href="unibeatzworld.html"]');if(fullCatalog){fullCatalog.href='unibeatzworld.html?open=beats';fullCatalog.textContent='Open Full Beat Catalog →'}}
-window.UniBeatzSiteSearch={open:openSearch};
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore()});else{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore()}
-setTimeout(()=>{injectSharedUtilityFixes();wireSearchButtons();repairBeatStore()},1200);setTimeout(()=>{injectSharedUtilityFixes();repairBeatStore()},2600);
+// radio.js — UniBeatz Radio Station
+// PURPOSE: Artist submission form + Firebase setup + Live365 bridge
+
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import {
+  getFirestore, collection, addDoc, serverTimestamp,
+  query, where, getDocs, doc, setDoc
+} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+  authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
+  projectId: 'unibeatzproduction-7ae31',
+  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+  messagingSenderId: '70667820609',
+  appId: '1:70667820609:web:57762df5510e6b4000b0c0'
+};
+
+const app     = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+const auth    = getAuth(app);
+
+window.UB_FIREBASE = { app, auth, db, storage, onAuthStateChanged, ready: true };
+window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
+
+const LIVE365_PAGE = 'https://live365.com/station/UniBeatz-Radio-a01878';
+
+const form         = document.getElementById('artistForm');
+const submitModal  = document.getElementById('submitModal');
+const accountBtn   = document.getElementById('radioAccountBtn');
+
+let selectedFile = null;
+let submitting   = false;
+
+// ── UI helpers ──
+function setAccountText(text){ if(accountBtn) accountBtn.textContent = text; }
+function showModal(){ if(submitModal) submitModal.classList.add('open'); }
+function hideModal(){ if(submitModal) submitModal.classList.remove('open'); }
+function setNotice(msg, color){
+  const el = document.getElementById('formNotice');
+  if(!el) return;
+  el.textContent = msg || '';
+  el.style.color = color || '#40D0FF';
+}
+function setProgress(pct){
+  const bar  = document.getElementById('ubRadioProgress');
+  const fill = document.getElementById('ubRadioProgressFill');
+  if(!bar||!fill) return;
+  const p = Math.max(0, Math.min(100, Number(pct)||0));
+  bar.style.display  = p <= 0 ? 'none' : 'block';
+  fill.style.width   = p + '%';
+}
+function setSubmitLocked(locked, label){
+  const btn = document.getElementById('radioSubmitBtn');
+  if(!btn) return;
+  btn.disabled     = locked;
+  btn.textContent  = label || 'Submit for Review';
+  btn.style.opacity = locked ? '0.6' : '1';
+}
+function resetState(){
+  submitting = false;
+  setSubmitLocked(false, 'Submit for Review');
+  setProgress(0);
+}
+function ensureProgressBar(){
+  if(document.getElementById('ubRadioProgress')) return;
+  const notice = document.getElementById('formNotice');
+  if(!notice) return;
+  const bar = document.createElement('div');
+  bar.id = 'ubRadioProgress';
+  bar.style.cssText = 'display:none;margin:10px 0 8px;border-radius:999px;height:9px;background:rgba(255,255,255,.12);overflow:hidden;';
+  bar.innerHTML = '<div id="ubRadioProgressFill" style="height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .25s;"></div>';
+  notice.insertAdjacentElement('beforebegin', bar);
+}
+function field(name){ return (form?.querySelector('[name="'+name+'"]')?.value||'').trim(); }
+function fileSizeMB(file){ return (file.size/(1024*1024)).toFixed(1); }
+function isAudio(file){
+  return !!(file && (String(file.type||'').startsWith('audio/') || /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name||'')));
+}
+function errorMsg(err){
+  const code = err?.code||'', msg = err?.message||'';
+  if(code==='auth/operation-not-allowed') return '❌ Anonymous sign-in not enabled. Contact admin.';
+  if(code==='storage/unauthorized')       return '❌ Upload blocked by storage rules.';
+  if(code==='storage/quota-exceeded')     return '❌ Storage full. Contact admin.';
+  if(code==='storage/retry-limit-exceeded'||code==='storage/canceled'||/stalled/i.test(msg))
+    return '❌ Upload stalled. Try Wi-Fi or a smaller MP3.';
+  if(code==='permission-denied')          return '❌ Database permission denied.';
+  if(/network|offline|internet/i.test(msg)) return '❌ Network issue. Try again on Wi-Fi.';
+  return '❌ Upload failed: '+(code||msg||'Please try again.');
+}
+
+// ── Auth ──
+async function ensureSignedIn(){
+  if(auth.currentUser) return auth.currentUser;
+  const cred = await signInAnonymously(auth);
+  return cred.user;
+}
+
+// ── Live365 ──
+(function setupLive365(){
+  const refresh = document.getElementById('refreshApproved');
+  if(refresh){
+    refresh.textContent = 'Open Station ↗';
+    refresh.onclick = e => { e.preventDefault(); window.open(LIVE365_PAGE,'_blank','noopener'); };
+  }
+  loadTrackCount();
+  window.UniBeatzLive365 = { stationId:'a01878', stationUrl:LIVE365_PAGE };
+})();
+
+async function loadTrackCount(){
+  try{
+    const [tracksSnap, assetsSnap] = await Promise.all([
+      getDocs(query(collection(db,'radio_submissions'), where('status','==','approved'))),
+      getDocs(query(collection(db,'radio_assets'), where('active','==',true))).catch(()=>({docs:[]}))
+    ]);
+    const label = document.getElementById('trackCountLabel');
+    if(label) label.textContent = tracksSnap.docs.length+' songs · '+assetsSnap.docs.length+' announcements';
+  } catch(e){ console.warn('[radio] count load:',e); }
+}
+
+// ── Account button ──
+accountBtn?.addEventListener('click', ()=>{
+  if(window.UniBeatzAuth?.getUser?.()) window.UniBeatzAuth.showAccount();
+  else if(window.UniBeatzAuth?.showLogin) window.UniBeatzAuth.showLogin();
+});
+window.addEventListener('ub-auth-ready', e=>{
+  const u=e.detail?.user, p=e.detail?.profile;
+  setAccountText((!u||u.isAnonymous)?'Sign In':(p?.username||u.email||'Account'));
+});
+onAuthStateChanged(auth, u=>setAccountText(!u||u.isAnonymous?'Sign In':(u.displayName||u.email||'Account')));
+
+// ── Wire form — runs once ──
+function wireForm(){
+  if(!form||form.dataset.wired==='yes') return;
+  form.dataset.wired = 'yes';
+
+  const fileInput = form.querySelector('input[type="file"]');
+  const submitBtn = document.getElementById('radioSubmitBtn');
+
+  // File picker
+  fileInput?.addEventListener('change', function(){
+    const file = this.files&&this.files[0];
+    selectedFile = null;
+    if(!file){ setNotice('No file selected.','#ffcc66'); return; }
+    if(!isAudio(file)){ this.value=''; setNotice('❌ Please choose an audio file.','#ff3c3c'); return; }
+    if(file.size>100*1024*1024){ this.value=''; setNotice('❌ Max file size is 100MB.','#ff3c3c'); return; }
+    selectedFile = file;
+    setNotice('✅ '+file.name+' ('+fileSizeMB(file)+'MB) — tap Submit to upload','#5dff9e');
+  });
+
+  // Submit button
+  submitBtn?.addEventListener('click', e=>{ e.preventDefault(); doSubmit(); });
+  form.addEventListener('submit', e=>{ e.preventDefault(); doSubmit(); });
+}
+
+// ── Upload with real progress ──
+async function uploadWithProgress(fileRef, file, contentType){
+  const task = uploadBytesResumable(fileRef, file, { contentType });
+  await new Promise((resolve, reject)=>{
+    let stuckTimer = null;
+    let lastBytes  = 0;
+    function resetStuck(bytes){
+      clearTimeout(stuckTimer);
+      if(bytes>lastBytes) lastBytes=bytes;
+      stuckTimer = setTimeout(()=>{ try{ task.cancel(); }catch(e){} reject(new Error('Upload stalled')); }, 60000);
+    }
+    task.on('state_changed',
+      snap=>{
+        resetStuck(snap.bytesTransferred);
+        const pct = snap.totalBytes ? Math.round(snap.bytesTransferred/snap.totalBytes*100) : 20;
+        setProgress(pct);
+        setNotice('Uploading '+fileSizeMB(file)+'MB ('+pct+'%) — keep this screen open...','#40D0FF');
+      },
+      err=>{ clearTimeout(stuckTimer); reject(err); },
+      ()=>{ clearTimeout(stuckTimer); setProgress(100); resolve(); }
+    );
+    resetStuck(0);
+  });
+  return task.snapshot.ref;
+}
+
+// ── Core submit ──
+async function doSubmit(){
+  if(submitting||!form) return;
+  submitting = true;
+  ensureProgressBar();
+  showModal();
+  setSubmitLocked(true,'⏳ Uploading...');
+  setProgress(4);
+  setNotice('Starting submission...','#40D0FF');
+
+  const artistName       = field('artistName');
+  const email            = field('email');
+  const trackTitle       = field('trackTitle');
+  const artistLink       = field('artistLink');
+  const producerCredits  = field('producerCredits');
+  const genre            = field('genre');
+  const copyrightDecl    = field('copyrightDeclaration');
+  const rightsConfirm    = !!form.querySelector('[name="rightsConfirm"]')?.checked;
+  const fileInput        = form.querySelector('input[type="file"]');
+  const file             = selectedFile || (fileInput?.files&&fileInput.files[0]);
+
+  // Validate
+  if(!artistName)      { setNotice('❌ Artist name is required.','#ff3c3c');        resetState(); return; }
+  if(!email)           { setNotice('❌ Email is required.','#ff3c3c');              resetState(); return; }
+  if(!trackTitle)      { setNotice('❌ Track title is required.','#ff3c3c');        resetState(); return; }
+  if(!genre)           { setNotice('❌ Please select a genre.','#ff3c3c');          resetState(); return; }
+  if(!producerCredits) { setNotice('❌ Producer credits are required.','#ff3c3c'); resetState(); return; }
+  if(!rightsConfirm)   { setNotice('❌ Please confirm your rights.','#ff3c3c');    resetState(); return; }
+  if(!file)            { setNotice('❌ Please choose an audio file.','#ff3c3c');    resetState(); return; }
+  if(!isAudio(file))   { setNotice('❌ Please choose an audio file only.','#ff3c3c'); resetState(); return; }
+  if(file.size>100*1024*1024){ setNotice('❌ Max file size is 100MB.','#ff3c3c'); resetState(); return; }
+
+  try{
+    setProgress(10);
+    setNotice('Authenticating...','#40D0FF');
+    const user = await ensureSignedIn();
+
+    const ext = (file.name.split('.').pop()||'mp3').toLowerCase();
+    const contentType = file.type || (ext==='wav'?'audio/wav':ext==='m4a'?'audio/mp4':'audio/mpeg');
+
+    // Storage path matches rules: radio-submissions/{uid}/{filename}
+    const safeName = Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const fileRef  = ref(storage, 'radio-submissions/'+user.uid+'/'+safeName);
+
+    setProgress(15);
+    setNotice('Uploading '+fileSizeMB(file)+'MB — keep this screen open...','#40D0FF');
+
+    const uploadedRef = await uploadWithProgress(fileRef, file, contentType);
+
+    setProgress(100);
+    setNotice('Saving submission...','#40D0FF');
+    const audioUrl = await getDownloadURL(uploadedRef);
+
+    await addDoc(collection(db,'radio_submissions'), {
+      artistName, email, trackTitle, artistLink,
+      producerCredits, genre,
+      copyrightDeclaration: copyrightDecl,
+      rightsConfirm, audioUrl,
+      fileType: contentType,
+      fileName: file.name||safeName,
+      fileSizeBytes: file.size,
+      storagePath: uploadedRef.fullPath,
+      status: 'pending', featured: false,
+      reviewNotes: '', approvedFor: [],
+      submittedByUid: user.uid,
+      submittedByEmail: user.email||email,
+      isAnonymousSubmission: !!user.isAnonymous,
+      submittedFrom: /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)?'mobile':'desktop',
+      createdAt: serverTimestamp(), reviewedAt: null
+    });
+
+    setNotice('✅ Submitted! UniBeatz Radio will review your track soon.','#00cc66');
+    form.reset();
+    selectedFile = null;
+    submitting   = false;
+    setSubmitLocked(false,'Submit for Review');
+    loadTrackCount();
+    setTimeout(()=>{ setProgress(0); hideModal(); }, 2400);
+
+  } catch(err){
+    console.error('[radio submit]',err);
+    setNotice(errorMsg(err),'#ff3c3c');
+    setProgress(0);
+    resetState();
+  }
+}
+
+// ── Modal open/close ──
+document.getElementById('openSubmit')?.addEventListener('click', ()=>{
+  if(!submitting){ setProgress(0); setNotice(''); setSubmitLocked(false,'Submit for Review'); }
+  ensureProgressBar();
+  showModal();
+  wireForm();
+});
+document.getElementById('closeSubmit')?.addEventListener('click', ()=>{
+  if(submitting) return;
+  hideModal(); setNotice(''); setProgress(0);
+});
+submitModal?.addEventListener('click', e=>{ if(e.target===submitModal&&!submitting) hideModal(); });
+
+wireForm();
+
+// ── Reactions ──
+window.ubRadioReaction = async function(trackId, reaction){
+  try{
+    const user = await ensureSignedIn();
+    let listenerId = localStorage.getItem('ub_radio_listener_id');
+    if(!listenerId){ listenerId='listener_'+Date.now()+'_'+Math.random().toString(36).slice(2,10); localStorage.setItem('ub_radio_listener_id',listenerId); }
+    const reactionId = (trackId+'_'+listenerId).replace(/[^a-zA-Z0-9_-]/g,'_');
+    await setDoc(doc(db,'radio_reactions',reactionId),{
+      trackId, listenerId, reaction,
+      uid: user.uid, isAnonymous: !!user.isAnonymous,
+      updatedAt: serverTimestamp()
+    },{merge:true});
+  } catch(e){ console.warn('[radio reaction]',e); }
+};

@@ -1,105 +1,74 @@
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
-
-const STRIPE_RADIO_PREMIUM_URL = 'https://buy.stripe.com/4gMeV6gHM4WO0LObls93y0w';
-const DISMISS_KEY = 'ub_radio_premium_popup_dismissed_until';
-const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-const auth = getAuth();
-const db = getFirestore();
-
-function dismissed(){
-  const until = Number(localStorage.getItem(DISMISS_KEY) || 0);
-  return Date.now() < until;
+// unibeatz-auth.js
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, updateProfile, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+const FIREBASE_CONFIG={apiKey:"AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",authDomain:"unibeatzproduction-7ae31.firebaseapp.com",projectId:"unibeatzproduction-7ae31",storageBucket:"unibeatzproduction-7ae31.firebasestorage.app",messagingSenderId:"70667820609",appId:"1:70667820609:web:57762df5510e6b4000b0c0"};
+const ADMIN_EMAIL="unibeatzproduction@gmail.com";
+const app=getApps().length?getApp():initializeApp(FIREBASE_CONFIG);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const googleProvider=new GoogleAuthProvider();
+googleProvider.setCustomParameters({prompt:"select_account"});
+const persistenceReady=setPersistence(auth,browserLocalPersistence).catch(()=>{});
+let currentProfile=null,currentUser=null;
+function safeUsername(user){const base=user.displayName||(user.email||"user").split("@")[0]||"user";return base.toLowerCase().replace(/[^a-z0-9_]/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"")||"user";}
+async function ensureProfile(user,extra={}){
+  if(!user)return null;
+  const ref=doc(db,"users",user.uid);
+  const snap=await getDoc(ref);
+  const existing=snap.exists()?snap.data():{};
+  const profile={uid:user.uid,email:user.email||"",displayName:extra.displayName||existing.displayName||user.displayName||safeUsername(user),username:existing.username||extra.username||safeUsername(user),photoURL:user.photoURL||existing.photoURL||"",role:user.email===ADMIN_EMAIL?"admin":(existing.role||"customer"),isAdmin:user.email===ADMIN_EMAIL,updatedAt:serverTimestamp(),createdAt:existing.createdAt||serverTimestamp(),lastLoginAt:serverTimestamp()};
+  await setDoc(ref,profile,{merge:true});
+  currentProfile={...existing,...profile};
+  localStorage.setItem("ub_unified_user",JSON.stringify({uid:user.uid,email:user.email||"",displayName:currentProfile.displayName,username:currentProfile.username,role:currentProfile.role,isAdmin:currentProfile.isAdmin}));
+  window.dispatchEvent(new CustomEvent("ub-auth-ready",{detail:{user,profile:currentProfile}}));
+  return currentProfile;
 }
-function dismiss(){
-  localStorage.setItem(DISMISS_KEY, String(Date.now() + SEVEN_DAYS));
-  closePopup();
-}
-function closePopup(){
-  document.getElementById('radioPremiumPopup')?.classList.remove('open');
-}
-function openPopup(){
-  buildPopup();
-  document.getElementById('radioPremiumPopup')?.classList.add('open');
-}
-function buildPopup(){
-  if(document.getElementById('radioPremiumPopup')) return;
-  const style = document.createElement('style');
-  style.id = 'radioPremiumPopupCss';
-  style.textContent = `
-    #radioPremiumPopup{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.78);backdrop-filter:blur(6px)}
-    #radioPremiumPopup.open{display:flex}
-    .radio-premium-card{max-width:520px;width:100%;border:1px solid rgba(201,168,76,.38);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.98),rgba(0,0,0,.94));box-shadow:0 24px 70px rgba(0,0,0,.65);padding:22px;color:#F0EDE8;font-family:Rajdhani,sans-serif;position:relative}
-    .radio-premium-card h2{font-family:'Bebas Neue',sans-serif;font-size:3rem;letter-spacing:2px;line-height:.9;color:#F0C040;margin:8px 0 10px}
-    .radio-premium-card p{color:#cbd3e4;line-height:1.45;font-size:1rem}
-    .radio-premium-eyebrow{font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:#40D0FF;text-transform:uppercase}
-    .radio-premium-price{font-family:'Bebas Neue',sans-serif;font-size:2.7rem;color:#F0C040;margin-top:12px}
-    .radio-premium-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-    .radio-premium-actions button{border:0;border-radius:10px;padding:13px 12px;font-family:Orbitron,sans-serif;font-size:.58rem;letter-spacing:1.7px;text-transform:uppercase;font-weight:900;cursor:pointer}
-    #joinRadioPremium{background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a}
-    #laterRadioPremium{background:rgba(0,170,255,.10);border:1px solid #00AAFF;color:#40D0FF}
-    #closeRadioPremium{position:absolute;right:12px;top:10px;background:transparent;border:0;color:#cbd3e4;font-size:1.4rem;cursor:pointer}
-    @media(max-width:520px){.radio-premium-actions{grid-template-columns:1fr}.radio-premium-card h2{font-size:2.45rem}}
-  `;
-  document.head.appendChild(style);
-  const wrap = document.createElement('div');
-  wrap.id = 'radioPremiumPopup';
-  wrap.innerHTML = `
-    <div class="radio-premium-card" role="dialog" aria-modal="true" aria-label="Uni Radio Premium">
-      <button id="closeRadioPremium" type="button" aria-label="Close">×</button>
-      <div class="radio-premium-eyebrow">Uni Radio Premium</div>
-      <h2>Upgrade To Uni Radio Premium</h2>
-      <p>For only $9.99/month, unlock premium DJ sets, subscriber-only broadcasts, exclusive events, priority artist opportunities, and help support independent radio growth.</p>
-      <div class="radio-premium-price">$9.99 <span style="font-size:1rem;color:#cbd3e4;font-family:Orbitron,sans-serif">/ month</span></div>
-      <div class="radio-premium-actions">
-        <button id="joinRadioPremium" type="button">Join Premium</button>
-        <button id="laterRadioPremium" type="button">Maybe Later</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(wrap);
-  document.getElementById('joinRadioPremium').addEventListener('click',()=>{ location.href = STRIPE_RADIO_PREMIUM_URL; });
-  document.getElementById('laterRadioPremium').addEventListener('click',dismiss);
-  document.getElementById('closeRadioPremium').addEventListener('click',dismiss);
-  wrap.addEventListener('click',(e)=>{ if(e.target === wrap) dismiss(); });
-}
-
-async function isPremiumUser(user){
-  if(!user || user.isAnonymous) return false;
-  const email = String(user.email || '').toLowerCase();
-
-  try{
-    const userSnap = await getDoc(doc(db,'users',user.uid));
-    const data = userSnap.exists() ? userSnap.data() : {};
-    if(data.radioPremiumActive === true || data.premium === true || data.subscriptionStatus === 'active' || data.radioPremiumStatus === 'active') return true;
-  }catch(e){ console.warn('[radio premium] users check skipped', e); }
-
-  try{
-    const subSnap = await getDoc(doc(db,'radio_premium_subscribers',user.uid));
-    const data = subSnap.exists() ? subSnap.data() : {};
-    if(data.active === true || data.status === 'active') return true;
-  }catch(e){ console.warn('[radio premium] uid subscriber check skipped', e); }
-
-  if(email){
+function showAccountModal(mode="login"){
+  if(document.getElementById("ub-auth-modal"))document.getElementById("ub-auth-modal").remove();
+  const modal=document.createElement("div");modal.id="ub-auth-modal";
+  modal.innerHTML=`<style>#ub-auth-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:18px;font-family:sans-serif;color:#fff}#ub-auth-modal .ub-card{width:min(430px,100%);background:#0d0d18;border:1px solid rgba(201,168,76,.45);border-radius:18px;padding:24px}#ub-auth-modal h2{font-size:22px;color:#F0C040;margin:0 0 12px}#ub-auth-modal input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px;font-size:15px;outline:none;margin:6px 0}#ub-auth-modal .ub-btn{width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;margin-top:10px;background:linear-gradient(135deg,#C9A84C,#F0C040);color:#050505}#ub-auth-modal .ub-google{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14)}#ub-auth-modal .ub-x{float:right;background:transparent;border:0;color:#aaa;font-size:24px;cursor:pointer}#ub-auth-modal .ub-status{margin-top:10px;font-size:13px;color:#ff8092}</style>
+  <div class="ub-card"><button class="ub-x" id="ub-auth-close">×</button><h2>${mode==="signup"?"Create Account":"Sign In"}</h2>
+  ${mode==="signup"?`<input id="ub-auth-name" placeholder="Your name">`:""}
+  <input id="ub-auth-email" type="email" placeholder="Email">
+  <input id="ub-auth-pass" type="password" placeholder="Password">
+  <button class="ub-btn" id="ub-auth-submit">${mode==="signup"?"Create Account":"Log In"}</button>
+  <button class="ub-btn ub-google" id="ub-auth-google">Continue with Google</button>
+  <div class="ub-status" id="ub-auth-status"></div></div>`;
+  document.body.appendChild(modal);
+  document.getElementById("ub-auth-close").onclick=()=>modal.remove();
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  const status=document.getElementById("ub-auth-status");
+  document.getElementById("ub-auth-submit").onclick=async()=>{
     try{
-      const q = query(collection(db,'radio_premium_subscribers'), where('email','==',email), where('status','==','active'));
-      const snap = await getDocs(q);
-      if(!snap.empty) return true;
-    }catch(e){ console.warn('[radio premium] email subscriber check skipped', e); }
-  }
-
-  return false;
+      await persistenceReady;
+      const email=document.getElementById("ub-auth-email").value.trim();
+      const pass=document.getElementById("ub-auth-pass").value;
+      if(!email||!pass){status.textContent="Enter email and password.";return;}
+      if(mode==="signup"){const name=document.getElementById("ub-auth-name")?.value.trim()||"";const cred=await createUserWithEmailAndPassword(auth,email,pass);if(name)await updateProfile(cred.user,{displayName:name});await ensureProfile(cred.user,{displayName:name});}
+      else{const cred=await signInWithEmailAndPassword(auth,email,pass);await ensureProfile(cred.user);}
+      modal.remove();
+    }catch(err){status.textContent=err.message||"Failed.";}
+  };
+  document.getElementById("ub-auth-google").onclick=async()=>{
+    try{await persistenceReady;const cred=await signInWithPopup(auth,googleProvider);await ensureProfile(cred.user);modal.remove();}
+    catch(err){status.textContent=err.message||"Google sign-in failed.";}
+  };
 }
-
-async function maybeShowPremium(user){
-  if(!user || user.isAnonymous) return;
-  if(dismissed()) return;
-  const premium = await isPremiumUser(user);
-  if(!premium) setTimeout(openPopup, 900);
+function mountAccountButton(){
+  if(document.getElementById("ub-auth-float"))return;
+  const btn=document.createElement("button");btn.id="ub-auth-float";
+  btn.style.cssText="position:fixed;top:12px;right:108px;z-index:999996;height:36px;border-radius:999px;border:1px solid rgba(201,168,76,.7);background:#10101c;color:#fff;font-size:15px;cursor:pointer;padding:0 10px;font-weight:900;";
+  btn.textContent="👤 Account";
+  btn.onclick=()=>showAccountModal(currentUser?"account":"login");
+  document.body.appendChild(btn);
 }
-
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', buildPopup);
-else buildPopup();
-
-onAuthStateChanged(auth, maybeShowPremium);
-window.addEventListener('ub-auth-ready', (e)=> maybeShowPremium(e.detail?.user));
+onAuthStateChanged(auth,async user=>{
+  await persistenceReady;currentUser=user;
+  if(user)await ensureProfile(user);
+  else{currentProfile=null;localStorage.removeItem("ub_unified_user");window.dispatchEvent(new CustomEvent("ub-auth-ready",{detail:{user:null,profile:null}}));}
+  mountAccountButton();
+});
+window.UniBeatzAuth={app,auth,db,getUser:()=>currentUser,getProfile:()=>currentProfile,showLogin:()=>showAccountModal("login"),showSignup:()=>showAccountModal("signup"),showAccount:()=>showAccountModal("account"),signOut:()=>signOut(auth),ensureProfile};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mountAccountButton);
+else mountAccountButton();
