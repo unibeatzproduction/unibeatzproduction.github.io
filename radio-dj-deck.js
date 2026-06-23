@@ -1,186 +1,363 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Uni Radio DJ Deck</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-<style>
-:root{--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#9aa3b8;--green:#00cc66;--red:#ff3c3c}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),radial-gradient(circle at 80% 20%,rgba(201,168,76,.16),transparent 32%),linear-gradient(145deg,#030305,#0a0a14,#030305);color:var(--white);font-family:Rajdhani,sans-serif}
-.nav{position:sticky;top:0;z-index:20;background:rgba(5,8,14,.94);border-bottom:1px solid rgba(201,168,76,.55)}
-.nav-inner{max-width:1260px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
-.brand{font-family:Bebas Neue,sans-serif;letter-spacing:2px;font-size:1.55rem;color:var(--gold-light);text-decoration:none}
-.links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-.links a{font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;text-decoration:none}
-.wrap{max-width:1260px;margin:auto;padding:24px 18px 50px}
-.hero,.panel{border:1px solid rgba(201,168,76,.34);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.88),rgba(0,0,0,.72));box-shadow:0 24px 70px rgba(0,0,0,.52);padding:18px}
-.eyebrow{font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--blue-bright);text-transform:uppercase}
-.h1{font-family:Bebas Neue,sans-serif;font-size:clamp(3rem,8vw,5.8rem);line-height:.85;letter-spacing:3px;margin:10px 0}
-.h1 span{color:var(--gold-light)}
-.sub{max-width:760px;color:#cbd3e4;line-height:1.5}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.deck-grid{display:grid;grid-template-columns:1fr 280px 1fr;gap:14px;margin-top:16px}
-.btn{border:0;border-radius:10px;padding:11px 13px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;cursor:pointer}
-.btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}
-.btn-blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}
-.btn-red{background:rgba(255,60,60,.11);border:1px solid rgba(255,60,60,.55);color:#ff7474}
-.btn-green{background:rgba(0,204,102,.12);border:1px solid rgba(0,204,102,.55);color:#5dff9e}
-.btn-rec{background:rgba(255,60,60,.85);border:1px solid #ff3c3c;color:#fff}
-.btn-rec.recording{background:#ff3c3c;animation:recPulse 1s infinite}
-@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.6}}
-.input,select{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.25);background:#090d18;color:var(--white);font-family:Rajdhani,sans-serif}
-.track-list{display:grid;gap:9px;max-height:430px;overflow:auto}
-.track{border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.035);padding:11px;text-align:left;color:var(--white);cursor:pointer}
-.track .name{font-family:Bebas Neue,sans-serif;letter-spacing:1.4px;font-size:1.3rem;color:var(--gold-light)}
-.track .desc{color:#aeb8cb}
-.turntable{border-radius:16px;border:1px solid rgba(64,208,255,.25);background:radial-gradient(circle,#151b2d,#05060a 58%,#000);min-height:240px;display:grid;place-items:center;text-align:center}
-.disc{width:150px;height:150px;border-radius:50%;border:8px solid rgba(201,168,76,.35);background:radial-gradient(circle,#050505 0 20%,#141414 21% 50%,#050505 51%);display:grid;place-items:center;color:var(--blue-bright);font-family:Orbitron,sans-serif;font-size:.6rem;letter-spacing:2px}
-.range{width:100%}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.notice{min-height:22px;margin-top:10px;color:var(--blue-bright)}
-.hardware-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-.mapping-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-.stream-pad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stream-pad{min-height:70px}
-#recordPanel{margin-top:16px;border:2px solid rgba(255,60,60,.45);border-radius:18px;background:linear-gradient(145deg,rgba(20,4,4,.88),rgba(0,0,0,.72));padding:18px}
-#recordPanel .eyebrow{color:#ff7474}
-#recTimer{font-family:Bebas Neue,sans-serif;font-size:2.5rem;letter-spacing:4px;color:#ff3c3c;margin:8px 0}
-#recSavedList{display:grid;gap:9px;margin-top:12px;max-height:300px;overflow:auto}
-.rec-item{border:1px solid rgba(255,60,60,.3);border-radius:12px;background:rgba(255,60,60,.06);padding:11px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
-.rec-item .name{font-family:Bebas Neue,sans-serif;letter-spacing:1.4px;font-size:1.1rem;color:var(--gold-light)}
-.rec-item .desc{color:#aeb8cb;font-size:.85rem}
-#lockOverlay{position:fixed;inset:0;z-index:9999;background:#030305;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
-@media(max-width:980px){.deck-grid,.grid,.hardware-grid{grid-template-columns:1fr}.nav-inner{flex-direction:column;align-items:flex-start}.stream-pad-grid{grid-template-columns:1fr 1fr}}
-</style>
-</head>
-<body>
-<div id="lockOverlay">
-  <div style="font-family:Bebas Neue,sans-serif;font-size:3rem;letter-spacing:3px;color:#F0C040;">DJ DECK</div>
-  <input id="lockInput" type="password" placeholder="Admin code" style="padding:11px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.4);background:#090d18;color:#fff;font-family:Rajdhani,sans-serif;font-size:1rem;width:260px;"/>
-  <button onclick="if(document.getElementById('lockInput').value==='empire2026'){document.getElementById('lockOverlay').style.display='none'}else{document.getElementById('lockInput').value='';document.getElementById('lockInput').placeholder='Wrong code';}" style="border:0;border-radius:10px;padding:11px 24px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a;">UNLOCK</button>
-</div>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO DJ DECK</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button onclick="document.getElementById('lockOverlay').style.display='flex';document.getElementById('lockInput').value='';" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ff7474;background:transparent;border:1px solid rgba(255,60,60,.4);border-radius:8px;padding:6px 10px;cursor:pointer;">🔒 Lock</button></div></div></nav>
-<main class="wrap">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
-<section class="hero">
-  <div class="eyebrow">Virtual Broadcast Control Room</div>
-  <h1 class="h1">DJ <span>Deck</span></h1>
-  <p class="sub">Virtual deck panel with queue management, crossfader, mic toggle, station drop triggers, voiceover triggers, podcast triggers, MIDI hardware, and Stream Deck controls.</p>
-  <div class="actions">
-    <button id="startBroadcast" class="btn btn-green">Start Live Broadcast</button>
-    <button id="endBroadcast" class="btn btn-red">End Broadcast</button>
-    <button id="micToggle" class="btn btn-blue">🎙 Mic Off</button>
-  </div>
-  <div id="deckNotice" class="notice"></div>
-</section>
+const firebaseConfig = {
+  apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+  authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
+  projectId: 'unibeatzproduction-7ae31',
+  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+  messagingSenderId: '70667820609',
+  appId: '1:70667820609:web:57762df5510e6b4000b0c0'
+};
 
-<section class="deck-grid">
-  <article class="panel">
-    <div class="eyebrow">Deck A</div>
-    <div class="turntable"><div class="disc" id="deckALabel">LOAD A</div></div>
-    <audio id="deckA" controls style="width:100%;margin-top:10px"></audio>
-    <div class="actions">
-      <button id="playA" class="btn btn-gold">Play A</button>
-      <button id="stopA" class="btn btn-blue">Stop A</button>
-    </div>
-  </article>
-  <article class="panel">
-    <div class="eyebrow">Mixer</div>
-    <p class="sub">Crossfader</p>
-    <input id="crossfader" class="range" type="range" min="0" max="100" value="50"/>
-    <div class="grid" style="grid-template-columns:1fr 1fr">
-      <button id="cueA" class="btn btn-blue">Cue A</button>
-      <button id="cueB" class="btn btn-blue">Cue B</button>
-    </div>
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light);margin-top:14px">Trigger Pads</h2>
-    <div id="triggerPads" class="track-list"></div>
-  </article>
-  <article class="panel">
-    <div class="eyebrow">Deck B</div>
-    <div class="turntable"><div class="disc" id="deckBLabel">LOAD B</div></div>
-    <audio id="deckB" controls style="width:100%;margin-top:10px"></audio>
-    <div class="actions">
-      <button id="playB" class="btn btn-gold">Play B</button>
-      <button id="stopB" class="btn btn-blue">Stop B</button>
-    </div>
-  </article>
-</section>
+const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-<section id="recordPanel">
-  <div class="eyebrow">🔴 Mix Recorder</div>
-  <h2 style="font-family:Bebas Neue;color:#ff7474;font-size:2rem;letter-spacing:2px;">RECORD YOUR MIX</h2>
-  <p class="sub" style="margin-bottom:12px;">Records everything playing through the decks. Download as audio to upload to Live365. Live broadcast is NOT affected.</p>
-  <div class="actions">
-    <button id="recStart" class="btn btn-rec">⏺ Start Recording</button>
-    <button id="recStop" class="btn btn-blue" disabled>⏹ Stop & Save</button>
-  </div>
-  <div id="recTimer" style="display:none;">0:00</div>
-  <div id="recNotice" class="notice"></div>
-  <div id="recSavedList"></div>
-</section>
+const deckA      = document.getElementById('deckA');
+const deckB      = document.getElementById('deckB');
+const deckALabel = document.getElementById('deckALabel');
+const deckBLabel = document.getElementById('deckBLabel');
+const qList      = document.getElementById('queueList');
+const pads       = document.getElementById('triggerPads');
+const notice     = document.getElementById('deckNotice');
 
-<section class="grid">
-  <article class="panel">
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light)">Queue Management</h2>
-    <div class="actions">
-      <button id="reloadQueue" class="btn btn-blue">Reload Queue</button>
-      <button id="saveQueue" class="btn btn-gold">Save Broadcast Queue</button>
-    </div>
-    <div id="queueList" class="track-list" style="margin-top:10px"></div>
-  </article>
-  <article class="panel">
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light)">Broadcast Status</h2>
-    <p class="sub" id="broadcastStatus">Offline. Start live mode when ready.</p>
-    <p class="sub" style="margin-top:8px;">This is the control surface foundation. Full WebRTC/mic streaming can connect later to LiveKit/Agora.</p>
-  </article>
-</section>
+let queue = [], assets = [], micOn = false, live = false;
+let midiAccess = null, midiLearn = false, mappings = {};
 
-<section class="panel" style="margin-top:16px" id="hardwareManager">
-  <div class="eyebrow">DJ Hardware Manager</div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:2rem">MIDI / Equipment / Stream Deck</h2>
-  <p class="sub">Connect MIDI controllers like FLKey, Akai, DDJ-style controllers, or a Stream Deck-style hotkey board.</p>
-  <div class="actions">
-    <button id="connectMidi" class="btn btn-gold">Connect MIDI Equipment</button>
-    <button id="startMidiLearn" class="btn btn-blue">Start MIDI Learn</button>
-    <button id="stopMidiLearn" class="btn btn-red">Stop MIDI Learn</button>
-  </div>
-  <div id="midiStatus" class="notice">No MIDI device connected yet.</div>
-  <div class="hardware-grid">
-    <article class="track"><div class="name">Connected Devices</div><div id="midiDevices" class="desc">None detected.</div></article>
-    <article class="track"><div class="name">Last MIDI Signal</div><div id="lastMidiSignal" class="desc">Waiting...</div></article>
-    <article class="track"><div class="name">MIDI Learn Target</div>
-      <select id="midiTarget" class="input">
-        <option value="playA">Play Deck A</option>
-        <option value="playB">Play Deck B</option>
-        <option value="stopA">Stop Deck A</option>
-        <option value="stopB">Stop Deck B</option>
-        <option value="crossfader">Crossfader</option>
-        <option value="micToggle">Mic On/Off</option>
-        <option value="nextTrigger">Trigger Next Drop</option>
-        <option value="startBroadcast">Go Live</option>
-        <option value="endBroadcast">End Live</option>
-        <option value="startRecording">Start Recording</option>
-        <option value="stopRecording">Stop Recording</option>
-      </select>
-    </article>
-  </div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:1.6rem;margin-top:14px">Saved Mappings</h2>
-  <div id="midiMappings" class="track-list"></div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:1.6rem;margin-top:14px">Stream Deck Pads</h2>
-  <div class="stream-pad-grid">
-    <button class="btn btn-green stream-pad" data-stream-action="startBroadcast">🔴 GO LIVE</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="micToggle">🎤 MIC</button>
-    <button class="btn btn-gold stream-pad" data-stream-action="nextTrigger">📻 DROP</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="playA">▶ DECK A</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="playB">▶ DECK B</button>
-    <button class="btn btn-rec stream-pad" data-stream-action="startRecording">⏺ RECORD</button>
-  </div>
-</section>
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function note(m, c='#40D0FF'){ notice.textContent = m; notice.style.color = c; }
+function recNote(m, c='#40D0FF'){ const el=document.getElementById('recNotice'); if(el){el.textContent=m;el.style.color=c;} }
+async function ensure(){ if(!auth.currentUser) await signInAnonymously(auth); return auth.currentUser; }
+function itemName(x){ return x.trackTitle||x.title||'Untitled'; }
+function itemUrl(x){ return x.audioUrl||''; }
 
-</main>
-<script type="module" src="radio-dj-deck.js"></script>
-<script>document.getElementById('lockInput').addEventListener('keydown',function(e){if(e.key==='Enter')e.target.nextElementSibling.click();});</script>
-</body>
-</html>
+function setVolumes(){
+  const v = Number(document.getElementById('crossfader').value);
+  deckA.volume = (100-v)/100;
+  deckB.volume = v/100;
+  // Also update recorder mix if active
+  if(_recGainA && _recGainB){
+    _recGainA.gain.value = (100-v)/100;
+    _recGainB.gain.value = v/100;
+  }
+}
+
+function loadTo(deck, item){
+  if(!itemUrl(item)){ note('This item has no audio URL.','#ff7474'); return; }
+  if(deck==='A'){ deckA.src=itemUrl(item); deckALabel.textContent='A: '+itemName(item).slice(0,20); }
+  else           { deckB.src=itemUrl(item); deckBLabel.textContent='B: '+itemName(item).slice(0,20); }
+  note('Loaded '+itemName(item)+' to Deck '+deck,'#5dff9e');
+}
+
+async function loadQueue(){
+  qList.innerHTML = '<div class="track">Loading queue...</div>';
+  try{
+    const [tracksSnap, assetsSnap] = await Promise.all([
+      getDocs(collection(db,'radio_submissions')),
+      getDocs(collection(db,'radio_assets')).catch(()=>({docs:[]}))
+    ]);
+    queue  = tracksSnap.docs.map(d=>({id:d.id,kind:'track',...d.data()})).filter(x=>x.status==='approved');
+    assets = assetsSnap.docs.map(d=>({id:d.id,kind:'asset',...d.data()})).filter(x=>x.active!==false);
+    queue  = [...queue,...assets].sort((a,b)=>Number(a.sortOrder||0)-Number(b.sortOrder||0));
+    renderQueue(); renderPads();
+  } catch(e){
+    console.error(e);
+    qList.innerHTML = '<div class="track">Queue failed. Check rules.</div>';
+  }
+}
+
+function renderQueue(){
+  if(!queue.length){ qList.innerHTML='<div class="track">No queue items yet.</div>'; return; }
+  qList.innerHTML = queue.map((x,i)=>`
+    <div class="track">
+      <div class="name">${i+1}. ${esc(itemName(x))}</div>
+      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
+      <div class="actions">
+        <button class="btn btn-blue" data-load="A" data-i="${i}">Load A</button>
+        <button class="btn btn-blue" data-load="B" data-i="${i}">Load B</button>
+        <button class="btn btn-gold" data-trigger="${i}">Trigger</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderPads(){
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  if(!triggers.length){ pads.innerHTML='<div class="track">Upload voiceovers, drops, podcasts, or DJ sets in admin.</div>'; return; }
+  pads.innerHTML = triggers.map((x,i)=>`
+    <button class="track" data-pad="${i}" type="button">
+      <div class="name">${esc(x.title||'Drop')}</div>
+      <div class="desc">${esc(x.type||'Asset')}</div>
+    </button>`).join('');
+}
+
+function triggerNextDrop(){
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  const x = triggers[0]||queue[0];
+  if(x){ loadTo('B',x); deckB.play(); }
+}
+
+// ═══════════════════════════════════════════════
+// MIX RECORDER — captures both decks, no broadcast
+// ═══════════════════════════════════════════════
+let _audioCtx    = null;
+let _recDest     = null;
+let _mediaRec    = null;
+let _recChunks   = [];
+let _recGainA    = null;
+let _recGainB    = null;
+let _recSrcA     = null;
+let _recSrcB     = null;
+let _recTimerInt = null;
+let _recStart    = null;
+let _savedMixes  = []; // { name, blob, url, duration, date }
+
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function startRecording(){
+  if(_mediaRec && _mediaRec.state==='recording'){ recNote('Already recording.','#F0C040'); return; }
+
+  const ctx = getAudioCtx();
+  if(ctx.state==='suspended') ctx.resume();
+
+  // Create media element sources for both decks
+  _recSrcA  = ctx.createMediaElementSource(deckA);
+  _recSrcB  = ctx.createMediaElementSource(deckB);
+  _recGainA = ctx.createGain();
+  _recGainB = ctx.createGain();
+  _recDest  = ctx.createMediaStreamDestination();
+
+  const v = Number(document.getElementById('crossfader').value);
+  _recGainA.gain.value = (100-v)/100;
+  _recGainB.gain.value = v/100;
+
+  // Route: deckA → gainA → destination + speakers
+  _recSrcA.connect(_recGainA);
+  _recGainA.connect(_recDest);
+  _recGainA.connect(ctx.destination);
+
+  _recSrcB.connect(_recGainB);
+  _recGainB.connect(_recDest);
+  _recGainB.connect(ctx.destination);
+
+  _recChunks = [];
+  _mediaRec  = new MediaRecorder(_recDest.stream, { mimeType: 'audio/webm' });
+  _mediaRec.ondataavailable = e => { if(e.data.size>0) _recChunks.push(e.data); };
+  _mediaRec.onstop = finishRecording;
+  _mediaRec.start(1000);
+
+  _recStart = Date.now();
+
+  // Timer display
+  const timerEl = document.getElementById('recTimer');
+  if(timerEl) timerEl.style.display='block';
+  _recTimerInt = setInterval(()=>{
+    const elapsed = Math.floor((Date.now()-_recStart)/1000);
+    const m = Math.floor(elapsed/60), s = elapsed%60;
+    if(timerEl) timerEl.textContent = m+':'+(s<10?'0':'')+s;
+  }, 500);
+
+  // Update buttons
+  const startBtn = document.getElementById('recStart');
+  const stopBtn  = document.getElementById('recStop');
+  if(startBtn){ startBtn.textContent='⏺ Recording...'; startBtn.classList.add('recording'); startBtn.disabled=true; }
+  if(stopBtn)  stopBtn.disabled = false;
+
+  recNote('🔴 Recording mix — play your tracks on the decks.','#ff3c3c');
+}
+
+function stopRecording(){
+  if(!_mediaRec||_mediaRec.state!=='recording'){ recNote('No recording in progress.','#F0C040'); return; }
+  _mediaRec.stop();
+  clearInterval(_recTimerInt);
+
+  const startBtn = document.getElementById('recStart');
+  const stopBtn  = document.getElementById('recStop');
+  if(startBtn){ startBtn.textContent='⏺ Start Recording'; startBtn.classList.remove('recording'); startBtn.disabled=false; }
+  if(stopBtn)  stopBtn.disabled = true;
+
+  const timerEl = document.getElementById('recTimer');
+  if(timerEl) timerEl.style.display='none';
+}
+
+function finishRecording(){
+  const blob = new Blob(_recChunks, { type:'audio/webm' });
+  const url  = URL.createObjectURL(blob);
+  const duration = Math.floor((Date.now()-_recStart)/1000);
+  const m = Math.floor(duration/60), s = duration%60;
+  const name = 'UniBeatz_Mix_'+new Date().toISOString().slice(0,16).replace('T','_').replace(/:/g,'-');
+
+  _savedMixes.unshift({ name, blob, url, duration, date: new Date().toLocaleString() });
+
+  // Disconnect sources so normal audio playback resumes
+  try{ _recSrcA.disconnect(); }catch(e){}
+  try{ _recSrcB.disconnect(); }catch(e){}
+  // Re-connect decks directly to speakers
+  try{ _recSrcA.connect(_audioCtx.destination); }catch(e){}
+  try{ _recSrcB.connect(_audioCtx.destination); }catch(e){}
+
+  _recGainA = null; _recGainB = null;
+
+  renderSavedMixes();
+  recNote('✅ Mix saved! '+m+'m '+s+'s — tap Download to save as WAV for Live365.','#5dff9e');
+}
+
+function renderSavedMixes(){
+  const list = document.getElementById('recSavedList');
+  if(!list) return;
+  if(!_savedMixes.length){ list.innerHTML=''; return; }
+  list.innerHTML = _savedMixes.map((mix,i)=>`
+    <div class="rec-item">
+      <div>
+        <div class="name">${esc(mix.name)}</div>
+        <div class="desc">${mix.date} · ${Math.floor(mix.duration/60)}m ${mix.duration%60}s</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <a href="${mix.url}" download="${mix.name}.webm" class="btn btn-gold" style="text-decoration:none;white-space:nowrap;">⬇ Download</a>
+        <button class="btn btn-red" data-delete-mix="${i}">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+document.getElementById('recSavedList')?.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-delete-mix]');
+  if(!btn) return;
+  const i = Number(btn.dataset.deleteMix);
+  URL.revokeObjectURL(_savedMixes[i]?.url);
+  _savedMixes.splice(i,1);
+  renderSavedMixes();
+});
+
+document.getElementById('recStart')?.addEventListener('click', startRecording);
+document.getElementById('recStop')?.addEventListener('click',  stopRecording);
+
+// ═══════════════════════════════════════════════
+// DECK CONTROLS
+// ═══════════════════════════════════════════════
+function runDeckAction(action, value=null){
+  if(action==='playA')         deckA.play();
+  if(action==='playB')         deckB.play();
+  if(action==='stopA')        { deckA.pause(); deckA.currentTime=0; }
+  if(action==='stopB')        { deckB.pause(); deckB.currentTime=0; }
+  if(action==='micToggle')     document.getElementById('micToggle').click();
+  if(action==='startBroadcast') document.getElementById('startBroadcast').click();
+  if(action==='endBroadcast')   document.getElementById('endBroadcast').click();
+  if(action==='nextTrigger')   triggerNextDrop();
+  if(action==='startRecording') startRecording();
+  if(action==='stopRecording')  stopRecording();
+  if(action==='crossfader' && value!==null){
+    document.getElementById('crossfader').value = Math.round((value/127)*100);
+    setVolumes();
+  }
+}
+
+qList.addEventListener('click', e=>{
+  const load = e.target.closest('[data-load]');
+  if(load){ loadTo(load.dataset.load, queue[Number(load.dataset.i)]); return; }
+  const trig = e.target.closest('[data-trigger]');
+  if(trig){ const x=queue[Number(trig.dataset.trigger)]; loadTo('B',x); deckB.play(); }
+});
+
+pads.addEventListener('click', e=>{
+  const p = e.target.closest('[data-pad]');
+  if(!p) return;
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  const x = triggers[Number(p.dataset.pad)];
+  loadTo('B',x); deckB.play();
+});
+
+document.getElementById('crossfader').addEventListener('input', setVolumes);
+document.getElementById('playA').onclick  = ()=>deckA.play();
+document.getElementById('playB').onclick  = ()=>deckB.play();
+document.getElementById('stopA').onclick  = ()=>{ deckA.pause(); deckA.currentTime=0; };
+document.getElementById('stopB').onclick  = ()=>{ deckB.pause(); deckB.currentTime=0; };
+document.getElementById('cueA').onclick   = ()=>{ deckA.currentTime=0; deckA.play(); };
+document.getElementById('cueB').onclick   = ()=>{ deckB.currentTime=0; deckB.play(); };
+document.getElementById('micToggle').onclick = ()=>{
+  micOn = !micOn;
+  document.getElementById('micToggle').textContent = micOn?'🎙 Mic On':'🎙 Mic Off';
+  note(micOn?'Mic armed locally. Live mic streaming connects next.':'Mic off.');
+};
+document.getElementById('startBroadcast').onclick = async()=>{
+  await ensure(); live=true;
+  document.getElementById('broadcastStatus').textContent = 'Live Broadcast Mode ON';
+  await setDoc(doc(db,'radio_broadcast','main'),{ live:true, micOn, updatedAt:serverTimestamp(), hostUid:auth.currentUser?.uid||'' },{merge:true});
+  note('Live Broadcast Mode started.','#5dff9e');
+};
+document.getElementById('endBroadcast').onclick = async()=>{
+  await ensure(); live=false;
+  document.getElementById('broadcastStatus').textContent = 'Offline. Start live mode when ready.';
+  await setDoc(doc(db,'radio_broadcast','main'),{ live:false, micOn:false, updatedAt:serverTimestamp() },{merge:true});
+  note('Broadcast ended.','#ff7474');
+};
+document.getElementById('reloadQueue').onclick = loadQueue;
+document.getElementById('saveQueue').onclick = async()=>{
+  await ensure();
+  await setDoc(doc(db,'radio_dj_queues','main'),{
+    items: queue.map((x,i)=>({id:x.id,kind:x.kind||'item',title:itemName(x),audioUrl:itemUrl(x),order:i})),
+    updatedAt: serverTimestamp()
+  },{merge:true});
+  note('Broadcast queue saved.','#5dff9e');
+};
+
+// ═══════════════════════════════════════════════
+// MIDI
+// ═══════════════════════════════════════════════
+function renderMappings(){
+  const box = document.getElementById('midiMappings');
+  if(!box) return;
+  const rows = Object.entries(mappings);
+  if(!rows.length){ box.innerHTML='<div class="track">No MIDI mappings yet. Click Start MIDI Learn, choose a target, then move a control.</div>'; return; }
+  box.innerHTML = rows.map(([key,action])=>`
+    <div class="track mapping-row">
+      <div><div class="name">${esc(action)}</div><div class="desc">MIDI ${esc(key)}</div></div>
+      <button class="btn btn-red" data-clear-map="${esc(key)}">Clear</button>
+    </div>`).join('');
+}
+function midiKey(data){ return `${data[0]}-${data[1]}`; }
+function onMidiMessage(e){
+  const data=[...e.data], key=midiKey(data), val=data[2]??0;
+  const sig=document.getElementById('lastMidiSignal');
+  if(sig) sig.textContent=`${key} value ${val}`;
+  if(midiLearn){
+    const target=document.getElementById('midiTarget').value;
+    mappings[key]=target;
+    localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
+    renderMappings();
+    note(`Mapped MIDI ${key} to ${target}`,'#5dff9e');
+    return;
+  }
+  const action=mappings[key];
+  if(action) runDeckAction(action,val);
+}
+async function connectMidi(){
+  const status=document.getElementById('midiStatus');
+  try{
+    if(!navigator.requestMIDIAccess){ status.textContent='Web MIDI not supported. Use Chrome/Edge desktop.'; status.style.color='#ff7474'; return; }
+    midiAccess=await navigator.requestMIDIAccess({sysex:false});
+    const inputs=[...midiAccess.inputs.values()];
+    inputs.forEach(input=>input.onmidimessage=onMidiMessage);
+    document.getElementById('midiDevices').textContent=inputs.length?inputs.map(i=>i.name).join(', '):'No MIDI inputs detected.';
+    status.textContent=inputs.length?'MIDI equipment connected.':'MIDI ready, but no inputs detected.';
+    status.style.color=inputs.length?'#5dff9e':'#F0C040';
+  } catch(e){ console.error(e); status.textContent='MIDI connect failed: '+(e.message||e); status.style.color='#ff7474'; }
+}
+document.getElementById('connectMidi')?.addEventListener('click',connectMidi);
+document.getElementById('startMidiLearn')?.addEventListener('click',()=>{ midiLearn=true; note('MIDI Learn ON. Move a hardware control now.','#F0C040'); });
+document.getElementById('stopMidiLearn')?.addEventListener('click',()=>{ midiLearn=false; note('MIDI Learn OFF.'); });
+document.getElementById('midiMappings')?.addEventListener('click',e=>{
+  const b=e.target.closest('[data-clear-map]');
+  if(!b) return;
+  delete mappings[b.dataset.clearMap];
+  localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
+  renderMappings();
+});
+document.querySelectorAll('[data-stream-action]').forEach(btn=>btn.addEventListener('click',()=>runDeckAction(btn.dataset.streamAction)));
+
+// ── Boot ──
+try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
+setVolumes(); renderMappings(); loadQueue();
