@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- UniBeatz Radio Station — Full Version with Live365 + Genre Channels -->
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="mobile-web-app-capable" content="yes"/>
@@ -45,7 +44,6 @@
   #genreFilters,#approvedList{display:none!important}
   .approved-home-hidden{display:none!important}
   .compact-submit{padding:14px}
-  .btn-full{width:100%;display:block;text-align:center}
   .btn-mini{padding:7px 10px;font-size:.44rem}
   #ubRadioProgress{display:none;margin:10px 0 4px;border-radius:999px;height:8px;background:rgba(255,255,255,.1);overflow:hidden}
   #ubRadioProgressFill{height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s}
@@ -88,11 +86,21 @@
         </div>
       </div>
       <div class="player uni-player live365-box">
+        <!-- Desktop: Live365 iframe -->
         <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
           src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
           allow="autoplay; encrypted-media" loading="lazy"></iframe>
-        <audio id="radioPlayer" class="stream-fallback" controls preload="none"
-          src="https://streaming.live365.com/a01878" playsinline webkit-playsinline></audio>
+
+        <!-- Mobile: direct stream for background play support -->
+        <div id="live365Mobile" style="display:none;text-align:center;padding:16px 0;">
+          <audio id="mainStationAudio" preload="auto" playsinline webkit-playsinline
+            style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;"
+            src="https://streaming.live365.com/a01878"></audio>
+          <div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;margin-bottom:4px;">📻 UniBeatz Radio</div>
+          <div style="font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;margin-bottom:14px;">LIVE365 · 24/7 BROADCAST</div>
+          <button id="mainStationPlay" class="btn btn-gold" style="min-width:160px;font-size:.6rem;">▶ Play Station</button>
+        </div>
+
         <div class="live365-mini">
           <span id="trackCountLabel">24/7 Live365 rotation</span>
           <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
@@ -115,7 +123,7 @@
         <div class="eyebrow">DJ HOST PATH</div>
         <h2 class="section-title" style="margin-top:2px">Apply To DJ</h2>
         <p class="sub">Two DJ lanes: Culture/Streets and Open Format/Shows.</p>
-        <a class="btn btn-blue btn-full" href="radio-dj-apply.html" style="margin-top:12px">Apply To DJ</a>
+        <a class="btn btn-blue btn-full" href="radio-dj-apply.html" style="margin-top:12px;display:block;text-align:center">Apply To DJ</a>
       </article>
     </div>
   </section>
@@ -125,7 +133,6 @@
       <div class="channels-title">🎵 Genre Channels</div>
       <div class="channels-sub">Tap a channel to switch · Plays approved tracks in that genre</div>
     </div>
-
     <div class="genre-pill-row" id="genrePillRow">
       <button class="genre-pill main-pill active" data-genre="live365">📻 Main Station</button>
       <button class="genre-pill" data-genre="Hip-Hop">🔥 Hip-Hop</button>
@@ -141,7 +148,6 @@
       <button class="genre-pill" data-genre="Podcast">🎙️ Podcast</button>
       <button class="genre-pill" data-genre="Instrumentals">🎹 Instrumentals</button>
     </div>
-
     <div id="channelBar">
       <div id="channelBarDot"></div>
       <div id="channelBarInfo">
@@ -189,8 +195,8 @@
         I confirm this submission is fully authorized for review and possible radio placement.
       </label>
       <input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/>
-      <p style="font-size:.82rem;color:#8d94a5">MP3 or WAV · Max 100MB</p>
-      <button id="radioSubmitBtn" class="btn btn-gold" type="button">Submit for Review</button>
+      <p style="font-size:.82rem;color:#8d94a5;margin-top:2px;">MP3 or WAV · Max 100MB</p>
+      <button class="btn btn-gold" type="submit">Submit for Review</button>
     </form>
   </div>
 </div>
@@ -216,18 +222,16 @@ const app = getApps().length ? getApp() : initializeApp({
 const db = getFirestore(app);
 
 let allTracks = [], queue = [], queueIndex = 0, currentGenre = 'live365';
-const audio = document.getElementById('channelAudio');
-const bar = document.getElementById('channelBar');
-const barTitle = document.getElementById('channelBarTitle');
+const audio   = document.getElementById('channelAudio');
+const bar     = document.getElementById('channelBar');
+const barTitle  = document.getElementById('channelBarTitle');
 const barArtist = document.getElementById('channelBarArtist');
-const chPlay = document.getElementById('chPlay');
+const chPlay  = document.getElementById('chPlay');
 
 async function loadTracks(){
   try{
     const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
     allTracks = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-    const label = document.getElementById('trackCountLabel');
-    if(label && allTracks.length) label.textContent = allTracks.length + ' approved tracks · 24/7 Live365';
   } catch(e){ console.warn('[channels]', e); }
 }
 
@@ -242,7 +246,7 @@ function switchGenre(genre){
     .sort((a,b) => Number(b.featured||0) - Number(a.featured||0));
   queueIndex = 0;
   if(!queue.length){
-    barTitle.textContent = 'No tracks yet in ' + genre;
+    barTitle.textContent  = 'No tracks yet in ' + genre;
     barArtist.textContent = 'Submit music above to be first';
     bar.classList.add('visible');
     audio.pause();
@@ -261,7 +265,7 @@ function playIndex(index){
   audio.src = track.audioUrl;
   audio.load();
   audio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
-  barTitle.textContent = track.trackTitle || 'Untitled';
+  barTitle.textContent  = track.trackTitle  || 'Untitled';
   barArtist.textContent = (track.artistName || 'Unknown') + ' · ' + currentGenre;
 }
 
@@ -283,6 +287,33 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
     switchGenre(pill.dataset.genre);
   });
 });
+
+// Mobile detection — swap iframe for direct audio player
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if(isMobile){
+  document.getElementById('live365Frame').style.display = 'none';
+  document.getElementById('live365Mobile').style.display = 'block';
+}
+
+// Main station play button (mobile only)
+const mainAudio   = document.getElementById('mainStationAudio');
+const mainPlayBtn = document.getElementById('mainStationPlay');
+
+mainPlayBtn?.addEventListener('click', async () => {
+  if(!mainAudio) return;
+  if(mainAudio.paused){
+    try{
+      await mainAudio.play();
+      mainPlayBtn.textContent = '⏸ Pause Station';
+    } catch(e){ mainPlayBtn.textContent = '▶ Play Station'; }
+  } else {
+    mainAudio.pause();
+    mainPlayBtn.textContent = '▶ Play Station';
+  }
+});
+mainAudio?.addEventListener('play',  () => { if(mainPlayBtn) mainPlayBtn.textContent = '⏸ Pause Station'; });
+mainAudio?.addEventListener('pause', () => { if(mainPlayBtn) mainPlayBtn.textContent = '▶ Play Station'; });
+mainAudio?.addEventListener('error', () => { if(mainPlayBtn) mainPlayBtn.textContent = '⚠ Stream Error'; });
 
 loadTracks();
 </script>
