@@ -1,21 +1,28 @@
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
-const firebaseConfig={apiKey:'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',authDomain:'unibeatzproduction-7ae31.firebaseapp.com',projectId:'unibeatzproduction-7ae31',storageBucket:'unibeatzproduction-7ae31.firebasestorage.app',messagingSenderId:'70667820609',appId:'1:70667820609:web:57762df5510e6b4000b0c0'};
-const app=getApps().length?getApp():initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
-const form=document.getElementById('djApplyForm');
-const notice=document.getElementById('djApplyNotice');
-form.addEventListener('submit',async e=>{
-  e.preventDefault();
-  notice.textContent='Submitting DJ application...';notice.style.color='#40D0FF';
-  try{
-    if(!auth.currentUser) await signInAnonymously(auth);
-    const fd=new FormData(form);
-    await addDoc(collection(db,'radio_dj_applications'),{
-      djName:fd.get('djName')||'',realName:fd.get('realName')||'',email:fd.get('email')||'',cityState:fd.get('cityState')||'',socialLinks:fd.get('socialLinks')||'',djType:fd.get('djType')||'',genres:fd.get('genres')||'',availability:fd.get('availability')||'',experience:fd.get('experience')||'',sampleMixUrl:fd.get('sampleMixUrl')||'',rightsConfirm:!!fd.get('rightsConfirm'),status:'pending',rank:'Applicant',createdAt:serverTimestamp(),reviewedAt:null,submittedByUid:auth.currentUser?.uid||null
-    });
-    form.reset();notice.textContent='Application submitted. Admin review pending.';notice.style.color='#5dff9e';
-  }catch(err){console.error(err);notice.textContent='Application failed: '+(err.message||err);notice.style.color='#ff7474';}
-});
+{
+  "name": "UniBeatz Radio Station",
+  "short_name": "UniBeatz Radio",
+  "description": "Independent hip-hop radio. Live365-powered 24/7 broadcast. Built From Pressure.",
+  "start_url": "/radio.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#C9A84C",
+  "background_color": "#030305",
+  "categories": ["music", "entertainment"],
+  "lang": "en-US",
+  "icons": [
+    { "src": "/unibeatz-radio-cover-v2.svg", "sizes": "any",     "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "/icons/radio-192.png",         "sizes": "192x192", "type": "image/png",     "purpose": "any maskable" },
+    { "src": "/icons/radio-512.png",         "sizes": "512x512", "type": "image/png",     "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    { "src": "/unibeatz-radio-cover-v2.svg", "sizes": "512x512", "type": "image/svg+xml", "label": "UniBeatz Radio Station" }
+  ],
+  "shortcuts": [
+    { "name": "Listen Now",      "url": "/radio.html",           "description": "Open radio player"    },
+    { "name": "Submit Music",    "url": "/radio.html#submit",    "description": "Submit your track"     },
+    { "name": "Apply To DJ",     "url": "/radio-dj-apply.html", "description": "Apply to become a DJ"  }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
