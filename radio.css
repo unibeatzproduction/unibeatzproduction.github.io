@@ -1,37 +1,62 @@
+/* radio.css — UniBeatz Radio Station */
 :root{--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#9aa3b8;--green:#00cc66;--red:#ff3c3c}
 *{box-sizing:border-box;margin:0;padding:0}
 body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),radial-gradient(circle at 80% 20%,rgba(201,168,76,.16),transparent 32%),linear-gradient(145deg,#030305,#0a0a14,#030305);color:var(--white);font-family:Rajdhani,sans-serif}
+
+/* ── Street Art ── */
+.street-art{position:fixed;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:4px;text-transform:uppercase;opacity:.06;pointer-events:none;white-space:nowrap;z-index:0}
+.street-left{left:-20px;top:50%;transform:rotate(-90deg) translateX(-50%);color:#40D0FF}
+.street-right{right:-20px;top:50%;transform:rotate(90deg) translateX(50%);color:#C9A84C}
+.street-floor{bottom:8px;left:50%;transform:translateX(-50%);color:#fff;font-size:.55rem}
+
+/* ── Nav ── */
 .nav{position:sticky;top:0;z-index:20;background:rgba(5,8,14,.94);border-bottom:1px solid rgba(201,168,76,.55)}
 .nav-inner{max-width:1220px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
 .brand{font-family:Bebas Neue,sans-serif;letter-spacing:2px;font-size:1.55rem;color:var(--gold-light);text-decoration:none}
 .links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
 .links a{font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;text-decoration:none}
 .links button{font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;background:transparent;border:1px solid rgba(201,168,76,.4);border-radius:8px;padding:6px 10px;cursor:pointer}
-.wrap{max-width:1220px;margin:auto;padding:24px 18px 50px}
+
+/* ── Layout ── */
+.wrap{max-width:1220px;margin:auto;padding:24px 18px 50px;position:relative;z-index:1}
 .panel{border:1px solid rgba(201,168,76,.34);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.88),rgba(0,0,0,.72));box-shadow:0 24px 70px rgba(0,0,0,.52);padding:18px}
 .eyebrow{font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--blue-bright);text-transform:uppercase}
 .h1{font-family:Bebas Neue,sans-serif;font-size:clamp(2.4rem,7vw,5rem);line-height:.85;letter-spacing:3px;margin:10px 0}
 .h1 span{color:var(--gold-light)}
 .sub{color:#cbd3e4;line-height:1.5}
-.badge{display:inline-block;border:1px solid rgba(255,60,60,.6);border-radius:999px;padding:4px 10px;font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#ff7474;text-transform:uppercase;animation:badgePulse 1.5s infinite}
+.section-title{font-family:Bebas Neue,sans-serif;font-size:1.8rem;letter-spacing:2px;color:var(--gold-light)}
+.small{font-size:.82rem;color:#aeb8cb;line-height:1.35}
+
+/* ── Station block ── */
+.station{display:flex;gap:14px;align-items:flex-start;margin-top:12px}
+.cover{font-size:2.8rem;flex-shrink:0}
+.meta h3{font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:1.5px;color:var(--gold-light)}
+.meta p{color:#aeb8cb;font-size:.9rem;margin-top:4px;line-height:1.35}
+
+/* ── Badge ── */
+.badge{display:inline-block;border:1px solid rgba(255,60,60,.6);border-radius:999px;padding:4px 10px;font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#ff7474;text-transform:uppercase;animation:badgePulse 1.5s infinite;margin-top:6px}
 @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── Buttons ── */
 .btn{border:0;border-radius:10px;padding:11px 13px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;cursor:pointer}
 .btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}
 .btn-blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}
 .btn-mini{padding:7px 10px;font-size:.44rem}
 .btn-full{width:100%}
+
+/* ── Forms ── */
 .input,select,textarea{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.25);background:#090d18;color:var(--white);font-family:Rajdhani,sans-serif}
 textarea{min-height:80px;resize:vertical}
 .form{display:grid;gap:10px}
 .notice{min-height:22px;margin-top:8px;color:var(--blue-bright);font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:1px}
+
+/* ── Modal ── */
 .modal-wrap{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:16px}
 .modal-wrap.open{display:flex}
 .modal{width:min(540px,100%);max-height:90vh;overflow-y:auto;border:1px solid rgba(201,168,76,.45);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.97),rgba(0,0,0,.95));padding:20px;position:relative}
 .modal .x{position:absolute;top:14px;right:14px;border:0;background:transparent;color:#aaa;font-size:1.4rem;cursor:pointer;line-height:1}
-.section-title{font-family:Bebas Neue,sans-serif;font-size:1.8rem;letter-spacing:2px;color:var(--gold-light)}
+
+/* ── Compact layout ── */
 .compact-submit{padding:14px}
-.street-art{position:fixed;font-family:Bebas Neue,sans-serif;font-size:.7rem;letter-spacing:4px;text-transform:uppercase;opacity:.06;pointer-events:none;white-space:nowrap}
-.street-left{left:-20px;top:50%;transform:rotate(-90deg) translateX(-50%);color:#40D0FF}
-.street-right{right:-20px;top:50%;transform:rotate(90deg) translateX(50%);color:#C9A84C}
-.street-floor{bottom:8px;left:50%;transform:translateX(-50%);color:#fff;font-size:.55rem}
+
 @media(max-width:760px){.nav-inner{flex-direction:column;align-items:flex-start}}
