@@ -1,281 +1,625 @@
-// admin-radio-panels.js — UniBeatz Radio Admin
-// Merged: admin-radio-workflow.js + admin-radio-workflow-panel.js + admin-radio-automation.js
-// Handles: DJ workflow uploader, radio asset management, queue builder, auto-rotation rules
-
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
-
-const ADMIN_EMAILS = ['syncere862@gmail.com', 'unibeatzproduction@gmail.com'];
-const auth    = getAuth();
-const db      = getFirestore();
-const storage = getStorage();
-
-let radioAssets = [];
-let queueItems  = [];
-let panelsBuilt = false;
-
-function isAdmin(){ return ADMIN_EMAILS.includes(String(auth.currentUser?.email || '').toLowerCase()); }
-function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function note(msg, color = '#40D0FF'){
-  const box = document.getElementById('adminPanelsNotice') || document.getElementById('stationNotice');
-  if(box){ box.textContent = msg; box.style.color = color; }
-}
-
-function getLaneLabel(lane){ return lane === 'open_format' ? 'DJ 2: Open Format / Shows' : 'DJ 1: Culture / Streets'; }
-function getTypeLabel(type){
-  if(type === 'podcast')      return 'Podcast';
-  if(type === 'voiceover')    return 'Voiceover';
-  if(type === 'station_drop') return 'Station Drop';
-  if(type === 'dj_set')       return 'DJ Set';
-  return 'Radio Asset';
-}
-
-function buildPanels(){
-  if(panelsBuilt) return;
-  const adminApp = document.getElementById('adminApp');
-  if(!adminApp) return;
-  panelsBuilt = true;
-
-  adminApp.insertAdjacentHTML('beforeend', `
-    <!-- ── DJ Workflow Upload Panel ── -->
-    <section class="panel" id="radioWorkflowPanel" style="margin-top:16px">
-      <h2>DJ Workflow · Upload Radio Assets</h2>
-      <p class="small">Upload podcasts, voiceovers, station drops, and DJ sets. Two lanes keep culture and general content clean.</p>
-      <div class="grid" style="grid-template-columns:320px 1fr;margin-top:14px">
-        <div class="panel" style="box-shadow:none">
-          <h2 style="font-size:1.5rem">Upload Asset</h2>
-          <div class="form">
-            <label class="small">DJ Lane</label>
-            <select id="radioDjLane" class="input">
-              <option value="culture">DJ 1: Culture / Streets</option>
-              <option value="open_format">DJ 2: Open Format / Shows</option>
-            </select>
-            <label class="small">Asset Type</label>
-            <select id="radioAssetType" class="input">
-              <option value="voiceover">Voiceover</option>
-              <option value="station_drop">Station Drop</option>
-              <option value="podcast">Podcast</option>
-              <option value="dj_set">DJ Set</option>
-            </select>
-            <label class="small">Genre</label>
-            <select id="radioAssetGenre" class="input">
-              <option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option><option>Drill</option><option>R&B</option><option>Afrobeats</option><option>Freestyle Sessions</option><option>Producer Showcase</option><option>Country</option><option>Lo-Fi</option><option>Podcast</option><option>Instrumentals</option><option>Live DJ Sets</option><option>General Station</option>
-            </select>
-            <label class="small">Title</label>
-            <input id="radioAssetTitle" class="input" placeholder="Station Drop — Built From Pressure"/>
-            <label class="small">Audio File</label>
-            <input id="radioAssetFile" class="input" type="file" accept="audio/*"/>
-            <button id="uploadRadioAsset"  class="btn btn-gold" type="button">Upload Asset</button>
-            <button id="refreshRadioAssets" class="btn btn-blue" type="button">Refresh List</button>
-            <div id="adminPanelsNotice" class="notice"></div>
-          </div>
-        </div>
-        <div class="panel" style="box-shadow:none">
-          <h2 style="font-size:1.5rem">2-DJ Catalog</h2>
-          <p class="small"><b>DJ 1 Culture:</b> Hip-Hop, Boom Bap, Trap, Drill, R&B, Afrobeats, Freestyle, Producer Showcase.</p>
-          <p class="small"><b>DJ 2 Open Format:</b> Country, Lo-Fi, Podcast, Instrumentals, Live DJ Sets, General Station.</p>
-          <div id="radioAssetList" class="track-list" style="margin-top:10px"><div class="empty">Loading...</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── Auto Queue Builder ── -->
-    <section class="panel" id="radioAutomationPanel" style="margin-top:16px">
-      <div class="eyebrow">AUTO RADIO PROGRAMMING</div>
-      <h2>Queue Builder / Auto Rotation</h2>
-      <p class="small">Set insertion rules for voiceovers and drops. Control how often they appear between songs.</p>
-      <div class="actions" style="margin-top:10px">
-        <button id="refreshAutoQueue" class="btn btn-blue" type="button">Refresh Queue</button>
-        <button id="saveAutoQueue"    class="btn btn-gold" type="button">Save Rotation</button>
-        <button id="autoRadioOn"      class="btn btn-green" type="button">Auto Radio ON</button>
-        <button id="autoRadioOff"     class="btn btn-red"   type="button">Auto Radio OFF</button>
-      </div>
-      <div id="autoQueueList" class="track-list" style="margin-top:14px"><div class="empty">Click Refresh Queue to load.</div></div>
-    </section>
-
-    <!-- ── DJ Tools Link ── -->
-    <section class="panel" style="margin-top:16px">
-      <div class="eyebrow">ADMIN DJ CONTROL ROOM</div>
-      <h2>DJ Deck Tools</h2>
-      <p class="small">MIDI equipment, Stream Deck pads, crossfader, queue management, mic toggle, station drops, voiceovers, podcasts, live broadcast mode.</p>
-      <div class="actions">
-        <a class="btn btn-gold" href="radio-dj-deck.html">Open Admin DJ Deck</a>
-        <a class="btn btn-blue" href="radio-dj-apply.html">DJ Application Page</a>
-      </div>
-    </section>
-  `);
-
-  document.getElementById('uploadRadioAsset')?.addEventListener('click',  uploadAsset);
-  document.getElementById('refreshRadioAssets')?.addEventListener('click', loadAssets);
-  document.getElementById('radioAssetList')?.addEventListener('click',     handleAssetAction);
-  document.getElementById('refreshAutoQueue')?.addEventListener('click',   loadAutoQueue);
-  document.getElementById('saveAutoQueue')?.addEventListener('click',      saveRotation);
-  document.getElementById('autoRadioOn')?.addEventListener('click',        () => setAutoMode(true));
-  document.getElementById('autoRadioOff')?.addEventListener('click',       () => setAutoMode(false));
-
-  loadAssets();
-}
-
-// ── Upload ──
-async function uploadAsset(){
-  if(!isAdmin()){ note('Google admin sign-in required.', '#ff7474'); return; }
-  const lane  = document.getElementById('radioDjLane').value;
-  const type  = document.getElementById('radioAssetType').value;
-  const title = document.getElementById('radioAssetTitle').value.trim();
-  const genre = document.getElementById('radioAssetGenre').value;
-  const file  = document.getElementById('radioAssetFile').files[0];
-  if(!title){ note('Add a title first.', '#ff7474'); return; }
-  if(!file){  note('Choose an audio file.', '#ff7474'); return; }
-  if(file.size > 100 * 1024 * 1024){ note('Max 100MB.', '#ff7474'); return; }
-  try{
-    note('Uploading...');
-    const safeName = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-    const fileRef  = ref(storage, 'radio-assets/' + lane + '/' + type + '/' + safeName);
-    await uploadBytes(fileRef, file, { contentType: file.type || 'audio/mpeg' });
-    const audioUrl = await getDownloadURL(fileRef);
-    const maxOrder = radioAssets.filter(a => (a.djLane || 'culture') === lane).reduce((m, a) => Math.max(m, Number(a.sortOrder || 0)), 0);
-    await addDoc(collection(db, 'radio_assets'), {
-      djLane: lane, djLaneLabel: getLaneLabel(lane), type, title, genre,
-      audioUrl, fileName: file.name, fileType: file.type || 'audio/mpeg',
-      storagePath: fileRef.fullPath, active: true, sortOrder: maxOrder + 10,
-      createdBy: auth.currentUser?.email || '', createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-    });
-    document.getElementById('radioAssetTitle').value = '';
-    document.getElementById('radioAssetFile').value  = '';
-    note('Uploaded to ' + getLaneLabel(lane) + '.', '#5dff9e');
-    await loadAssets();
-  } catch(e){ note('Upload failed: ' + (e.message || e), '#ff7474'); }
-}
-
-async function loadAssets(){
-  const listEl = document.getElementById('radioAssetList'); if(!listEl) return;
-  listEl.innerHTML = '<div class="empty">Loading...</div>';
-  try{
-    const snap = await getDocs(collection(db, 'radio_assets'));
-    radioAssets = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
-      if((a.djLane || 'culture') !== (b.djLane || 'culture')) return (a.djLane || 'culture').localeCompare(b.djLane || 'culture');
-      return Number(a.sortOrder || 0) - Number(b.sortOrder || 0);
-    });
-    if(!radioAssets.length){ listEl.innerHTML = '<div class="empty">No assets yet.</div>'; return; }
-    listEl.innerHTML = radioAssets.map(a => `
-      <article class="track">
-        <div class="track-title">${esc(a.title || 'Untitled')}</div>
-        <div class="track-meta">${esc(getLaneLabel(a.djLane || 'culture'))} · ${esc(getTypeLabel(a.type))} · ${esc(a.genre || '')} · Order ${Number(a.sortOrder || 0)}</div>
-        <div><span class="badge ${a.active ? 'approved' : 'rejected'}">${a.active ? 'active' : 'inactive'}</span></div>
-        <audio class="player" controls preload="metadata" src="${esc(a.audioUrl || '')}"></audio>
-        <div class="actions">
-          <button class="btn btn-blue btn-small"  data-asset="up"     data-id="${a.id}">↑ Up</button>
-          <button class="btn btn-blue btn-small"  data-asset="down"   data-id="${a.id}">↓ Down</button>
-          <button class="btn btn-gold btn-small"  data-asset="toggle" data-id="${a.id}">${a.active ? 'Deactivate' : 'Activate'}</button>
-          <button class="btn btn-red btn-small"   data-asset="delete" data-id="${a.id}">Delete</button>
-        </div>
-      </article>`).join('');
-  } catch(e){ listEl.innerHTML = '<div class="empty">Load failed: ' + esc(e.message) + '</div>'; }
-}
-
-async function handleAssetAction(e){
-  const btn = e.target.closest('[data-asset]'); if(!btn) return;
-  e.preventDefault();
-  if(!isAdmin()){ note('Admin sign-in required.', '#ff7474'); return; }
-  const action = btn.dataset.asset;
-  const id     = btn.dataset.id;
-  const idx    = radioAssets.findIndex(a => a.id === id);
-  if(idx < 0) return;
-  try{
-    if(action === 'toggle')  await updateDoc(doc(db, 'radio_assets', id), { active: !radioAssets[idx].active, updatedAt: serverTimestamp() });
-    if(action === 'delete'){ if(!confirm('Delete this asset?')) return; await deleteDoc(doc(db, 'radio_assets', id)); }
-    if(action === 'up' || action === 'down'){
-      const a = radioAssets[idx];
-      const laneItems = radioAssets.filter(x => (x.djLane || 'culture') === (a.djLane || 'culture'));
-      const li = laneItems.findIndex(x => x.id === id);
-      const swap = action === 'up' ? laneItems[li - 1] : laneItems[li + 1];
-      if(swap){
-        await updateDoc(doc(db, 'radio_assets', a.id),    { sortOrder: Number(swap.sortOrder || 0), updatedAt: serverTimestamp() });
-        await updateDoc(doc(db, 'radio_assets', swap.id), { sortOrder: Number(a.sortOrder || 0),    updatedAt: serverTimestamp() });
-      }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniBeatz Production | The Empire</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="index.css"/>
+</head>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+const firebaseConfig = {
+  apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+  authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+  projectId: "unibeatzproduction-7ae31",
+  storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+  messagingSenderId: "70667820609",
+  appId: "1:70667820609:web:57762df5510e6b4000b0c0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window._ubDB = db;
+window._ubCollection = collection;
+window._ubQuery = query;
+window._ubOrderBy = orderBy;
+window._ubGetDocs = getDocs;
+// Load beats from Firestore on page load
+async function loadFirestoreBeats() {
+  try {
+    const snap = await getDocs(query(collection(db, 'marketplace_beats'), orderBy('createdAt', 'desc')));
+    if(!snap.empty) {
+      window._firestoreBeats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if(typeof window.renderBeatsFromFirestore === 'function') window.renderBeatsFromFirestore();
     }
-    note('Updated.', '#5dff9e');
-    await loadAssets();
-  } catch(e){ note('Update failed: ' + (e.message || e), '#ff7474'); }
+  } catch(e) { console.warn('Firestore beats load failed:', e.message); }
 }
+loadFirestoreBeats();
+</script>
+<body>
+<canvas id="bg-canvas"></canvas>
 
-// ── Auto Queue ──
-async function loadAutoQueue(){
-  const box = document.getElementById('autoQueueList'); if(!box) return;
-  box.innerHTML = '<div class="empty">Loading...</div>';
-  try{
-    const [tracksSnap, assetsSnap] = await Promise.all([getDocs(collection(db, 'radio_submissions')), getDocs(collection(db, 'radio_assets')).catch(() => ({ docs: [] }))]);
-    const tracks = tracksSnap.docs.map(d => ({ id: d.id, docPath: 'radio_submissions', kind: 'track',  ...d.data() })).filter(x => x.status === 'approved');
-    const assets = assetsSnap.docs.map(d => ({ id: d.id, docPath: 'radio_assets',      kind: 'asset',  ...d.data() })).filter(x => x.active !== false);
-    queueItems = [...tracks, ...assets].sort((a, b) => Number(a.autoOrder || a.sortOrder || 9999) - Number(b.autoOrder || b.sortOrder || 9999));
-    if(!queueItems.length){ box.innerHTML = '<div class="empty">No approved tracks or active assets.</div>'; return; }
-    box.innerHTML = queueItems.map((x, i) => {
-      const r = x.autoRules || {};
-      return `<article class="track" data-id="${esc(x.id)}" data-path="${esc(x.docPath)}">
-        <div class="track-title">${i+1}. ${esc(x.trackTitle || x.title || 'Untitled')}</div>
-        <div class="track-meta">${esc(x.kind === 'track' ? 'Approved Track' : getTypeLabel(x.type))} · ${esc(x.genre || '')} · Order ${Number(x.autoOrder || x.sortOrder || 9999)}</div>
-        <div class="form" style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <label class="small">Insert every N songs<input class="input" type="number" min="0" max="50" data-rule="insertEverySongs" value="${Number(r.insertEverySongs || 0)}" style="margin-top:4px;padding:6px;"></label>
-          <label class="small">Enabled<select class="input" data-rule="enabled" style="margin-top:4px;padding:6px;"><option value="true" ${r.enabled !== false ? 'selected' : ''}>Yes</option><option value="false" ${r.enabled === false ? 'selected' : ''}>No</option></select></label>
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <span class="nav-logo-text">UNIBEATZ</span>
+    </a>
+    <ul class="nav-desktop">
+      <li><a href="#beats">Beats</a></li>
+      <li><a href="#battles">Battles</a></li>
+      <li><a href="#platforms">Platforms</a></li>
+      <li><a href="#membership">Membership</a></li>
+      <li><a href="#" onclick="openStudioModal();return false;">🎙️ Studio</a></li>
+      <li><a href="unifreestyle.html">⚔️ App</a></li>
+      <li><a href="unibeatzworld.html">🌍 World + Pack Studio</a></li>
+      <li><a href="radio.html">📻 Radio</a></li>
+      <li><a href="legal.html">Legal</a></li>
+      <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-icon-btn" onclick="showToast('🔍 Search coming soon')">🔍</div>
+      <div class="nav-icon-btn" onclick="showToast('🔔 Notifications are live. Tap below to turn on UniBeatzProduction updates.')">🔔<div class="nav-notif-dot"></div></div>
+      <div class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="nav-overlay" id="navOverlay" onclick="closeMobileMenu()"></div>
+<div class="nav-mobile-menu" id="mobileMenu">
+  <ul class="nav-mobile-links">
+    <li><a href="#beats" onclick="closeMobileMenu()"><span class="link-icon">🎵</span>Beats</a></li>
+    <li><a href="#battles" onclick="closeMobileMenu()"><span class="link-icon">⚔️</span>Battle Highlights<span class="link-badge badge-new">NEW</span></a></li>
+    <li><a href="#platforms" onclick="closeMobileMenu()"><span class="link-icon">🌍</span>Platforms</a></li>
+    <li><a href="unifreestyle.html" onclick="closeMobileMenu()"><span class="link-icon">📹</span>Battle App<span class="link-badge badge-live">LIVE</span></a></li>
+    
+    <li><a href="unibeatzworld.html" onclick="closeMobileMenu()"><span class="link-icon">🌐</span>UniBeatz World</a></li>
+    <li><a href="radio.html" onclick="closeMobileMenu()"><span class="link-icon">📻</span>Radio Station</a></li>
+    <li><a href="#membership" onclick="closeMobileMenu()"><span class="link-icon">💎</span>Membership</a></li>
+    <li><a href="#" onclick="openStudioModal();closeMobileMenu();return false;"><span class="link-icon">🎙️</span>Studio Booking</a></li>
+    <li><a href="#coming" onclick="closeMobileMenu()"><span class="link-icon">📅</span>Coming Soon</a></li>
+    <li><a href="legal.html" onclick="closeMobileMenu()"><span class="link-icon">⚖️</span>Legal & Contact</a></li>
+    <li><button class="nav-mobile-cta" onclick="openAdmin();closeMobileMenu()"><span class="link-icon">⚙️</span>Admin Panel</button></li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <img src="logo.png" class="hero-logo" alt="UniBeatz" onerror="this.style.display='none'"/>
+    <p class="hero-eyebrow">Welcome to the Empire</p>
+    <h1 class="hero-title"><span class="g">UNI</span><span class="b">BEATZ</span></h1>
+    <p class="hero-sub">Production</p>
+    <p class="hero-desc">The brand. The sound. The movement.</p>
+    <div class="hero-btn-row">
+      <a href="#beats" class="btn-gold">🎵 Browse Beats</a>
+      <a href="#platforms" class="btn-blue">🌍 All Platforms</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BEATS — HORIZONTAL SLIDER ══ -->
+<section id="beats">
+  <div class="sec-hd">
+    <span class="sec-label">Stream & Purchase</span>
+    <h2 class="sec-title">Beat Store</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterBeats('all',this)">All</button>
+    <button class="filter-btn" onclick="filterBeats('Hip-Hop',this)">Hip-Hop</button>
+    <button class="filter-btn" onclick="filterBeats('Trap',this)">Trap</button>
+    <button class="filter-btn" onclick="filterBeats('R&B',this)">R&B</button>
+    <button class="filter-btn" onclick="filterBeats('Drill',this)">Drill</button>
+    <button class="filter-btn" onclick="filterBeats('Afrobeats',this)">Afrobeats</button>
+  </div>
+  <div class="slider-controls">
+    <button class="slider-btn" onclick="slideBeat(-1)" id="beatPrev">←</button>
+    <button class="slider-btn" onclick="slideBeat(1)" id="beatNext">→</button>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-track-wrap">
+      <div class="slider-track scrollable" id="beatsTrack"></div>
+    </div>
+  </div>
+  <div class="see-more-row">
+    <a href="unibeatzworld.html" class="see-more">View Full Catalog →</a>
+  </div>
+</section>
+
+<!-- ══ BATTLE HIGHLIGHTS — HORIZONTAL SLIDER ══ -->
+<section id="battles">
+  <div class="sec-hd">
+    <span class="sec-label">UniFreestyle Highlights</span>
+    <h2 class="sec-title">Artist Battles</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="slider-controls">
+    <button class="slider-btn" onclick="slideVideo(-1)" id="videoPrev">←</button>
+    <button class="slider-btn" onclick="slideVideo(1)" id="videoNext">→</button>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-track-wrap">
+      <div class="slider-track scrollable" id="videosTrack"></div>
+    </div>
+  </div>
+  <div class="see-more-row">
+    <a href="unifreestyle.html" class="see-more">Enter Battle App →</a>
+  </div>
+</section>
+
+<!-- ══ PLATFORMS HUB — ONE LINK PER PLATFORM ══ -->
+<section id="platforms">
+  <div class="sec-hd">
+    <span class="sec-label">The Full Empire</span>
+    <h2 class="sec-title">All Platforms</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="platforms-grid">
+    <a href="unifreestyle.html" class="platform-card">
+      <span class="platform-icon">⚔️</span>
+      <div class="platform-name">UniFreestyle Battle App</div>
+      <div class="platform-desc">Face-to-face live freestyle battles. Vote. Judge. Climb the ranks.</div>
+      <span class="platform-tag tag-live">● LIVE NOW</span>
+    </a>
+    <a href="unibeatzworld.html" class="platform-card">
+      <span class="platform-icon">🌍</span>
+      <div class="platform-name">UniBeatz World</div>
+      <div class="platform-desc">Beats, sound packs, <strong style="color:var(--gold-light);">merch</strong>, plus <strong style="color:var(--gold-light);">UniBeatz Pack Studio</strong> — make your own packs.</div>
+      <span class="platform-tag tag-live">● PACK STUDIO + MERCH LIVE</span>
+    </a>
+    <a href="radio.html" class="platform-card">
+      <span class="platform-icon">📻</span>
+      <div class="platform-name">UniBeatz Radio Station</div>
+      <div class="platform-desc">24/7 stream of UniBeatz music, battle replays, live shows, artist features.</div>
+      <span class="platform-tag tag-live">● LIVE SUBMISSIONS</span>
+    </a>
+    <a href="#coming" class="platform-card">
+      <span class="platform-icon">🎙️</span>
+      <div class="platform-name">Uni Podcast</div>
+      <div class="platform-desc">Industry talk, artist interviews, music business knowledge, the UniBeatz story.</div>
+      <span class="platform-tag tag-soon">COMING SOON</span>
+    </a>
+  </div>
+</section>
+
+<!-- MEMBERSHIP -->
+<section id="membership">
+  <div class="sec-hd">
+    <span class="sec-label">Unlimited Access</span>
+    <h2 class="sec-title">Membership Plans</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$29</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>5 Beat Downloads / Month</li>
+        <li>MP3 Format</li>
+        <li>Non-Exclusive License</li>
+        <li>Basic Support</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Starter Membership','$29/month')">Get Started</button>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$79</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Downloads</li>
+        <li>WAV + Trackouts</li>
+        <li>Priority Support</li>
+        <li>Early Beat Access</li>
+        <li>10% Off Studio Bookings</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Pro Membership','$79/month')">Go Pro</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Elite</div>
+      <div class="plan-price">$149</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Everything</li>
+        <li>WAV + Trackouts + Stems</li>
+        <li>Exclusive Licensing</li>
+        <li>VIP Direct Access</li>
+        <li>Free Monthly Studio Hour</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Elite Membership','$149/month')">Go Elite</button>
+    </div>
+  </div>
+</section>
+
+<!-- COMING SOON -->
+<section id="coming">
+  <div class="sec-hd">
+    <span class="sec-label">Expanding the Empire</span>
+    <h2 class="sec-title">Coming Soon</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="coming-grid">
+    <div class="coming-card">
+      <span class="coming-icon">🌍</span>
+      <div class="coming-title">UniBeatz World</div>
+      <div class="coming-desc">Full universe of UniBeatz culture.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+    <div class="coming-card">
+      <span class="coming-icon">🎙️</span>
+      <div class="coming-title">UB Podcast</div>
+      <div class="coming-desc">Industry talk & interviews.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+    <div class="coming-card">
+      <span class="coming-icon">📻</span>
+      <div class="coming-title">UB Radio</div>
+      <div class="coming-desc">24/7 UniBeatz stream.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <p>The brand. The sound. The movement. UniBeatz Production — gateway to the empire.</p>
+      <div class="socials">
+        <a href="#" class="social-btn" id="sIg">IG</a>
+        <a href="#" class="social-btn" id="sTw">TW</a>
+        <a href="#" class="social-btn" id="sYt">YT</a>
+        <a href="#" class="social-btn" id="sSc">SC</a>
+        <a href="#" class="social-btn" id="sTk">TK</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Platforms</h4>
+      <ul>
+        <li><a href="#beats">Beat Store</a></li>
+        <li><a href="unifreestyle.html">Battle App</a></li>
+        <li><a href="unibeatzworld.html">UniBeatz World</a></li>
+        <li><a href="#" onclick="openStudioModal();return false;">Studio Booking</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal & Contact</h4>
+      <ul>
+        <li><a href="legal.html">License Info</a></li>
+        <li><a href="legal.html#terms">Terms</a></li>
+        <li><a href="legal.html#refund">Refund Policy</a></li>
+        <li><a href="mailto:unibeatzproduction@gmail.com">📧 Email Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 <span>UniBeatz Production</span>. All rights reserved.</div>
+</footer>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Purchase</h2>
+    <p class="modal-sub" id="modal-sub">Complete your purchase</p>
+    <div class="form-group"><label>Full Name</label><input type="text" id="mName"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="mEmail"/></div>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.18);padding:12px;margin-bottom:11px;text-align:center;border-radius:5px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:4px;">STRIPE PAYMENT</div>
+      <p style="font-size:0.74rem;color:var(--gray);">Stripe Payment Link required.</p>
+    </div>
+    <button class="btn-gold btn-full" onclick="processPayment()">Complete Purchase</button>
+    <div class="stripe-note"><span class="lock">🔒</span>Secured by Stripe</div>
+  </div>
+</div>
+
+<!-- STUDIO BOOKING MODAL -->
+<div class="modal-overlay" id="studioModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeStudioModal()">✕</button>
+    <h2>🎙️ Studio Booking</h2>
+    <p class="modal-sub">Reserve your professional studio session</p>
+
+    <div class="studio-info">
+      <ul class="studio-perks">
+        <li>🎙️ Professional Engineer Included</li>
+        <li>🎚️ Mixing & Mastering Available</li>
+        <li>🎧 Industry-Grade Monitoring</li>
+        <li>🎵 Full Beat Catalog Access</li>
+        <li>💳 50% Deposit Secures Session</li>
+      </ul>
+      <div class="rates-box">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;">HOURLY RATES</div>
+        <div class="rate-row"><span>Recording</span><span style="color:var(--gold-light);font-weight:700;">$75/hr</span></div>
+        <div class="rate-row"><span>Mixing</span><span style="color:var(--gold-light);font-weight:700;">$100/hr</span></div>
+        <div class="rate-row"><span>Full Day (8hr)</span><span style="color:var(--gold-light);font-weight:700;">$500</span></div>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Your Name</label><input type="text" id="bName"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="bEmail"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="bDate"/></div>
+      <div class="form-group"><label>Time</label><input type="time" id="bTime"/></div>
+    </div>
+    <div class="form-group"><label>Session Type</label>
+      <select id="bType">
+        <option>Recording — $75/hr</option>
+        <option>Mixing — $100/hr</option>
+        <option>Full Day — $500</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="bNotes" placeholder="Tell us about your project..."></textarea></div>
+    <button class="btn-gold btn-full" onclick="bookSession()">Book & Pay Deposit</button>
+    <div class="stripe-note"><span class="lock">🔒</span>50% deposit via Stripe</div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal admin-modal">
+    <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    <div class="passcode-screen" id="passcodeScreen">
+      <div class="passcode-icon">🔐</div>
+      <div class="passcode-title">Admin Access</div>
+      <div class="passcode-desc">Enter your secure passcode.</div>
+      <input type="password" class="passcode-input" id="passcodeInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPasscode()"/>
+      <div class="passcode-error" id="passcodeError">⚠ Incorrect passcode</div>
+      <button class="btn-gold btn-full" onclick="checkPasscode()">Unlock</button>
+    </div>
+    <div class="admin-panel" id="adminPanel">
+      <div class="admin-badge">🔐 Admin Unlocked</div>
+      <div class="admin-section">
+        <div class="admin-section-title">📹 Publish Battle Video</div>
+        <div class="form-row">
+          <div class="form-group"><label>Artist</label><input type="text" id="pArtist"/></div>
+          <div class="form-group"><label>Title</label><input type="text" id="pTitle"/></div>
         </div>
-        <div class="actions">
-          <button class="btn btn-blue btn-small" data-queue="up">↑ Up</button>
-          <button class="btn btn-blue btn-small" data-queue="down">↓ Down</button>
-          <button class="btn btn-gold btn-small" data-queue="save">Save Rules</button>
+        <div class="form-group"><label>YouTube ID</label><input type="text" id="pYtId" placeholder="Video ID after ?v="/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="text" id="pDate"/></div>
+          <div class="form-group"><label>Badge</label><input type="text" id="pBadge"/></div>
         </div>
-      </article>`;
-    }).join('');
+        <button class="btn-gold btn-full" onclick="publishVideo()">Publish Video</button>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🔗 Social Links</div>
+        <div class="form-group"><label>Instagram</label><input type="text" id="sIgInput"/></div>
+        <div class="form-group"><label>YouTube</label><input type="text" id="sYtInput"/></div>
+        <div class="form-group"><label>TikTok</label><input type="text" id="sTkInput"/></div>
+        <button class="btn-gold btn-full" onclick="saveSocials()">Save</button>
+      </div>
+      <button class="btn-blue btn-full" onclick="lockAdmin()" style="margin-top:8px;">🔒 Lock Panel</button>
+    </div>
+  </div>
+</div>
 
-    // Wire rule saves
-    box.addEventListener('click', async ev => {
-      const btn2 = ev.target.closest('[data-queue]'); if(!btn2) return;
-      const card = btn2.closest('[data-id]'); if(!card) return;
-      const item = queueItems.find(x => x.id === card.dataset.id && x.docPath === card.dataset.path); if(!item) return;
-      const action = btn2.dataset.queue;
-      if(action === 'save'){
-        const enabled = card.querySelector('[data-rule="enabled"]')?.value === 'true';
-        const every   = Number(card.querySelector('[data-rule="insertEverySongs"]')?.value || 0);
-        try{
-          await updateDoc(doc(db, item.docPath, item.id), { autoRules: { enabled, insertEverySongs: every }, updatedAt: serverTimestamp() });
-          note('Rules saved.', '#5dff9e');
-        } catch(e){ note('Save failed: ' + e.message, '#ff7474'); }
-      }
-      if(action === 'up' || action === 'down'){
-        const idx2 = queueItems.indexOf(item);
-        const swap2 = action === 'up' ? queueItems[idx2 - 1] : queueItems[idx2 + 1];
-        if(!swap2) return;
-        const oldOrder = item.autoOrder || item.sortOrder || (idx2 + 1) * 10;
-        const swpOrder = swap2.autoOrder || swap2.sortOrder || ((action === 'up' ? idx2 : idx2 + 2)) * 10;
-        try{
-          await updateDoc(doc(db, item.docPath,  item.id),  { autoOrder: swpOrder, updatedAt: serverTimestamp() });
-          await updateDoc(doc(db, swap2.docPath, swap2.id), { autoOrder: oldOrder, updatedAt: serverTimestamp() });
-          await loadAutoQueue();
-        } catch(e){ note('Reorder failed: ' + e.message, '#ff7474'); }
-      }
-    });
-  } catch(e){ box.innerHTML = '<div class="empty">Failed: ' + esc(e.message) + '</div>'; }
+<div class="toast" id="toast"></div>
+
+<script>
+// DATA
+let beats = []; // Loaded from Firestore
+let videos = JSON.parse(localStorage.getItem('ub_videos')||'null') || [
+  {id:1,artist:'KD Wavez',title:'KD vs Phantom — Round 1',ytId:'',date:'Apr 2025',badge:'CHAMP'},
+  {id:2,artist:'Layah Monroe',title:'Layah vs Storm — Semifinal',ytId:'',date:'Mar 2025',badge:''},
+  {id:3,artist:'DJ Phantom',title:'Phantom vs Blaze — Championship',ytId:'',date:'Feb 2025',badge:'🏆'},
+];
+const saveVideos = ()=>localStorage.setItem('ub_videos',JSON.stringify(videos));
+
+// NAV
+let menuOpen=false;
+function toggleMobileMenu(){menuOpen=!menuOpen;document.getElementById('hamburger').classList.toggle('open',menuOpen);document.getElementById('mobileMenu').classList.toggle('open',menuOpen);document.getElementById('navOverlay').classList.toggle('open',menuOpen);document.body.style.overflow=menuOpen?'hidden':'';}
+function closeMobileMenu(){menuOpen=false;document.getElementById('hamburger').classList.remove('open');document.getElementById('mobileMenu').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
+window.addEventListener('scroll',()=>{if(menuOpen)closeMobileMenu();});
+
+// WAVEFORM
+function waveform(){const h=[20,38,55,72,48,80,60,42,75,50,35,65,80,44,30,70];return h.map((v,i)=>`<span style="height:${v}%;animation-delay:${i*0.05}s"></span>`).join('');}
+
+// BEATS — HORIZONTAL SLIDER
+let curFilter='all';
+let _currentAudio=null;
+let _currentBeatId=null;
+let _previewTimer=null;
+
+window.renderBeatsFromFirestore = function() {
+  if(window._firestoreBeats && window._firestoreBeats.length) {
+    beats = window._firestoreBeats.map(b => ({
+      id: b.id,
+      name: (b.name || b.beatName || 'Untitled').toUpperCase(),
+      tag: b.tag || b.genre || 'Hip-Hop',
+      bpm: b.bpm || '?',
+      key: b.key || '?',
+      price: b.basicPrice || b.price || 0,
+      stripe: b.stripeBasic || b.stripe || '',
+      stream: b.audioUrl || b.stream || '',
+      cover: b.coverUrl || ''
+    }));
+    renderBeats();
+  }
+};
+
+function renderBeats(filter){
+  if(filter!==undefined) curFilter=filter;
+  const track=document.getElementById('beatsTrack');
+  track.innerHTML='';
+  const list = curFilter==='all'?beats:beats.filter(b=>b.tag===curFilter);
+  if(!list.length){
+    track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No beats in this category yet.</div>';
+    return;
+  }
+  list.forEach(b=>{
+    const card=document.createElement('div');card.className='beat-slide';
+    card.innerHTML=`
+      <div class="beat-tag">${b.tag}</div>
+      <div class="beat-name">${b.name}</div>
+      <div class="beat-meta">${b.bpm} BPM · Key: ${b.key}</div>
+      <div class="waveform">${waveform()}</div>
+      ${b.stream?`<button id="prev-${b.id}" class="btn-gold" style="width:100%;padding:7px;font-size:0.5rem;margin-bottom:8px;" onclick="togglePreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}
+      <div class="beat-footer">
+        <div class="beat-price">$${b.price}</div>
+        <button class="btn-gold" style="padding:7px 14px;font-size:0.5rem;" onclick="openModal('${b.name.replace(/'/g,"\\'")}','$${b.price}','${b.stripe}')">BUY</button>
+      </div>`;
+    track.appendChild(card);
+  });
 }
 
-async function saveRotation(){
-  if(!isAdmin()){ note('Admin sign-in required.', '#ff7474'); return; }
-  try{
-    await setDoc(doc(db, 'radio_automation', 'main'), {
-      autoEnabled: true, liveOverride: false, updatedAt: serverTimestamp(),
-      items: queueItems.map((x, i) => ({ id: x.id, docPath: x.docPath, title: x.trackTitle || x.title || '', kind: x.kind, type: x.type || 'track', genre: x.genre || '', audioUrl: x.audioUrl || '', autoOrder: i * 10, autoRules: x.autoRules || {} }))
-    }, { merge: true });
-    note('Auto rotation saved.', '#5dff9e');
-  } catch(e){ note('Save failed: ' + (e.message || e), '#ff7474'); }
+function togglePreview(beatId, audioUrl) {
+  const btn = document.getElementById('prev-' + beatId);
+  if(_currentBeatId === beatId && _currentAudio) {
+    _currentAudio.pause();
+    if(btn) { btn.innerHTML='▶ Preview'; }
+    if(_previewTimer) clearTimeout(_previewTimer);
+    _currentBeatId = null; _currentAudio = null;
+    return;
+  }
+  if(_currentAudio) {
+    _currentAudio.pause();
+    if(_currentBeatId) { const old=document.getElementById('prev-'+_currentBeatId); if(old) old.innerHTML='▶ Preview'; }
+    if(_previewTimer) clearTimeout(_previewTimer);
+  }
+  _currentAudio = new Audio(audioUrl);
+  _currentAudio.play().catch(e=>showToast('Preview failed'));
+  _currentBeatId = beatId;
+  if(btn) btn.innerHTML = '⏸ Pause';
+  _previewTimer = setTimeout(()=>{
+    if(_currentAudio) { _currentAudio.pause(); _currentAudio=null; }
+    if(btn) btn.innerHTML='▶ Preview';
+    _currentBeatId=null;
+  }, 30000);
+  _currentAudio.addEventListener('ended',()=>{
+    if(_previewTimer) clearTimeout(_previewTimer);
+    if(btn) btn.innerHTML='▶ Preview';
+    _currentBeatId=null; _currentAudio=null;
+  });
 }
 
-async function setAutoMode(enabled){
-  if(!isAdmin()){ note('Admin sign-in required.', '#ff7474'); return; }
-  await setDoc(doc(db, 'radio_automation', 'main'), { autoEnabled: enabled, updatedAt: serverTimestamp() }, { merge: true });
-  note(enabled ? 'Auto Radio is ON.' : 'Auto Radio is OFF.', '#5dff9e');
-}
+function filterBeats(tag,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderBeats(tag);}
+function slideBeat(dir){const t=document.getElementById('beatsTrack');t.scrollBy({left:dir*280,behavior:'smooth'});}
 
-// ── Boot ──
-function boot(){ if(document.getElementById('adminApp')) buildPanels(); }
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-else boot();
-window.addEventListener('ub-firebase-ready', boot);
+// VIDEOS — HORIZONTAL SLIDER
+function renderVideos(){
+  const track=document.getElementById('videosTrack');track.innerHTML='';
+  if(!videos.length){track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No battle videos yet.</div>';return;}
+  videos.forEach(v=>{
+    const card=document.createElement('div');card.className='video-slide';
+    const embed=v.ytId?`<iframe src="https://www.youtube.com/embed/${v.ytId}" allowfullscreen></iframe>`:`<div class="video-ph"><div style="font-size:2.6rem;">⚔️</div><p style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;color:var(--blue-bright);">BATTLE VIDEO</p></div>`;
+    card.innerHTML=`${v.badge?`<div class="video-badge">${v.badge}</div>`:''}<div class="video-thumb">${embed}</div><div class="video-info"><div class="video-artist">${v.artist}</div><div class="video-title">${v.title}</div><div class="video-date">${v.date}</div></div>`;
+    track.appendChild(card);
+  });
+}
+function slideVideo(dir){const t=document.getElementById('videosTrack');t.scrollBy({left:dir*300,behavior:'smooth'});}
+
+// MODALS
+let _stripe='';
+function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent=`Price: ${price}`;document.getElementById('modal').classList.add('active');}
+function closeModal(){document.getElementById('modal').classList.remove('active');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Stripe link not set yet.');}}
+
+// STUDIO MODAL
+function openStudioModal(){document.getElementById('studioModal').classList.add('active');}
+function closeStudioModal(){document.getElementById('studioModal').classList.remove('active');}
+document.getElementById('studioModal').addEventListener('click',e=>{if(e.target===document.getElementById('studioModal'))closeStudioModal();});
+function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}showToast('💳 Processing deposit via Stripe...');}
+
+// ADMIN
+const ADMIN_PASSCODE='empire2026';
+let adminUnlocked=false;
+function openAdmin(){document.getElementById('adminModal').classList.add('active');document.getElementById('passcodeInput').value='';document.getElementById('passcodeError').style.display='none';if(adminUnlocked){document.getElementById('passcodeScreen').style.display='none';document.getElementById('adminPanel').classList.add('unlocked');}else{document.getElementById('passcodeScreen').style.display='block';document.getElementById('adminPanel').classList.remove('unlocked');}setTimeout(()=>document.getElementById('passcodeInput').focus(),200);}
+function checkPasscode(){const v=document.getElementById('passcodeInput').value;if(v===ADMIN_PASSCODE){adminUnlocked=true;document.getElementById('passcodeScreen').style.display='none';document.getElementById('adminPanel').classList.add('unlocked');showToast('🔐 Admin unlocked!');}else{document.getElementById('passcodeError').style.display='block';document.getElementById('passcodeInput').value='';setTimeout(()=>document.getElementById('passcodeError').style.display='none',3000);}}
+function lockAdmin(){adminUnlocked=false;document.getElementById('adminPanel').classList.remove('unlocked');document.getElementById('passcodeScreen').style.display='block';showToast('🔒 Locked');}
+function closeAdminModal(){document.getElementById('adminModal').classList.remove('active');}
+document.getElementById('adminModal').addEventListener('click',e=>{if(e.target===document.getElementById('adminModal'))closeAdminModal();});
+function publishVideo(){const a=document.getElementById('pArtist').value.trim(),t=document.getElementById('pTitle').value.trim();if(!a||!t){showToast('Fill artist and title');return;}videos.unshift({id:Date.now(),artist:a,title:t,ytId:document.getElementById('pYtId').value.trim(),date:document.getElementById('pDate').value.trim()||'2025',badge:document.getElementById('pBadge').value.trim()});saveVideos();renderVideos();showToast(`✅ "${t}" published!`);['pArtist','pTitle','pYtId','pDate','pBadge'].forEach(id=>document.getElementById(id).value='');}
+function saveSocials(){const ig=document.getElementById('sIgInput').value.trim(),yt=document.getElementById('sYtInput').value.trim(),tk=document.getElementById('sTkInput').value.trim();if(ig)document.getElementById('sIg').href=ig;if(yt)document.getElementById('sYt').href=yt;if(tk)document.getElementById('sTk').href=tk;showToast('✅ Saved!');}
+
+// TOAST
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+// LIGHTNING — Built From Pressure atmosphere upgrade
+const cv=document.getElementById('bg-canvas'),cx=cv.getContext('2d');
+let electricParticles=[];
+function rsz(){
+  cv.width=window.innerWidth;
+  cv.height=window.innerHeight;
+  electricParticles=Array.from({length:Math.min(95,Math.floor(cv.width/18))},()=>({
+    x:Math.random()*cv.width,
+    y:Math.random()*cv.height,
+    r:Math.random()*1.8+0.35,
+    a:Math.random()*0.42+0.12,
+    s:Math.random()*0.45+0.12
+  }));
+}
+rsz();window.addEventListener('resize',rsz);
+function bolt(x1,y1,x2,y2,o,d){
+  if(!d){cx.lineTo(x2,y2);return;}
+  const mx=(x1+x2)/2+(Math.random()-0.5)*o;
+  const my=(y1+y2)/2+(Math.random()-0.5)*o;
+  bolt(x1,y1,mx,my,o/2,d-1);
+  bolt(mx,my,x2,y2,o/2,d-1);
+  if(Math.random()<0.22 && d<5){
+    const bx=mx+(Math.random()-0.5)*110;
+    const by=my+(Math.random()-0.5)*110;
+    cx.moveTo(mx,my);bolt(mx,my,bx,by,o/2.4,d-1);
+  }
+}
+function drawParticles(){
+  electricParticles.forEach(p=>{
+    p.y-=p.s;
+    p.x+=Math.sin((Date.now()*0.001)+p.y*0.015)*0.18;
+    if(p.y<-12){p.y=cv.height+12;p.x=Math.random()*cv.width;}
+    cx.beginPath();
+    cx.fillStyle=`rgba(0,190,255,${p.a})`;
+    cx.shadowColor='rgba(0,190,255,0.85)';
+    cx.shadowBlur=10;
+    cx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    cx.fill();
+    cx.shadowBlur=0;
+  });
+}
+function strikePath(color,wide=false){
+  cx.beginPath();
+  const sx=Math.random()*cv.width;
+  const ex=sx+(Math.random()-0.5)*(wide?620:420);
+  const ey=cv.height*(0.55+Math.random()*0.35);
+  cx.moveTo(sx,-20);
+  bolt(sx,-20,ex,ey,wide?280:220,8);
+  cx.strokeStyle=color;
+  cx.lineWidth=wide?3.2:2.1;
+  cx.shadowColor=color;
+  cx.shadowBlur=wide?28:18;
+  cx.stroke();
+  cx.shadowBlur=0;
+}
+function flash(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  drawParticles();
+  cx.fillStyle='rgba(0,170,255,0.045)';
+  cx.fillRect(0,0,cv.width,cv.height);
+  strikePath(`rgba(64,208,255,${0.75+Math.random()*0.22})`,true);
+  strikePath(`rgba(0,170,255,${0.46+Math.random()*0.28})`);
+  if(Math.random()<0.55) strikePath(`rgba(240,192,64,${0.28+Math.random()*0.24})`);
+}
+(function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  drawParticles();
+  if(Math.random()<0.065){
+    flash();
+    setTimeout(()=>{cx.fillStyle='rgba(0,8,18,0.16)';cx.fillRect(0,0,cv.width,cv.height);},65+Math.random()*95);
+  }
+  requestAnimationFrame(loop);
+})();
+
+// Show loading state for beats until Firestore loads
+document.getElementById('beatsTrack').innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">Loading beats...</div>';
+renderVideos();
+</script>
+<script type="module" src="/unibeatz-notifications.js"></script>
+</body>
+</html>
