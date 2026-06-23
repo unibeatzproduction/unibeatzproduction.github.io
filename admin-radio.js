@@ -1,6 +1,10 @@
+// admin-radio.js — UniBeatz Radio Admin
+// FIXED: auth race condition + infinite Google sign-in loop removed
+// Flow: Admin Code → Show Sign In Button → Click → Validate → Load Panel
+
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, updateDoc, setDoc, deleteDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
@@ -11,353 +15,341 @@ const firebaseConfig = {
   appId: '1:70667820609:web:57762df5510e6b4000b0c0'
 };
 
-const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 
-const deckA      = document.getElementById('deckA');
-const deckB      = document.getElementById('deckB');
-const deckALabel = document.getElementById('deckALabel');
-const deckBLabel = document.getElementById('deckBLabel');
-const qList      = document.getElementById('queueList');
-const pads       = document.getElementById('triggerPads');
-const notice     = document.getElementById('deckNotice');
+window.UB_FIREBASE = { ...(window.UB_FIREBASE || {}), app, auth, db, ready: true };
+window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
 
-let queue = [], assets = [], micOn = false, live = false;
-let midiAccess = null, midiLearn = false, mappings = {};
+const ADMIN_CODE = '2345';
+const ADMIN_EMAILS = ['syncere862@gmail.com', 'unibeatzproduction@gmail.com'];
 
-function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function note(m, c='#40D0FF'){ notice.textContent = m; notice.style.color = c; }
-function recNote(m, c='#40D0FF'){ const el=document.getElementById('recNotice'); if(el){el.textContent=m;el.style.color=c;} }
-async function ensure(){ if(!auth.currentUser) await signInAnonymously(auth); return auth.currentUser; }
-function itemName(x){ return x.trackTitle||x.title||'Untitled'; }
-function itemUrl(x){ return x.audioUrl||''; }
+// ── DOM refs ──
+const lockScreen = document.getElementById('lockScreen');
+const adminApp   = document.getElementById('adminApp');
+const list       = document.getElementById('adminList');
 
-function setVolumes(){
-  const v = Number(document.getElementById('crossfader').value);
-  deckA.volume = (100-v)/100;
-  deckB.volume = v/100;
-  // Also update recorder mix if active
-  if(_recGainA && _recGainB){
-    _recGainA.gain.value = (100-v)/100;
-    _recGainB.gain.value = v/100;
+let submissions   = [];
+let currentFilter = 'pending';
+let loadingNow    = false;
+let loadedOnce    = false;
+// FIX: these are set ONLY by onAuthStateChanged, never by currentUser polling
+let authReady     = false;
+let authUser      = null;
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(v){ try{ if(v?.toDate) return v.toDate().toLocaleString(); if(v) return new Date(v).toLocaleString(); }catch(e){} return 'No date'; }
+function unlocked(){ return localStorage.getItem('ub_radio_admin_unlocked') === 'yes'; }
+function isAdminEmail(email){ return ADMIN_EMAILS.includes(String(email || '').toLowerCase()); }
+function setNotice(msg, color = '#40D0FF'){ const n = document.getElementById('stationNotice'); if(n){ n.textContent = msg; n.style.color = color; } }
+function setLockNotice(msg, color = '#40D0FF'){ const n = document.getElementById('lockNotice'); if(n){ n.textContent = msg; n.style.color = color; } }
+
+// ── Google Sign In button — only shown after code unlock ──
+function renderGoogleBtn(container){
+  if(document.getElementById('adminGoogleSignInBtn')) return;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-top:16px;display:flex;flex-direction:column;gap:10px;align-items:center;';
+
+  const btn = document.createElement('button');
+  btn.id = 'adminGoogleSignInBtn';
+  btn.className = 'btn btn-gold';
+  btn.textContent = 'Sign In With Google';
+  btn.onclick = doGoogleSignIn;
+
+  const status = document.createElement('div');
+  status.id = 'adminGoogleStatus';
+  status.style.cssText = 'font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#40D0FF;';
+  status.textContent = 'Use syncere862@gmail.com or unibeatzproduction@gmail.com';
+
+  wrap.appendChild(btn);
+  wrap.appendChild(status);
+  container.appendChild(wrap);
+}
+
+function updateGoogleStatus(){
+  const status = document.getElementById('adminGoogleStatus');
+  const btn    = document.getElementById('adminGoogleSignInBtn');
+  if(!status || !btn) return;
+
+  if(authUser && isAdminEmail(authUser.email)){
+    status.textContent = '✅ Signed in: ' + authUser.email;
+    status.style.color = '#5dff9e';
+    btn.textContent    = 'Sign Out';
+    btn.onclick        = doSignOut;
+  } else if(authUser && !isAdminEmail(authUser.email)){
+    status.textContent = '❌ Wrong account: ' + authUser.email + ' — sign out and try again';
+    status.style.color = '#ff7474';
+    btn.textContent    = 'Sign Out & Switch';
+    btn.onclick        = doSignOut;
+  } else {
+    status.textContent = 'Use syncere862@gmail.com or unibeatzproduction@gmail.com';
+    status.style.color = '#40D0FF';
+    btn.textContent    = 'Sign In With Google';
+    btn.onclick        = doGoogleSignIn;
   }
 }
 
-function loadTo(deck, item){
-  if(!itemUrl(item)){ note('This item has no audio URL.','#ff7474'); return; }
-  if(deck==='A'){ deckA.src=itemUrl(item); deckALabel.textContent='A: '+itemName(item).slice(0,20); }
-  else           { deckB.src=itemUrl(item); deckBLabel.textContent='B: '+itemName(item).slice(0,20); }
-  note('Loaded '+itemName(item)+' to Deck '+deck,'#5dff9e');
-}
-
-async function loadQueue(){
-  qList.innerHTML = '<div class="track">Loading queue...</div>';
+async function doGoogleSignIn(){
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  setLockNotice('Opening Google account picker...');
   try{
-    const [tracksSnap, assetsSnap] = await Promise.all([
-      getDocs(collection(db,'radio_submissions')),
-      getDocs(collection(db,'radio_assets')).catch(()=>({docs:[]}))
-    ]);
-    queue  = tracksSnap.docs.map(d=>({id:d.id,kind:'track',...d.data()})).filter(x=>x.status==='approved');
-    assets = assetsSnap.docs.map(d=>({id:d.id,kind:'asset',...d.data()})).filter(x=>x.active!==false);
-    queue  = [...queue,...assets].sort((a,b)=>Number(a.sortOrder||0)-Number(b.sortOrder||0));
-    renderQueue(); renderPads();
+    // FIX: signInWithPopup only — NEVER auto-called on load
+    await signInWithPopup(auth, provider);
+    // onAuthStateChanged will fire and call renderAuthState
   } catch(e){
-    console.error(e);
-    qList.innerHTML = '<div class="track">Queue failed. Check rules.</div>';
+    if(e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') return;
+    setLockNotice('Google sign-in failed: ' + (e?.message || e), '#ff7474');
   }
 }
 
-function renderQueue(){
-  if(!queue.length){ qList.innerHTML='<div class="track">No queue items yet.</div>'; return; }
-  qList.innerHTML = queue.map((x,i)=>`
-    <div class="track">
-      <div class="name">${i+1}. ${esc(itemName(x))}</div>
-      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
-      <div class="actions">
-        <button class="btn btn-blue" data-load="A" data-i="${i}">Load A</button>
-        <button class="btn btn-blue" data-load="B" data-i="${i}">Load B</button>
-        <button class="btn btn-gold" data-trigger="${i}">Trigger</button>
-      </div>
-    </div>`).join('');
+async function doSignOut(){
+  await signOut(auth);
+  setNotice('Signed out. Sign in with admin Google account.');
+  list.innerHTML = '<div class="empty">Signed out. Sign in to access submissions.</div>';
 }
 
-function renderPads(){
-  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
-  if(!triggers.length){ pads.innerHTML='<div class="track">Upload voiceovers, drops, podcasts, or DJ sets in admin.</div>'; return; }
-  pads.innerHTML = triggers.map((x,i)=>`
-    <button class="track" data-pad="${i}" type="button">
-      <div class="name">${esc(x.title||'Drop')}</div>
-      <div class="desc">${esc(x.type||'Asset')}</div>
-    </button>`).join('');
-}
+// ── Show/hide screens ──
+function showAdmin(){ lockScreen.classList.add('hidden'); adminApp.classList.remove('hidden'); }
+function showLock(){  adminApp.classList.add('hidden');   lockScreen.classList.remove('hidden'); }
 
-function triggerNextDrop(){
-  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
-  const x = triggers[0]||queue[0];
-  if(x){ loadTo('B',x); deckB.play(); }
-}
+function renderAuthState(){
+  if(!unlocked()){ showLock(); return; }
 
-// ═══════════════════════════════════════════════
-// MIX RECORDER — captures both decks, no broadcast
-// ═══════════════════════════════════════════════
-let _audioCtx    = null;
-let _recDest     = null;
-let _mediaRec    = null;
-let _recChunks   = [];
-let _recGainA    = null;
-let _recGainB    = null;
-let _recSrcA     = null;
-let _recSrcB     = null;
-let _recTimerInt = null;
-let _recStart    = null;
-let _savedMixes  = []; // { name, blob, url, duration, date }
+  // Show admin panel shell immediately so it's not blank
+  showAdmin();
 
-function getAudioCtx(){
-  if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  return _audioCtx;
-}
-
-function startRecording(){
-  if(_mediaRec && _mediaRec.state==='recording'){ recNote('Already recording.','#F0C040'); return; }
-
-  const ctx = getAudioCtx();
-  if(ctx.state==='suspended') ctx.resume();
-
-  // Create media element sources for both decks
-  _recSrcA  = ctx.createMediaElementSource(deckA);
-  _recSrcB  = ctx.createMediaElementSource(deckB);
-  _recGainA = ctx.createGain();
-  _recGainB = ctx.createGain();
-  _recDest  = ctx.createMediaStreamDestination();
-
-  const v = Number(document.getElementById('crossfader').value);
-  _recGainA.gain.value = (100-v)/100;
-  _recGainB.gain.value = v/100;
-
-  // Route: deckA → gainA → destination + speakers
-  _recSrcA.connect(_recGainA);
-  _recGainA.connect(_recDest);
-  _recGainA.connect(ctx.destination);
-
-  _recSrcB.connect(_recGainB);
-  _recGainB.connect(_recDest);
-  _recGainB.connect(ctx.destination);
-
-  _recChunks = [];
-  _mediaRec  = new MediaRecorder(_recDest.stream, { mimeType: 'audio/webm' });
-  _mediaRec.ondataavailable = e => { if(e.data.size>0) _recChunks.push(e.data); };
-  _mediaRec.onstop = finishRecording;
-  _mediaRec.start(1000);
-
-  _recStart = Date.now();
-
-  // Timer display
-  const timerEl = document.getElementById('recTimer');
-  if(timerEl) timerEl.style.display='block';
-  _recTimerInt = setInterval(()=>{
-    const elapsed = Math.floor((Date.now()-_recStart)/1000);
-    const m = Math.floor(elapsed/60), s = elapsed%60;
-    if(timerEl) timerEl.textContent = m+':'+(s<10?'0':'')+s;
-  }, 500);
-
-  // Update buttons
-  const startBtn = document.getElementById('recStart');
-  const stopBtn  = document.getElementById('recStop');
-  if(startBtn){ startBtn.textContent='⏺ Recording...'; startBtn.classList.add('recording'); startBtn.disabled=true; }
-  if(stopBtn)  stopBtn.disabled = false;
-
-  recNote('🔴 Recording mix — play your tracks on the decks.','#ff3c3c');
-}
-
-function stopRecording(){
-  if(!_mediaRec||_mediaRec.state!=='recording'){ recNote('No recording in progress.','#F0C040'); return; }
-  _mediaRec.stop();
-  clearInterval(_recTimerInt);
-
-  const startBtn = document.getElementById('recStart');
-  const stopBtn  = document.getElementById('recStop');
-  if(startBtn){ startBtn.textContent='⏺ Start Recording'; startBtn.classList.remove('recording'); startBtn.disabled=false; }
-  if(stopBtn)  stopBtn.disabled = true;
-
-  const timerEl = document.getElementById('recTimer');
-  if(timerEl) timerEl.style.display='none';
-}
-
-function finishRecording(){
-  const blob = new Blob(_recChunks, { type:'audio/webm' });
-  const url  = URL.createObjectURL(blob);
-  const duration = Math.floor((Date.now()-_recStart)/1000);
-  const m = Math.floor(duration/60), s = duration%60;
-  const name = 'UniBeatz_Mix_'+new Date().toISOString().slice(0,16).replace('T','_').replace(/:/g,'-');
-
-  _savedMixes.unshift({ name, blob, url, duration, date: new Date().toLocaleString() });
-
-  // Disconnect sources so normal audio playback resumes
-  try{ _recSrcA.disconnect(); }catch(e){}
-  try{ _recSrcB.disconnect(); }catch(e){}
-  // Re-connect decks directly to speakers
-  try{ _recSrcA.connect(_audioCtx.destination); }catch(e){}
-  try{ _recSrcB.connect(_audioCtx.destination); }catch(e){}
-
-  _recGainA = null; _recGainB = null;
-
-  renderSavedMixes();
-  recNote('✅ Mix saved! '+m+'m '+s+'s — tap Download to save as WAV for Live365.','#5dff9e');
-}
-
-function renderSavedMixes(){
-  const list = document.getElementById('recSavedList');
-  if(!list) return;
-  if(!_savedMixes.length){ list.innerHTML=''; return; }
-  list.innerHTML = _savedMixes.map((mix,i)=>`
-    <div class="rec-item">
-      <div>
-        <div class="name">${esc(mix.name)}</div>
-        <div class="desc">${mix.date} · ${Math.floor(mix.duration/60)}m ${mix.duration%60}s</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <a href="${mix.url}" download="${mix.name}.webm" class="btn btn-gold" style="text-decoration:none;white-space:nowrap;">⬇ Download</a>
-        <button class="btn btn-red" data-delete-mix="${i}">✕</button>
-      </div>
-    </div>`).join('');
-}
-
-document.getElementById('recSavedList')?.addEventListener('click', e=>{
-  const btn = e.target.closest('[data-delete-mix]');
-  if(!btn) return;
-  const i = Number(btn.dataset.deleteMix);
-  URL.revokeObjectURL(_savedMixes[i]?.url);
-  _savedMixes.splice(i,1);
-  renderSavedMixes();
-});
-
-document.getElementById('recStart')?.addEventListener('click', startRecording);
-document.getElementById('recStop')?.addEventListener('click',  stopRecording);
-
-// ═══════════════════════════════════════════════
-// DECK CONTROLS
-// ═══════════════════════════════════════════════
-function runDeckAction(action, value=null){
-  if(action==='playA')         deckA.play();
-  if(action==='playB')         deckB.play();
-  if(action==='stopA')        { deckA.pause(); deckA.currentTime=0; }
-  if(action==='stopB')        { deckB.pause(); deckB.currentTime=0; }
-  if(action==='micToggle')     document.getElementById('micToggle').click();
-  if(action==='startBroadcast') document.getElementById('startBroadcast').click();
-  if(action==='endBroadcast')   document.getElementById('endBroadcast').click();
-  if(action==='nextTrigger')   triggerNextDrop();
-  if(action==='startRecording') startRecording();
-  if(action==='stopRecording')  stopRecording();
-  if(action==='crossfader' && value!==null){
-    document.getElementById('crossfader').value = Math.round((value/127)*100);
-    setVolumes();
-  }
-}
-
-qList.addEventListener('click', e=>{
-  const load = e.target.closest('[data-load]');
-  if(load){ loadTo(load.dataset.load, queue[Number(load.dataset.i)]); return; }
-  const trig = e.target.closest('[data-trigger]');
-  if(trig){ const x=queue[Number(trig.dataset.trigger)]; loadTo('B',x); deckB.play(); }
-});
-
-pads.addEventListener('click', e=>{
-  const p = e.target.closest('[data-pad]');
-  if(!p) return;
-  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
-  const x = triggers[Number(p.dataset.pad)];
-  loadTo('B',x); deckB.play();
-});
-
-document.getElementById('crossfader').addEventListener('input', setVolumes);
-document.getElementById('playA').onclick  = ()=>deckA.play();
-document.getElementById('playB').onclick  = ()=>deckB.play();
-document.getElementById('stopA').onclick  = ()=>{ deckA.pause(); deckA.currentTime=0; };
-document.getElementById('stopB').onclick  = ()=>{ deckB.pause(); deckB.currentTime=0; };
-document.getElementById('cueA').onclick   = ()=>{ deckA.currentTime=0; deckA.play(); };
-document.getElementById('cueB').onclick   = ()=>{ deckB.currentTime=0; deckB.play(); };
-document.getElementById('micToggle').onclick = ()=>{
-  micOn = !micOn;
-  document.getElementById('micToggle').textContent = micOn?'🎙 Mic On':'🎙 Mic Off';
-  note(micOn?'Mic armed locally. Live mic streaming connects next.':'Mic off.');
-};
-document.getElementById('startBroadcast').onclick = async()=>{
-  await ensure(); live=true;
-  document.getElementById('broadcastStatus').textContent = 'Live Broadcast Mode ON';
-  await setDoc(doc(db,'radio_broadcast','main'),{ live:true, micOn, updatedAt:serverTimestamp(), hostUid:auth.currentUser?.uid||'' },{merge:true});
-  note('Live Broadcast Mode started.','#5dff9e');
-};
-document.getElementById('endBroadcast').onclick = async()=>{
-  await ensure(); live=false;
-  document.getElementById('broadcastStatus').textContent = 'Offline. Start live mode when ready.';
-  await setDoc(doc(db,'radio_broadcast','main'),{ live:false, micOn:false, updatedAt:serverTimestamp() },{merge:true});
-  note('Broadcast ended.','#ff7474');
-};
-document.getElementById('reloadQueue').onclick = loadQueue;
-document.getElementById('saveQueue').onclick = async()=>{
-  await ensure();
-  await setDoc(doc(db,'radio_dj_queues','main'),{
-    items: queue.map((x,i)=>({id:x.id,kind:x.kind||'item',title:itemName(x),audioUrl:itemUrl(x),order:i})),
-    updatedAt: serverTimestamp()
-  },{merge:true});
-  note('Broadcast queue saved.','#5dff9e');
-};
-
-// ═══════════════════════════════════════════════
-// MIDI
-// ═══════════════════════════════════════════════
-function renderMappings(){
-  const box = document.getElementById('midiMappings');
-  if(!box) return;
-  const rows = Object.entries(mappings);
-  if(!rows.length){ box.innerHTML='<div class="track">No MIDI mappings yet. Click Start MIDI Learn, choose a target, then move a control.</div>'; return; }
-  box.innerHTML = rows.map(([key,action])=>`
-    <div class="track mapping-row">
-      <div><div class="name">${esc(action)}</div><div class="desc">MIDI ${esc(key)}</div></div>
-      <button class="btn btn-red" data-clear-map="${esc(key)}">Clear</button>
-    </div>`).join('');
-}
-function midiKey(data){ return `${data[0]}-${data[1]}`; }
-function onMidiMessage(e){
-  const data=[...e.data], key=midiKey(data), val=data[2]??0;
-  const sig=document.getElementById('lastMidiSignal');
-  if(sig) sig.textContent=`${key} value ${val}`;
-  if(midiLearn){
-    const target=document.getElementById('midiTarget').value;
-    mappings[key]=target;
-    localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
-    renderMappings();
-    note(`Mapped MIDI ${key} to ${target}`,'#5dff9e');
+  // FIX: Wait for onAuthStateChanged to set authReady before checking user
+  if(!authReady){
+    setNotice('Checking Google session...');
+    // Inject sign-in button into hero area while waiting
+    const hero = adminApp.querySelector('.hero');
+    if(hero) renderGoogleBtn(hero);
     return;
   }
-  const action=mappings[key];
-  if(action) runDeckAction(action,val);
-}
-async function connectMidi(){
-  const status=document.getElementById('midiStatus');
-  try{
-    if(!navigator.requestMIDIAccess){ status.textContent='Web MIDI not supported. Use Chrome/Edge desktop.'; status.style.color='#ff7474'; return; }
-    midiAccess=await navigator.requestMIDIAccess({sysex:false});
-    const inputs=[...midiAccess.inputs.values()];
-    inputs.forEach(input=>input.onmidimessage=onMidiMessage);
-    document.getElementById('midiDevices').textContent=inputs.length?inputs.map(i=>i.name).join(', '):'No MIDI inputs detected.';
-    status.textContent=inputs.length?'MIDI equipment connected.':'MIDI ready, but no inputs detected.';
-    status.style.color=inputs.length?'#5dff9e':'#F0C040';
-  } catch(e){ console.error(e); status.textContent='MIDI connect failed: '+(e.message||e); status.style.color='#ff7474'; }
-}
-document.getElementById('connectMidi')?.addEventListener('click',connectMidi);
-document.getElementById('startMidiLearn')?.addEventListener('click',()=>{ midiLearn=true; note('MIDI Learn ON. Move a hardware control now.','#F0C040'); });
-document.getElementById('stopMidiLearn')?.addEventListener('click',()=>{ midiLearn=false; note('MIDI Learn OFF.'); });
-document.getElementById('midiMappings')?.addEventListener('click',e=>{
-  const b=e.target.closest('[data-clear-map]');
-  if(!b) return;
-  delete mappings[b.dataset.clearMap];
-  localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
-  renderMappings();
-});
-document.querySelectorAll('[data-stream-action]').forEach(btn=>btn.addEventListener('click',()=>runDeckAction(btn.dataset.streamAction)));
 
-// ── Boot ──
-try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
-setVolumes(); renderMappings(); loadQueue();
+  // Auth is ready — update button state
+  const hero = adminApp.querySelector('.hero');
+  if(hero) renderGoogleBtn(hero);
+  updateGoogleStatus();
+
+  if(authUser && isAdminEmail(authUser.email)){
+    setNotice('Signed in as ' + authUser.email, '#5dff9e');
+    if(!loadedOnce) loadSubmissions(true);
+  } else {
+    setNotice('Tap "Sign In With Google" above to load submissions.');
+    if(!loadedOnce) list.innerHTML = '<div class="empty">Google admin sign-in required. Use the button above.</div>';
+  }
+}
+
+// ── Unlock with code ──
+document.getElementById('unlockBtn').onclick = () => {
+  const code = document.getElementById('adminCode').value.trim();
+  if(code === ADMIN_CODE){
+    localStorage.setItem('ub_radio_admin_unlocked', 'yes');
+    renderAuthState();
+  } else {
+    setLockNotice('Wrong admin code.', '#ff7474');
+  }
+};
+
+document.getElementById('lockBtn').onclick = () => {
+  localStorage.removeItem('ub_radio_admin_unlocked');
+  location.reload();
+};
+
+// ── FIX: onAuthStateChanged is the ONLY place authUser is set ──
+// Never call auth.currentUser during startup
+onAuthStateChanged(auth, user => {
+  authReady = true;
+  authUser  = user;
+  // Only update UI if already unlocked — don't flash the admin panel for locked users
+  if(unlocked()) renderAuthState();
+});
+
+// Initial render on page load
+renderAuthState();
+
+// ── Submission loading ──
+async function requireAdmin(){
+  if(!unlocked()) throw new Error('Admin code required.');
+  if(!authReady)  throw new Error('Auth still loading. Wait a moment.');
+  if(!authUser || !isAdminEmail(authUser.email)){
+    throw new Error('Sign in with admin Google account first.');
+  }
+  return authUser;
+}
+
+function statusClass(s){ s = String(s || 'pending').toLowerCase(); return s === 'approved' ? 'approved' : s === 'rejected' ? 'rejected' : 'pending'; }
+
+function updateStats(){
+  const total    = submissions.length;
+  const pending  = submissions.filter(x => (x.status || 'pending') === 'pending').length;
+  const approved = submissions.filter(x => x.status === 'approved').length;
+  const featured = submissions.filter(x => !!x.featured).length;
+  const rejected = submissions.filter(x => x.status === 'rejected').length;
+  ['statTotal','statPending','statApproved','statFeatured','statRejected'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = [total, pending, approved, featured, rejected][i];
+  });
+}
+
+function filtered(){
+  if(currentFilter === 'all')      return submissions;
+  if(currentFilter === 'featured') return submissions.filter(x => !!x.featured);
+  return submissions.filter(x => (x.status || 'pending') === currentFilter);
+}
+
+function mediaTag(t){
+  const url  = String(t.audioUrl || '');
+  const type = String(t.fileType || t.contentType || '').toLowerCase();
+  if(type.startsWith('video/') || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(url))
+    return `<video class="player" controls preload="metadata" src="${esc(url)}"></video>`;
+  return `<audio class="player" controls preload="metadata" src="${esc(url)}"></audio>`;
+}
+
+function btn(action, id, label, cls){ return `<button type="button" class="btn ${cls} btn-small" data-action="${action}" data-id="${esc(id)}">${label}</button>`; }
+
+function renderList(){
+  const data = filtered();
+  if(!data.length){ list.innerHTML = `<div class="empty">No ${currentFilter} submissions.</div>`; return; }
+  list.innerHTML = data.map(t => `<article class="track">
+    <div class="track-title">${esc(t.trackTitle || 'Untitled')}</div>
+    <div class="track-meta">${esc(t.artistName || 'Unknown')} · ${esc(t.genre || 'No genre')} · ${fmtDate(t.createdAt)}</div>
+    <div><span class="badge ${statusClass(t.status)}">${esc(t.status || 'pending')}</span>${t.featured ? '<span class="badge approved">featured</span>' : ''}</div>
+    ${mediaTag(t)}
+    <div class="small" style="margin-top:7px">
+      <b>Email:</b> ${esc(t.email || '—')}<br>
+      <b>Producer:</b> ${esc(t.producerCredits || '—')}<br>
+      <b>Rights:</b> ${esc(t.copyrightDeclaration || '—')}
+      ${t.artistLink ? '<br><b>Link:</b> <span class="link">' + esc(t.artistLink) + '</span>' : ''}
+    </div>
+    <div class="actions">
+      ${btn('approve', t.id, 'Approve', 'btn-green')}
+      ${btn('feature', t.id, t.featured ? 'Unfeature' : 'Feature', 'btn-gold')}
+      ${btn('now',     t.id, 'Set Now Playing', 'btn-blue')}
+      ${btn('reject',  t.id, 'Reject', 'btn-red')}
+      ${btn('remove',  t.id, 'Delete', 'btn-red')}
+      <a class="btn btn-blue btn-small" href="${esc(t.audioUrl||'')}" download="${esc((t.trackTitle||'track').replace(/[^a-zA-Z0-9 _-]/g,'_'))}.${(t.fileType||'').includes('wav')?'wav':'mp3'}" target="_blank" rel="noopener">⬇ Download for Live365</a>\n    </div>
+  </article>`).join('');
+}
+
+async function loadSubmissions(force = false){
+  if(loadingNow) return;
+  if(loadedOnce && !force) return;
+  loadingNow = true;
+  list.innerHTML = '<div class="empty">Loading submissions...</div>';
+  try{
+    await requireAdmin();
+    const snap = await getDocs(collection(db, 'radio_submissions'));
+    submissions = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => {
+      const ad = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+      const bd = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+      return bd - ad;
+    });
+    loadedOnce = true;
+    updateStats();
+    renderList();
+    setNotice('Loaded ' + submissions.length + ' submissions.', '#5dff9e');
+  } catch(e){
+    console.error(e);
+    list.innerHTML = '<div class="empty">Error: ' + esc(e.message || String(e)) + '</div>';
+    setNotice(e.message || String(e), '#ff7474');
+  } finally {
+    loadingNow = false;
+  }
+}
+
+async function updateSub(id, patch){
+  setNotice('Saving...');
+  await requireAdmin();
+  await updateDoc(doc(db, 'radio_submissions', id), { ...patch, reviewedAt: serverTimestamp() });
+  loadedOnce = false;
+  await loadSubmissions(true);
+  setNotice('Saved.', '#5dff9e');
+}
+
+async function runAction(action, id){
+  try{
+    if(action === 'approve') return await updateSub(id, { status: 'approved', featured: false });
+    if(action === 'reject')  return await updateSub(id, { status: 'rejected', featured: false });
+    if(action === 'feature'){
+      const t = submissions.find(x => x.id === id);
+      return await updateSub(id, { status: 'approved', featured: !t?.featured });
+    }
+    if(action === 'now'){
+      const t = submissions.find(x => x.id === id); if(!t) return;
+      setNotice('Updating Now Playing...');
+      await requireAdmin();
+      await setDoc(doc(db, 'radio_station', 'main'), {
+        nowPlayingId: id, trackTitle: t.trackTitle || '', artistName: t.artistName || '',
+        genre: t.genre || '', audioUrl: t.audioUrl || '', featured: !!t.featured,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      setNotice('Now Playing updated.', '#5dff9e');
+    }
+    if(action === 'remove'){
+      if(!confirm('Delete this submission?')) return;
+      setNotice('Deleting...');
+      await requireAdmin();
+      await deleteDoc(doc(db, 'radio_submissions', id));
+      loadedOnce = false;
+      await loadSubmissions(true);
+      setNotice('Deleted.', '#5dff9e');
+    }
+  } catch(e){
+    console.error(e);
+    setNotice('Action failed: ' + (e.message || String(e)), '#ff7474');
+  }
+}
+
+// Event delegation for action buttons
+let touchAt = 0;
+list.addEventListener('click', e => {
+  if(Date.now() - touchAt < 700) return;
+  const b = e.target.closest('[data-action]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  runAction(b.dataset.action, b.dataset.id);
+});
+list.addEventListener('touchend', e => {
+  const b = e.target.closest('[data-action]'); if(!b) return;
+  touchAt = Date.now();
+  e.preventDefault(); e.stopPropagation();
+  runAction(b.dataset.action, b.dataset.id);
+}, { passive: false });
+
+// Filter tabs
+document.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { currentFilter = b.dataset.filter; renderList(); });
+document.getElementById('reloadBtn').onclick = () => { loadedOnce = false; loadSubmissions(true); };
+
+// Station controls
+document.getElementById('saveStationBtn').onclick = async () => {
+  try{
+    setNotice('Saving station...');
+    await requireAdmin();
+    await setDoc(doc(db, 'radio_station', 'main'), {
+      title:   (document.getElementById('stationTitle')?.value   || '').trim() || 'Empire Rotation',
+      message: (document.getElementById('stationMessage')?.value || '').trim(),
+      dj:      (document.getElementById('stationDj')?.value      || '').trim() || 'UniBeatz Radio',
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    setNotice('Station saved.', '#5dff9e');
+  } catch(e){ setNotice('Save failed: ' + (e.message || e), '#ff7474'); }
+};
+
+document.getElementById('clearNowBtn').onclick = async () => {
+  try{
+    setNotice('Clearing Now Playing...');
+    await requireAdmin();
+    await setDoc(doc(db, 'radio_station', 'main'), {
+      nowPlayingId: '', trackTitle: '', artistName: '', genre: '', audioUrl: '',
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    setNotice('Now Playing cleared.', '#5dff9e');
+  } catch(e){ setNotice('Clear failed: ' + (e.message || e), '#ff7474'); }
+};
+
+window.radioAdmin = {
+  reload: () => { loadedOnce = false; loadSubmissions(true); }
+};
