@@ -14,41 +14,42 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="radio.css"/>
 <style>
-  .compact-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
-  .compact-tools{display:grid;gap:14px}
-  .compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
-  .live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:hidden}
-  .live365-frame{width:100%;max-width:450px;height:316px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
-  .live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
-  .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
-  .stream-fallback{width:100%;margin-top:10px;display:none}
-  #genreChannelsSection{margin-top:20px}
-  .channels-header{margin-bottom:14px}
-  .channels-title{font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;line-height:1}
-  .channels-sub{font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-top:4px}
-  .genre-pill-row{display:flex;flex-wrap:wrap;gap:8px}
-  .genre-pill{border:1px solid rgba(201,168,76,.35);background:rgba(0,0,0,.3);color:#F0EDE8;border-radius:999px;padding:9px 16px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s;white-space:nowrap}
-  .genre-pill:hover{border-color:#F0C040;color:#F0C040;background:rgba(201,168,76,.08)}
-  .genre-pill.active{background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;border-color:#F0C040;font-weight:900}
-  .genre-pill.main-pill{border-color:rgba(64,208,255,.5);color:#40D0FF}
-  .genre-pill.main-pill.active{background:linear-gradient(135deg,#003a5f,#0077cc,#00AAFF);color:#fff;border-color:#00AAFF}
-  #channelBar{display:none;margin-top:14px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(0,0,0,.4);padding:12px 14px;align-items:center;gap:12px}
-  #channelBar.visible{display:flex}
-  #channelBarDot{width:8px;height:8px;border-radius:50%;background:#F0C040;animation:chPulse 1.2s infinite;flex-shrink:0}
-  @keyframes chPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-  #channelBarInfo{flex:1;min-width:0}
-  #channelBarTitle{font-family:Bebas Neue,sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:#F0C040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #channelBarArtist{font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#8d94a5;margin-top:2px}
-  .ch-ctrl{border:0;background:transparent;color:#F0C040;font-size:1.1rem;cursor:pointer;padding:4px 6px;flex-shrink:0}
-  #channelAudio{display:none}
-  #genreFilters,#approvedList{display:none!important}
-  .approved-home-hidden{display:none!important}
-  .compact-submit{padding:14px}
-  .btn-mini{padding:7px 10px;font-size:.44rem}
-  #ubRadioProgress{display:none;margin:10px 0 4px;border-radius:999px;height:8px;background:rgba(255,255,255,.1);overflow:hidden}
-  #ubRadioProgressFill{height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s}
-  @media(max-width:930px){.compact-home{grid-template-columns:1fr}.live365-frame{height:260px}}
-  @media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}}
+.account-pill,#accountBtn{display:none!important}
+.compact-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
+.compact-tools{display:grid;gap:14px}
+.compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
+.live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:visible}
+.live365-frame{width:100%;max-width:650px;height:420px;min-height:420px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
+.live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
+.live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
+#radioAccountBtn{display:none!important}
+#genreChannelsSection{margin-top:20px}
+.channels-header{margin-bottom:14px}
+.channels-title{font-family:Bebas Neue,sans-serif;font-size:2rem;letter-spacing:2px;color:#F0C040;line-height:1}
+.channels-sub{font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;margin-top:4px}
+.genre-pill-row{display:flex;flex-wrap:wrap;gap:8px}
+.genre-pill{border:1px solid rgba(201,168,76,.35);background:rgba(0,0,0,.3);color:#F0EDE8;border-radius:999px;padding:9px 16px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.genre-pill:hover{border-color:#F0C040;color:#F0C040;background:rgba(201,168,76,.08)}
+.genre-pill.active{background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;border-color:#F0C040;font-weight:900}
+.genre-pill.main-pill{border-color:rgba(64,208,255,.5);color:#40D0FF}
+.genre-pill.main-pill.active{background:linear-gradient(135deg,#003a5f,#0077cc,#00AAFF);color:#fff;border-color:#00AAFF}
+#channelBar{display:none;margin-top:14px;border:1px solid rgba(201,168,76,.3);border-radius:12px;background:rgba(0,0,0,.4);padding:12px 14px;align-items:center;gap:12px}
+#channelBar.visible{display:flex}
+#channelBarDot{width:8px;height:8px;border-radius:50%;background:#F0C040;animation:chPulse 1.2s infinite;flex-shrink:0}
+@keyframes chPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+#channelBarInfo{flex:1;min-width:0}
+#channelBarTitle{font-family:Bebas Neue,sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:#F0C040;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#channelBarArtist{font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#8d94a5;margin-top:2px}
+.ch-ctrl{border:0;background:transparent;color:#F0C040;font-size:1.1rem;cursor:pointer;padding:4px 6px;flex-shrink:0}
+#channelAudio{display:none}
+#genreFilters,#approvedList{display:none!important}
+.approved-home-hidden{display:none!important}
+.compact-submit{padding:14px}
+.btn-mini{padding:7px 10px;font-size:.44rem}
+#ubRadioProgress{display:none;margin:10px 0 4px;border-radius:999px;height:8px;background:rgba(255,255,255,.1);overflow:hidden}
+#ubRadioProgressFill{height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s}
+@media(max-width:930px){.compact-home{grid-template-columns:1fr}.live365-frame{height:360px;min-height:360px}}
+@media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}}
 </style>
 </head>
 <body>
@@ -60,23 +61,22 @@
   <div class="nav-inner">
     <a class="brand" href="index.html">⚡ UNIBEATZ</a>
     <div class="links">
-      <a href="index.html">Empire</a>
-      <a href="unibeatzworld.html">World</a>
-      <a href="radio.html">Radio Station</a>
+      <a href="https://unibeatzproduction.com">Empire</a>
+      <a href="https://unibeatzproduction.com/unibeatzworld.html">World</a>
+      <a href="index.html">Radio Station</a>
       <a href="radio-dj-apply.html">Apply To DJ</a>
       <a href="admin-radio.html">Admin</a>
-      <button id="radioAccountBtn" type="button">Sign In</button>
     </div>
   </div>
 </nav>
 
 <main class="wrap">
-
   <section class="compact-home">
     <article class="panel">
       <div class="eyebrow">UNIBEATZPRODUCTION • LIVE365 BROADCAST</div>
       <h1 class="h1">UniBeatz <span>Radio</span> Station</h1>
       <p class="sub">A premium indie-first station with approved records, station drops, podcasts, DJ sets, and Live365-powered 24/7 playback.</p>
+
       <div class="station">
         <div class="cover">📻</div>
         <div class="meta">
@@ -85,13 +85,12 @@
           <span class="badge" id="nowPlayingBadge">LIVE365 STREAM CONNECTED</span>
         </div>
       </div>
+
       <div class="player uni-player live365-box">
-        <!-- Desktop: Live365 iframe -->
         <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
           src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
           allow="autoplay; encrypted-media" loading="lazy"></iframe>
 
-        <!-- Mobile: direct stream for background play support -->
         <div id="live365Mobile" style="display:none;text-align:center;padding:16px 0;">
           <audio id="mainStationAudio" preload="auto" playsinline webkit-playsinline
             style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-10px;"
@@ -107,6 +106,7 @@
           <button id="refreshApproved" class="btn btn-blue btn-mini" type="button">Refresh</button>
         </div>
       </div>
+
       <div class="compact-note">Main station powered by Live365. Switch to a genre channel below to hear approved tracks by style.</div>
     </article>
 
@@ -119,6 +119,7 @@
         <div id="ubRadioProgress"><div id="ubRadioProgressFill"></div></div>
         <div id="formNotice" class="notice"></div>
       </article>
+
       <article class="panel compact-submit">
         <div class="eyebrow">DJ HOST PATH</div>
         <h2 class="section-title" style="margin-top:2px">Apply To DJ</h2>
@@ -148,6 +149,7 @@
       <button class="genre-pill" data-genre="Podcast">🎙️ Podcast</button>
       <button class="genre-pill" data-genre="Instrumentals">🎹 Instrumentals</button>
     </div>
+
     <div id="channelBar">
       <div id="channelBarDot"></div>
       <div id="channelBarInfo">
@@ -158,6 +160,7 @@
       <button class="ch-ctrl" id="chPlay" title="Play/Pause">▶</button>
       <button class="ch-ctrl" id="chNext" title="Next">⏭</button>
     </div>
+
     <audio id="channelAudio" playsinline webkit-playsinline></audio>
   </section>
 
@@ -166,21 +169,21 @@
     <div id="genreFilters"></div>
     <div id="approvedList"></div>
   </section>
-
 </main>
 
-<!-- Submit Modal -->
 <div id="submitModal" class="modal-wrap" aria-hidden="true">
   <div class="modal">
     <button class="x" id="closeSubmit" aria-label="Close">✕</button>
     <div class="eyebrow">INDIE ARTIST UPLOAD</div>
     <h3 class="section-title" style="margin-top:3px">Submission Form</h3>
+
     <form id="artistForm" class="form">
       <input class="input" name="artistName" placeholder="Artist Name" required/>
       <input class="input" name="email" type="email" placeholder="Contact Email" required/>
       <input class="input" name="trackTitle" placeholder="Track Title" required/>
       <input class="input" name="artistLink" type="url" placeholder="Artist link / social / website (optional)"/>
       <input class="input" name="producerCredits" placeholder="Producer / beat credits" required/>
+
       <select name="genre" required>
         <option value="">Select Genre Channel</option>
         <option>Hip-Hop</option><option>Boom Bap</option><option>Trap</option>
@@ -189,11 +192,14 @@
         <option>Producer Showcase</option><option>Freestyle Sessions</option>
         <option>Live DJ Sets</option><option>Instrumentals</option>
       </select>
+
       <textarea name="copyrightDeclaration" placeholder="Confirm you own/control rights for vocals, beat, and samples + include producer credits." required></textarea>
+
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:.9rem;color:#aeb8cb">
         <input name="rightsConfirm" type="checkbox" required style="width:auto;margin-top:3px">
         I confirm this submission is fully authorized for review and possible radio placement.
       </label>
+
       <input class="input" name="audioFile" type="file" accept="audio/mpeg,audio/mp3,audio/wav,.mp3,.wav" required/>
       <p style="font-size:.82rem;color:#8d94a5;margin-top:2px;">MP3 or WAV · Max 100MB</p>
       <button class="btn btn-gold" type="submit">Submit for Review</button>
@@ -206,7 +212,6 @@
 <script type="module" src="radio-premium-popup.js"></script>
 <script src="radio-pwa-register.js"></script>
 
-<!-- Genre Channel Engine -->
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
@@ -219,64 +224,85 @@ const app = getApps().length ? getApp() : initializeApp({
   messagingSenderId:'70667820609',
   appId:'1:70667820609:web:57762df5510e6b4000b0c0'
 });
-const db = getFirestore(app);
 
+const db = getFirestore(app);
 let allTracks = [], queue = [], queueIndex = 0, currentGenre = 'live365';
-const audio   = document.getElementById('channelAudio');
-const bar     = document.getElementById('channelBar');
-const barTitle  = document.getElementById('channelBarTitle');
+
+const audio = document.getElementById('channelAudio');
+const bar = document.getElementById('channelBar');
+const barTitle = document.getElementById('channelBarTitle');
 const barArtist = document.getElementById('channelBarArtist');
-const chPlay  = document.getElementById('chPlay');
+const chPlay = document.getElementById('chPlay');
 
 async function loadTracks(){
   try{
     const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
     allTracks = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-  } catch(e){ console.warn('[channels]', e); }
+  } catch(e){
+    console.warn('[channels]', e);
+  }
 }
 
 function switchGenre(genre){
   currentGenre = genre;
+
   if(genre === 'live365'){
-    audio.pause(); audio.src = '';
+    audio.pause();
+    audio.src = '';
     bar.classList.remove('visible');
     return;
   }
+
   queue = allTracks.filter(t => t.genre === genre && t.audioUrl)
     .sort((a,b) => Number(b.featured||0) - Number(a.featured||0));
+
   queueIndex = 0;
+
   if(!queue.length){
-    barTitle.textContent  = 'No tracks yet in ' + genre;
+    barTitle.textContent = 'No tracks yet in ' + genre;
     barArtist.textContent = 'Submit music above to be first';
     bar.classList.add('visible');
     audio.pause();
     return;
   }
+
   playIndex(0);
   bar.classList.add('visible');
 }
 
 function playIndex(index){
   if(!queue.length) return;
+
   if(index < 0) index = queue.length - 1;
   if(index >= queue.length) index = 0;
+
   queueIndex = index;
   const track = queue[queueIndex];
+
   audio.src = track.audioUrl;
   audio.load();
-  audio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
-  barTitle.textContent  = track.trackTitle  || 'Untitled';
+  audio.play().then(() => {
+    chPlay.textContent = '⏸';
+  }).catch(() => {
+    chPlay.textContent = '▶';
+  });
+
+  barTitle.textContent = track.trackTitle || 'Untitled';
   barArtist.textContent = (track.artistName || 'Unknown') + ' · ' + currentGenre;
 }
 
 audio.addEventListener('ended', () => playIndex(queueIndex + 1));
-audio.addEventListener('play',  () => { chPlay.textContent = '⏸'; });
+audio.addEventListener('play', () => { chPlay.textContent = '⏸'; });
 audio.addEventListener('pause', () => { chPlay.textContent = '▶'; });
 
 chPlay.addEventListener('click', () => {
-  if(!audio.src || audio.src === window.location.href){ if(queue.length) playIndex(0); return; }
+  if(!audio.src || audio.src === window.location.href){
+    if(queue.length) playIndex(0);
+    return;
+  }
   audio.paused ? audio.play().catch(()=>{}) : audio.pause();
 });
+
 document.getElementById('chPrev').addEventListener('click', () => playIndex(queueIndex - 1));
 document.getElementById('chNext').addEventListener('click', () => playIndex(queueIndex + 1));
 
@@ -288,35 +314,36 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
   });
 });
 
-// Mobile detection — swap iframe for direct audio player
 const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 if(isMobile){
   document.getElementById('live365Frame').style.display = 'none';
   document.getElementById('live365Mobile').style.display = 'block';
 }
 
-// Main station play button (mobile only)
-const mainAudio   = document.getElementById('mainStationAudio');
+const mainAudio = document.getElementById('mainStationAudio');
 const mainPlayBtn = document.getElementById('mainStationPlay');
 
 mainPlayBtn?.addEventListener('click', async () => {
   if(!mainAudio) return;
+
   if(mainAudio.paused){
     try{
       await mainAudio.play();
       mainPlayBtn.textContent = '⏸ Pause Station';
-    } catch(e){ mainPlayBtn.textContent = '▶ Play Station'; }
+    } catch(e){
+      mainPlayBtn.textContent = '▶ Play Station';
+    }
   } else {
     mainAudio.pause();
     mainPlayBtn.textContent = '▶ Play Station';
   }
 });
-mainAudio?.addEventListener('play',  () => { if(mainPlayBtn) mainPlayBtn.textContent = '⏸ Pause Station'; });
+
+mainAudio?.addEventListener('play', () => { if(mainPlayBtn) mainPlayBtn.textContent = '⏸ Pause Station'; });
 mainAudio?.addEventListener('pause', () => { if(mainPlayBtn) mainPlayBtn.textContent = '▶ Play Station'; });
 mainAudio?.addEventListener('error', () => { if(mainPlayBtn) mainPlayBtn.textContent = '⚠ Stream Error'; });
 
 loadTracks();
 </script>
-
 </body>
 </html>
