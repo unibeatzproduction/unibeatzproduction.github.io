@@ -18,7 +18,7 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 
 window.UB_FIREBASE = { app, auth, db, storage, onAuthStateChanged, ready: true };
-window.dispatchEvent(new CustomEvent('ub-firebase-ready'));
+
 
 const form = document.getElementById('artistForm');
 const notice = document.getElementById('formNotice');
