@@ -64,7 +64,15 @@
       <a href="index.html">Radio Station</a>
       <a href="radio-dj-apply.html">Apply To DJ</a>
       <a href="admin-radio.html">Admin</a>
+      <div id="radioAccountWrap" style="position:relative">
       <button id="radioAccountBtn" type="button">Sign In</button>
+      <div id="radioAccountMenu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:200px;background:#0d0d18;border:1px solid rgba(201,168,76,.4);border-radius:12px;padding:8px;z-index:500;box-shadow:0 12px 40px rgba(0,0,0,.7)">
+        <div id="radioMenuName" style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#F0C040;padding:8px 10px 4px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px"></div>
+        <a href="legal.html" style="display:block;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;text-decoration:none" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">⚖️ Legal Terms</a>
+        <button id="radioMenuSubscribe" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">💎 Subscription</button>
+        <button id="radioMenuSignout" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ff6b6b;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(255,60,60,.08)'" onmouseout="this.style.background='none'">🚪 Sign Out</button>
+      </div>
+    </div>
     </div>
   </div>
 </nav>
@@ -190,6 +198,7 @@
   </div>
 </div>
 
+<script type="module" src="unibeatz-auth.js"></script>
 <script type="module" src="radio.js"></script>
 <script type="module" src="radio-player.js"></script>
 <script type="module" src="radio-premium-popup.js"></script>
@@ -274,6 +283,47 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
 });
 
 loadTracks();
+</script>
+<script type="module">
+// Radio account dropdown
+const btn  = document.getElementById('radioAccountBtn');
+const menu = document.getElementById('radioAccountMenu');
+const menuName = document.getElementById('radioMenuName');
+
+btn?.addEventListener('click', e => {
+  e.stopPropagation();
+  const user = window.UniBeatzAuth?.getUser?.();
+  if(!user || user.isAnonymous){
+    window.UniBeatzAuth?.showLogin?.();
+    return;
+  }
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+
+document.addEventListener('click', () => { if(menu) menu.style.display = 'none'; });
+menu?.addEventListener('click', e => e.stopPropagation());
+
+document.getElementById('radioMenuSignout')?.addEventListener('click', async () => {
+  await window.UniBeatzAuth?.signOut?.();
+  menu.style.display = 'none';
+});
+
+document.getElementById('radioMenuSubscribe')?.addEventListener('click', () => {
+  menu.style.display = 'none';
+  window.location.href = 'https://unibeatzproduction.com#membership';
+});
+
+window.addEventListener('ub-auth-ready', e => {
+  const user    = e.detail?.user;
+  const profile = e.detail?.profile;
+  if(user && !user.isAnonymous){
+    btn.textContent = profile?.username || profile?.displayName || user.email || 'Account';
+    menuName.textContent = profile?.username || profile?.displayName || user.email || '';
+  } else {
+    btn.textContent = 'Sign In';
+    if(menu) menu.style.display = 'none';
+  }
+});
 </script>
 </body>
 </html>
