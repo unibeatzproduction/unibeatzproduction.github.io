@@ -7,27 +7,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="UniFreestyle"/>
-<meta name="theme-color" content="#030305"/>
-<meta name="ub-platform" content="battle">  
+<meta name="theme-color" content="#C9A84C"/>
 <link rel="manifest" href="/unifreestyle-manifest.json"/>
-<link rel="apple-touch-icon" href="/icons/unifreestyle-192.png"/>  
+<link rel="apple-touch-icon" href="/icons/unifreestyle-192.png"/>
 <title>UniFreestyle Battle App</title>
-
-<meta property="og:title" content="UniFreestyle Battle App">
-<meta property="og:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
-<meta property="og:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
-<meta property="og:image:secure_url" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta property="og:url" content="https://battle.unibeatzproduction.com">
-<meta property="og:type" content="website">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="UniFreestyle Battle App">
-<meta name="twitter:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
-<meta name="twitter:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">  
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-<!-- ══ FIREBASE INTEGRATION ══ -->
+<!-- \\\\u2550\\\\u2550 FIREBASE INTEGRATION \\\\u2550\\\\u2550 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
   import {
@@ -58,9 +43,8 @@
     query,
     where,
     orderBy,
-  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"; 
-  
-  // ═════ FIREBASE CONFIG ═════
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
   const firebaseConfig = {
     apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
     authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
@@ -71,75 +55,51 @@
     measurementId: "G-QR5J3KW8T1"
   };
 
-  // Initialize
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
   auth.languageCode = "en";
 
-  // Make Firebase available globally for the rest of the script
- window.UB_FIREBASE = {
-  app,
-  auth,
-  db,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  addDoc,
-  updateDoc,
-  onSnapshot,
-  serverTimestamp,
-  query,
-  where,
-  orderBy,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-  signOut,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
+  window.UB_FIREBASE = {
+    app, auth, db,
+    collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc,
+    onSnapshot, serverTimestamp, query, where, orderBy,
+    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    sendEmailVerification, sendPasswordResetEmail,
+    onAuthStateChanged, signOut, updateProfile,
+    GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+    ready: true,
+  };
 
-  ready: true,
-};
-
-  // Notify any listener
   window.dispatchEvent(new Event("ub-firebase-ready"));
-  console.log("🔥 Firebase initialized — UniBeatz Production");
+  console.log("\\\\ud83d\\\\udd25 Firebase initialized \\\\u2014 UniBeatz Production");
 </script>
-
 <link rel="stylesheet" href="unifreestyle.css"/>
 <script src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js"></script>
 </head>
 <body>
 
-<!-- ══════════ SPLASH ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 SPLASH \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page active" id="page-splash">
   <div class="splash-content">
     <img src="logo.png" class="splash-logo" alt="UniFreestyle" onerror="this.style.display='none'"/>
     <div class="splash-title"><span class="g">UNI</span><span class="b">FREESTYLE</span></div>
     <div class="splash-title" style="font-size:1.4rem;letter-spacing:6px;color:var(--gold);">BATTLE APP</div>
-    <p class="splash-tag">Face to Face · Live Battles · Real Rankings</p>
+    <p class="splash-tag">Face to Face \\\\u00b7 Live Battles \\\\u00b7 Real Rankings</p>
     <div class="splash-btns">
       <button class="btn btn-gold" onclick="goToPage('signup')">Create Account</button>
       <button class="btn btn-blue" onclick="goToPage('login')">Log In</button>
       <div class="divider">or continue with</div>
-      <button class="social-btn" onclick="socialAuth('Google')">🔵 Continue with Google</button>
-      <button class="social-btn" onclick="socialAuth('Apple')">⬛ Continue with Apple</button>
+      <button class="social-btn" onclick="socialAuth('Google')">\\\\ud83d\\\\udd35 Continue with Google</button>
+      <button class="social-btn" onclick="socialAuth('Apple')">\\\\u2b1b Continue with Apple</button>
       <p class="legal-text">By continuing you agree to UniBeatz Production's <a href="legal.html">Terms of Service</a> and <a href="legal.html#disclaimer">Privacy Policy</a>.</p>
     </div>
   </div>
 </div>
 
-<!-- ══════════ SIGN UP ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 SIGN UP \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-signup">
-  <button class="back-btn" onclick="goToPage('splash')">←</button>
+  <button class="back-btn" onclick="goToPage('splash')">\\\\u2190</button>
   <div class="page-body no-nav">
     <div class="auth-page">
       <div class="auth-header">
@@ -147,43 +107,24 @@
         <div class="auth-title">Create Account</div>
         <p class="auth-sub">Join the UniFreestyle Battle community</p>
       </div>
-
       <div class="section-label">Choose Your Role</div>
       <div class="role-grid" id="signupRoles">
-        <div class="role-card selected" data-role="artist" onclick="selectSignupRole(this)">
-          <span class="role-icon">🎤</span>
-          <div class="role-name">Artist</div>
-          <div class="role-desc">Battle face-to-face, earn ranks</div>
-        </div>
-        <div class="role-card" data-role="viewer" onclick="selectSignupRole(this)">
-          <span class="role-icon">👀</span>
-          <div class="role-name">Viewer / Judge</div>
-          <div class="role-desc">Watch, vote, build judge rep</div>
-        </div>
-        <div class="role-card" data-role="dj" onclick="selectSignupRole(this)">
-          <span class="role-icon">🎧</span>
-          <div class="role-name">DJ Judge</div>
-          <div class="role-desc">Control sessions, score battles</div>
-        </div>
-        <div class="role-card" data-role="fan" onclick="selectSignupRole(this)">
-          <span class="role-icon">❤️</span>
-          <div class="role-name">Fan</div>
-          <div class="role-desc">Watch and support artists</div>
-        </div>
+        <div class="role-card selected" data-role="artist" onclick="selectSignupRole(this)"><span class="role-icon">\\\\ud83c\\\\udfa4</span><div class="role-name">Artist</div><div class="role-desc">Battle face-to-face, earn ranks</div></div>
+        <div class="role-card" data-role="viewer" onclick="selectSignupRole(this)"><span class="role-icon">\\\\ud83d\\\\udc40</span><div class="role-name">Viewer / Judge</div><div class="role-desc">Watch, vote, build judge rep</div></div>
+        <div class="role-card" data-role="dj" onclick="selectSignupRole(this)"><span class="role-icon">\\\\ud83c\\\\udfa7</span><div class="role-name">DJ Judge</div><div class="role-desc">Control sessions, score battles</div></div>
+        <div class="role-card" data-role="fan" onclick="selectSignupRole(this)"><span class="role-icon">\\\\u2764\\\\ufe0f</span><div class="role-name">Fan</div><div class="role-desc">Watch and support artists</div></div>
       </div>
-
       <div class="section-label">Pick Your Avatar</div>
       <div class="avatar-grid" id="signupAvatars">
-        <div class="avatar-option selected" data-avatar="🎤" onclick="selectSignupAvatar(this)">🎤</div>
-        <div class="avatar-option" data-avatar="👑" onclick="selectSignupAvatar(this)">👑</div>
-        <div class="avatar-option" data-avatar="⚡" onclick="selectSignupAvatar(this)">⚡</div>
-        <div class="avatar-option" data-avatar="🔥" onclick="selectSignupAvatar(this)">🔥</div>
-        <div class="avatar-option" data-avatar="🎧" onclick="selectSignupAvatar(this)">🎧</div>
-        <div class="avatar-option" data-avatar="💎" onclick="selectSignupAvatar(this)">💎</div>
-        <div class="avatar-option" data-avatar="🦁" onclick="selectSignupAvatar(this)">🦁</div>
-        <div class="avatar-option" data-avatar="🐉" onclick="selectSignupAvatar(this)">🐉</div>
+        <div class="avatar-option selected" data-avatar="\\\\ud83c\\\\udfa4" onclick="selectSignupAvatar(this)">\\\\ud83c\\\\udfa4</div>
+        <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc51" onclick="selectSignupAvatar(this)">\\\\ud83d\\\\udc51</div>
+        <div class="avatar-option" data-avatar="\\\\u26a1" onclick="selectSignupAvatar(this)">\\\\u26a1</div>
+        <div class="avatar-option" data-avatar="\\\\ud83d\\\\udd25" onclick="selectSignupAvatar(this)">\\\\ud83d\\\\udd25</div>
+        <div class="avatar-option" data-avatar="\\\\ud83c\\\\udfa7" onclick="selectSignupAvatar(this)">\\\\ud83c\\\\udfa7</div>
+        <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc8e" onclick="selectSignupAvatar(this)">\\\\ud83d\\\\udc8e</div>
+        <div class="avatar-option" data-avatar="\\\\ud83e\\\\udd81" onclick="selectSignupAvatar(this)">\\\\ud83e\\\\udd81</div>
+        <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc09" onclick="selectSignupAvatar(this)">\\\\ud83d\\\\udc09</div>
       </div>
-
       <div class="field"><label>Full Name *</label><input type="text" id="suName" placeholder="Your real name" autocomplete="name"/></div>
       <div class="field">
         <label>Username *</label>
@@ -194,12 +135,11 @@
       <div class="field">
         <label>Password *</label>
         <input type="password" class="has-icon" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"/>
-        <span class="pw-toggle" onclick="togglePassword('suPassword',this)">👁</span>
+        <span class="pw-toggle" onclick="togglePassword('suPassword',this)">\\\\ud83d\\\\udc41</span>
         <div class="pw-strength"><div class="pw-bar" id="pwb1"></div><div class="pw-bar" id="pwb2"></div><div class="pw-bar" id="pwb3"></div><div class="pw-bar" id="pwb4"></div></div>
         <div class="field-hint" id="pwHint">Enter a password</div>
       </div>
       <div class="field"><label>City / Location</label><input type="text" id="suCity" placeholder="e.g. Houston, TX"/></div>
-
       <p class="legal-text" style="margin-bottom:14px;">By creating an account you agree to our <a href="legal.html">Terms of Service</a> and <a href="legal.html#disclaimer">Privacy Policy</a>.</p>
       <button class="btn btn-gold" onclick="handleSignup()">Create My Account</button>
       <div class="switch-link">Already have an account? <a onclick="goToPage('login')">Log In</a></div>
@@ -207,12 +147,12 @@
   </div>
 </div>
 
-<!-- ══════════ OTP ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 OTP \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-otp">
-  <button class="back-btn" onclick="goToPage('signup')">←</button>
+  <button class="back-btn" onclick="goToPage('signup')">\\\\u2190</button>
   <div class="page-body no-nav">
     <div class="otp-page">
-      <div class="otp-icon">📧</div>
+      <div class="otp-icon">\\\\ud83d\\\\udce7</div>
       <div class="otp-title">Verify Email</div>
       <p class="otp-sub">We sent a 6-digit code to your email. Enter it below.</p>
       <div class="otp-email" id="otpEmailDisplay">your@email.com</div>
@@ -226,14 +166,14 @@
       </div>
       <div class="otp-resend">Didn't receive it? <a onclick="resendOTP()">Resend Code</a></div>
       <button class="btn btn-gold" onclick="verifyOTP()">Verify & Continue</button>
-      <p style="font-size:0.72rem;color:var(--gray);margin-top:14px;line-height:1.6;">Demo Mode: Your code is shown in the message at the bottom. In production this would be sent via email.</p>
+      <p style="font-size:0.72rem;color:var(--gray);margin-top:14px;line-height:1.6;">Demo Mode: Your code is shown in the message at the bottom.</p>
     </div>
   </div>
 </div>
 
-<!-- ══════════ LOGIN ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 LOGIN \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-login">
-  <button class="back-btn" onclick="goToPage('splash')">←</button>
+  <button class="back-btn" onclick="goToPage('splash')">\\\\u2190</button>
   <div class="page-body no-nav">
     <div class="auth-page">
       <div class="auth-header">
@@ -241,16 +181,14 @@
         <div class="auth-title">Welcome Back</div>
         <p class="auth-sub">Log in to your UniFreestyle account</p>
       </div>
-
-      <button class="social-btn" style="margin-bottom:8px;" onclick="socialAuth('Google')">🔵 Continue with Google</button>
-      <button class="social-btn" style="margin-bottom:14px;" onclick="socialAuth('Apple')">⬛ Continue with Apple</button>
+      <button class="social-btn" style="margin-bottom:8px;" onclick="socialAuth('Google')">\\\\ud83d\\\\udd35 Continue with Google</button>
+      <button class="social-btn" style="margin-bottom:14px;" onclick="socialAuth('Apple')">\\\\u2b1b Continue with Apple</button>
       <div class="divider" style="margin-bottom:14px;">or</div>
-
       <div class="field"><label>Email or Username</label><input type="text" id="liEmail" placeholder="your@email.com or username" autocomplete="username"/></div>
       <div class="field">
         <label>Password</label>
         <input type="password" class="has-icon" id="liPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()"/>
-        <span class="pw-toggle" onclick="togglePassword('liPassword',this)">👁</span>
+        <span class="pw-toggle" onclick="togglePassword('liPassword',this)">\\\\ud83d\\\\udc41</span>
       </div>
       <div style="text-align:right;margin-bottom:16px;">
         <a style="font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;color:var(--gold);cursor:pointer;" onclick="showToast('Password reset: email unibeatzproduction@gmail.com')">Forgot Password?</a>
@@ -261,89 +199,78 @@
   </div>
 </div>
 
-<!-- ══════════ HOME ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 HOME \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-home">
   <div class="top-bar">
     <img src="logo.png" class="top-logo" onerror="this.style.display='none'"/>
     <h1>UNIFREESTYLE</h1>
     <div class="btn-row">
-      <div class="icon-btn" id="ubNotificationsBtn">
-  🔔<span id="ubNotifBadge" class="notif-dot" style="display:none"></span> 
-</div>  
-      <div class="icon-btn" onclick="goToPage('profile')">👤</div>
+      <div class="icon-btn" onclick="showToast('\\\\ud83d\\\\udd14 Notifications coming soon')">\\\\ud83d\\\\udd14<div class="notif-dot"></div></div>
+      <div class="icon-btn" onclick="goToPage('profile')">\\\\ud83d\\\\udc64</div>
     </div>
   </div>
   <div class="page-body">
     <div class="home-hero">
-      <div class="home-eyebrow">⚡ UniBeatz Production · Face to Face ⚡</div>
+      <div class="home-eyebrow">\\\\u26a1 UniBeatz Production \\\\u00b7 Face to Face \\\\u26a1</div>
       <div class="home-title"><span class="g">UNI</span><span class="b">FREESTYLE</span></div>
       <div class="home-title" style="font-size:1.4rem;letter-spacing:6px;color:var(--gold);">BATTLE</div>
       <p class="home-welcome">Welcome back, <strong id="homeWelcomeName">Artist</strong>!</p>
     </div>
-
     <div class="home-action-row">
-      <button class="btn btn-gold" onclick="openLiveBattleRoom()">🎤 JOIN BATTLE</button>
-      <button class="btn btn-red" onclick="openLiveBattleRoom()">⚡ INSTANT</button>
-      <button class="btn btn-blue" onclick="goToPage('leaderboard')">🏆 RANKS</button>
+      <button class="btn btn-gold" onclick="openLiveBattleRoom()">\\\\ud83c\\\\udfa4 JOIN BATTLE</button>
+      <button class="btn btn-red" onclick="openLiveBattleRoom()">\\\\u26a1 INSTANT</button>
+      <button class="btn btn-blue" onclick="goToPage('leaderboard')">\\\\ud83c\\\\udfc6 RANKS</button>
     </div>
-
     <div class="stats-row">
       <div class="stat-cell"><div class="stat-num">47</div><div class="stat-lbl">Live Now</div></div>
       <div class="stat-cell"><div class="stat-num">312</div><div class="stat-lbl">MCs Online</div></div>
       <div class="stat-cell"><div class="stat-num">8</div><div class="stat-lbl">DJs Active</div></div>
       <div class="stat-cell"><div class="stat-num">1.2K</div><div class="stat-lbl">Watching</div></div>
     </div>
-
-    <div class="section-head"><h3>📅 Scheduled Sessions</h3><div class="line"></div><div class="more">All</div></div>
-
+    <div class="section-head"><h3>\\\\ud83d\\\\udcc5 Scheduled Sessions</h3><div class="line"></div><div class="more">All</div></div>
     <div class="session-card live" onclick="goToPage('queue')">
       <div class="session-top"><div class="session-time">8:00 PM</div><div class="session-badge sb-live"><span class="live-dot"></span>LIVE NOW</div></div>
       <div class="session-title">Open Freestyle Battle</div>
-      <div class="session-dj">🎧 DJ Blaze · Trap + Drill Rotation</div>
-      <div class="session-bottom"><div class="session-lobby">⚡ 24 Artists in Lobby</div><button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" onclick="event.stopPropagation();goToPage('queue')">JOIN</button></div>
+      <div class="session-dj">\\\\ud83c\\\\udfa7 DJ Blaze \\\\u00b7 Trap + Drill Rotation</div>
+      <div class="session-bottom"><div class="session-lobby">\\\\u26a1 24 Artists in Lobby</div><button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" onclick="event.stopPropagation();goToPage('queue')">JOIN</button></div>
     </div>
-
     <div class="session-card upcoming" onclick="goToPage('queue')">
-      <div class="session-top"><div class="session-time">10:00 PM</div><div class="session-badge sb-up">⏱ STARTING IN</div></div>
+      <div class="session-top"><div class="session-time">10:00 PM</div><div class="session-badge sb-up">\\\\u23f1 STARTING IN</div></div>
       <div class="session-title">Beat Kill Session</div>
-      <div class="session-dj">🎧 DJ Phantom · R&B + Afrobeats</div>
-      <div class="session-bottom"><div class="session-lobby">⚡ 18 Artists Queued</div><div class="session-countdown" id="homeCountdown">01:24:00</div></div>
+      <div class="session-dj">\\\\ud83c\\\\udfa7 DJ Phantom \\\\u00b7 R&B + Afrobeats</div>
+      <div class="session-bottom"><div class="session-lobby">\\\\u26a1 18 Artists Queued</div><div class="session-countdown" id="homeCountdown">01:24:00</div></div>
     </div>
-
-    <div class="section-head" style="margin-top:6px;"><h3>⚡ Instant Mode</h3><div class="line"></div></div>
+    <div class="section-head" style="margin-top:6px;"><h3>\\\\u26a1 Instant Mode</h3><div class="line"></div></div>
     <div class="instant-card" onclick="startInstantBattle()">
-      <div class="instant-title">⚡ Start Instant Battle</div>
+      <div class="instant-title">\\\\u26a1 Start Instant Battle</div>
       <div class="instant-desc">Get matched immediately. AI DJ auto-assigned. 24/7.</div>
       <div class="instant-bottom">
-        <div class="instant-stats">312 MCs Online · ~30 sec match time</div>
+        <div class="instant-stats">312 MCs Online \\\\u00b7 ~30 sec match time</div>
         <button class="btn btn-red btn-sm" style="width:auto;padding:7px 14px;" onclick="event.stopPropagation();openLiveBattleRoom()">BATTLE NOW</button>
       </div>
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
-    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
-    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
-    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-item active" onclick="goToPage('home')"><span class="nav-icon">\\\\ud83c\\\\udfe0</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">\\\\ud83c\\\\udfa4</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">\\\\ud83c\\\\udfc6</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">\\\\ud83e\\\\udd16</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">\\\\ud83d\\\\udc64</span><span class="nav-label">Profile</span></button>
   </div>
 </div>
 
-<!-- ══════════ PROFILE ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 PROFILE \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-profile">
   <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <button class="icon-btn" onclick="goToPage('home')">\\\\u2190</button>
     <h1 id="pfTopTitle">Profile</h1>
-    <div class="icon-btn" onclick="goToPage('settings')">⚙️</div>
+    <div class="icon-btn" onclick="goToPage('settings')">\\\\u2699\\\\ufe0f</div>
   </div>
   <div class="page-body">
     <div class="pf-banner"></div>
     <div class="pf-main">
       <div class="pf-avatar-wrap">
-        <div class="pf-avatar" id="pfAvatar" onclick="openPhotoModal()">
-          🎤
-          <div class="pf-avatar-edit">📷</div>
-        </div>
+        <div class="pf-avatar" id="pfAvatar" onclick="openPhotoModal()">\\\\ud83c\\\\udfa4<div class="pf-avatar-edit">\\\\ud83d\\\\udcf7</div></div>
         <input type="file" id="photoCameraInput" accept="image/*" capture="user" style="display:none;" onchange="handlePhotoUpload(this)"/>
         <input type="file" id="photoGalleryInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)"/>
       </div>
@@ -351,66 +278,59 @@
         <h1 class="pf-display-name" id="pfDisplayName">Your Name</h1>
         <p class="pf-username" id="pfUsername">@username</p>
         <div class="pf-badges" id="pfBadges"></div>
-        <p class="pf-location" id="pfLocation">📍 UniBeatz World</p>
-        <a href="https://unibeatzproduction.com" class="pf-website" target="_blank">🌐 unibeatzproduction.com</a>
-
-        <!-- ABOUT ME SECTION -->
+        <p class="pf-location" id="pfLocation">\\\\ud83d\\\\udccd UniBeatz World</p>
+        <a href="https://unibeatzproduction.com" class="pf-website" target="_blank">\\\\ud83c\\\\udf10 unibeatzproduction.com</a>
         <div class="pf-about-section">
-          <div class="pf-about-title">📖 About Me</div>
+          <div class="pf-about-title">\\\\ud83d\\\\udcd6 About Me</div>
           <div class="pf-about-text" id="pfAboutText"></div>
-          <span class="pf-about-edit-link" onclick="goToPage('editprofile')">Edit your story →</span>
+          <span class="pf-about-edit-link" onclick="goToPage('editprofile')">Edit your story \\\\u2192</span>
         </div>
-
         <div class="pf-stats-grid" id="pfStatsGrid"></div>
-        <div class="pf-uid">User ID: <strong id="pfUid">UB-000000</strong> · Joined <strong id="pfJoined">2025</strong></div>
+        <div class="pf-uid">User ID: <strong id="pfUid">UB-000000</strong> \\\\u00b7 Joined <strong id="pfJoined">2025</strong></div>
         <div class="pf-actions">
           <button class="pf-act pf-act-follow" id="pfFollowBtn" onclick="toggleFollow(this)">+ Follow</button>
-          <button class="pf-act pf-act-msg" onclick="showToast('💬 Messages coming soon')">💬 Message</button>
-          <button class="pf-act pf-act-challenge" onclick="goToPage('queue')">⚔️ Challenge</button>
+          <button class="pf-act pf-act-msg" onclick="showToast('\\\\ud83d\\\\udcac Messages coming soon')">\\\\ud83d\\\\udcac Message</button>
+          <button class="pf-act pf-act-challenge" onclick="goToPage('queue')">\\\\u2694\\\\ufe0f Challenge</button>
         </div>
       </div>
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
-    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
-    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
-    <button class="nav-item active" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">\\\\ud83c\\\\udfe0</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">\\\\ud83c\\\\udfa4</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">\\\\ud83c\\\\udfc6</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">\\\\ud83e\\\\udd16</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item active" onclick="goToPage('profile')"><span class="nav-icon">\\\\ud83d\\\\udc64</span><span class="nav-label">Profile</span></button>
   </div>
 </div>
 
-<!-- ══════════ EDIT PROFILE ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 EDIT PROFILE \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-editprofile">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('profile')">←</button>
-    <h1>Edit Profile</h1>
-    <div></div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('profile')">\\\\u2190</button><h1>Edit Profile</h1><div></div></div>
   <div class="page-body no-nav">
     <div class="edit-page">
       <div class="edit-section">
-        <div class="section-label">📷 Profile Photo</div>
+        <div class="section-label">\\\\ud83d\\\\udcf7 Profile Photo</div>
         <div style="text-align:center;margin-bottom:14px;">
-          <div id="epPhotoPreview" style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:3px solid var(--gold);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:3rem;overflow:hidden;cursor:pointer;" onclick="openPhotoModal()">🎤</div>
-          <button class="btn btn-blue" style="width:auto;padding:8px 18px;font-size:0.5rem;" onclick="openPhotoModal()">📷 Upload Photo</button>
+          <div id="epPhotoPreview" style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:3px solid var(--gold);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:3rem;overflow:hidden;cursor:pointer;" onclick="openPhotoModal()">\\\\ud83c\\\\udfa4</div>
+          <button class="btn btn-blue" style="width:auto;padding:8px 18px;font-size:0.5rem;" onclick="openPhotoModal()">\\\\ud83d\\\\udcf7 Upload Photo</button>
         </div>
         <div class="section-label" style="margin-top:18px;">Or Choose Avatar Emoji</div>
         <div class="avatar-grid">
-          <div class="avatar-option" data-avatar="🎤" onclick="selectEditAvatar(this)">🎤</div>
-          <div class="avatar-option" data-avatar="👑" onclick="selectEditAvatar(this)">👑</div>
-          <div class="avatar-option" data-avatar="⚡" onclick="selectEditAvatar(this)">⚡</div>
-          <div class="avatar-option" data-avatar="🔥" onclick="selectEditAvatar(this)">🔥</div>
-          <div class="avatar-option" data-avatar="🎧" onclick="selectEditAvatar(this)">🎧</div>
-          <div class="avatar-option" data-avatar="💎" onclick="selectEditAvatar(this)">💎</div>
-          <div class="avatar-option" data-avatar="🦁" onclick="selectEditAvatar(this)">🦁</div>
-          <div class="avatar-option" data-avatar="🐉" onclick="selectEditAvatar(this)">🐉</div>
+          <div class="avatar-option" data-avatar="\\\\ud83c\\\\udfa4" onclick="selectEditAvatar(this)">\\\\ud83c\\\\udfa4</div>
+          <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc51" onclick="selectEditAvatar(this)">\\\\ud83d\\\\udc51</div>
+          <div class="avatar-option" data-avatar="\\\\u26a1" onclick="selectEditAvatar(this)">\\\\u26a1</div>
+          <div class="avatar-option" data-avatar="\\\\ud83d\\\\udd25" onclick="selectEditAvatar(this)">\\\\ud83d\\\\udd25</div>
+          <div class="avatar-option" data-avatar="\\\\ud83c\\\\udfa7" onclick="selectEditAvatar(this)">\\\\ud83c\\\\udfa7</div>
+          <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc8e" onclick="selectEditAvatar(this)">\\\\ud83d\\\\udc8e</div>
+          <div class="avatar-option" data-avatar="\\\\ud83e\\\\udd81" onclick="selectEditAvatar(this)">\\\\ud83e\\\\udd81</div>
+          <div class="avatar-option" data-avatar="\\\\ud83d\\\\udc09" onclick="selectEditAvatar(this)">\\\\ud83d\\\\udc09</div>
         </div>
       </div>
       <div class="field"><label>Full Name</label><input type="text" id="epName"/></div>
       <div class="field"><label>Username</label><input type="text" id="epUsername"/></div>
       <div class="field">
-        <label>📖 About Me — Your Story</label>
+        <label>\\\\ud83d\\\\udcd6 About Me \\\\u2014 Your Story</label>
         <textarea id="epBio" rows="6" placeholder="Tell your story... Who are you? What is your music about? Where are you from? What drives you?"></textarea>
         <div class="field-hint">This is your story. Share who you are with the community.</div>
       </div>
@@ -421,84 +341,40 @@
   </div>
 </div>
 
-<!-- ══════════ SETTINGS ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 SETTINGS \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-settings">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('profile')">←</button>
-    <h1>⚙️ Settings</h1>
-    <div></div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('profile')">\\\\u2190</button><h1>\\\\u2699\\\\ufe0f Settings</h1><div></div></div>
   <div class="page-body no-nav">
     <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(201,168,76,0.1);">
-      <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.6rem;" id="settingsAvatar">🎤</div>
+      <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.6rem;" id="settingsAvatar">\\\\ud83c\\\\udfa4</div>
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;" id="settingsName">My Name</div>
         <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--blue-bright);" id="settingsUsername">@username</div>
       </div>
     </div>
-
     <div class="section-title-sm">Account</div>
     <div class="settings-list">
-      <div class="settings-item" onclick="goToPage('editprofile')">
-        <div class="settings-icon">👤</div>
-        <div class="settings-info"><div class="settings-label">Edit Profile</div><div class="settings-sub">Name, username, avatar, bio</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
-      <div class="settings-item" onclick="goToPage('changepw')">
-        <div class="settings-icon">🔒</div>
-        <div class="settings-info"><div class="settings-label">Change Password</div><div class="settings-sub">Update your password</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
-      <div class="settings-item" onclick="showToast('Email: ' + (currentUser?.email || 'Not set'))">
-        <div class="settings-icon">📧</div>
-        <div class="settings-info"><div class="settings-label">Email</div><div class="settings-sub" id="settingsEmail">your@email.com</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
+      <div class="settings-item" onclick="goToPage('editprofile')"><div class="settings-icon">\\\\ud83d\\\\udc64</div><div class="settings-info"><div class="settings-label">Edit Profile</div><div class="settings-sub">Name, username, avatar, bio</div></div><div class="settings-arrow">\\\\u203a</div></div>
+      <div class="settings-item" onclick="goToPage('changepw')"><div class="settings-icon">\\\\ud83d\\\\udd12</div><div class="settings-info"><div class="settings-label">Change Password</div><div class="settings-sub">Update your password</div></div><div class="settings-arrow">\\\\u203a</div></div>
+      <div class="settings-item" onclick="showToast('Email: ' + (currentUser?.email || 'Not set'))"><div class="settings-icon">\\\\ud83d\\\\udce7</div><div class="settings-info"><div class="settings-label">Email</div><div class="settings-sub" id="settingsEmail">your@email.com</div></div><div class="settings-arrow">\\\\u203a</div></div>
     </div>
-
-    
     <div class="section-title-sm">Admin</div>
     <div class="settings-list">
-      <div class="settings-item" onclick="goToPage('beatadmin')">
-        <div class="settings-icon">🎛️</div>
-        <div class="settings-info"><div class="settings-label">Beat Admin</div><div class="settings-sub">Upload platform beats for DJs to select</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
+      <div class="settings-item" onclick="goToPage('beatadmin')"><div class="settings-icon">\\\\ud83c\\\\udf9b\\\\ufe0f</div><div class="settings-info"><div class="settings-label">Beat Admin</div><div class="settings-sub">Upload platform beats for DJs to select</div></div><div class="settings-arrow">\\\\u203a</div></div>
     </div>
-
-<div class="section-title-sm">Support</div>
-    <div class="settings-list">
-      <div class="settings-item" onclick="window.location.href='legal.html'">
-        <div class="settings-icon">⚖️</div>
-        <div class="settings-info"><div class="settings-label">Terms & Legal</div><div class="settings-sub">License agreements & policies</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
-      <div class="settings-item" onclick="window.location.href='mailto:unibeatzproduction@gmail.com'">
-        <div class="settings-icon">📧</div>
-        <div class="settings-info"><div class="settings-label">Contact Support</div><div class="settings-sub">unibeatzproduction@gmail.com</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
-      <div class="settings-item danger" onclick="confirmLogout()">
-        <div class="settings-icon">🚪</div>
-        <div class="settings-info"><div class="settings-label">Log Out</div><div class="settings-sub">Sign out of your account</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
-      <div class="settings-item danger" onclick="confirmDeleteAccount()">
-        <div class="settings-icon">🗑️</div>
-        <div class="settings-info"><div class="settings-label">Delete Account</div><div class="settings-sub">Permanently remove your account</div></div>
-        <div class="settings-arrow">›</div>
-      </div>
+    <div class="section-title-sm">Support</div>
+    <div class="settings-list" id="supportSettingsList">
+      <div class="settings-item" onclick="window.location.href='legal.html'"><div class="settings-icon">\\\\u2696\\\\ufe0f</div><div class="settings-info"><div class="settings-label">Terms & Legal</div><div class="settings-sub">License agreements & policies</div></div><div class="settings-arrow">\\\\u203a</div></div>
+      <div class="settings-item" onclick="window.location.href='mailto:unibeatzproduction@gmail.com'"><div class="settings-icon">\\\\ud83d\\\\udce7</div><div class="settings-info"><div class="settings-label">Contact Support</div><div class="settings-sub">unibeatzproduction@gmail.com</div></div><div class="settings-arrow">\\\\u203a</div></div>
+      <div class="settings-item danger" onclick="confirmLogout()"><div class="settings-icon">\\\\ud83d\\\\udeaa</div><div class="settings-info"><div class="settings-label">Log Out</div><div class="settings-sub">Sign out of your account</div></div><div class="settings-arrow">\\\\u203a</div></div>
+      <div class="settings-item danger" onclick="confirmDeleteAccount()"><div class="settings-icon">\\\\ud83d\\\\uddd1\\\\ufe0f</div><div class="settings-info"><div class="settings-label">Delete Account</div><div class="settings-sub">Permanently remove your account</div></div><div class="settings-arrow">\\\\u203a</div></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ CHANGE PASSWORD ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 CHANGE PASSWORD \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-changepw">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('settings')">←</button>
-    <h1>Change Password</h1>
-    <div></div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('settings')">\\\\u2190</button><h1>Change Password</h1><div></div></div>
   <div class="page-body no-nav">
     <div class="edit-page">
       <p style="font-size:0.85rem;color:var(--gray);margin-bottom:18px;line-height:1.5;">Choose a strong new password for your account.</p>
@@ -511,27 +387,18 @@
   </div>
 </div>
 
-
-
-<!-- ══════════ ADMIN BEAT VAULT ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 ADMIN BEAT VAULT \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-beatadmin">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
-    <h1>🎛️ Beat Admin</h1>
-    <button class="icon-btn" onclick="loadPlatformBeats()">↻</button>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('home')">\\\\u2190</button><h1>\\\\ud83c\\\\udf9b\\\\ufe0f Beat Admin</h1><button class="icon-btn" onclick="loadPlatformBeats()">\\\\u21bb</button></div>
   <div class="page-body no-nav">
     <div class="beat-vault-card">
       <div class="beat-vault-title">Admin Beat Vault</div>
-      <div class="beat-vault-sub">Upload beats to the platform here. DJs can select these beats during live battles, but they cannot upload new beats.</div>
-
+      <div class="beat-vault-sub">Upload beats to the platform here. DJs can select these beats during live battles.</div>
       <div class="beat-admin-lock" id="beatAdminLockBox">
         <input type="password" id="beatAdminPass" placeholder="Admin passcode"/>
         <button class="btn btn-gold" style="width:auto;clip-path:none;border-radius:7px;" onclick="unlockBeatAdmin()">Unlock</button>
       </div>
-
       <div id="beatAdminContent" style="display:none;">
-        <div id="ubNotificationAdmin"></div>
         <div class="beat-form-grid">
           <input id="adminBeatName" placeholder="Beat name"/>
           <input id="adminBeatBpm" placeholder="BPM"/>
@@ -539,10 +406,9 @@
           <input id="adminBeatGenre" placeholder="Genre"/>
           <input id="adminBeatFile" type="file" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/>
         </div>
-        <button class="btn btn-gold" style="margin-top:12px;" onclick="uploadPlatformBeat()">⬆️ Upload Beat To Platform</button>
+        <button class="btn btn-gold" style="margin-top:12px;" onclick="uploadPlatformBeat()">\\\\u2b06\\\\ufe0f Upload Beat To Platform</button>
       </div>
     </div>
-
     <div class="beat-vault-card">
       <div class="beat-vault-title">Platform Beats</div>
       <div class="beat-vault-sub">These are the beats DJs can choose from inside the battle room.</div>
@@ -551,13 +417,9 @@
   </div>
 </div>
 
-<!-- ══════════ LIVE BATTLE ROOM ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 LIVE BATTLE ROOM \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-livebattle">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="leaveBattleRoom();goToPage('queue')">←</button>
-    <h1>🔴 Live Battle</h1>
-    <button class="icon-btn" onclick="leaveBattleRoom()">⏹</button>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="leaveBattleRoom();goToPage('queue')">\\\\u2190</button><h1>\\\\ud83d\\\\udd34 Live Battle</h1><button class="icon-btn" onclick="leaveBattleRoom()">\\\\u23f9</button></div>
   <div class="page-body no-nav">
     <div class="live-room-shell">
       <div class="live-status-card">
@@ -570,351 +432,213 @@
         </div>
         <div class="live-error" id="liveError"></div>
       </div>
-
       <div class="beat-vault-card" id="djBeatSelectorCard">
-        <div class="beat-vault-title">🎧 DJ Beat Selector</div>
-        <div class="beat-vault-sub">DJs choose the platform beat for this battle. Artists and viewers see/hear the selected beat.</div>
+        <div class="beat-vault-title">\\\\ud83c\\\\udfa7 DJ Beat Selector</div>
+        <div class="beat-vault-sub">DJs choose the platform beat for this battle.</div>
         <div class="current-beat-box">
           <div>
             <div class="current-beat-name" id="currentBattleBeatName">No beat selected</div>
             <div class="current-beat-meta" id="currentBattleBeatMeta">Waiting for DJ selection</div>
           </div>
-          <button class="btn btn-blue" style="width:auto;clip-path:none;border-radius:7px;" onclick="playSelectedBattleBeat()">▶ Play</button>
+          <button class="btn btn-blue" style="width:auto;clip-path:none;border-radius:7px;" onclick="playSelectedBattleBeat()">\\\\u25b6 Play</button>
         </div>
         <audio id="battleBeatAudio" controls style="width:100%;margin-top:10px;display:none;"></audio>
         <div style="display:flex;gap:8px;margin-top:10px;">
-          <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
+          <button class="btn btn-blue" onclick="loadPlatformBeats()">\\\\u21bb Load Beats</button>
           <button class="btn btn-gold" onclick="goToPage('beatadmin')">Admin Upload</button>
         </div>
         <div id="djBeatList" style="margin-top:10px;"></div>
       </div>
-
       <div class="live-grid" id="liveVideoGrid">
         <div class="live-video-card local" id="localVideoBox"><div class="live-label">YOU</div><div class="live-placeholder">Camera preview will appear here</div></div>
         <div class="live-video-card" id="remoteVideoBox"><div class="live-label">OPPONENT / DJ / VIEWERS</div><div class="live-placeholder">Waiting for another participant...</div></div>
       </div>
       <div class="live-controls">
-        <button class="btn btn-gold" onclick="joinLiveBattleAs('artist')">🎤 Join Artist</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('dj')">🎧 Join DJ</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('viewer')">👀 Watch</button>
-        <button class="btn btn-blue" onclick="toggleLiveMic()">🎙️ Mic</button>
-        <button class="btn btn-blue" onclick="toggleLiveCamera()">📷 Camera</button>
+        <button class="btn btn-gold" onclick="joinLiveBattleAs('artist')">\\\\ud83c\\\\udfa4 Join Artist</button>
+        <button class="btn btn-blue" onclick="joinLiveBattleAs('dj')">\\\\ud83c\\\\udfa7 Join DJ</button>
+        <button class="btn btn-blue" onclick="joinLiveBattleAs('viewer')">\\\\ud83d\\\\udc40 Watch</button>
+        <button class="btn btn-blue" onclick="toggleLiveMic()">\\\\ud83c\\\\udf99\\\\ufe0f Mic</button>
+        <button class="btn btn-blue" onclick="toggleLiveCamera()">\\\\ud83d\\\\udcf7 Camera</button>
         <button class="btn btn-red" onclick="leaveBattleRoom()">Leave</button>
       </div>
     </div>
   </div>
 </div>
-<!-- ════════════════════════════════════════════
-     CYPHER ROOM — Phase 2 Stage 1
-     Multi-person freestyle circle · 60-sec turns
-     ════════════════════════════════════════════ -->
+
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 CYPHER ROOM \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-cypher">
   <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')" title="Leave cypher">←</button>
+    <button class="icon-btn" onclick="goToPage('home')" title="Leave cypher">\\\\u2190</button>
     <h1>CYPHER ROOM</h1>
-    <div class="btn-row">
-      <button class="icon-btn" id="cyMicBtn" onclick="toggleCypherMic()" title="Toggle mic">🎤</button>
-    </div>
+    <div class="btn-row"><button class="icon-btn" id="cyMicBtn" onclick="toggleCypherMic()" title="Toggle mic">\\\\ud83c\\\\udfa4</button></div>
   </div>
-
   <div class="page-body">
-
-    <!-- Status strip -->
     <div class="cy-status">
       <span class="cy-live-badge"><span class="cy-live-dot"></span>LIVE</span>
       <span class="cy-session-name" id="cySessionName">Cypher Session</span>
       <input type="text" class="cy-rename-input" id="cyRenameInput" style="display:none;" maxlength="40" onkeydown="if(event.key==='Enter')cyCommitRename();if(event.key==='Escape')cyCancelRename();"/>
-      <button class="cy-rename-btn" id="cyRenameBtn" onclick="cyStartRename()" title="Rename session">✏️</button>
-      <span class="cy-meta" id="cyMeta">— participants</span>
+      <button class="cy-rename-btn" id="cyRenameBtn" onclick="cyStartRename()" title="Rename session">\\\\u270f\\\\ufe0f</button>
+      <span class="cy-meta" id="cyMeta">\\\\u2014 participants</span>
     </div>
-
-    <!-- The circle -->
     <div class="cy-stage">
       <div class="cy-circle-wrap" id="cyCircleWrap">
-        <div class="cy-rings">
-          <div class="cy-ring r1"></div>
-          <div class="cy-ring r2"></div>
-          <div class="cy-ring r3"></div>
-        </div>
+        <div class="cy-rings"><div class="cy-ring r1"></div><div class="cy-ring r2"></div><div class="cy-ring r3"></div></div>
         <div class="cy-floor"></div>
         <div class="cy-spotlight" id="cySpotlight"></div>
-
-        <!-- Center display -->
         <div class="cy-center">
           <div class="cy-center-label" id="cyCenterLabel">ON THE MIC</div>
-          <div class="cy-center-name" id="cyCenterName">—</div>
+          <div class="cy-center-name" id="cyCenterName">\\\\u2014</div>
           <div class="cy-center-time" id="cyCenterTime">--</div>
         </div>
-
-        <!-- Participant tiles get inserted here dynamically -->
-        <!-- (positioned around the circle by JS) -->
       </div>
     </div>
-
-    <!-- Turn queue -->
     <div class="cy-queue">
-      <div class="cy-queue-title">🎤 TURN ORDER</div>
-      <div class="cy-queue-list" id="cyQueueList">
-        <span class="cy-queue-empty">Waiting for artists to join…</span>
-      </div>
+      <div class="cy-queue-title">\\\\ud83c\\\\udfa4 TURN ORDER</div>
+      <div class="cy-queue-list" id="cyQueueList"><span class="cy-queue-empty">Waiting for artists to join\\\\u2026</span></div>
     </div>
-
-    <!-- Join / role buttons -->
     <div class="cy-join-row" id="cyJoinRow">
-      <button class="btn btn-blue" onclick="joinCypher('artist')">🎤 Join as Artist</button>
-      <button class="btn btn-blue" onclick="joinCypher('dj')">🎧 Join as DJ</button>
-      <button class="btn btn-blue full" onclick="joinCypher('viewer')">👁️ Watch Only</button>
+      <button class="btn btn-blue" onclick="joinCypher('artist')">\\\\ud83c\\\\udfa4 Join as Artist</button>
+      <button class="btn btn-blue" onclick="joinCypher('dj')">\\\\ud83c\\\\udfa7 Join as DJ</button>
+      <button class="btn btn-blue full" onclick="joinCypher('viewer')">\\\\ud83d\\\\udc41\\\\ufe0f Watch Only</button>
     </div>
-
-    <!-- DJ-only control panel -->
     <div class="cy-dj-panel" id="cyDjPanel">
-      <div class="cy-dj-head">
-        <div class="cy-dj-title">🎧 DJ CONTROLS</div>
-        <span class="cy-dj-badge">YOU ARE THE DJ</span>
-      </div>
+      <div class="cy-dj-head"><div class="cy-dj-title">\\\\ud83c\\\\udfa7 DJ CONTROLS</div><span class="cy-dj-badge">YOU ARE THE DJ</span></div>
       <div class="cy-dj-row">
-        <button class="cy-dj-btn primary" onclick="cyStartSession()">▶ Start Cypher</button>
-        <button class="cy-dj-btn" onclick="cyAdvanceTurn()">⏭ Next Artist</button>
-        <button class="cy-dj-btn" onclick="cyToggleAutoRotate()" id="cyAutoBtn">🔁 Auto-Rotate: ON</button>
-        <button class="cy-dj-btn danger" onclick="cyEndSession()">⏹ End Cypher</button>
+        <button class="cy-dj-btn primary" onclick="cyStartSession()">\\\\u25b6 Start Cypher</button>
+        <button class="cy-dj-btn" onclick="cyAdvanceTurn()">\\\\u23ed Next Artist</button>
+        <button class="cy-dj-btn" onclick="cyToggleAutoRotate()" id="cyAutoBtn">\\\\ud83d\\\\udd01 Auto-Rotate: ON</button>
+        <button class="cy-dj-btn danger" onclick="cyEndSession()">\\\\u23f9 End Cypher</button>
       </div>
     </div>
-
-    <!-- Info tip -->
-    <div class="cy-tip" id="cyTip">
-      <strong>How it works:</strong> Each artist gets <strong>60 seconds</strong> on the mic, then it rotates clockwise. Only the active artist's cam is live. DJ controls the music and can skip turns.
-    </div>
-
+    <div class="cy-tip" id="cyTip"><strong>How it works:</strong> Each artist gets <strong>60 seconds</strong> on the mic, then it rotates clockwise. Only the active artist's cam is live. DJ controls the music and can skip turns.</div>
   </div>
 </div>
-<!-- ══════════ QUEUE / BATTLE SETUP ══════════ -->
+
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 QUEUE / BATTLE SETUP \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-queue">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
-    <h1>⚔️ Join Battle</h1>
-    <div></div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('home')">\\\\u2190</button><h1>\\\\u2694\\\\ufe0f Join Battle</h1><div></div></div>
   <div class="page-body">
-    <!-- ═══ LIVE BATTLES COMING SOON BANNER ═══ -->
     <div style="margin:14px 14px 18px;padding:14px 16px;background:linear-gradient(135deg,rgba(0,170,255,0.12),rgba(201,168,76,0.08));border:1px solid rgba(0,170,255,0.4);border-radius:10px;position:relative;overflow:hidden;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-        <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,51,51,0.15);border:1px solid var(--red);border-radius:12px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--red);font-weight:700;">
-          <span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></span>
-          LIVE TEST READY
-        </span>
-        <span style="font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;color:var(--gold-light);">⚡ <span id="hypeCount">847</span> on waitlist</span>
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,51,51,0.15);border:1px solid var(--red);border-radius:12px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--red);font-weight:700;"><span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></span>LIVE TEST READY</span>
+        <span style="font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;color:var(--gold-light);">\\\\u26a1 <span id="hypeCount">847</span> on waitlist</span>
       </div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--white);line-height:1.1;margin-bottom:4px;">Live Face-To-Face Battles</div>
-      <div style="font-size:0.84rem;color:rgba(240,237,232,0.65);line-height:1.5;margin-bottom:12px;">Real-time video battles between artists, DJs, and judges. Live battle testing is connected now. Use two devices or two browsers to test face-to-face video.</div>
-      <button onclick="joinHypeList()" style="display:block;width:100%;padding:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;font-weight:700;border:none;border-radius:6px;cursor:pointer;">
-        🏆 JOIN AS FOUNDING ARTIST · NOTIFY ME
-      </button>
+      <div style="font-size:0.84rem;color:rgba(240,237,232,0.65);line-height:1.5;margin-bottom:12px;">Real-time video battles between artists, DJs, and judges. Use two devices or two browsers to test face-to-face video.</div>
+      <button onclick="joinHypeList()" style="display:block;width:100%;padding:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;font-weight:700;border:none;border-radius:6px;cursor:pointer;">\\\\ud83c\\\\udfc6 JOIN AS FOUNDING ARTIST \\\\u00b7 NOTIFY ME</button>
     </div>
-
-    <!-- ═══ PRACTICE MODE CTA ═══ -->
-    <div style="margin:0 14px 18px;padding:16px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;cursor:pointer;transition:all 0.2s;" onclick="goToPage('practice')">
+    <div style="margin:0 14px 18px;padding:16px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;cursor:pointer;" onclick="goToPage('practice')">
       <div style="display:flex;align-items:center;gap:14px;">
-        <div style="font-size:2.2rem;flex-shrink:0;">🎤</div>
+        <div style="font-size:2.2rem;flex-shrink:0;">\\\\ud83c\\\\udfa4</div>
         <div style="flex:1;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap;">
             <span style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold-light);">PRACTICE MODE</span>
             <span style="padding:2px 7px;background:linear-gradient(135deg,var(--green),#00aa44);color:#fff;font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;border-radius:3px;font-weight:700;">LIVE NOW</span>
           </div>
-          <div style="font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.4;">Solo freestyle drills · Royalty-free beats · 60-sec timer</div>
+          <div style="font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.4;">Solo freestyle drills \\\\u00b7 Royalty-free beats \\\\u00b7 60-sec timer</div>
         </div>
-        <div style="font-size:1.4rem;color:var(--gold);">→</div>
+        <div style="font-size:1.4rem;color:var(--gold);">\\\\u2192</div>
       </div>
     </div>
-
     <div style="padding:18px 16px 8px;text-align:center;">
-      <div style="font-size:2.5rem;margin-bottom:8px;">🎤</div>
+      <div style="font-size:2.5rem;margin-bottom:8px;">\\\\ud83c\\\\udfa4</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--gold-light);">Setup Your Battle</div>
       <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-top:3px;">Choose your style</div>
     </div>
-
     <div style="padding:14px 16px 0;" class="section-label">Battle Type</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:14px;">
-      <div class="role-card selected" data-bt="beat" onclick="selectBattleType(this)" style="padding:13px 6px;">
-        <div style="font-size:1.7rem;margin-bottom:5px;">🎵</div>
-        <div class="role-name">Beat</div>
-        <div class="role-desc">On beat</div>
-      </div>
-      <div class="role-card" data-bt="acap" onclick="selectBattleType(this)" style="padding:13px 6px;">
-        <div style="font-size:1.7rem;margin-bottom:5px;">🎤</div>
-        <div class="role-name">A Cappella</div>
-        <div class="role-desc">Pure bars</div>
-      </div>
-      <div class="role-card" data-bt="mix" onclick="selectBattleType(this)" style="padding:13px 6px;">
-        <div style="font-size:1.7rem;margin-bottom:5px;">🔥</div>
-        <div class="role-name">Mixed</div>
-        <div class="role-desc">Both</div>
-      </div>
+      <div class="role-card selected" data-bt="beat" onclick="selectBattleType(this)" style="padding:13px 6px;"><div style="font-size:1.7rem;margin-bottom:5px;">\\\\ud83c\\\\udfb5</div><div class="role-name">Beat</div><div class="role-desc">On beat</div></div>
+      <div class="role-card" data-bt="acap" onclick="selectBattleType(this)" style="padding:13px 6px;"><div style="font-size:1.7rem;margin-bottom:5px;">\\\\ud83c\\\\udfa4</div><div class="role-name">A Cappella</div><div class="role-desc">Pure bars</div></div>
+      <div class="role-card" data-bt="mix" onclick="selectBattleType(this)" style="padding:13px 6px;"><div style="font-size:1.7rem;margin-bottom:5px;">\\\\ud83d\\\\udd25</div><div class="role-name">Mixed</div><div class="role-desc">Both</div></div>
     </div>
-
     <div style="padding:0 16px;" class="section-label">Round Format</div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:14px;">
-      <div class="role-card" data-rs="1" onclick="selectRoundFormat(this)" style="padding:9px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">1</div>
-        <div class="role-desc">Quick</div>
-      </div>
-      <div class="role-card selected" data-rs="3" onclick="selectRoundFormat(this)" style="padding:9px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">3</div>
-        <div class="role-desc">Standard</div>
-      </div>
-      <div class="role-card" data-rs="5" onclick="selectRoundFormat(this)" style="padding:9px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">5</div>
-        <div class="role-desc">Extended</div>
-      </div>
+      <div class="role-card" data-rs="1" onclick="selectRoundFormat(this)" style="padding:9px;"><div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">1</div><div class="role-desc">Quick</div></div>
+      <div class="role-card selected" data-rs="3" onclick="selectRoundFormat(this)" style="padding:9px;"><div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">3</div><div class="role-desc">Standard</div></div>
+      <div class="role-card" data-rs="5" onclick="selectRoundFormat(this)" style="padding:9px;"><div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">5</div><div class="role-desc">Extended</div></div>
     </div>
-
-    <div style="margin:0 16px 14px;background:rgba(0,170,255,0.04);border:1px solid rgba(0,170,255,0.16);padding:12px;border-radius:6px;">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:7px;">Round Breakdown</div>
-      <div style="font-size:0.82rem;color:rgba(240,237,232,0.65);line-height:1.7;">
-        <div>🎵 <strong style="color:var(--white);">R1:</strong> Beat — 45–60 sec each</div>
-        <div>🎤 <strong style="color:var(--white);">R2:</strong> A Cappella — 30–45 sec each</div>
-        <div>🔥 <strong style="color:var(--white);">R3:</strong> Choice — crowd votes</div>
-      </div>
-    </div>
-
     <div style="padding:0 16px 16px;">
-      <button class="btn btn-gold" onclick="findOpponent()">⚡ Find Opponent</button>
+      <button class="btn btn-gold" onclick="findOpponent()">\\\\u26a1 Find Opponent</button>
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item active" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
-    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
-    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
-    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">\\\\ud83c\\\\udfe0</span><span class="nav-label">Home</span></button>
+    <button class="nav-item active" onclick="goToPage('queue')"><span class="nav-icon">\\\\ud83c\\\\udfa4</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">\\\\ud83c\\\\udfc6</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">\\\\ud83e\\\\udd16</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">\\\\ud83d\\\\udc64</span><span class="nav-label">Profile</span></button>
   </div>
 </div>
 
-<!-- ══════════ PRACTICE MODE ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 PRACTICE MODE \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-practice">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="exitPractice()">←</button>
-    <h1>🎤 Practice Mode</h1>
-    <div></div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="exitPractice()">\\\\u2190</button><h1>\\\\ud83c\\\\udfa4 Practice Mode</h1><div></div></div>
   <div class="page-body" style="padding-bottom:40px;">
-
-    <!-- Setup Screen -->
     <div id="practiceSetup">
       <div style="padding:18px 16px 8px;text-align:center;">
-        <div style="font-size:2.5rem;margin-bottom:8px;">🎤</div>
+        <div style="font-size:2.5rem;margin-bottom:8px;">\\\\ud83c\\\\udfa4</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--gold-light);">Solo Freestyle Drill</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-top:3px;">Pick a beat · Train your bars</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-top:3px;">Pick a beat \\\\u00b7 Train your bars</div>
       </div>
-
-      <!-- Stats Card -->
       <div style="margin:18px 14px;padding:14px 16px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">📊 YOUR PRACTICE STATS</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">\\\\ud83d\\\\udcca YOUR PRACTICE STATS</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-          <div style="text-align:center;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold-light);" id="statSessions">0</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Sessions</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--blue-bright);" id="statMinutes">0</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Minutes</div>
-          </div>
-          <div style="text-align:center;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--green);" id="statStreak">0</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Day Streak</div>
-          </div>
+          <div style="text-align:center;"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold-light);" id="statSessions">0</div><div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Sessions</div></div>
+          <div style="text-align:center;"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--blue-bright);" id="statMinutes">0</div><div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Minutes</div></div>
+          <div style="text-align:center;"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--green);" id="statStreak">0</div><div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Day Streak</div></div>
         </div>
       </div>
-
-      <!-- Beat Selection -->
-      <div style="padding:0 16px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">🎵 PICK A BEAT</div>
-      <div id="beatList" style="padding:0 14px;">
-        <!-- Beat cards inserted by JS -->
-      </div>
-
-      <!-- Duration Selection -->
-      <div style="padding:18px 16px 10px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);">⏱️ DURATION</div>
+      <div style="padding:0 16px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">\\\\ud83c\\\\udfb5 PICK A BEAT</div>
+      <div id="beatList" style="padding:0 14px;"></div>
+      <div style="padding:18px 16px 10px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);">\\\\u23f1\\\\ufe0f DURATION</div>
       <div style="padding:0 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
         <button class="dur-btn" data-dur="30" onclick="selectDuration(30)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">30s</button>
         <button class="dur-btn active" data-dur="60" onclick="selectDuration(60)" style="padding:14px 8px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border:1px solid var(--gold);color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;font-weight:700;">60s</button>
         <button class="dur-btn" data-dur="90" onclick="selectDuration(90)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">90s</button>
         <button class="dur-btn" data-dur="120" onclick="selectDuration(120)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">2m</button>
       </div>
-
-      <!-- Start Button -->
-      <div style="padding:24px 14px;">
-        <button class="btn btn-gold" onclick="startPractice()">🎤 START FREESTYLE</button>
-      </div>
+      <div style="padding:24px 14px;"><button class="btn btn-gold" onclick="startPractice()">\\\\ud83c\\\\udfa4 START FREESTYLE</button></div>
     </div>
-
-    <!-- Active Practice Screen -->
     <div id="practiceActive" style="display:none;">
-      <!-- Camera View -->
       <div style="margin:14px;border:1px solid rgba(201,168,76,0.3);border-radius:10px;overflow:hidden;background:#000;position:relative;aspect-ratio:9/16;max-height:60vh;">
         <video id="practiceCamera" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
-
-        <!-- Timer Overlay -->
         <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:10;">
-          <div style="padding:5px 12px;background:rgba(0,0,0,0.7);border:1px solid var(--red);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--red);font-weight:700;display:flex;align-items:center;gap:5px;">
-            <span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1s infinite;"></span>
-            REC
-          </div>
+          <div style="padding:5px 12px;background:rgba(0,0,0,0.7);border:1px solid var(--red);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--red);font-weight:700;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1s infinite;"></span>REC</div>
           <div style="padding:5px 12px;background:rgba(0,0,0,0.8);border:1px solid var(--gold);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--gold-light);font-weight:700;" id="practiceTimer">0:60</div>
         </div>
-
-        <!-- Beat Info -->
         <div style="position:absolute;bottom:10px;left:10px;right:10px;padding:8px 12px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);border-radius:8px;display:flex;align-items:center;gap:10px;z-index:10;">
-          <div style="font-size:1.4rem;">🎵</div>
+          <div style="font-size:1.4rem;">\\\\ud83c\\\\udfb5</div>
           <div style="flex:1;min-width:0;">
             <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;letter-spacing:1.5px;color:var(--gold-light);" id="activeBeatName">Beat Name</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);" id="activeBeatBpm">140 BPM · Cmin</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);" id="activeBeatBpm">140 BPM \\\\u00b7 Cmin</div>
           </div>
         </div>
       </div>
-
-      <!-- Controls -->
-      <div style="padding:14px;display:flex;gap:10px;">
-        <button class="btn btn-red" style="flex:1;" onclick="stopPractice()">⏹ END SESSION</button>
-      </div>
-
-      <!-- Bar Counter / Tips -->
-      <div style="padding:10px 16px;text-align:center;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);" id="practiceTip">💡 Drop your hottest bars · Don't stop · Keep flow</div>
-      </div>
+      <div style="padding:14px;display:flex;gap:10px;"><button class="btn btn-red" style="flex:1;" onclick="stopPractice()">\\\\u23f9 END SESSION</button></div>
+      <div style="padding:10px 16px;text-align:center;"><div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);" id="practiceTip">\\\\ud83d\\\\udca1 Drop your hottest bars \\\\u00b7 Don't stop \\\\u00b7 Keep flow</div></div>
     </div>
-
-    <!-- Complete Screen -->
     <div id="practiceComplete" style="display:none;text-align:center;padding:40px 20px;">
-      <div style="font-size:4rem;margin-bottom:14px;">🔥</div>
+      <div style="font-size:4rem;margin-bottom:14px;">\\\\ud83d\\\\udd25</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:8px;">SESSION COMPLETE</div>
       <div style="font-size:0.95rem;color:var(--gray);margin-bottom:24px;">Bars dropped. Practice makes legends.</div>
       <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:18px;margin:0 14px 24px;">
         <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gold);margin-bottom:10px;">SESSION STATS</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold-light);" id="completeDuration">60s</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Duration</div>
-          </div>
-          <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--blue-bright);" id="completeBeatName">Beat</div>
-            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Beat Used</div>
-          </div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold-light);" id="completeDuration">60s</div><div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Duration</div></div>
+          <div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--blue-bright);" id="completeBeatName">Beat</div><div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Beat Used</div></div>
         </div>
       </div>
       <div style="padding:0 14px;display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-gold" onclick="resetPractice()">🎤 ANOTHER SESSION</button>
-        <button class="btn btn-blue" onclick="exitPractice()">← Back to Battle</button>
+        <button class="btn btn-gold" onclick="resetPractice()">\\\\ud83c\\\\udfa4 ANOTHER SESSION</button>
+        <button class="btn btn-blue" onclick="exitPractice()">\\\\u2190 Back to Battle</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════ LEADERBOARD ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 LEADERBOARD \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-leaderboard">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
-    <h1>🏆 Rankings</h1>
-    <div class="icon-btn" onclick="showToast('Updates every hour')">ℹ️</div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('home')">\\\\u2190</button><h1>\\\\ud83c\\\\udfc6 Rankings</h1><div class="icon-btn" onclick="showToast('Updates every hour')">\\\\u2139\\\\ufe0f</div></div>
   <div class="page-body">
     <div class="lb-tabs">
       <button class="lb-tab active" onclick="filterLB('all',this)">Global</button>
@@ -925,30 +649,26 @@
     <div class="lb-list" id="lbList"></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
-    <button class="nav-item active" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
-    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
-    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">\\\\ud83c\\\\udfe0</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">\\\\ud83c\\\\udfa4</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item active" onclick="goToPage('leaderboard')"><span class="nav-icon">\\\\ud83c\\\\udfc6</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">\\\\ud83e\\\\udd16</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">\\\\ud83d\\\\udc64</span><span class="nav-label">Profile</span></button>
   </div>
 </div>
 
-<!-- ══════════ AI DJ ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 AI DJ \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="page" id="page-aidj">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
-    <h1>🤖 Uni AI DJ</h1>
-    <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--green);padding:0 8px;">● LIVE</div>
-  </div>
+  <div class="top-bar"><button class="icon-btn" onclick="goToPage('home')">\\\\u2190</button><h1>\\\\ud83e\\\\udd16 Uni AI DJ</h1><div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--green);padding:0 8px;">\\\\u25cf LIVE</div></div>
   <div class="page-body">
     <div class="dj-hero">
-      <div class="dj-avatar-big">🤖</div>
+      <div class="dj-avatar-big">\\\\ud83e\\\\udd16</div>
       <div class="dj-big-name">UNI AI DJ</div>
       <div class="dj-big-title">Powered by UniBeatz Production</div>
-      <div class="dj-online"><span class="dj-online-dot"></span>Online · Judging 47 battles right now</div>
+      <div class="dj-online"><span class="dj-online-dot"></span>Online \\\\u00b7 Judging 47 battles right now</div>
     </div>
     <div class="dj-ask-box">
-      <div class="dj-ask-title">💬 Ask the AI DJ</div>
+      <div class="dj-ask-title">\\\\ud83d\\\\udcac Ask the AI DJ</div>
       <div class="dj-ask-row">
         <input class="dj-ask-input" id="djAskInput" placeholder="Who's winning? Best bar?" onkeydown="if(event.key==='Enter')askAIDJ()"/>
         <button class="dj-ask-btn" onclick="askAIDJ()">Ask</button>
@@ -960,43 +680,24 @@
     </div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
-    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
-    <button class="nav-item active" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
-    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">\\\\ud83c\\\\udfe0</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">\\\\ud83c\\\\udfa4</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">\\\\ud83c\\\\udfc6</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item active" onclick="goToPage('aidj')"><span class="nav-icon">\\\\ud83e\\\\udd16</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">\\\\ud83d\\\\udc64</span><span class="nav-label">Profile</span></button>
   </div>
 </div>
 
-
-<!-- ══════════ PHOTO UPLOAD MODAL ══════════ -->
+<!-- \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 PHOTO UPLOAD MODAL \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 -->
 <div class="photo-modal-overlay" id="photoModal" onclick="if(event.target===this)closePhotoModal()">
   <div class="photo-modal">
-    <div class="photo-preview" id="photoPreviewBig">🎤</div>
+    <div class="photo-preview" id="photoPreviewBig">\\\\ud83c\\\\udfa4</div>
     <div class="photo-modal-title">Profile Photo</div>
     <div class="photo-modal-sub">Upload your real picture or keep your avatar emoji</div>
     <div class="photo-options">
-      <button class="photo-opt-btn" onclick="document.getElementById('photoCameraInput').click()">
-        <div class="photo-opt-icon">📷</div>
-        <div class="photo-opt-info">
-          <div class="photo-opt-label">Take Photo</div>
-          <div class="photo-opt-sub">Use your camera</div>
-        </div>
-      </button>
-      <button class="photo-opt-btn" onclick="document.getElementById('photoGalleryInput').click()">
-        <div class="photo-opt-icon">🖼️</div>
-        <div class="photo-opt-info">
-          <div class="photo-opt-label">Choose from Gallery</div>
-          <div class="photo-opt-sub">Pick existing photo</div>
-        </div>
-      </button>
-      <button class="photo-opt-btn" onclick="removePhoto()">
-        <div class="photo-opt-icon">🎭</div>
-        <div class="photo-opt-info">
-          <div class="photo-opt-label">Use Avatar Emoji Instead</div>
-          <div class="photo-opt-sub">Remove photo, keep emoji</div>
-        </div>
-      </button>
+      <button class="photo-opt-btn" onclick="document.getElementById('photoCameraInput').click()"><div class="photo-opt-icon">\\\\ud83d\\\\udcf7</div><div class="photo-opt-info"><div class="photo-opt-label">Take Photo</div><div class="photo-opt-sub">Use your camera</div></div></button>
+      <button class="photo-opt-btn" onclick="document.getElementById('photoGalleryInput').click()"><div class="photo-opt-icon">\\\\ud83d\\\\uddbc\\\\ufe0f</div><div class="photo-opt-info"><div class="photo-opt-label">Choose from Gallery</div><div class="photo-opt-sub">Pick existing photo</div></div></button>
+      <button class="photo-opt-btn" onclick="removePhoto()"><div class="photo-opt-icon">\\\\ud83c\\\\udfad</div><div class="photo-opt-info"><div class="photo-opt-label">Use Avatar Emoji Instead</div><div class="photo-opt-sub">Remove photo, keep emoji</div></div></button>
     </div>
     <button class="btn btn-ghost" onclick="closePhotoModal()">Cancel</button>
   </div>
@@ -1006,417 +707,180 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // STATE & STORAGE
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 let currentUser = null;
 let signupData = {};
 let pendingOTP = '';
 let selectedRole = 'artist';
-let selectedAvatar = '🎤';
-let selectedEditAvatar = '🎤';
-let followStates = {};
+let selectedAvatar = '\\\\ud83c\\\\udfa4';
+let selectedEditAvatar = '\\\\ud83c\\\\udfa4';
 
-// LocalStorage helpers
-const STORAGE = {
-  USERS: 'ub_users',
-  CURRENT: 'ub_current_user',
-};
+const STORAGE = { USERS: 'ub_users', CURRENT: 'ub_current_user' };
+function getUsers(){ try{ return JSON.parse(localStorage.getItem(STORAGE.USERS)||'{}'); }catch(e){ return {}; } }
+function saveUsers(u){ localStorage.setItem(STORAGE.USERS, JSON.stringify(u)); }
+function setCurrentUser(u){ currentUser=u; if(u) localStorage.setItem(STORAGE.CURRENT,JSON.stringify(u)); else localStorage.removeItem(STORAGE.CURRENT); }
+function loadCurrentUser(){ try{ const d=localStorage.getItem(STORAGE.CURRENT); if(d){ currentUser=JSON.parse(d); return true; } }catch(e){} return false; }
 
-function getUsers() {
-  try { return JSON.parse(localStorage.getItem(STORAGE.USERS) || '{}'); }
-  catch(e) { return {}; }
-}
-function saveUsers(users) {
-  localStorage.setItem(STORAGE.USERS, JSON.stringify(users));
-}
-function setCurrentUser(user) {
-  currentUser = user;
-  if(user) localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
-  else localStorage.removeItem(STORAGE.CURRENT);
-}
-function loadCurrentUser() {
-  try {
-    const data = localStorage.getItem(STORAGE.CURRENT);
-    if(data) {
-      currentUser = JSON.parse(data);
-      return true;
-    }
-  } catch(e) {}
-  return false;
-}
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // NAVIGATION
-// ════════════════════════════════════════
-function goToPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const page = document.getElementById('page-' + name);
-  if(page) {
-    page.classList.add('active');
-    page.scrollTop = 0;
-    if(page.querySelector('.page-body')) page.querySelector('.page-body').scrollTop = 0;
-  }
-  // Refresh data when entering certain pages
-  if(name === 'home') refreshHome();
-  if(name === 'profile') refreshProfile();
-  if(name === 'editprofile') loadEditProfileForm();
-  if(name === 'settings') refreshSettings();
-  if(name === 'leaderboard') renderLeaderboard('all');
-  if(name === 'aidj') renderAIDJFeed();
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function goToPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const page=document.getElementById('page-'+name);
+  if(page){ page.classList.add('active'); page.scrollTop=0; if(page.querySelector('.page-body')) page.querySelector('.page-body').scrollTop=0; }
+  if(name==='home') refreshHome();
+  if(name==='profile') refreshProfile();
+  if(name==='editprofile') loadEditProfileForm();
+  if(name==='settings') refreshSettings();
+  if(name==='leaderboard') renderLeaderboard('all');
+  if(name==='aidj') renderAIDJFeed();
 }
 
-// ════════════════════════════════════════
-// SIGN UP FLOW
-// ════════════════════════════════════════
-function selectSignupRole(el) {
-  document.querySelectorAll('#signupRoles .role-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedRole = el.dataset.role;
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+// SIGNUP
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function selectSignupRole(el){ document.querySelectorAll('#signupRoles .role-card').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); selectedRole=el.dataset.role; }
+function selectSignupAvatar(el){ document.querySelectorAll('#signupAvatars .avatar-option').forEach(a=>a.classList.remove('selected')); el.classList.add('selected'); selectedAvatar=el.dataset.avatar; }
+function selectEditAvatar(el){ document.querySelectorAll('#page-editprofile .avatar-option').forEach(a=>a.classList.remove('selected')); el.classList.add('selected'); selectedEditAvatar=el.dataset.avatar; }
+
+function checkUsername(input){
+  const cleaned=input.value.replace(/[^a-zA-Z0-9_]/g,''); input.value=cleaned;
+  const hint=document.getElementById('usernameHint');
+  if(cleaned.length<3){ hint.textContent='Username must be 3+ characters'; hint.className='field-hint error'; return false; }
+  const users=getUsers();
+  if(users[cleaned.toLowerCase()]){ hint.textContent='\\\\u26a0\\\\ufe0f Username already taken'; hint.className='field-hint error'; return false; }
+  hint.textContent='\\\\u2713 Username available'; hint.className='field-hint success'; return true;
 }
 
-function selectSignupAvatar(el) {
-  document.querySelectorAll('#signupAvatars .avatar-option').forEach(a => a.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedAvatar = el.dataset.avatar;
+function checkPasswordStrength(pw){
+  const bars=[document.getElementById('pwb1'),document.getElementById('pwb2'),document.getElementById('pwb3'),document.getElementById('pwb4')];
+  const hint=document.getElementById('pwHint');
+  bars.forEach(b=>b.className='pw-bar');
+  if(!pw){ hint.textContent='Enter a password'; hint.className='field-hint'; return; }
+  let score=0;
+  if(pw.length>=6) score++; if(pw.length>=10) score++;
+  if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw)||/[^A-Za-z0-9]/.test(pw)) score++;
+  const cls=score<=1?'weak':score<=2?'medium':'strong';
+  const labels=['','Weak \\\\u2014 needs more chars','Medium \\\\u2014 add numbers/caps','Strong','Very Strong \\\\ud83d\\\\udd25'];
+  for(let i=0;i<score;i++) bars[i].classList.add(cls);
+  hint.textContent=labels[score]||''; hint.className='field-hint '+(cls==='weak'?'error':cls==='strong'?'success':'');
 }
 
-function selectEditAvatar(el) {
-  document.querySelectorAll('#page-editprofile .avatar-option').forEach(a => a.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedEditAvatar = el.dataset.avatar;
-}
+function togglePassword(id,icon){ const inp=document.getElementById(id); inp.type=inp.type==='password'?'text':'password'; icon.textContent=inp.type==='password'?'\\\\ud83d\\\\udc41':'\\\\ud83d\\\\ude48'; }
 
-function checkUsername(input) {
-  const cleaned = input.value.replace(/[^a-zA-Z0-9_]/g, '');
-  input.value = cleaned;
-  const hint = document.getElementById('usernameHint');
-  if(cleaned.length < 3) {
-    hint.textContent = 'Username must be 3+ characters';
-    hint.className = 'field-hint error';
-    return false;
-  }
-  // Check if taken
-  const users = getUsers();
-  if(users[cleaned.toLowerCase()]) {
-    hint.textContent = '⚠️ Username already taken';
-    hint.className = 'field-hint error';
-    return false;
-  }
-  hint.textContent = '✓ Username available';
-  hint.className = 'field-hint success';
-  return true;
-}
-
-function checkPasswordStrength(pw) {
-  const bars = [document.getElementById('pwb1'),document.getElementById('pwb2'),document.getElementById('pwb3'),document.getElementById('pwb4')];
-  const hint = document.getElementById('pwHint');
-  bars.forEach(b => b.className = 'pw-bar');
-  if(!pw){hint.textContent='Enter a password';hint.className='field-hint';return;}
-  let score = 0;
-  if(pw.length >= 6) score++;
-  if(pw.length >= 10) score++;
-  if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
-  if(/[0-9]/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score++;
-  const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
-  const labels = ['','Weak — needs more chars','Medium — add numbers/caps','Strong','Very Strong 🔥'];
-  for(let i = 0; i < score; i++) bars[i].classList.add(cls);
-  hint.textContent = labels[score] || '';
-  hint.className = 'field-hint ' + (cls === 'weak' ? 'error' : cls === 'strong' ? 'success' : '');
-}
-
-function togglePassword(id, icon) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  icon.textContent = inp.type === 'password' ? '👁' : '🙈';
-}
-
-function handleSignup() {
-  const name = document.getElementById('suName').value.trim();
-  const username = document.getElementById('suUsername').value.trim().toLowerCase();
-  const email = document.getElementById('suEmail').value.trim().toLowerCase();
-  const password = document.getElementById('suPassword').value;
-  const city = document.getElementById('suCity').value.trim();
-
-  // Validate
-  if(!name) { showToast('Please enter your full name'); return; }
-  if(!username || username.length < 3) { showToast('Username must be 3+ characters'); return; }
-  if(!/^[a-z0-9_]+$/.test(username)) { showToast('Username: letters, numbers, underscores only'); return; }
-  if(!email || !email.includes('@') || !email.includes('.')) { showToast('Please enter a valid email'); return; }
-  if(!password || password.length < 6) { showToast('Password must be 6+ characters'); return; }
-
-  // Check if username/email exists
-  const users = getUsers();
-  if(users[username]) { showToast('Username already taken'); return; }
-  for(const k in users) {
-    if(users[k].email === email) { showToast('Email already registered'); return; }
-  }
-
-  // Save signup data temporarily
-  signupData = {
-    uid: 'UB-' + Math.floor(100000 + Math.random() * 900000),
-    name, username, email, password, city,
-    role: selectedRole,
-    avatar: selectedAvatar,
-    bio: '',
-    points: 0, wins: 0, losses: 0, battles: 0, votes: 0, accuracy: 0, followers: 0, following: 0,
-    joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
-    verified: false,
-  };
-
-  // Generate OTP
-  pendingOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  document.getElementById('otpEmailDisplay').textContent = email;
-
-  // Clear OTP inputs
-  for(let i = 0; i < 6; i++) {
-    const el = document.getElementById('otp' + i);
-    if(el) { el.value = ''; el.classList.remove('filled'); }
-  }
-
+function handleSignup(){
+  const name=document.getElementById('suName').value.trim();
+  const username=document.getElementById('suUsername').value.trim().toLowerCase();
+  const email=document.getElementById('suEmail').value.trim().toLowerCase();
+  const password=document.getElementById('suPassword').value;
+  const city=document.getElementById('suCity').value.trim();
+  if(!name){ showToast('Please enter your full name'); return; }
+  if(!username||username.length<3){ showToast('Username must be 3+ characters'); return; }
+  if(!/^[a-z0-9_]+$/.test(username)){ showToast('Username: letters, numbers, underscores only'); return; }
+  if(!email||!email.includes('@')||!email.includes('.')){ showToast('Please enter a valid email'); return; }
+  if(!password||password.length<6){ showToast('Password must be 6+ characters'); return; }
+  const users=getUsers();
+  if(users[username]){ showToast('Username already taken'); return; }
+  for(const k in users){ if(users[k].email===email){ showToast('Email already registered'); return; } }
+  signupData={ uid:'UB-'+Math.floor(100000+Math.random()*900000), name, username, email, password, city, role:selectedRole, avatar:selectedAvatar, bio:'', points:0, wins:0, losses:0, battles:0, votes:0, accuracy:0, followers:0, following:0, joined:new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'}), verified:false };
+  pendingOTP=Math.floor(100000+Math.random()*900000).toString();
+  document.getElementById('otpEmailDisplay').textContent=email;
+  for(let i=0;i<6;i++){ const el=document.getElementById('otp'+i); if(el){ el.value=''; el.classList.remove('filled'); } }
   goToPage('otp');
-  showToast(`📧 Demo Code: ${pendingOTP}`);
-  setTimeout(() => document.getElementById('otp0').focus(), 400);
+  showToast('\\\\ud83d\\\\udce7 Demo Code: '+pendingOTP);
+  setTimeout(()=>document.getElementById('otp0').focus(),400);
 }
 
-function otpInput(input, idx) {
-  const v = input.value.replace(/\D/g, '').slice(-1);
-  input.value = v;
-  if(v) {
-    input.classList.add('filled');
-    if(idx < 5) document.getElementById('otp' + (idx + 1)).focus();
+function otpInput(input,idx){
+  const v=input.value.replace(/\\\\\\\\D/g,'').slice(-1); input.value=v;
+  if(v){ input.classList.add('filled'); if(idx<5) document.getElementById('otp'+(idx+1)).focus(); }
+  else input.classList.remove('filled');
+  const code=Array.from({length:6},(_,i)=>document.getElementById('otp'+i).value).join('');
+  if(code.length===6) setTimeout(verifyOTP,200);
+}
+
+function otpKeydown(e,idx){ if(e.key==='Backspace'&&!e.target.value&&idx>0) document.getElementById('otp'+(idx-1)).focus(); }
+
+function verifyOTP(){
+  const code=Array.from({length:6},(_,i)=>document.getElementById('otp'+i).value).join('');
+  if(code.length<6){ showToast('Enter all 6 digits'); return; }
+  if(code===pendingOTP){
+    const users=getUsers(); users[signupData.username]=signupData; saveUsers(users);
+    setCurrentUser(signupData); showToast('\\\\u2705 Account created! Welcome to UniFreestyle!'); goToPage('home');
   } else {
-    input.classList.remove('filled');
-  }
-  // Auto-submit when complete
-  const code = Array.from({length:6}, (_, i) => document.getElementById('otp' + i).value).join('');
-  if(code.length === 6) setTimeout(verifyOTP, 200);
-}
-
-function otpKeydown(e, idx) {
-  if(e.key === 'Backspace' && !e.target.value && idx > 0) {
-    document.getElementById('otp' + (idx - 1)).focus();
-  }
-}
-
-function verifyOTP() {
-  const code = Array.from({length:6}, (_, i) => document.getElementById('otp' + i).value).join('');
-  if(code.length < 6) { showToast('Enter all 6 digits'); return; }
-  if(code === pendingOTP) {
-    // Save user
-    const users = getUsers();
-    users[signupData.username] = signupData;
-    saveUsers(users);
-    setCurrentUser(signupData);
-    showToast('✅ Account created! Welcome to UniFreestyle!');
-    goToPage('home');
-  } else {
-    showToast('❌ Incorrect code. Try again.');
-    for(let i = 0; i < 6; i++) {
-      const el = document.getElementById('otp' + i);
-      el.value = ''; el.classList.remove('filled');
-    }
+    showToast('\\\\u274c Incorrect code. Try again.');
+    for(let i=0;i<6;i++){ const el=document.getElementById('otp'+i); el.value=''; el.classList.remove('filled'); }
     document.getElementById('otp0').focus();
   }
 }
 
-function resendOTP() {
-  pendingOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  showToast(`📧 New Demo Code: ${pendingOTP}`);
-}
+function resendOTP(){ pendingOTP=Math.floor(100000+Math.random()*900000).toString(); showToast('\\\\ud83d\\\\udce7 New Demo Code: '+pendingOTP); }
 
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // LOGIN
-// ════════════════════════════════════════
-function handleLogin() {
-  const emailOrUser = document.getElementById('liEmail').value.trim().toLowerCase();
-  const password = document.getElementById('liPassword').value;
-
-  if(!emailOrUser) { showToast('Enter your email or username'); return; }
-  if(!password) { showToast('Enter your password'); return; }
-
-  const users = getUsers();
-  let foundUser = null;
-
-  // Search by username
-  if(users[emailOrUser]) foundUser = users[emailOrUser];
-  else {
-    // Search by email
-    for(const k in users) {
-      if(users[k].email === emailOrUser) { foundUser = users[k]; break; }
-    }
-  }
-
-  if(!foundUser) {
-    showToast('❌ No account found. Sign up first.');
-    return;
-  }
-  if(foundUser.password !== password) {
-    showToast('❌ Wrong password');
-    return;
-  }
-
-  setCurrentUser(foundUser);
-  showToast(`✅ Welcome back, ${foundUser.name.split(' ')[0]}!`);
-  goToPage('home');
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function handleLogin(){
+  const emailOrUser=document.getElementById('liEmail').value.trim().toLowerCase();
+  const password=document.getElementById('liPassword').value;
+  if(!emailOrUser){ showToast('Enter your email or username'); return; }
+  if(!password){ showToast('Enter your password'); return; }
+  const users=getUsers(); let foundUser=null;
+  if(users[emailOrUser]) foundUser=users[emailOrUser];
+  else { for(const k in users){ if(users[k].email===emailOrUser){ foundUser=users[k]; break; } } }
+  if(!foundUser){ showToast('\\\\u274c No account found. Sign up first.'); return; }
+  if(foundUser.password!==password){ showToast('\\\\u274c Wrong password'); return; }
+  setCurrentUser(foundUser); showToast('\\\\u2705 Welcome back, '+foundUser.name.split(' ')[0]+'!'); goToPage('home');
 }
 
-async function socialAuth(provider) {
-  if(provider !== 'Google') {
-    showToast(`${provider} login coming soon. Use Google or email for now.`);
-    return;
-  }
-
-  // ═════ REAL GOOGLE SIGN-IN VIA FIREBASE ═════
-  if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) {
-    showToast('⚠️ Firebase not loaded. Refresh the page and try again.');
-    return;
-  }
-
-  try {
-    showToast('🔵 Opening Google sign-in...');
-    const fb = window.UB_FIREBASE;
-    const googleProvider = new fb.GoogleAuthProvider();
-    googleProvider.addScope('email');
-    googleProvider.addScope('profile');
-
-    const result = await fb.signInWithPopup(fb.auth, googleProvider);
-    const fbUser = result.user;
-
-    // Build user data from Google profile
-    const users = getUsers();
-    const email = fbUser.email.toLowerCase();
-    let userData = null;
-
-    // Check if this user already exists locally
-    for(const k in users) {
-      if(users[k].email === email) { userData = users[k]; break; }
+async function socialAuth(provider){
+  if(provider!=='Google'){ showToast(provider+' login coming soon. Use Google or email for now.'); return; }
+  if(!window.UB_FIREBASE||!window.UB_FIREBASE.ready){ showToast('\\\\u26a0\\\\ufe0f Firebase not loaded. Refresh and try again.'); return; }
+  try{
+    showToast('\\\\ud83d\\\\udd35 Opening Google sign-in...');
+    const fb=window.UB_FIREBASE;
+    const googleProvider=new fb.GoogleAuthProvider();
+    googleProvider.addScope('email'); googleProvider.addScope('profile');
+    const result=await fb.signInWithPopup(fb.auth,googleProvider);
+    const fbUser=result.user;
+    const users=getUsers(); const email=fbUser.email.toLowerCase(); let userData=null;
+    for(const k in users){ if(users[k].email===email){ userData=users[k]; break; } }
+    if(!userData){
+      const username=email.split('@')[0].replace(/[^a-z0-9_]/g,'');
+      userData={ uid:fbUser.uid, name:fbUser.displayName||email.split('@')[0], username, email, password:'', photo:fbUser.photoURL||'', avatar:'\\\\ud83c\\\\udfa4', bio:'', role:'artist', city:'', points:0, wins:0, losses:0, battles:0, votes:0, accuracy:0, followers:0, following:0, joined:new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'}), verified:true, unipackTier:'free', signInProvider:'google' };
+      users[username]=userData; saveUsers(users);
     }
-
-    if(!userData) {
-      // First time — create new user
-      const username = email.split('@')[0].replace(/[^a-z0-9_]/g, '');
-      userData = {
-        uid: fbUser.uid,
-        name: fbUser.displayName || email.split('@')[0],
-        username: username,
-        email: email,
-        password: '', // No password — Google handles it
-        photo: fbUser.photoURL || '',
-        avatar: '🎤',
-        bio: '',
-        role: 'artist',
-        city: '',
-        points: 0, wins: 0, losses: 0, battles: 0, votes: 0, accuracy: 0, followers: 0, following: 0,
-        joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
-        verified: true, // Google emails are auto-verified
-        unipackTier: 'free',
-        signInProvider: 'google',
-      };
-      users[username] = userData;
-      saveUsers(users);
-    }
-
-    // Update photo from Google if missing
-    if(!userData.photo && fbUser.photoURL) {
-      userData.photo = fbUser.photoURL;
-      const allUsers = getUsers();
-      allUsers[userData.username] = userData;
-      saveUsers(allUsers);
-    }
-
-    currentUser = userData;
-    localStorage.setItem('ub_user', JSON.stringify(currentUser));
-    showToast(`✅ Welcome, ${userData.name.split(' ')[0]}!`);
-    goToPage('home');
-
-  } catch(err) {
-    console.error('Google sign-in error:', err);
-    if(err.code === 'auth/popup-closed-by-user') {
-      showToast('Sign-in cancelled');
-    } else if(err.code === 'auth/popup-blocked') {
-      showToast('⚠️ Popup blocked. Please allow popups and try again.');
-    } else if(err.code === 'auth/unauthorized-domain') {
-      showToast('⚠️ This domain is not authorized in Firebase. Check authorized domains.');
-    } else {
-      showToast('⚠️ ' + (err.message || 'Google sign-in failed'));
-    }
+    if(!userData.photo&&fbUser.photoURL){ userData.photo=fbUser.photoURL; const allUsers=getUsers(); allUsers[userData.username]=userData; saveUsers(allUsers); }
+    currentUser=userData; localStorage.setItem('ub_user',JSON.stringify(currentUser));
+    showToast('\\\\u2705 Welcome, '+userData.name.split(' ')[0]+'!'); goToPage('home');
+  } catch(err){
+    console.error('Google sign-in error:',err);
+    if(err.code==='auth/popup-closed-by-user') showToast('Sign-in cancelled');
+    else if(err.code==='auth/popup-blocked') showToast('\\\\u26a0\\\\ufe0f Popup blocked. Please allow popups and try again.');
+    else if(err.code==='auth/unauthorized-domain') showToast('\\\\u26a0\\\\ufe0f Domain not authorized in Firebase.');
+    else showToast('\\\\u26a0\\\\ufe0f '+(err.message||'Google sign-in failed'));
   }
 }
 
-
-// ════════════════════════════════════════
-// PASSWORD RESET (Firebase)
-// ════════════════════════════════════════
-async function handlePasswordReset() {
-  const email = prompt('Enter your email to receive a password reset link:');
-  if(!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
-  if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) {
-    showToast('Email service unavailable. Email unibeatzproduction@gmail.com for help.');
-    return;
-  }
-  try {
-    showToast('Sending reset email...');
-    const fb = window.UB_FIREBASE;
-    await fb.sendPasswordResetEmail(fb.auth, email.trim().toLowerCase());
-    showToast('📧 Password reset email sent to ' + email);
-  } catch(err) {
-    console.error('Password reset error:', err);
-    if(err.code === 'auth/user-not-found') {
-      showToast('❌ No account found with that email');
-    } else {
-      showToast('⚠️ ' + (err.message || 'Could not send reset email'));
-    }
-  }
-}
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // LOGOUT / DELETE
-// ════════════════════════════════════════
-function confirmLogout() {
-  if(confirm('Log out of your account?')) {
-    setCurrentUser(null);
-    showToast('Logged out');
-    setTimeout(() => goToPage('splash'), 600);
-  }
-}
-
-function confirmDeleteAccount() {
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function confirmLogout(){ if(confirm('Log out of your account?')){ setCurrentUser(null); showToast('Logged out'); setTimeout(()=>goToPage('splash'),600); } }
+function confirmDeleteAccount(){
   if(!currentUser) return;
-  if(!confirm('⚠️ Permanently delete your account? This cannot be undone.')) return;
+  if(!confirm('\\\\u26a0\\\\ufe0f Permanently delete your account? This cannot be undone.')) return;
   if(!confirm('Are you ABSOLUTELY sure? All your data will be lost.')) return;
-  const users = getUsers();
-  delete users[currentUser.username];
-  saveUsers(users);
-  setCurrentUser(null);
-  showToast('Account deleted');
-  setTimeout(() => goToPage('splash'), 600);
+  const users=getUsers(); delete users[currentUser.username]; saveUsers(users);
+  setCurrentUser(null); showToast('Account deleted'); setTimeout(()=>goToPage('splash'),600);
 }
 
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // PROFILE
-// ════════════════════════════════════════
-const ROLE_BADGES = {
-  artist: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-artist',txt:'🎤 Artist'},{cls:'bg-battle',txt:'⚔️ Battle Rapper'}],
-  viewer: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-judge',txt:'👀 Judge'}],
-  dj: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-dj',txt:'🎧 DJ Judge'},{cls:'bg-producer',txt:'🎹 Producer'}],
-  fan: [{cls:'bg-fan',txt:'❤️ Fan'},{cls:'bg-judge',txt:'👀 Supporter'}],
-};
-const ROLE_TAGS = {
-  artist:'🎤 Battle Artist', viewer:'👀 Viewer & Judge', dj:'🎧 Official DJ Judge', fan:'❤️ Fan'
-};
-const DEFAULT_BIOS = {
-  artist:'Built From Pressure ⚡<br/>Battle Artist · UniFreestyle MC<br/>Sound from another dimension.',
-  viewer:'Watching every battle 👀<br/>Voting with accuracy<br/>Supporting the culture.',
-  dj:'Verified DJ Judge 🎧<br/>Setting the tone · Calling the rounds',
-  fan:'Real fan of the culture ❤️<br/>Here for every battle',
-};
-const ROLE_STATS = {
-  artist: [{k:'battles',l:'Battles'},{k:'wins',l:'Wins'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
-  viewer: [{k:'votes',l:'Votes'},{k:'accuracy',l:'% Acc'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
-  dj: [{k:'battles',l:'Sessions'},{k:'followers',l:'Followers'},{k:'wins',l:'Rating'},{k:'points',l:'Points'}],
-  fan: [{k:'battles',l:'Watched'},{k:'votes',l:'Votes'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
-};
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+const ROLE_BADGES={ artist:[{cls:'bg-verified',txt:'\\\\u2714 Verified'},{cls:'bg-artist',txt:'\\\\ud83c\\\\udfa4 Artist'},{cls:'bg-battle',txt:'\\\\u2694\\\\ufe0f Battle Rapper'}], viewer:[{cls:'bg-verified',txt:'\\\\u2714 Verified'},{cls:'bg-judge',txt:'\\\\ud83d\\\\udc40 Judge'}], dj:[{cls:'bg-verified',txt:'\\\\u2714 Verified'},{cls:'bg-dj',txt:'\\\\ud83c\\\\udfa7 DJ Judge'},{cls:'bg-producer',txt:'\\\\ud83c\\\\udfb9 Producer'}], fan:[{cls:'bg-fan',txt:'\\\\u2764\\\\ufe0f Fan'},{cls:'bg-judge',txt:'\\\\ud83d\\\\udc40 Supporter'}] };
+const ROLE_STATS={ artist:[{k:'battles',l:'Battles'},{k:'wins',l:'Wins'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}], viewer:[{k:'votes',l:'Votes'},{k:'accuracy',l:'% Acc'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}], dj:[{k:'battles',l:'Sessions'},{k:'followers',l:'Followers'},{k:'wins',l:'Rating'},{k:'points',l:'Points'}], fan:[{k:'battles',l:'Watched'},{k:'votes',l:'Votes'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}] };
 
 function refreshProfile() {
   if(window.ubProfile && typeof window.ubProfile.render === 'function') {
@@ -1426,990 +890,312 @@ function refreshProfile() {
   if(!currentUser) { goToPage('splash'); return; }
 }
 
-  document.getElementById('pfTopTitle').textContent = '@' + u.username;
+function toggleFollow(btn){ if(btn.classList.contains('followed')){ btn.classList.remove('followed'); btn.textContent='+ Follow'; showToast('Unfollowed'); } else{ btn.classList.add('followed'); btn.textContent='\\\\u2713 Following'; showToast('\\\\u2705 Now following!'); } }
 
-  // Avatar: photo if uploaded, else emoji
-  const avatarEl = document.getElementById('pfAvatar');
-  if(u.photo) {
-    avatarEl.classList.add('has-photo');
-    avatarEl.innerHTML = '<img src="' + u.photo + '" alt="profile"/><div class="pf-avatar-edit">📷</div>';
-  } else {
-    avatarEl.classList.remove('has-photo');
-    avatarEl.innerHTML = u.avatar + '<div class="pf-avatar-edit">📷</div>';
-  }
-
-  document.getElementById('pfDisplayName').textContent = u.name;
-  document.getElementById('pfUsername').textContent = '@' + u.username;
-
-  // Badges
-  const badges = ROLE_BADGES[u.role] || ROLE_BADGES.artist;
-  document.getElementById('pfBadges').innerHTML = badges.map(b => `<span class="pf-badge ${b.cls}">${b.txt}</span>`).join('');
-
-  // About Me — show their story or empty placeholder
-  const aboutEl = document.getElementById('pfAboutText');
-  if(u.bio && u.bio.trim()) {
-    aboutEl.textContent = u.bio;
-    aboutEl.classList.remove('pf-about-empty');
-  } else {
-    aboutEl.textContent = "You haven't added your story yet. Tap 'Edit your story' below to tell people who you are, what your music is about, and where you're from.";
-    aboutEl.classList.add('pf-about-empty');
-  }
-
-  // Location
-  document.getElementById('pfLocation').textContent = '📍 ' + (u.city || 'UniBeatz World');
-
-  // Stats
-  const stats = ROLE_STATS[u.role] || ROLE_STATS.artist;
-  document.getElementById('pfStatsGrid').innerHTML = stats.map(s => {
-    let val = u[s.k] || 0;
-    if(typeof val === 'number' && val >= 1000) val = (val/1000).toFixed(1) + 'K';
-    return `<div class="pf-stat-box"><div class="pf-stat-num">${val}</div><div class="pf-stat-lbl">${s.l}</div></div>`;
-  }).join('');
-
-  document.getElementById('pfUid').textContent = u.uid;
-  document.getElementById('pfJoined').textContent = u.joined;
-}
-
-function toggleFollow(btn) {
-  if(btn.classList.contains('followed')) {
-    btn.classList.remove('followed');
-    btn.textContent = '+ Follow';
-    showToast('Unfollowed');
-  } else {
-    btn.classList.add('followed');
-    btn.textContent = '✓ Following';
-    showToast('✅ Now following!');
-  }
-}
-
-// ════════════════════════════════════════
-// EDIT PROFILE
-// ════════════════════════════════════════
-function loadEditProfileForm() {
+function loadEditProfileForm(){
   if(!currentUser) return;
-  document.getElementById('epName').value = currentUser.name || '';
-  document.getElementById('epUsername').value = currentUser.username || '';
-  document.getElementById('epBio').value = currentUser.bio || '';
-  document.getElementById('epCity').value = currentUser.city || '';
-  selectedEditAvatar = currentUser.avatar;
-
-  // Photo preview in edit page
-  const epPreview = document.getElementById('epPhotoPreview');
-  if(epPreview) {
-    if(currentUser.photo) {
-      epPreview.innerHTML = '<img src="' + currentUser.photo + '" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
-    } else {
-      epPreview.textContent = currentUser.avatar;
-    }
-  }
-
-  document.querySelectorAll('#page-editprofile .avatar-option').forEach(a => {
-    a.classList.toggle('selected', a.dataset.avatar === currentUser.avatar);
-  });
+  document.getElementById('epName').value=currentUser.name||'';
+  document.getElementById('epUsername').value=currentUser.username||'';
+  document.getElementById('epBio').value=currentUser.bio||'';
+  document.getElementById('epCity').value=currentUser.city||'';
+  selectedEditAvatar=currentUser.avatar;
+  const epPreview=document.getElementById('epPhotoPreview');
+  if(epPreview){ if(currentUser.photo) epPreview.innerHTML='<img src="'+currentUser.photo+'" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>'; else epPreview.textContent=currentUser.avatar; }
+  document.querySelectorAll('#page-editprofile .avatar-option').forEach(a=>a.classList.toggle('selected',a.dataset.avatar===currentUser.avatar));
 }
 
-function saveProfileEdits() {
+function saveProfileEdits(){
   if(!currentUser) return;
-  const name = document.getElementById('epName').value.trim();
-  const username = document.getElementById('epUsername').value.trim().toLowerCase();
-  const bio = document.getElementById('epBio').value.trim();
-  const city = document.getElementById('epCity').value.trim();
-
-  if(!name) { showToast('Name required'); return; }
-  if(!username || username.length < 3) { showToast('Username must be 3+ chars'); return; }
-  if(!/^[a-z0-9_]+$/.test(username)) { showToast('Username: letters, numbers, _ only'); return; }
-
-  const users = getUsers();
-  // Check username uniqueness if changed
-  if(username !== currentUser.username && users[username]) {
-    showToast('Username already taken');
-    return;
-  }
-
-  // Update user
-  const oldUsername = currentUser.username;
-  currentUser.name = name;
-  currentUser.username = username;
-  currentUser.bio = bio;
-  currentUser.city = city;
-  currentUser.avatar = selectedEditAvatar;
-
-  // Update in storage
-  if(oldUsername !== username) {
-    delete users[oldUsername];
-  }
-  users[username] = currentUser;
-  saveUsers(users);
-  setCurrentUser(currentUser);
-
-  showToast('✅ Profile updated!');
-  setTimeout(() => goToPage('profile'), 400);
+  const name=document.getElementById('epName').value.trim();
+  const username=document.getElementById('epUsername').value.trim().toLowerCase();
+  const bio=document.getElementById('epBio').value.trim();
+  const city=document.getElementById('epCity').value.trim();
+  if(!name){ showToast('Name required'); return; }
+  if(!username||username.length<3){ showToast('Username must be 3+ chars'); return; }
+  if(!/^[a-z0-9_]+$/.test(username)){ showToast('Username: letters, numbers, _ only'); return; }
+  const users=getUsers();
+  if(username!==currentUser.username&&users[username]){ showToast('Username already taken'); return; }
+  const oldUsername=currentUser.username;
+  currentUser.name=name; currentUser.username=username; currentUser.bio=bio; currentUser.city=city; currentUser.avatar=selectedEditAvatar;
+  if(oldUsername!==username) delete users[oldUsername];
+  users[username]=currentUser; saveUsers(users); setCurrentUser(currentUser);
+  showToast('\\\\u2705 Profile updated!'); setTimeout(()=>goToPage('profile'),400);
 }
 
-// ════════════════════════════════════════
-// SETTINGS
-// ════════════════════════════════════════
-function refreshSettings() {
+function refreshSettings(){
   if(!currentUser) return;
-  document.getElementById('settingsAvatar').textContent = currentUser.avatar;
-  document.getElementById('settingsName').textContent = currentUser.name;
-  document.getElementById('settingsUsername').textContent = '@' + currentUser.username;
-  document.getElementById('settingsEmail').textContent = currentUser.email;
+  document.getElementById('settingsAvatar').textContent=currentUser.avatar;
+  document.getElementById('settingsName').textContent=currentUser.name;
+  document.getElementById('settingsUsername').textContent='@'+currentUser.username;
+  document.getElementById('settingsEmail').textContent=currentUser.email;
 }
 
-function changePassword() {
+function changePassword(){
   if(!currentUser) return;
-  const oldPw = document.getElementById('cpOld').value;
-  const newPw = document.getElementById('cpNew').value;
-  const confirm = document.getElementById('cpConfirm').value;
-
-  if(oldPw !== currentUser.password) { showToast('❌ Current password wrong'); return; }
-  if(!newPw || newPw.length < 6) { showToast('New password must be 6+ chars'); return; }
-  if(newPw !== confirm) { showToast('❌ Passwords don\'t match'); return; }
-
-  currentUser.password = newPw;
-  const users = getUsers();
-  users[currentUser.username] = currentUser;
-  saveUsers(users);
-  setCurrentUser(currentUser);
-
-  document.getElementById('cpOld').value = '';
-  document.getElementById('cpNew').value = '';
-  document.getElementById('cpConfirm').value = '';
-
-  showToast('✅ Password updated!');
-  setTimeout(() => goToPage('settings'), 400);
+  const oldPw=document.getElementById('cpOld').value;
+  const newPw=document.getElementById('cpNew').value;
+  const confirm=document.getElementById('cpConfirm').value;
+  if(oldPw!==currentUser.password){ showToast('\\\\u274c Current password wrong'); return; }
+  if(!newPw||newPw.length<6){ showToast('New password must be 6+ chars'); return; }
+  if(newPw!==confirm){ showToast('\\\\u274c Passwords don\\\\\\\\'t match'); return; }
+  currentUser.password=newPw; const users=getUsers(); users[currentUser.username]=currentUser; saveUsers(users); setCurrentUser(currentUser);
+  document.getElementById('cpOld').value=''; document.getElementById('cpNew').value=''; document.getElementById('cpConfirm').value='';
+  showToast('\\\\u2705 Password updated!'); setTimeout(()=>goToPage('settings'),400);
 }
 
-// ════════════════════════════════════════
-// HOME
-// ════════════════════════════════════════
-function refreshHome() {
-  if(!currentUser) { goToPage('splash'); return; }
-  document.getElementById('homeWelcomeName').textContent = currentUser.name.split(' ')[0];
+function refreshHome(){ if(!currentUser){ goToPage('splash'); return; } document.getElementById('homeWelcomeName').textContent=currentUser.name.split(' ')[0]; }
+
+let homeCountdownSecs=5040;
+function tickHomeCountdown(){ homeCountdownSecs--; if(homeCountdownSecs<0) homeCountdownSecs=5040; const h=Math.floor(homeCountdownSecs/3600); const m=Math.floor((homeCountdownSecs%3600)/60); const s=homeCountdownSecs%60; const el=document.getElementById('homeCountdown'); if(el) el.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'); }
+setInterval(tickHomeCountdown,1000);
+
+function selectBattleType(el){ document.querySelectorAll('[data-bt]').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
+function selectRoundFormat(el){ document.querySelectorAll('[data-rs]').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
+function findOpponent(){ showToast('\\\\ud83d\\\\udd0d Finding opponent...'); setTimeout(()=>showToast('\\\\u2694\\\\ufe0f Match found! Battle starting soon...'),1500); }
+function startInstantBattle(){ showToast('\\\\u26a1 Searching for instant match...'); setTimeout(()=>showToast('\\\\u2694\\\\ufe0f Match found! Get ready!'),1500); }
+
+function getHypeCount(){ return parseInt(localStorage.getItem('ub_hype_count')||'847'); }
+function refreshHypeCount(){ const el=document.getElementById('hypeCount'); if(el) el.textContent=getHypeCount(); }
+
+async function joinHypeList(){
+  if(!currentUser){ showToast('Sign up first to join the founding list'); setTimeout(()=>goToPage('signup'),800); return; }
+  const hypeList=JSON.parse(localStorage.getItem('ub_hype_list')||'[]');
+  if(hypeList.includes(currentUser.email)){ showToast('\\\\ud83c\\\\udfc6 Founding Artist #'+(currentUser.foundingNumber||'?')+' \\\\u2014 Already locked in!'); return; }
+  hypeList.push(currentUser.email); localStorage.setItem('ub_hype_list',JSON.stringify(hypeList));
+  const count=getHypeCount()+1; localStorage.setItem('ub_hype_count',count); refreshHypeCount();
+  if(!currentUser.badges) currentUser.badges=[];
+  if(!currentUser.badges.includes('founding-artist')){ currentUser.badges.push('founding-artist'); currentUser.foundingNumber=count; const users=getUsers(); users[currentUser.username]=currentUser; saveUsers(users); localStorage.setItem('ub_user',JSON.stringify(currentUser)); }
+  showToast('\\\\ud83c\\\\udfc6 Founding Artist #'+count+'! You\\\\\\\\'re locked in.');
 }
 
-let homeCountdownSecs = 5040; // 1h 24min
-function tickHomeCountdown() {
-  homeCountdownSecs--;
-  if(homeCountdownSecs < 0) homeCountdownSecs = 5040;
-  const h = Math.floor(homeCountdownSecs / 3600);
-  const m = Math.floor((homeCountdownSecs % 3600) / 60);
-  const s = homeCountdownSecs % 60;
-  const el = document.getElementById('homeCountdown');
-  if(el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-setInterval(tickHomeCountdown, 1000);
-
-// ════════════════════════════════════════
-// BATTLE QUEUE
-// ════════════════════════════════════════
-function selectBattleType(el) {
-  document.querySelectorAll('[data-bt]').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function selectRoundFormat(el) {
-  document.querySelectorAll('[data-rs]').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-function findOpponent() {
-  showToast('🔍 Finding opponent...');
-  setTimeout(() => showToast('⚔️ Match found! Battle starting soon...'), 1500);
-  setTimeout(() => showToast('💡 Real-time battles need backend integration'), 3500);
-}
-function startInstantBattle() {
-  showToast('⚡ Searching for instant match...');
-  setTimeout(() => showToast('⚔️ Match found! Get ready!'), 1500);
-}
-
-// ════════════════════════════════════════
-// LIVE BATTLES HYPE LIST (Founding Artists)
-// ════════════════════════════════════════
-function getHypeCount() {
-  return parseInt(localStorage.getItem('ub_hype_count') || '847');
-}
-
-function refreshHypeCount() {
-  const el = document.getElementById('hypeCount');
-  if(el) el.textContent = getHypeCount();
-}
-
-async function joinHypeList() {
-  if(!currentUser) {
-    showToast('Sign up first to join the founding list');
-    setTimeout(() => goToPage('signup'), 800);
-    return;
-  }
-  const hypeList = JSON.parse(localStorage.getItem('ub_hype_list') || '[]');
-  if(hypeList.includes(currentUser.email)) {
-    const myNum = currentUser.foundingNumber || '?';
-    showToast('🏆 Founding Artist #' + myNum + ' — Already locked in!');
-    return;
-  }
-  hypeList.push(currentUser.email);
-  localStorage.setItem('ub_hype_list', JSON.stringify(hypeList));
-  const count = getHypeCount() + 1;
-  localStorage.setItem('ub_hype_count', count);
-  refreshHypeCount();
-  if(!currentUser.badges) currentUser.badges = [];
-  if(!currentUser.badges.includes('founding-artist')) {
-    currentUser.badges.push('founding-artist');
-    currentUser.foundingNumber = count;
-    const users = getUsers();
-    users[currentUser.username] = currentUser;
-    saveUsers(users);
-    localStorage.setItem('ub_user', JSON.stringify(currentUser));
-  }
-  showToast('🏆 Founding Artist #' + count + '! You\'re locked in.');
-}
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // PRACTICE MODE
-// ════════════════════════════════════════
-const PRACTICE_BEATS = [
-  { id:'trap1', name:'Midnight Drip', bpm:140, key:'Cmin', genre:'Trap', emoji:'🌙' },
-  { id:'drill1', name:'Block Anthem', bpm:148, key:'Fmin', genre:'Drill', emoji:'🔫' },
-  { id:'rnb1', name:'Velvet Hours', bpm:90, key:'Bbmaj', genre:'R&B', emoji:'💜' },
-  { id:'hiphop1', name:'90s Boom', bpm:92, key:'Amin', genre:'Boom Bap', emoji:'📻' },
-  { id:'trap2', name:'Gold Dust', bpm:135, key:'Gmin', genre:'Trap', emoji:'✨' },
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+const PRACTICE_BEATS=[
+  {id:'trap1',name:'Midnight Drip',bpm:140,key:'Cmin',genre:'Trap',emoji:'\\\\ud83c\\\\udf19'},
+  {id:'drill1',name:'Block Anthem',bpm:148,key:'Fmin',genre:'Drill',emoji:'\\\\ud83d\\\\udd2b'},
+  {id:'rnb1',name:'Velvet Hours',bpm:90,key:'Bbmaj',genre:'R&B',emoji:'\\\\ud83d\\\\udc9c'},
+  {id:'hiphop1',name:'90s Boom',bpm:92,key:'Amin',genre:'Boom Bap',emoji:'\\\\ud83d\\\\udcfb'},
+  {id:'trap2',name:'Gold Dust',bpm:135,key:'Gmin',genre:'Trap',emoji:'\\\\u2728'},
 ];
-
-let practiceState = {
-  selectedBeat: null,
-  selectedDuration: 60,
-  timeLeft: 60,
-  timerInterval: null,
-  cameraStream: null,
-  beatAudio: null,
-};
-
-function getPracticeStats() {
-  try { return JSON.parse(localStorage.getItem('ub_practice_stats') || '{}'); }
-  catch(e) { return {}; }
+let practiceState={selectedBeat:null,selectedDuration:60,timeLeft:60,timerInterval:null,cameraStream:null};
+function getPracticeStats(){ try{ return JSON.parse(localStorage.getItem('ub_practice_stats')||'{}'); }catch(e){ return {}; } }
+function savePracticeStats(s){ localStorage.setItem('ub_practice_stats',JSON.stringify(s)); }
+function refreshPracticeStats(){ const s=getPracticeStats(); document.getElementById('statSessions').textContent=s.sessions||0; document.getElementById('statMinutes').textContent=Math.floor((s.totalSeconds||0)/60); document.getElementById('statStreak').textContent=s.dayStreak||0; }
+function renderBeatList(){
+  const list=document.getElementById('beatList'); if(!list) return;
+  list.innerHTML=PRACTICE_BEATS.map((b,i)=>'<div class="beat-card" data-beat="'+b.id+'" onclick="selectBeat(\\\\\\\\''+b.id+'\\\\\\\\')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:rgba(255,255,255,0.03);border:1px solid '+(i===0?'var(--gold)':'rgba(201,168,76,0.15)')+';border-radius:8px;margin-bottom:8px;cursor:pointer;"><div style="font-size:1.6rem;flex-shrink:0;">'+b.emoji+'</div><div style="flex:1;min-width:0;"><div style="font-family:\\\\\\\\'Bebas Neue\\\\\\\\',sans-serif;font-size:1rem;letter-spacing:1.5px;color:var(--white);">'+b.name+'</div><div style="font-family:\\\\\\\\'Orbitron\\\\\\\\',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);margin-top:1px;">'+b.bpm+' BPM \\\\u00b7 '+b.key+' \\\\u00b7 '+b.genre+'</div></div><div class="beat-check" style="width:18px;height:18px;border-radius:50%;border:1.5px solid '+(i===0?'var(--gold)':'rgba(201,168,76,0.25)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+(i===0?'<span style="color:var(--gold);font-size:0.7rem;">\\\\u2713</span>':'')+'</div></div>').join('');
+  practiceState.selectedBeat=PRACTICE_BEATS[0];
 }
-
-function savePracticeStats(stats) {
-  localStorage.setItem('ub_practice_stats', JSON.stringify(stats));
+function selectBeat(beatId){
+  const beat=PRACTICE_BEATS.find(b=>b.id===beatId); if(!beat) return;
+  practiceState.selectedBeat=beat;
+  document.querySelectorAll('.beat-card').forEach(c=>{ const isActive=c.dataset.beat===beatId; c.style.borderColor=isActive?'var(--gold)':'rgba(201,168,76,0.15)'; const check=c.querySelector('.beat-check'); if(check){ check.style.borderColor=isActive?'var(--gold)':'rgba(201,168,76,0.25)'; check.innerHTML=isActive?'<span style="color:var(--gold);font-size:0.7rem;">\\\\u2713</span>':''; } });
 }
-
-function refreshPracticeStats() {
-  const stats = getPracticeStats();
-  document.getElementById('statSessions').textContent = stats.sessions || 0;
-  document.getElementById('statMinutes').textContent = Math.floor((stats.totalSeconds || 0) / 60);
-  document.getElementById('statStreak').textContent = stats.dayStreak || 0;
+function selectDuration(seconds){
+  practiceState.selectedDuration=seconds;
+  document.querySelectorAll('.dur-btn').forEach(btn=>{ const isActive=parseInt(btn.dataset.dur)===seconds; btn.style.background=isActive?'linear-gradient(135deg,var(--gold-dark),var(--gold))':'rgba(255,255,255,0.04)'; btn.style.borderColor=isActive?'var(--gold)':'rgba(201,168,76,0.2)'; btn.style.color=isActive?'var(--black)':'var(--white)'; btn.style.fontWeight=isActive?'700':'400'; });
 }
-
-function renderBeatList() {
-  const list = document.getElementById('beatList');
-  if(!list) return;
-  list.innerHTML = PRACTICE_BEATS.map((b, i) => `
-    <div class="beat-card ${i === 0 ? 'active' : ''}" data-beat="${b.id}" onclick="selectBeat('${b.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:rgba(255,255,255,0.03);border:1px solid ${i === 0 ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;">
-      <div style="font-size:1.6rem;flex-shrink:0;">${b.emoji}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;color:var(--white);">${b.name}</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);margin-top:1px;">${b.bpm} BPM · ${b.key} · ${b.genre}</div>
-      </div>
-      <div class="beat-check" style="width:18px;height:18px;border-radius:50%;border:1.5px solid ${i === 0 ? 'var(--gold)' : 'rgba(201,168,76,0.25)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i === 0 ? '<span style="color:var(--gold);font-size:0.7rem;">✓</span>' : ''}</div>
-    </div>
-  `).join('');
-  practiceState.selectedBeat = PRACTICE_BEATS[0];
+async function startPractice(){
+  if(!practiceState.selectedBeat){ showToast('Pick a beat first'); return; }
+  try{
+    showToast('\\\\ud83c\\\\udfa4 Starting camera...');
+    practiceState.cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+    document.getElementById('practiceSetup').style.display='none';
+    document.getElementById('practiceComplete').style.display='none';
+    document.getElementById('practiceActive').style.display='block';
+    document.getElementById('practiceCamera').srcObject=practiceState.cameraStream;
+    document.getElementById('activeBeatName').textContent=practiceState.selectedBeat.name;
+    document.getElementById('activeBeatBpm').textContent=practiceState.selectedBeat.bpm+' BPM \\\\u00b7 '+practiceState.selectedBeat.key;
+    practiceState.timeLeft=practiceState.selectedDuration; updatePracticeTimer();
+    practiceState.timerInterval=setInterval(()=>{ practiceState.timeLeft--; updatePracticeTimer(); if(practiceState.timeLeft<=0) completePractice(); else if(practiceState.timeLeft===10) document.getElementById('practiceTip').innerHTML='\\\\u26a1 Final 10 seconds \\\\u2014 go off!'; else if(practiceState.timeLeft===Math.floor(practiceState.selectedDuration/2)) document.getElementById('practiceTip').innerHTML='\\\\ud83d\\\\udd25 Halfway! Stay in the pocket'; },1000);
+    showToast('\\\\ud83d\\\\udd25 GO! Drop your bars!');
+  } catch(err){ console.error('Camera error:',err); showToast('\\\\u26a0\\\\ufe0f Camera permission needed for practice mode'); }
 }
-
-function selectBeat(beatId) {
-  const beat = PRACTICE_BEATS.find(b => b.id === beatId);
-  if(!beat) return;
-  practiceState.selectedBeat = beat;
-  document.querySelectorAll('.beat-card').forEach(c => {
-    const isActive = c.dataset.beat === beatId;
-    c.style.borderColor = isActive ? 'var(--gold)' : 'rgba(201,168,76,0.15)';
-    const check = c.querySelector('.beat-check');
-    if(check) {
-      check.style.borderColor = isActive ? 'var(--gold)' : 'rgba(201,168,76,0.25)';
-      check.innerHTML = isActive ? '<span style="color:var(--gold);font-size:0.7rem;">✓</span>' : '';
-    }
-  });
-}
-
-function selectDuration(seconds) {
-  practiceState.selectedDuration = seconds;
-  document.querySelectorAll('.dur-btn').forEach(btn => {
-    const isActive = parseInt(btn.dataset.dur) === seconds;
-    if(isActive) {
-      btn.classList.add('active');
-      btn.style.background = 'linear-gradient(135deg, var(--gold-dark), var(--gold))';
-      btn.style.borderColor = 'var(--gold)';
-      btn.style.color = 'var(--black)';
-      btn.style.fontWeight = '700';
-    } else {
-      btn.classList.remove('active');
-      btn.style.background = 'rgba(255,255,255,0.04)';
-      btn.style.borderColor = 'rgba(201,168,76,0.2)';
-      btn.style.color = 'var(--white)';
-      btn.style.fontWeight = '400';
-    }
-  });
-}
-
-async function startPractice() {
-  if(!practiceState.selectedBeat) {
-    showToast('Pick a beat first');
-    return;
-  }
-  try {
-    showToast('🎤 Starting camera...');
-    practiceState.cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user' },
-      audio: false
-    });
-    document.getElementById('practiceSetup').style.display = 'none';
-    document.getElementById('practiceComplete').style.display = 'none';
-    document.getElementById('practiceActive').style.display = 'block';
-    const video = document.getElementById('practiceCamera');
-    video.srcObject = practiceState.cameraStream;
-    document.getElementById('activeBeatName').textContent = practiceState.selectedBeat.name;
-    document.getElementById('activeBeatBpm').textContent = practiceState.selectedBeat.bpm + ' BPM · ' + practiceState.selectedBeat.key;
-    practiceState.timeLeft = practiceState.selectedDuration;
-    updatePracticeTimer();
-    practiceState.timerInterval = setInterval(() => {
-      practiceState.timeLeft--;
-      updatePracticeTimer();
-      if(practiceState.timeLeft <= 0) {
-        completePractice();
-      } else if(practiceState.timeLeft === 10) {
-        document.getElementById('practiceTip').innerHTML = '⚡ Final 10 seconds — go off!';
-      } else if(practiceState.timeLeft === Math.floor(practiceState.selectedDuration / 2)) {
-        document.getElementById('practiceTip').innerHTML = '🔥 Halfway! Stay in the pocket';
-      }
-    }, 1000);
-    showToast('🔥 GO! Drop your bars!');
-  } catch(err) {
-    console.error('Camera error:', err);
-    showToast('⚠️ Camera permission needed for practice mode');
-  }
-}
-
-function updatePracticeTimer() {
-  const t = practiceState.timeLeft;
-  const m = Math.floor(t / 60);
-  const s = t % 60;
-  document.getElementById('practiceTimer').textContent = m + ':' + (s < 10 ? '0' + s : s);
-}
-
-function completePractice() {
+function updatePracticeTimer(){ const t=practiceState.timeLeft; const m=Math.floor(t/60); const s=t%60; document.getElementById('practiceTimer').textContent=m+':'+(s<10?'0'+s:s); }
+function completePractice(){
   if(practiceState.timerInterval) clearInterval(practiceState.timerInterval);
-  if(practiceState.cameraStream) {
-    practiceState.cameraStream.getTracks().forEach(t => t.stop());
-    practiceState.cameraStream = null;
-  }
-  // Save stats
-  const stats = getPracticeStats();
-  stats.sessions = (stats.sessions || 0) + 1;
-  stats.totalSeconds = (stats.totalSeconds || 0) + practiceState.selectedDuration;
-  const today = new Date().toDateString();
-  if(stats.lastDay !== today) {
-    if(stats.lastDay === new Date(Date.now() - 86400000).toDateString()) {
-      stats.dayStreak = (stats.dayStreak || 0) + 1;
-    } else {
-      stats.dayStreak = 1;
-    }
-    stats.lastDay = today;
-  }
+  if(practiceState.cameraStream){ practiceState.cameraStream.getTracks().forEach(t=>t.stop()); practiceState.cameraStream=null; }
+  const stats=getPracticeStats(); stats.sessions=(stats.sessions||0)+1; stats.totalSeconds=(stats.totalSeconds||0)+practiceState.selectedDuration;
+  const today=new Date().toDateString();
+  if(stats.lastDay!==today){ stats.dayStreak=(stats.lastDay===new Date(Date.now()-86400000).toDateString())?(stats.dayStreak||0)+1:1; stats.lastDay=today; }
   savePracticeStats(stats);
-  // Show complete screen
-  document.getElementById('practiceActive').style.display = 'none';
-  document.getElementById('practiceComplete').style.display = 'block';
-  document.getElementById('completeDuration').textContent = practiceState.selectedDuration + 's';
-  document.getElementById('completeBeatName').textContent = practiceState.selectedBeat.name;
-  showToast('🔥 Session complete! Bars dropped!');
+  document.getElementById('practiceActive').style.display='none';
+  document.getElementById('practiceComplete').style.display='block';
+  document.getElementById('completeDuration').textContent=practiceState.selectedDuration+'s';
+  document.getElementById('completeBeatName').textContent=practiceState.selectedBeat.name;
+  showToast('\\\\ud83d\\\\udd25 Session complete! Bars dropped!');
 }
+function stopPractice(){ if(!confirm('End this session early?')) return; completePractice(); }
+function resetPractice(){ document.getElementById('practiceComplete').style.display='none'; document.getElementById('practiceSetup').style.display='block'; refreshPracticeStats(); }
+function exitPractice(){ if(practiceState.timerInterval) clearInterval(practiceState.timerInterval); if(practiceState.cameraStream){ practiceState.cameraStream.getTracks().forEach(t=>t.stop()); practiceState.cameraStream=null; } goToPage('queue'); }
 
-function stopPractice() {
-  if(!confirm('End this session early?')) return;
-  completePractice();
-}
+const _origGoToPage=window.goToPage;
+window.goToPage=function(name){ _origGoToPage(name); if(name==='queue') refreshHypeCount(); if(name==='practice'){ refreshPracticeStats(); renderBeatList(); selectDuration(practiceState.selectedDuration); } };
 
-function resetPractice() {
-  document.getElementById('practiceComplete').style.display = 'none';
-  document.getElementById('practiceSetup').style.display = 'block';
-  refreshPracticeStats();
-}
-
-function exitPractice() {
-  if(practiceState.timerInterval) clearInterval(practiceState.timerInterval);
-  if(practiceState.cameraStream) {
-    practiceState.cameraStream.getTracks().forEach(t => t.stop());
-    practiceState.cameraStream = null;
-  }
-  goToPage('queue');
-}
-
-// Init practice page when shown
-const _origGoToPage = window.goToPage;
-window.goToPage = function(name) {
-  _origGoToPage(name);
-  if(name === 'queue') {
-    refreshHypeCount();
-  }
-  if(name === 'practice') {
-    refreshPracticeStats();
-    renderBeatList();
-    selectDuration(practiceState.selectedDuration);
-  }
-};
-
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // LEADERBOARD
-// ════════════════════════════════════════
-const lbData = [
-  {rank:1,ava:'👑',name:'KD WAVEZ',det:'Houston TX · 47W/3L',score:'9,640',type:'artist'},
-  {rank:2,ava:'👀',name:'VIBE JUDGE',det:'LA · 89% accuracy',score:'8,100',type:'viewer'},
-  {rank:3,ava:'🎤',name:'PHANTOM BLAZE',det:'Atlanta · 38W/7L',score:'7,820',type:'artist'},
-  {rank:4,ava:'🎧',name:'DJ BLAZE',det:'NYC · 89 sessions',score:'7,210',type:'dj'},
-  {rank:5,ava:'⚡',name:'LAYAH MONROE',det:'Chicago · 31W/9L',score:'6,510',type:'artist'},
-  {rank:6,ava:'👁️',name:'NOVA FAN',det:'Chicago · 91% accuracy',score:'5,990',type:'viewer'},
-  {rank:7,ava:'🔥',name:'STORM MC',det:'Miami · 28W/12L',score:'4,980',type:'artist'},
-  {rank:8,ava:'⭐',name:'DJ PHANTOM',det:'Atlanta · 76 sessions',score:'3,410',type:'dj'},
-];
-function renderLeaderboard(filter='all') {
-  const data = filter === 'all' ? lbData : lbData.filter(d => d.type === filter);
-  const list = document.getElementById('lbList');
-  if(!list) return;
-  if(currentUser) {
-    // Add current user to top if they have any points
-    list.innerHTML = `<div class="lb-row" style="border-color:rgba(0,170,255,0.3);background:rgba(0,170,255,0.04);" onclick="goToPage('profile')">
-      <div class="lb-rank rn">YOU</div>
-      <div class="lb-ava">${currentUser.avatar}</div>
-      <div class="lb-info"><div class="lb-name">${currentUser.name}</div><div class="lb-det">${currentUser.city || 'UniBeatz World'} · ${currentUser.battles||0} battles</div></div>
-      <div class="lb-score">${currentUser.points||0}<div class="lb-pts">pts</div></div>
-    </div>` + data.map(d => `
-      <div class="lb-row" onclick="showToast('${d.name} profile coming soon')">
-        <div class="lb-rank ${d.rank <= 3 ? 'r' + d.rank : 'rn'}">${d.rank <= 3 ? ['🥇','🥈','🥉'][d.rank-1] : d.rank}</div>
-        <div class="lb-ava">${d.ava}</div>
-        <div class="lb-info"><div class="lb-name">${d.name}</div><div class="lb-det">${d.det}</div></div>
-        <div class="lb-score">${d.score}<div class="lb-pts">pts</div></div>
-      </div>
-    `).join('');
-  } else {
-    list.innerHTML = data.map(d => `
-      <div class="lb-row" onclick="showToast('Profile coming soon')">
-        <div class="lb-rank ${d.rank <= 3 ? 'r' + d.rank : 'rn'}">${d.rank <= 3 ? ['🥇','🥈','🥉'][d.rank-1] : d.rank}</div>
-        <div class="lb-ava">${d.ava}</div>
-        <div class="lb-info"><div class="lb-name">${d.name}</div><div class="lb-det">${d.det}</div></div>
-        <div class="lb-score">${d.score}<div class="lb-pts">pts</div></div>
-      </div>
-    `).join('');
-  }
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+const lbData=[{rank:1,ava:'\\\\ud83d\\\\udc51',name:'KD WAVEZ',det:'Houston TX \\\\u00b7 47W/3L',score:'9,640',type:'artist'},{rank:2,ava:'\\\\ud83d\\\\udc40',name:'VIBE JUDGE',det:'LA \\\\u00b7 89% accuracy',score:'8,100',type:'viewer'},{rank:3,ava:'\\\\ud83c\\\\udfa4',name:'PHANTOM BLAZE',det:'Atlanta \\\\u00b7 38W/7L',score:'7,820',type:'artist'},{rank:4,ava:'\\\\ud83c\\\\udfa7',name:'DJ BLAZE',det:'NYC \\\\u00b7 89 sessions',score:'7,210',type:'dj'},{rank:5,ava:'\\\\u26a1',name:'LAYAH MONROE',det:'Chicago \\\\u00b7 31W/9L',score:'6,510',type:'artist'},{rank:6,ava:'\\\\ud83d\\\\udc41\\\\ufe0f',name:'NOVA FAN',det:'Chicago \\\\u00b7 91% accuracy',score:'5,990',type:'viewer'},{rank:7,ava:'\\\\ud83d\\\\udd25',name:'STORM MC',det:'Miami \\\\u00b7 28W/12L',score:'4,980',type:'artist'},{rank:8,ava:'\\\\u2b50',name:'DJ PHANTOM',det:'Atlanta \\\\u00b7 76 sessions',score:'3,410',type:'dj'}];
+function renderLeaderboard(filter='all'){
+  const data=filter==='all'?lbData:lbData.filter(d=>d.type===filter);
+  const list=document.getElementById('lbList'); if(!list) return;
+  const userRow=currentUser?'<div class="lb-row" style="border-color:rgba(0,170,255,0.3);background:rgba(0,170,255,0.04);" onclick="goToPage(\\\\\\\\'profile\\\\\\\\')"><div class="lb-rank rn">YOU</div><div class="lb-ava">'+currentUser.avatar+'</div><div class="lb-info"><div class="lb-name">'+currentUser.name+'</div><div class="lb-det">'+(currentUser.city||'UniBeatz World')+' \\\\u00b7 '+(currentUser.battles||0)+' battles</div></div><div class="lb-score">'+(currentUser.points||0)+'<div class="lb-pts">pts</div></div></div>':'';
+  list.innerHTML=userRow+data.map(d=>'<div class="lb-row" onclick="showToast(\\\\\\\\''+d.name+' profile coming soon\\\\\\\\')"><div class="lb-rank '+(d.rank<=3?'r'+d.rank:'rn')+'">'+(d.rank<=3?['\\\\ud83e\\\\udd47','\\\\ud83e\\\\udd48','\\\\ud83e\\\\udd49'][d.rank-1]:d.rank)+'</div><div class="lb-ava">'+d.ava+'</div><div class="lb-info"><div class="lb-name">'+d.name+'</div><div class="lb-det">'+d.det+'</div></div><div class="lb-score">'+d.score+'<div class="lb-pts">pts</div></div></div>').join('');
 }
-function filterLB(filter, btn) {
-  document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderLeaderboard(filter);
-}
+function filterLB(filter,btn){ document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active')); btn.classList.add('active'); renderLeaderboard(filter); }
 
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // AI DJ
-// ════════════════════════════════════════
-const djFeedItems = [
-  {battle:'KD vs Phantom · Showdown', time:'Just now', text:'"KD is murdering this drill beat — flow switch at bar 12 was ELITE."'},
-  {battle:'Layah vs Storm · Cypher', time:'4 min ago', text:'"Layah came in with completely different energy. Smooth delivery, every pocket hit."'},
-  {battle:'Grand Slam Finals', time:'12 min ago', text:'"KD took the title with a flawless closing round. Not a single wasted bar."'},
-];
-const aiResponses = [
-  "That flow was COLD — 9.2/10. Internal rhymes were 🔥",
-  "KD winning by 16 points. Phantom needs a miracle bar right now.",
-  "UniBeatz beat selection PERFECT. 150 BPM drill hits exactly right.",
-  "Flow: 8.9 · Bars: 8.4 · Delivery: 8.7 · Overall: 8.8 🎤",
-  "I've judged 47 battles tonight. This is top 5 energy.",
-  "Crowd vote split 55-45. Anyone's battle right now.",
-  "Bar of the night contender — that wordplay was insane.",
-];
-function renderAIDJFeed() {
-  const list = document.getElementById('djFeedList');
-  if(!list) return;
-  list.innerHTML = djFeedItems.map(c => `
-    <div class="dj-card">
-      <div class="dj-card-head"><div class="dj-card-battle">📹 ${c.battle}</div><div class="dj-card-time">${c.time}</div></div>
-      <div class="dj-card-text">${c.text}</div>
-    </div>
-  `).join('');
-}
-function askAIDJ() {
-  const inp = document.getElementById('djAskInput');
-  const q = inp.value.trim();
-  if(!q) { showToast('Type a question first'); return; }
-  const resp = aiResponses[Math.floor(Math.random() * aiResponses.length)];
-  djFeedItems.unshift({battle:`💬 You asked: "${q}"`, time:'Just now', text: resp});
-  renderAIDJFeed();
-  inp.value = '';
-  showToast('🤖 AI DJ answered!');
-}
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+const djFeedItems=[{battle:'KD vs Phantom \\\\u00b7 Showdown',time:'Just now',text:'"KD is murdering this drill beat \\\\u2014 flow switch at bar 12 was ELITE."'},{battle:'Layah vs Storm \\\\u00b7 Cypher',time:'4 min ago',text:'"Layah came in with completely different energy. Smooth delivery, every pocket hit."'},{battle:'Grand Slam Finals',time:'12 min ago',text:'"KD took the title with a flawless closing round. Not a single wasted bar."'}];
+const aiResponses=['That flow was COLD \\\\u2014 9.2/10. Internal rhymes were \\\\ud83d\\\\udd25','KD winning by 16 points. Phantom needs a miracle bar right now.','UniBeatz beat selection PERFECT. 150 BPM drill hits exactly right.','Flow: 8.9 \\\\u00b7 Bars: 8.4 \\\\u00b7 Delivery: 8.7 \\\\u00b7 Overall: 8.8 \\\\ud83c\\\\udfa4',"I've judged 47 battles tonight. This is top 5 energy.",'Crowd vote split 55-45. Anyone\\\\\\\\'s battle right now.','Bar of the night contender \\\\u2014 that wordplay was insane.'];
+function renderAIDJFeed(){ const list=document.getElementById('djFeedList'); if(!list) return; list.innerHTML=djFeedItems.map(c=>'<div class="dj-card"><div class="dj-card-head"><div class="dj-card-battle">\\\\ud83d\\\\udcf9 '+c.battle+'</div><div class="dj-card-time">'+c.time+'</div></div><div class="dj-card-text">'+c.text+'</div></div>').join(''); }
+function askAIDJ(){ const inp=document.getElementById('djAskInput'); const q=inp.value.trim(); if(!q){ showToast('Type a question first'); return; } const resp=aiResponses[Math.floor(Math.random()*aiResponses.length)]; djFeedItems.unshift({battle:'\\\\ud83d\\\\udcac You asked: "'+q+'"',time:'Just now',text:resp}); renderAIDJFeed(); inp.value=''; showToast('\\\\ud83e\\\\udd16 AI DJ answered!'); }
 
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // PHOTO UPLOAD
-// ════════════════════════════════════════
-function openPhotoModal() {
-  const preview = document.getElementById('photoPreviewBig');
-  if(currentUser && currentUser.photo) {
-    preview.innerHTML = '<img src="' + currentUser.photo + '" alt="profile"/>';
-  } else {
-    preview.textContent = (currentUser && currentUser.avatar) || '🎤';
-  }
-  document.getElementById('photoModal').classList.add('active');
-}
-
-function closePhotoModal() {
-  document.getElementById('photoModal').classList.remove('active');
-}
-
-function handlePhotoUpload(input) {
-  if(!input.files || !input.files[0]) return;
-  const file = input.files[0];
-  if(file.size > 5 * 1024 * 1024) {
-    showToast('⚠️ Photo must be under 5MB');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(e) {
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function openPhotoModal(){ const preview=document.getElementById('photoPreviewBig'); if(currentUser&&currentUser.photo) preview.innerHTML='<img src="'+currentUser.photo+'" alt="profile"/>'; else preview.textContent=(currentUser&&currentUser.avatar)||'\\\\ud83c\\\\udfa4'; document.getElementById('photoModal').classList.add('active'); }
+function closePhotoModal(){ document.getElementById('photoModal').classList.remove('active'); }
+function handlePhotoUpload(input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  if(file.size>5*1024*1024){ showToast('\\\\u26a0\\\\ufe0f Photo must be under 5MB'); return; }
+  const reader=new FileReader();
+  reader.onload=function(e){
     if(!currentUser) return;
-    currentUser.photo = e.target.result;
-    const users = getUsers();
-    users[currentUser.username] = currentUser;
-    saveUsers(users);
-    setCurrentUser(currentUser);
-    const preview = document.getElementById('photoPreviewBig');
-    if(preview) preview.innerHTML = '<img src="' + currentUser.photo + '" alt="profile"/>';
-    const epPreview = document.getElementById('epPhotoPreview');
-    if(epPreview) epPreview.innerHTML = '<img src="' + currentUser.photo + '" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
-    showToast('📷 Photo uploaded!');
-    setTimeout(function() {
-      closePhotoModal();
-      refreshProfile();
-    }, 600);
+    currentUser.photo=e.target.result; const users=getUsers(); users[currentUser.username]=currentUser; saveUsers(users); setCurrentUser(currentUser);
+    const preview=document.getElementById('photoPreviewBig'); if(preview) preview.innerHTML='<img src="'+currentUser.photo+'" alt="profile"/>';
+    const epPreview=document.getElementById('epPhotoPreview'); if(epPreview) epPreview.innerHTML='<img src="'+currentUser.photo+'" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+    showToast('\\\\ud83d\\\\udcf7 Photo uploaded!'); setTimeout(function(){ closePhotoModal(); refreshProfile(); },600);
   };
-  reader.onerror = function() {
-    showToast('⚠️ Could not read photo');
-  };
-  reader.readAsDataURL(file);
-  input.value = '';
+  reader.onerror=function(){ showToast('\\\\u26a0\\\\ufe0f Could not read photo'); };
+  reader.readAsDataURL(file); input.value='';
 }
+function removePhoto(){ if(!currentUser) return; if(!confirm('Remove your photo and use avatar emoji instead?')) return; currentUser.photo=null; const users=getUsers(); users[currentUser.username]=currentUser; saveUsers(users); setCurrentUser(currentUser); showToast('Photo removed'); closePhotoModal(); refreshProfile(); }
 
-function removePhoto() {
-  if(!currentUser) return;
-  if(!confirm('Remove your photo and use avatar emoji instead?')) return;
-  currentUser.photo = null;
-  const users = getUsers();
-  users[currentUser.username] = currentUser;
-  saveUsers(users);
-  setCurrentUser(currentUser);
-  showToast('Photo removed');
-  closePhotoModal();
-  refreshProfile();
-}
-
-// ════════════════════════════════════════
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
 // TOAST
-// ════════════════════════════════════════
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(window._toastT);
-  window._toastT = setTimeout(() => t.classList.remove('show'), 3500);
-}
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(window._toastT); window._toastT=setTimeout(()=>t.classList.remove('show'),3500); }
 
-// ════════════════════════════════════════
-// AUTO-LOGIN ON LOAD
-// ════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  if(loadCurrentUser()) {
-    goToPage('home');
-  } else {
-    goToPage('splash');
-  }
-});
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+// AUTO-LOGIN
+// \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550
+window.addEventListener('DOMContentLoaded',()=>{ if(loadCurrentUser()) goToPage('home'); else goToPage('splash'); });
 </script>
 
 <script>
 /* LIVEKIT FACE-TO-FACE BATTLE SYSTEM */
-let ubLiveRoom = null;
-let ubLiveMicEnabled = true;
-let ubLiveCameraEnabled = true;
-const UB_LIVEKIT_TOKEN_FUNCTION = "https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken";
+let ubLiveRoom=null, ubLiveMicEnabled=true, ubLiveCameraEnabled=true;
+const UB_LIVEKIT_TOKEN_FUNCTION="https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken";
 
-function getBattleUsername(role) {
-  const profileName =
-    (document.getElementById("pfUsername") && document.getElementById("pfUsername").textContent) ||
-    (document.getElementById("homeWelcomeName") && document.getElementById("homeWelcomeName").textContent) ||
-    "UniMC";
-  const clean = String(profileName).replace("@", "").replace(/[^a-zA-Z0-9_-]/g, "") || "UniMC";
-  return `${role || "artist"}_${clean}_${Math.floor(Math.random() * 9999)}`;
-}
-function openLiveBattleRoom() {
-  if (typeof goToPage === "function") goToPage("livebattle");
-  const userEl = document.getElementById("liveUsername");
-  if (userEl) userEl.textContent = getBattleUsername("artist");
-}
-function setLiveStatus(message) {
-  const el = document.getElementById("liveStatus");
-  if (el) el.textContent = message;
-}
-function showLiveError(message) {
-  const el = document.getElementById("liveError");
-  if (!el) return;
-  el.textContent = message;
-  el.classList.add("show");
-}
-function clearLiveError() {
-  const el = document.getElementById("liveError");
-  if (!el) return;
-  el.textContent = "";
-  el.classList.remove("show");
-}
-function resetLiveBox(id, text) {
-  const box = document.getElementById(id);
-  if (!box) return;
-  const label = box.querySelector(".live-label")?.outerHTML || "";
-  box.innerHTML = label + `<div class="live-placeholder">${text}</div>`;
-}
-function clearLiveVideos() {
-  resetLiveBox("localVideoBox", "Camera preview will appear here");
-  resetLiveBox("remoteVideoBox", "Waiting for another participant...");
-}
-function attachLiveTrack(track, isLocal = false) {
-  const box = document.getElementById(isLocal ? "localVideoBox" : "remoteVideoBox");
-  if (!track || typeof track.attach !== "function") return;
-  const element = track.attach();
-  element.setAttribute("playsinline", "true");
-  element.autoplay = true;
-  if (track.kind === "audio") { document.body.appendChild(element); return; }
-  if (!box) return;
-  const ph = box.querySelector(".live-placeholder");
-  if (ph) ph.remove();
-  const oldVideo = box.querySelector("video");
-  if (oldVideo) oldVideo.remove();
-  box.appendChild(element);
-}
-async function joinLiveBattleAs(role = "artist") {
+function getBattleUsername(role){ const profileName=(document.getElementById("pfUsername")&&document.getElementById("pfUsername").textContent)||(document.getElementById("homeWelcomeName")&&document.getElementById("homeWelcomeName").textContent)||"UniMC"; const clean=String(profileName).replace("@","").replace(/[^a-zA-Z0-9_-]/g,"")||"UniMC"; return (role||"artist")+"_"+clean+"_"+Math.floor(Math.random()*9999); }
+function openLiveBattleRoom(){ if(typeof goToPage==="function") goToPage("livebattle"); const userEl=document.getElementById("liveUsername"); if(userEl) userEl.textContent=getBattleUsername("artist"); }
+function setLiveStatus(message){ const el=document.getElementById("liveStatus"); if(el) el.textContent=message; }
+function showLiveError(message){ const el=document.getElementById("liveError"); if(!el) return; el.textContent=message; el.classList.add("show"); }
+function clearLiveError(){ const el=document.getElementById("liveError"); if(!el) return; el.textContent=""; el.classList.remove("show"); }
+function resetLiveBox(id,text){ const box=document.getElementById(id); if(!box) return; const label=box.querySelector(".live-label")?.outerHTML||""; box.innerHTML=label+'<div class="live-placeholder">'+text+'</div>'; }
+function clearLiveVideos(){ resetLiveBox("localVideoBox","Camera preview will appear here"); resetLiveBox("remoteVideoBox","Waiting for another participant..."); }
+function attachLiveTrack(track,isLocal=false){ const box=document.getElementById(isLocal?"localVideoBox":"remoteVideoBox"); if(!track||typeof track.attach!=="function") return; const element=track.attach(); element.setAttribute("playsinline","true"); element.autoplay=true; if(track.kind==="audio"){ document.body.appendChild(element); return; } if(!box) return; const ph=box.querySelector(".live-placeholder"); if(ph) ph.remove(); const oldVideo=box.querySelector("video"); if(oldVideo) oldVideo.remove(); box.appendChild(element); }
+async function joinLiveBattleAs(role="artist"){
   clearLiveError();
-  // Wait up to 5 seconds for LiveKit UMD to finish loading before giving up
-  if (!window.LivekitClient) {
-    setLiveStatus("Loading LiveKit...");
-    for (let i = 0; i < 50; i++) {
-      await new Promise(r => setTimeout(r, 100));
-      if (window.LivekitClient) break;
-    }
-  }
-  if (!window.LivekitClient) { showLiveError("LiveKit client did not load. Check your internet, then refresh."); return; }
-  try {
-    if (ubLiveRoom) await leaveBattleRoom(false);
-    const roomName = "battle-room";
-    const username = getBattleUsername(role);
-    document.getElementById("liveRoomName").textContent = roomName;
-    document.getElementById("liveUsername").textContent = username;
+  if(!window.LivekitClient){ setLiveStatus("Loading LiveKit..."); for(let i=0;i<50;i++){ await new Promise(r=>setTimeout(r,100)); if(window.LivekitClient) break; } }
+  if(!window.LivekitClient){ showLiveError("LiveKit client did not load. Check your internet, then refresh."); return; }
+  try{
+    if(ubLiveRoom) await leaveBattleRoom(false);
+    const roomName="battle-room"; const username=getBattleUsername(role);
+    document.getElementById("liveRoomName").textContent=roomName; document.getElementById("liveUsername").textContent=username;
     setLiveStatus("Requesting token...");
-    const tokenRes = await fetch(`${UB_LIVEKIT_TOKEN_FUNCTION}?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(username)}`);
-    const data = await tokenRes.json();
-    if (!tokenRes.ok || !data.token || !data.url) throw new Error(data.error || "Token function did not return a LiveKit token.");
-    const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
-    ubLiveRoom = room;
-    room.on("trackSubscribed", (track) => attachLiveTrack(track, false));
-    room.on("participantConnected", (p) => setLiveStatus(`${p.identity} joined`));
-    room.on("participantDisconnected", () => setLiveStatus("Participant left"));
-    room.on("disconnected", () => { setLiveStatus("Disconnected"); clearLiveVideos(); });
-    setLiveStatus("Connecting...");
-    await room.connect(data.url, data.token);
-    if (role === "viewer") { setLiveStatus("Watching live"); if (typeof showToast === "function") showToast("👀 Joined as viewer"); return; }
-    setLiveStatus("Starting camera...");
-    await room.localParticipant.enableCameraAndMicrophone();
-    room.localParticipant.trackPublications.forEach((pub) => { if (pub.track) attachLiveTrack(pub.track, true); });
-    setLiveStatus("Live");
-    if (typeof showToast === "function") showToast("🔴 Live battle room connected");
-  } catch (err) {
-    console.error(err);
-    setLiveStatus("Error");
-    showLiveError(err.message || "Unable to join LiveKit room.");
-  }
+    const tokenRes=await fetch(UB_LIVEKIT_TOKEN_FUNCTION+"?room="+encodeURIComponent(roomName)+"&username="+encodeURIComponent(username));
+    const data=await tokenRes.json();
+    if(!tokenRes.ok||!data.token||!data.url) throw new Error(data.error||"Token function did not return a LiveKit token.");
+    const room=new LivekitClient.Room({adaptiveStream:true,dynacast:true}); ubLiveRoom=room;
+    room.on("trackSubscribed",(track)=>attachLiveTrack(track,false));
+    room.on("participantConnected",(p)=>setLiveStatus(p.identity+" joined"));
+    room.on("participantDisconnected",()=>setLiveStatus("Participant left"));
+    room.on("disconnected",()=>{ setLiveStatus("Disconnected"); clearLiveVideos(); });
+    setLiveStatus("Connecting..."); await room.connect(data.url,data.token);
+    if(role==="viewer"){ setLiveStatus("Watching live"); showToast("\\\\ud83d\\\\udc40 Joined as viewer"); return; }
+    setLiveStatus("Starting camera..."); await room.localParticipant.enableCameraAndMicrophone();
+    room.localParticipant.trackPublications.forEach((pub)=>{ if(pub.track) attachLiveTrack(pub.track,true); });
+    setLiveStatus("Live"); showToast("\\\\ud83d\\\\udd34 Live battle room connected");
+  } catch(err){ console.error(err); setLiveStatus("Error"); showLiveError(err.message||"Unable to join LiveKit room."); }
 }
-async function toggleLiveMic() {
-  if (!ubLiveRoom) { showLiveError("Join a battle room first."); return; }
-  ubLiveMicEnabled = !ubLiveMicEnabled;
-  await ubLiveRoom.localParticipant.setMicrophoneEnabled(ubLiveMicEnabled);
-  if (typeof showToast === "function") showToast(ubLiveMicEnabled ? "🎙️ Mic on" : "🔇 Mic off");
-}
-async function toggleLiveCamera() {
-  if (!ubLiveRoom) { showLiveError("Join a battle room first."); return; }
-  ubLiveCameraEnabled = !ubLiveCameraEnabled;
-  await ubLiveRoom.localParticipant.setCameraEnabled(ubLiveCameraEnabled);
-  if (typeof showToast === "function") showToast(ubLiveCameraEnabled ? "📷 Camera on" : "📷 Camera off");
-}
-async function leaveBattleRoom(showMessage = true) {
-  if (ubLiveRoom) { ubLiveRoom.disconnect(); ubLiveRoom = null; }
-  clearLiveVideos();
-  setLiveStatus("Not connected");
-  if (showMessage && typeof showToast === "function") showToast("⏹ Left battle room");
-}
-window.openLiveBattleRoom = openLiveBattleRoom;
-window.joinLiveBattleAs = joinLiveBattleAs;
-window.toggleLiveMic = toggleLiveMic;
-window.toggleLiveCamera = toggleLiveCamera;
-window.leaveBattleRoom = leaveBattleRoom;
-window.startInstantBattle = openLiveBattleRoom;
+async function toggleLiveMic(){ if(!ubLiveRoom){ showLiveError("Join a battle room first."); return; } ubLiveMicEnabled=!ubLiveMicEnabled; await ubLiveRoom.localParticipant.setMicrophoneEnabled(ubLiveMicEnabled); showToast(ubLiveMicEnabled?"\\\\ud83c\\\\udf99\\\\ufe0f Mic on":"\\\\ud83d\\\\udd07 Mic off"); }
+async function toggleLiveCamera(){ if(!ubLiveRoom){ showLiveError("Join a battle room first."); return; } ubLiveCameraEnabled=!ubLiveCameraEnabled; await ubLiveRoom.localParticipant.setCameraEnabled(ubLiveCameraEnabled); showToast(ubLiveCameraEnabled?"\\\\ud83d\\\\udcf7 Camera on":"\\\\ud83d\\\\udcf7 Camera off"); }
+async function leaveBattleRoom(showMessage=true){ if(ubLiveRoom){ ubLiveRoom.disconnect(); ubLiveRoom=null; } clearLiveVideos(); setLiveStatus("Not connected"); if(showMessage) showToast("\\\\u23f9 Left battle room"); }
+window.openLiveBattleRoom=openLiveBattleRoom; window.joinLiveBattleAs=joinLiveBattleAs; window.toggleLiveMic=toggleLiveMic; window.toggleLiveCamera=toggleLiveCamera; window.leaveBattleRoom=leaveBattleRoom; window.startInstantBattle=openLiveBattleRoom;
 </script>
 
-
 <script type="module">
-/* ══════════ FIREBASE PLATFORM BEAT VAULT + DJ SELECTOR ══════════ */
+/* \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 FIREBASE PLATFORM BEAT VAULT + DJ SELECTOR \\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550\\\\u2550 */
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-const UB_BEAT_ADMIN_PASS = "empire2026";
-const UB_BEAT_ADMIN_EMAIL = "unibeatzproduction@gmail.com";
-let ubBeatDb = null;
-let ubBeatStorage = null;
-let ubSelectedBattleBeat = null;
-let ubAdminAuthed = false;
+const UB_BEAT_ADMIN_PASS="empire2026", UB_BEAT_ADMIN_EMAIL="unibeatzproduction@gmail.com";
+let ubBeatDb=null, ubBeatStorage=null, ubSelectedBattleBeat=null;
 
-function initBeatFirebase() {
-  if (!window.UB_FIREBASE || !window.UB_FIREBASE.app) return false;
-  if (!ubBeatDb) ubBeatDb = getFirestore(window.UB_FIREBASE.app);
-  if (!ubBeatStorage) ubBeatStorage = getStorage(window.UB_FIREBASE.app);
-  return true;
-}
+function initBeatFirebase(){ if(!window.UB_FIREBASE||!window.UB_FIREBASE.app) return false; if(!ubBeatDb) ubBeatDb=getFirestore(window.UB_FIREBASE.app); if(!ubBeatStorage) ubBeatStorage=getStorage(window.UB_FIREBASE.app); return true; }
 
-window.unlockBeatAdmin = async function() {
-  const pass = (document.getElementById("beatAdminPass")?.value || "").trim();
-  if (pass !== UB_BEAT_ADMIN_PASS) {
-    if (typeof showToast === "function") showToast("❌ Wrong admin passcode");
-    return;
-  }
-  // Sign into Firebase Auth with admin credentials
-  try {
-    if (typeof showToast === "function") showToast("🔐 Authenticating...");
-    const { signInWithEmailAndPassword: fbSignIn } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js");
-    await fbSignIn(window.UB_FIREBASE.auth, UB_BEAT_ADMIN_EMAIL, pass);
-    ubAdminAuthed = true;
-  } catch(authErr) {
-    // Auth failed but passcode was correct — still allow UI unlock
-    // Storage rules will use the auth token if available
-    console.warn("Firebase Auth sign-in failed:", authErr.message);
-    ubAdminAuthed = false;
-  }
-  document.getElementById("beatAdminLockBox").style.display = "none";
-  document.getElementById("beatAdminContent").style.display = "block";
-  if (typeof showToast === "function") showToast("🔓 Beat admin unlocked");
+window.unlockBeatAdmin=async function(){
+  const pass=(document.getElementById("beatAdminPass")?.value||"").trim();
+  if(pass!==UB_BEAT_ADMIN_PASS){ showToast("\\\\u274c Wrong admin passcode"); return; }
+  try{ const {signInWithEmailAndPassword:fbSignIn}=await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"); await fbSignIn(window.UB_FIREBASE.auth,UB_BEAT_ADMIN_EMAIL,pass); } catch(e){ console.warn("Auth:",e.message); }
+  document.getElementById("beatAdminLockBox").style.display="none"; document.getElementById("beatAdminContent").style.display="block"; showToast("\\\\ud83d\\\\udd13 Beat admin unlocked");
 };
 
-window.uploadPlatformBeat = async function() {
-  try {
-    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
-
-    const name = document.getElementById("adminBeatName").value.trim();
-    const bpm = document.getElementById("adminBeatBpm").value.trim();
-    const key = document.getElementById("adminBeatKey").value.trim();
-    const genre = document.getElementById("adminBeatGenre").value.trim();
-    const fileInput = document.getElementById("adminBeatFile");
-    const file = fileInput && fileInput.files && fileInput.files[0];
-
-    if (!name || !file) {
-      if (typeof showToast === "function") showToast("Beat name and audio file required");
-      return;
-    }
-
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `platform-beats/${Date.now()}_${safeName}`;
-    const storageRef = ref(ubBeatStorage, storagePath);
-
-    if (typeof showToast === "function") showToast("⬆️ Uploading beat...");
-    await uploadBytes(storageRef, file);
-    const audioUrl = await getDownloadURL(storageRef);
-
-    await addDoc(collection(ubBeatDb, "platform_beats"), {
-      name,
-      bpm,
-      key,
-      genre,
-      audioUrl,
-      storagePath,
-      active: true,
-      createdAt: serverTimestamp()
-    });
-
-    ["adminBeatName","adminBeatBpm","adminBeatKey","adminBeatGenre"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-    if (fileInput) fileInput.value = "";
-
-    if (typeof showToast === "function") showToast("✅ Beat uploaded to platform");
-    await window.loadPlatformBeats();
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Beat upload failed: " + err.message);
-  }
+window.uploadPlatformBeat=async function(){
+  try{
+    if(!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
+    const name=document.getElementById("adminBeatName").value.trim(); const bpm=document.getElementById("adminBeatBpm").value.trim(); const key=document.getElementById("adminBeatKey").value.trim(); const genre=document.getElementById("adminBeatGenre").value.trim();
+    const fileInput=document.getElementById("adminBeatFile"); const file=fileInput&&fileInput.files&&fileInput.files[0];
+    if(!name||!file){ showToast("Beat name and audio file required"); return; }
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_"); const storagePath="platform-beats/"+Date.now()+"_"+safeName;
+    const storageRef=ref(ubBeatStorage,storagePath);
+    showToast("\\\\u2b06\\\\ufe0f Uploading beat..."); await uploadBytes(storageRef,file); const audioUrl=await getDownloadURL(storageRef);
+    await addDoc(collection(ubBeatDb,"platform_beats"),{name,bpm,key,genre,audioUrl,storagePath,active:true,createdAt:serverTimestamp()});
+    ["adminBeatName","adminBeatBpm","adminBeatKey","adminBeatGenre"].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=""; }); if(fileInput) fileInput.value="";
+    showToast("\\\\u2705 Beat uploaded to platform"); await window.loadPlatformBeats();
+  } catch(err){ console.error(err); showToast("\\\\u274c Beat upload failed: "+err.message); }
 };
 
-function beatRowHtml(id, beat, mode) {
-  const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ") || "Platform beat";
-  const safeName = String(beat.name || "Untitled Beat").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return `
-    <div class="beat-row">
-      <div class="beat-row-main">
-        <div class="beat-row-name">${safeName}</div>
-        <div class="beat-row-meta">${meta}</div>
-      </div>
-      <div class="beat-row-actions">
-        <button class="btn btn-blue" onclick="previewPlatformBeat('${id}')">▶</button>
-        ${mode === "dj" ? `<button class="btn btn-gold" onclick="selectBattleBeat('${id}')">Select</button>` : ""}
-        ${mode === "admin" ? `<button class="btn btn-red" onclick="deletePlatformBeat('${id}')">Delete</button>` : ""}
-      </div>
-    </div>
-  `;
-}
+function beatRowHtml(id,beat,mode){ const meta=[beat.genre,beat.bpm?beat.bpm+" BPM":"",beat.key].filter(Boolean).join(" \\\\u00b7 ")||"Platform beat"; const safeName=String(beat.name||"Untitled Beat").replace(/</g,"&lt;").replace(/>/g,"&gt;"); return '<div class="beat-row"><div class="beat-row-main"><div class="beat-row-name">'+safeName+'</div><div class="beat-row-meta">'+meta+'</div></div><div class="beat-row-actions"><button class="btn btn-blue" onclick="previewPlatformBeat(\\\\\\\\''+id+'\\\\\\\\')">\\\\u25b6</button>'+(mode==="dj"?'<button class="btn btn-gold" onclick="selectBattleBeat(\\\\\\\\''+id+'\\\\\\\\')">Select</button>':'')+(mode==="admin"?'<button class="btn btn-red" onclick="deletePlatformBeat(\\\\\\\\''+id+'\\\\\\\\')">Delete</button>':'')+'</div></div>'; }
 
-window.loadPlatformBeats = async function() {
-  if (!initBeatFirebase()) return;
-  try {
-    const q = query(collection(ubBeatDb, "platform_beats"), orderBy("createdAt", "desc"));
-    const snap = await getDocs(q);
-    const beats = [];
-    snap.forEach(d => beats.push({ id: d.id, ...d.data() }));
-
-    const adminList = document.getElementById("adminBeatList");
-    const djList = document.getElementById("djBeatList");
-
-    if (adminList) adminList.innerHTML = beats.length ? beats.map(b => beatRowHtml(b.id, b, "admin")).join("") : `<div class="beat-vault-sub">No beats uploaded yet.</div>`;
-    if (djList) djList.innerHTML = beats.length ? beats.map(b => beatRowHtml(b.id, b, "dj")).join("") : `<div class="beat-vault-sub">No platform beats available yet.</div>`;
-
-    window.__platformBeatsCache = beats;
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Could not load beats");
-  }
+window.loadPlatformBeats=async function(){
+  if(!initBeatFirebase()) return;
+  try{
+    const q=query(collection(ubBeatDb,"platform_beats"),orderBy("createdAt","desc")); const snap=await getDocs(q); const beats=[];
+    snap.forEach(d=>beats.push({id:d.id,...d.data()}));
+    const adminList=document.getElementById("adminBeatList"); const djList=document.getElementById("djBeatList");
+    if(adminList) adminList.innerHTML=beats.length?beats.map(b=>beatRowHtml(b.id,b,"admin")).join(""):'<div class="beat-vault-sub">No beats uploaded yet.</div>';
+    if(djList) djList.innerHTML=beats.length?beats.map(b=>beatRowHtml(b.id,b,"dj")).join(""):'<div class="beat-vault-sub">No platform beats available yet.</div>';
+    window.__platformBeatsCache=beats;
+  } catch(err){ console.error(err); showToast("\\\\u274c Could not load beats"); }
 };
 
-window.previewPlatformBeat = function(id) {
-  const beat = (window.__platformBeatsCache || []).find(b => b.id === id);
-  if (!beat || !beat.audioUrl) return;
-  const audio = document.getElementById("battleBeatAudio") || new Audio();
-  audio.src = beat.audioUrl;
-  audio.style.display = "block";
-  audio.play().catch(() => {});
+window.previewPlatformBeat=function(id){ const beat=(window.__platformBeatsCache||[]).find(b=>b.id===id); if(!beat||!beat.audioUrl) return; const audio=document.getElementById("battleBeatAudio")||new Audio(); audio.src=beat.audioUrl; audio.style.display="block"; audio.play().catch(()=>{}); };
+
+window.selectBattleBeat=async function(id){
+  try{
+    if(!initBeatFirebase()) throw new Error("Firebase is not ready yet."); const beat=(window.__platformBeatsCache||[]).find(b=>b.id===id); if(!beat) throw new Error("Beat not found. Reload beats.");
+    const selectedBeat={beatId:id,name:beat.name||"Untitled Beat",bpm:beat.bpm||"",key:beat.key||"",genre:beat.genre||"",audioUrl:beat.audioUrl,selectedBy:(document.getElementById("liveUsername")?.textContent||"dj"),selectedAt:new Date().toISOString()};
+    await setDoc(doc(ubBeatDb,"battle_rooms","battle-room"),{selectedBeat,updatedAt:serverTimestamp()},{merge:true}); showToast("\\\\ud83c\\\\udfa7 Beat selected for battle");
+  } catch(err){ console.error(err); showToast("\\\\u274c Beat select failed: "+err.message); }
 };
 
-window.selectBattleBeat = async function(id) {
-  try {
-    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
-    const beat = (window.__platformBeatsCache || []).find(b => b.id === id);
-    if (!beat) throw new Error("Beat not found. Reload beats.");
+window.deletePlatformBeat=async function(id){ if(!confirm("Delete this platform beat listing?")) return; try{ if(!initBeatFirebase()) throw new Error("Firebase is not ready yet."); await deleteDoc(doc(ubBeatDb,"platform_beats",id)); showToast("\\\\ud83d\\\\uddd1\\\\ufe0f Beat deleted"); await window.loadPlatformBeats(); } catch(err){ showToast("\\\\u274c Delete failed"); } };
 
-    const selectedBeat = {
-      beatId: id,
-      name: beat.name || "Untitled Beat",
-      bpm: beat.bpm || "",
-      key: beat.key || "",
-      genre: beat.genre || "",
-      audioUrl: beat.audioUrl,
-      selectedBy: (document.getElementById("liveUsername")?.textContent || "dj"),
-      selectedAt: new Date().toISOString()
-    };
+window.playSelectedBattleBeat=function(){ if(!ubSelectedBattleBeat||!ubSelectedBattleBeat.audioUrl){ showToast("No beat selected yet"); return; } const audio=document.getElementById("battleBeatAudio"); if(!audio) return; audio.src=ubSelectedBattleBeat.audioUrl; audio.style.display="block"; audio.play().catch(()=>{ showToast("Press play on the audio bar"); }); };
 
-    await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), {
-      selectedBeat,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+function updateCurrentBeatUI(beat){ ubSelectedBattleBeat=beat||null; const nameEl=document.getElementById("currentBattleBeatName"); const metaEl=document.getElementById("currentBattleBeatMeta"); const audio=document.getElementById("battleBeatAudio"); if(!beat){ if(nameEl) nameEl.textContent="No beat selected"; if(metaEl) metaEl.textContent="Waiting for DJ selection"; if(audio){ audio.removeAttribute("src"); audio.style.display="none"; } return; } const meta=[beat.genre,beat.bpm?beat.bpm+" BPM":"",beat.key].filter(Boolean).join(" \\\\u00b7 "); if(nameEl) nameEl.textContent=beat.name||"Selected Beat"; if(metaEl) metaEl.textContent=meta||"Selected by DJ"; if(audio&&beat.audioUrl){ audio.src=beat.audioUrl; audio.style.display="block"; } }
 
-    if (typeof showToast === "function") showToast("🎧 Beat selected for battle");
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Beat select failed: " + err.message);
-  }
-};
+function startBattleBeatListener(){ if(!initBeatFirebase()) return; onSnapshot(doc(ubBeatDb,"battle_rooms","battle-room"),(snap)=>{ const data=snap.exists()?snap.data():null; updateCurrentBeatUI(data&&data.selectedBeat?data.selectedBeat:null); }); }
 
-window.deletePlatformBeat = async function(id) {
-  if (!confirm("Delete this platform beat listing?")) return;
-  try {
-    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
-    await deleteDoc(doc(ubBeatDb, "platform_beats", id));
-    if (typeof showToast === "function") showToast("🗑️ Beat deleted");
-    await window.loadPlatformBeats();
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Delete failed");
-  }
-};
-
-window.playSelectedBattleBeat = function() {
-  if (!ubSelectedBattleBeat || !ubSelectedBattleBeat.audioUrl) {
-    if (typeof showToast === "function") showToast("No beat selected yet");
-    return;
-  }
-  const audio = document.getElementById("battleBeatAudio");
-  if (!audio) return;
-  audio.src = ubSelectedBattleBeat.audioUrl;
-  audio.style.display = "block";
-  audio.play().catch(() => {
-    if (typeof showToast === "function") showToast("Press play on the audio bar");
-  });
-};
-
-function updateCurrentBeatUI(beat) {
-  ubSelectedBattleBeat = beat || null;
-  const nameEl = document.getElementById("currentBattleBeatName");
-  const metaEl = document.getElementById("currentBattleBeatMeta");
-  const audio = document.getElementById("battleBeatAudio");
-
-  if (!beat) {
-    if (nameEl) nameEl.textContent = "No beat selected";
-    if (metaEl) metaEl.textContent = "Waiting for DJ selection";
-    if (audio) {
-      audio.removeAttribute("src");
-      audio.style.display = "none";
-    }
-    return;
-  }
-
-  const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ");
-  if (nameEl) nameEl.textContent = beat.name || "Selected Beat";
-  if (metaEl) metaEl.textContent = meta || "Selected by DJ";
-  if (audio && beat.audioUrl) {
-    audio.src = beat.audioUrl;
-    audio.style.display = "block";
-  }
-}
-
-function startBattleBeatListener() {
-  if (!initBeatFirebase()) return;
-  onSnapshot(doc(ubBeatDb, "battle_rooms", "battle-room"), (snap) => {
-    const data = snap.exists() ? snap.data() : null;
-    updateCurrentBeatUI(data && data.selectedBeat ? data.selectedBeat : null);
-  });
-}
-
-window.addEventListener("ub-firebase-ready", () => {
-  if (initBeatFirebase()) {
-    window.loadPlatformBeats();
-    startBattleBeatListener();
-  }
-});
-
-setTimeout(() => {
-  if (initBeatFirebase()) {
-    window.loadPlatformBeats();
-    startBattleBeatListener();
-  }
-}, 1500);
+window.addEventListener("ub-firebase-ready",()=>{ if(initBeatFirebase()){ window.loadPlatformBeats(); startBattleBeatListener(); } });
+setTimeout(()=>{ if(initBeatFirebase()){ window.loadPlatformBeats(); startBattleBeatListener(); } },1500);
 </script>
-
-<!-- NOTIFICATIONS PANEL -->
-<div id="ubNotificationsPanel" class="ub-notifications-panel" style="display:none">
-  <div class="ub-notifications-head">
-    <strong>Notifications</strong>
-    <button type="button" onclick="document.getElementById('ubNotificationsPanel').style.display='none'">✕</button>
-  </div>
-  <div id="ubNotificationsList"></div>
-</div>
 
 <script type="module" src="/unibeatz-notifications.js"></script>
 <script src="unifreestyle-core.js"></script>
@@ -2418,22 +1204,8 @@ setTimeout(() => {
 <script src="unifreestyle-cypher.js"></script>
 <script src="unifreestyle-ui.js"></script>
 <script src="js/dj-midi-controller.js"></script>
-<script src="unifreestyle-recorder.js"></script> 
 <script src="unifreestyle-superchat.js"></script>
 <script src="unifreestyle-pwa.js"></script>
-<script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/unifreestyle-sw.js', { scope: '/' })
-      .then(function (reg) {
-        console.log('[UniFreestyle PWA] Service worker registered:', reg.scope);
-      })
-      .catch(function (err) {
-        console.warn('[UniFreestyle PWA] Service worker failed:', err);
-      });
-  });
-}
-</script>
-  
+
 </body>
 </html>
