@@ -1,28 +1,32 @@
 // radio-pwa-register.js — UniBeatz Radio Station PWA
 
-if('serviceWorker' in navigator){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/radio-sw.js', { scope: '/radio.html' })
-      .then(function(reg){
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/radio-sw.js', { scope: '/' })
+      .then(function (reg) {
         console.log('[UniBeatz Radio SW] registered:', reg.scope);
       })
-      .catch(function(err){ console.warn('[UniBeatz Radio SW] failed:', err); });
+      .catch(function (err) {
+        console.warn('[UniBeatz Radio SW] failed:', err);
+      });
   });
 }
 
 var _radioDeferredPrompt = null;
 
-window.addEventListener('beforeinstallprompt', function(e){
+window.addEventListener('beforeinstallprompt', function (e) {
   e.preventDefault();
   _radioDeferredPrompt = e;
-  var dismissed = parseInt(localStorage.getItem('ub_radio_install_dismissed') || '0');
-  if(Date.now() - dismissed < 86400000) return;
+
+  var dismissed = parseInt(localStorage.getItem('ub_radio_install_dismissed') || '0', 10);
+  if (Date.now() - dismissed < 86400000) return;
+
   setTimeout(showRadioInstallBanner, 3000);
 });
 
-function showRadioInstallBanner(){
-  if(document.getElementById('ubRadioInstallBanner')) return;
-  if(window.matchMedia('(display-mode: standalone)').matches) return;
+function showRadioInstallBanner() {
+  if (document.getElementById('ubRadioInstallBanner')) return;
+  if (window.matchMedia('(display-mode: standalone)').matches) return;
 
   var banner = document.createElement('div');
   banner.id = 'ubRadioInstallBanner';
@@ -39,10 +43,11 @@ function showRadioInstallBanner(){
   var installBtn = document.createElement('button');
   installBtn.style.cssText = 'border:0;border-radius:8px;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#030305;font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:1.5px;font-weight:900;padding:8px 12px;cursor:pointer;flex-shrink:0;';
   installBtn.textContent = 'INSTALL';
-  installBtn.addEventListener('click', function(){
-    if(!_radioDeferredPrompt) return;
+
+  installBtn.addEventListener('click', function () {
+    if (!_radioDeferredPrompt) return;
     _radioDeferredPrompt.prompt();
-    _radioDeferredPrompt.userChoice.then(function(){
+    _radioDeferredPrompt.userChoice.then(function () {
       _radioDeferredPrompt = null;
       banner.remove();
     });
@@ -51,9 +56,10 @@ function showRadioInstallBanner(){
   var dismissBtn = document.createElement('button');
   dismissBtn.style.cssText = 'border:0;background:transparent;color:#8d94a5;font-size:1.2rem;cursor:pointer;padding:4px;flex-shrink:0;';
   dismissBtn.textContent = '✕';
-  dismissBtn.addEventListener('click', function(){
+
+  dismissBtn.addEventListener('click', function () {
     banner.remove();
-    localStorage.setItem('ub_radio_install_dismissed', Date.now());
+    localStorage.setItem('ub_radio_install_dismissed', String(Date.now()));
   });
 
   banner.appendChild(icon);
@@ -63,8 +69,8 @@ function showRadioInstallBanner(){
   document.body.appendChild(banner);
 }
 
-window.addEventListener('appinstalled', function(){
+window.addEventListener('appinstalled', function () {
   _radioDeferredPrompt = null;
   var banner = document.getElementById('ubRadioInstallBanner');
-  if(banner) banner.remove();
+  if (banner) banner.remove();
 });
