@@ -3,7 +3,7 @@
 
 const CACHE = 'unibeatz-radio-v1';
 const SHELL = [
-  '/radio.html',
+  '/',
   '/radio.css',
   '/radio.js',
   '/radio-live365.js',
