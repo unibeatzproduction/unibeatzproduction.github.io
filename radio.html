@@ -370,18 +370,23 @@ function updateMenu(user, profile){
 
 window.addEventListener('ub-auth-ready', e => updateMenu(e.detail?.user, e.detail?.profile));
 
-// Listen to auth state directly
-const _authInst = window.UB_FIREBASE?.auth || getAuth();
-onAuthStateChanged(_authInst, user => {
-  if(user && !user.isAnonymous){
+// Wait for radio.js to init Firebase then listen
+function startAuthListener(){
+  const _authInst = window.UB_FIREBASE?.auth;
+  if(!_authInst){ setTimeout(startAuthListener, 100); return; }
+  onAuthStateChanged(_authInst, user => {
     const stored = localStorage.getItem('ub_unified_user');
     let profile = null;
     try{ profile = stored ? JSON.parse(stored) : null; }catch(e){}
-    updateMenu(user, profile);
-  } else {
-    updateMenu(null, null);
-  }
-});
+    if(user && !user.isAnonymous){
+      updateMenu(user, profile);
+    } else if(!user){
+      updateMenu(null, null);
+    }
+    // ignore anonymous users — keep showing signed-in if we have stored user
+  });
+}
+startAuthListener();
 </script>
 </body>
 </html>
