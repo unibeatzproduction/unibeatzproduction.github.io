@@ -60,8 +60,8 @@ loadFirestoreBeats();
       <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
     </ul>
     <div class="nav-right">
-      <div class="nav-icon-btn" onclick="showToast('🔍 Search coming soon')">🔍</div>
-      <div class="nav-icon-btn" onclick="showToast('🔔 Notifications are live. Tap below to turn on UniBeatzProduction updates.')">🔔<div class="nav-notif-dot"></div></div>
+      <div class="nav-icon-btn" onclick="openSearch()">🔍</div>
+      <div class="nav-icon-btn" id="notificationBell" onclick="openNotifPanel()">🔔<span id="ubNotifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ff3c3c;color:#fff;font-size:.45rem;font-family:Orbitron,sans-serif;border-radius:999px;padding:1px 4px;min-width:14px;text-align:center;"></span></div>
       <div class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
         <span></span><span></span><span></span>
       </div>
@@ -540,5 +540,127 @@ function flash(){cx.clearRect(0,0,cv.width,cv.height);drawParticles();cx.fillSty
 document.getElementById('beatsTrack').innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">Loading beats...</div>';
 renderVideos();
 </script>
+
+<!-- Notifications Panel -->
+<div id="ubNotificationsPanel" style="display:none;position:fixed;top:60px;right:12px;z-index:500;width:min(360px,94vw);max-height:70vh;overflow-y:auto;background:linear-gradient(145deg,#0a0d18,#050508);border:1px solid rgba(201,168,76,.35);border-radius:14px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.7);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div style="font-family:Bebas Neue,sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;">Notifications</div>
+    <button onclick="closeNotifPanel()" style="background:none;border:none;color:#8d94a5;font-size:1.2rem;cursor:pointer;">✕</button>
+  </div>
+  <div id="ubNotificationsList"><div class="ub-notif-empty" style="color:#8d94a5;font-size:.9rem;padding:12px 0;">No notifications yet.</div></div>
+</div>
+
+<!-- Search Overlay -->
+<div id="ubSearchOverlay" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);padding:80px 18px 18px;">
+  <div style="max-width:680px;margin:0 auto;">
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <input id="ubSearchInput" placeholder="Search beats, platforms, sections..." 
+        style="flex:1;padding:14px 16px;border-radius:10px;border:1px solid rgba(201,168,76,.4);background:#090d18;color:#F0EDE8;font-family:Rajdhani,sans-serif;font-size:1rem;"
+        oninput="runSearch(this.value)"/>
+      <button onclick="closeSearch()" style="background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);color:#F0EDE8;border-radius:10px;padding:0 16px;cursor:pointer;font-size:1.1rem;">✕</button>
+    </div>
+    <div id="ubSearchResults" style="display:grid;gap:8px;max-height:60vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<style>
+.ub-search-result{padding:12px 14px;border:1px solid rgba(201,168,76,.2);border-radius:10px;background:rgba(0,0,0,.4);cursor:pointer;transition:border-color .2s;}
+.ub-search-result:hover{border-color:#F0C040;}
+.ub-search-result-name{font-family:Bebas Neue,sans-serif;font-size:1.1rem;letter-spacing:1.5px;color:#F0C040;}
+.ub-search-result-meta{font-size:.85rem;color:#8d94a5;margin-top:2px;}
+.ub-notif-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.ub-notif-title{font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:1.5px;color:#F0C040;}
+.ub-notif-message{font-size:.9rem;color:#ccd3e0;margin-top:2px;}
+.ub-notif-meta{font-size:.75rem;color:#8d94a5;margin-top:4px;font-family:Orbitron,sans-serif;letter-spacing:1px;}
+</style>
+
+<script>
+// Notification panel
+function openNotifPanel(){
+  const panel = document.getElementById('ubNotificationsPanel');
+  if(!panel) return;
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(!isOpen && window.UniBeatzNotifications) window.UniBeatzNotifications.markSeen();
+  // Request FCM push permission
+  if(!isOpen && 'Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+}
+function closeNotifPanel(){
+  const panel = document.getElementById('ubNotificationsPanel');
+  if(panel) panel.style.display = 'none';
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('ubNotificationsPanel');
+  const bell  = document.getElementById('notificationBell');
+  if(panel && panel.style.display === 'block' && !panel.contains(e.target) && !bell?.contains(e.target)){
+    panel.style.display = 'none';
+  }
+});
+
+// Search
+function openSearch(){
+  document.getElementById('ubSearchOverlay').style.display = 'block';
+  setTimeout(() => document.getElementById('ubSearchInput')?.focus(), 100);
+}
+function closeSearch(){
+  document.getElementById('ubSearchOverlay').style.display = 'none';
+  document.getElementById('ubSearchInput').value = '';
+  document.getElementById('ubSearchResults').innerHTML = '';
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSearch(); });
+
+// Search index — static sections + dynamic beats
+const STATIC_ITEMS = [
+  {name:'Beat Store', meta:'Browse and buy beats', section:'#beats'},
+  {name:'Battle Highlights', meta:'UniFreestyle battle videos', section:'#battles'},
+  {name:'All Platforms', meta:'UniBeatz empire platforms', section:'#platforms'},
+  {name:'Membership Plans', meta:'Starter · Pro · Elite', section:'#membership'},
+  {name:'Coming Soon', meta:'Upcoming UniBeatz platforms', section:'#coming'},
+  {name:'UniFreestyle Battle App', meta:'Live freestyle battles · LIVE NOW', url:'https://battle.unibeatzproduction.com'},
+  {name:'UniBeatz Radio Station', meta:'24/7 stream · Live submissions', url:'https://radio.unibeatzproduction.com'},
+  {name:'UniBeatz World', meta:'Beats · Sound packs · Merch · Pack Studio', section:'#platforms'},
+  {name:'Studio Booking', meta:'Recording · Mixing · Mastering', action:'openStudioModal()'},
+];
+
+function runSearch(q){
+  const results = document.getElementById('ubSearchResults');
+  if(!q.trim()){ results.innerHTML = ''; return; }
+  const term = q.toLowerCase();
+
+  // Search static items
+  let hits = STATIC_ITEMS.filter(i =>
+    i.name.toLowerCase().includes(term) || i.meta.toLowerCase().includes(term)
+  );
+
+  // Search beats from Firestore
+  if(window._firestoreBeats){
+    const beatHits = window._firestoreBeats
+      .filter(b => (b.name||b.beatName||'').toLowerCase().includes(term) || (b.genre||b.tag||'').toLowerCase().includes(term))
+      .slice(0, 6)
+      .map(b => ({
+        name: (b.name||b.beatName||'Untitled').toUpperCase(),
+        meta: (b.genre||b.tag||'Beat') + (b.bpm ? ' · ' + b.bpm + ' BPM' : ''),
+        section: '#beats'
+      }));
+    hits = [...beatHits, ...hits];
+  }
+
+  if(!hits.length){
+    results.innerHTML = '<div style="color:#8d94a5;padding:12px;">No results found.</div>';
+    return;
+  }
+
+  results.innerHTML = hits.slice(0, 12).map(h => `
+    <div class="ub-search-result" onclick="${h.action || (h.url ? 'window.location='' + h.url + ''' : 'closeSearch();document.querySelector('' + h.section + '')?.scrollIntoView({behavior:'smooth'})')}">
+      <div class="ub-search-result-name">${h.name}</div>
+      <div class="ub-search-result-meta">${h.meta}</div>
+    </div>
+  `).join('');
+}
+</script>
+
+<script type="module" src="unibeatz-notifications.js"></script>
 </body>
 </html>
