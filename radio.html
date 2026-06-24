@@ -66,11 +66,23 @@
       <a href="admin-radio.html">Admin</a>
       <div id="radioAccountWrap" style="position:relative">
       <button id="radioAccountBtn" type="button">Sign In</button>
-      <div id="radioAccountMenu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:200px;background:#0d0d18;border:1px solid rgba(201,168,76,.4);border-radius:12px;padding:8px;z-index:500;box-shadow:0 12px 40px rgba(0,0,0,.7)">
-        <div id="radioMenuName" style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#F0C040;padding:8px 10px 4px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px"></div>
-        <a href="legal.html" style="display:block;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;text-decoration:none" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">⚖️ Legal Terms</a>
-        <button id="radioMenuSubscribe" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">💎 Subscription</button>
-        <button id="radioMenuSignout" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ff6b6b;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(255,60,60,.08)'" onmouseout="this.style.background='none'">🚪 Sign Out</button>
+      <div id="radioAccountMenu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:#0d0d18;border:1px solid rgba(201,168,76,.4);border-radius:12px;padding:8px;z-index:500;box-shadow:0 12px 40px rgba(0,0,0,.7)">
+        <!-- Signed out view -->
+        <div id="radioMenuSignedOut">
+          <div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:#40D0FF;padding:6px 10px 8px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px">SIGN IN</div>
+          <input id="radioMenuEmail" type="email" placeholder="Email" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(201,168,76,.2);background:#090d18;color:#F0EDE8;font-size:.85rem;margin-bottom:6px;box-sizing:border-box"/>
+          <input id="radioMenuPass" type="password" placeholder="Password" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(201,168,76,.2);background:#090d18;color:#F0EDE8;font-size:.85rem;margin-bottom:6px;box-sizing:border-box"/>
+          <button id="radioMenuEmailLogin" type="button" style="width:100%;padding:9px;border-radius:8px;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#050505;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;border:0;cursor:pointer;margin-bottom:6px">Log In</button>
+          <button id="radioMenuGoogle" type="button" style="width:100%;padding:9px;border-radius:8px;background:rgba(255,255,255,.06);color:#F0EDE8;font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;border:1px solid rgba(255,255,255,.14);cursor:pointer;margin-bottom:6px">Continue with Google</button>
+          <div id="radioMenuAuthStatus" style="font-size:.78rem;color:#ff6b6b;padding:2px 4px;min-height:16px"></div>
+        </div>
+        <!-- Signed in view -->
+        <div id="radioMenuSignedIn" style="display:none">
+          <div id="radioMenuName" style="font-family:Orbitron,sans-serif;font-size:.48rem;letter-spacing:2px;color:#F0C040;padding:8px 10px 4px;border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:4px"></div>
+          <a href="https://unibeatzproduction.com/legal.html" style="display:block;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;text-decoration:none" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">⚖️ Legal Terms</a>
+          <button id="radioMenuSubscribe" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ccd3e0;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(201,168,76,.08)'" onmouseout="this.style.background='none'">💎 Subscription</button>
+          <button id="radioMenuSignout" type="button" style="display:block;width:100%;text-align:left;padding:9px 10px;color:#ff6b6b;font-size:.85rem;border-radius:8px;background:none;border:0;cursor:pointer" onmouseover="this.style.background='rgba(255,60,60,.08)'" onmouseout="this.style.background='none'">🚪 Sign Out</button>
+        </div>
       </div>
     </div>
     </div>
@@ -285,45 +297,82 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
 loadTracks();
 </script>
 <script type="module">
-// Radio account dropdown
-const btn  = document.getElementById('radioAccountBtn');
-const menu = document.getElementById('radioAccountMenu');
-const menuName = document.getElementById('radioMenuName');
+import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+
+const btn         = document.getElementById('radioAccountBtn');
+const menu        = document.getElementById('radioAccountMenu');
+const menuName    = document.getElementById('radioMenuName');
+const signedOut   = document.getElementById('radioMenuSignedOut');
+const signedIn    = document.getElementById('radioMenuSignedIn');
+const authStatus  = document.getElementById('radioMenuAuthStatus');
+
+function showMenu(){ menu.style.display = 'block'; }
+function hideMenu(){ menu.style.display = 'none'; }
 
 btn?.addEventListener('click', e => {
   e.stopPropagation();
-  const user = window.UniBeatzAuth?.getUser?.();
-  if(!user || user.isAnonymous){
-    window.UniBeatzAuth?.showLogin?.();
-    return;
-  }
   menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
 });
 
-document.addEventListener('click', () => { if(menu) menu.style.display = 'none'; });
-menu?.addEventListener('click', e => e.stopPropagation());
+document.addEventListener('click', e => {
+  if(!document.getElementById('radioAccountWrap')?.contains(e.target)) hideMenu();
+});
 
+// Email login
+document.getElementById('radioMenuEmailLogin')?.addEventListener('click', async () => {
+  const email = document.getElementById('radioMenuEmail')?.value.trim();
+  const pass  = document.getElementById('radioMenuPass')?.value;
+  if(!email || !pass){ authStatus.textContent = 'Enter email and password.'; return; }
+  authStatus.textContent = 'Signing in...';
+  try{
+    const auth = window.UB_FIREBASE?.auth || getAuth();
+    await signInWithEmailAndPassword(auth, email, pass);
+    authStatus.textContent = '';
+  } catch(err){ authStatus.textContent = err.message || 'Sign in failed.'; }
+});
+
+// Google login
+document.getElementById('radioMenuGoogle')?.addEventListener('click', async () => {
+  authStatus.textContent = 'Opening Google...';
+  try{
+    const auth     = window.UB_FIREBASE?.auth || getAuth();
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await signInWithPopup(auth, provider);
+    authStatus.textContent = '';
+  } catch(err){ authStatus.textContent = err.message || 'Google sign-in failed.'; }
+});
+
+// Sign out — no popup, just signs out
 document.getElementById('radioMenuSignout')?.addEventListener('click', async () => {
   await window.UniBeatzAuth?.signOut?.();
-  menu.style.display = 'none';
+  hideMenu();
 });
 
 document.getElementById('radioMenuSubscribe')?.addEventListener('click', () => {
-  menu.style.display = 'none';
+  hideMenu();
   window.location.href = 'https://unibeatzproduction.com#membership';
 });
 
-window.addEventListener('ub-auth-ready', e => {
-  const user    = e.detail?.user;
-  const profile = e.detail?.profile;
+function updateMenu(user, profile){
   if(user && !user.isAnonymous){
     btn.textContent = profile?.username || profile?.displayName || user.email || 'Account';
-    menuName.textContent = profile?.username || profile?.displayName || user.email || '';
+    if(menuName) menuName.textContent = profile?.username || profile?.displayName || user.email || '';
+    if(signedOut) signedOut.style.display = 'none';
+    if(signedIn)  signedIn.style.display  = 'block';
   } else {
     btn.textContent = 'Sign In';
-    if(menu) menu.style.display = 'none';
+    if(signedOut) signedOut.style.display = 'block';
+    if(signedIn)  signedIn.style.display  = 'none';
+    hideMenu();
   }
-});
+}
+
+window.addEventListener('ub-auth-ready', e => updateMenu(e.detail?.user, e.detail?.profile));
+
+// Check if already signed in on load
+const stored = localStorage.getItem('ub_unified_user');
+if(stored){ try{ const u = JSON.parse(stored); if(u?.uid) btn.textContent = u.username || u.displayName || u.email || 'Account'; }catch(e){} }
 </script>
 </body>
 </html>
