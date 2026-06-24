@@ -12,6 +12,20 @@
 <link rel="manifest" href="/unifreestyle-manifest.json"/>
 <link rel="apple-touch-icon" href="/icons/unifreestyle-192.png"/>  
 <title>UniFreestyle Battle App</title>
+
+<meta property="og:title" content="UniFreestyle Battle App">
+<meta property="og:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
+<meta property="og:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
+<meta property="og:image:secure_url" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://battle.unibeatzproduction.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UniFreestyle Battle App">
+<meta name="twitter:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
+<meta name="twitter:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">  
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <!-- ══ FIREBASE INTEGRATION ══ -->
 <script type="module">
@@ -1405,8 +1419,12 @@ const ROLE_STATS = {
 };
 
 function refreshProfile() {
+  if(window.ubProfile && typeof window.ubProfile.render === 'function') {
+    window.ubProfile.render();
+    return;
+  }
   if(!currentUser) { goToPage('splash'); return; }
-  const u = currentUser;
+}
 
   document.getElementById('pfTopTitle').textContent = '@' + u.username;
 
