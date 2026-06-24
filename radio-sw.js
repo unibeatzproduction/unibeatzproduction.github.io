@@ -1,7 +1,7 @@
 // radio-sw.js — UniBeatz Radio PWA Service Worker
 // Caches shell for offline, keeps audio streaming live
 
-const CACHE = 'unibeatz-radio-v1';
+const CACHE = 'unibeatz-radio-v2';
 const SHELL = [
   '/',
   '/radio.css',
