@@ -60,7 +60,7 @@ loadFirestoreBeats();
       <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
     </ul>
     <div class="nav-right">
-      <div class="nav-icon-btn" onclick="openSearch()">🔍</div>
+      <div class="nav-icon-btn" id="ubSearchBtn">🔍</div>
       <div class="nav-icon-btn" id="notificationBell" onclick="openNotifPanel()">🔔<span id="ubNotifBadge" style="display:none;position:absolute;top:2px;right:2px;background:#ff3c3c;color:#fff;font-size:.45rem;font-family:Orbitron,sans-serif;border-radius:999px;padding:1px 4px;min-width:14px;text-align:center;"></span></div>
       <div class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
         <span></span><span></span><span></span>
@@ -600,6 +600,7 @@ document.addEventListener('click', e => {
 });
 
 // Search
+document.getElementById('ubSearchBtn')?.addEventListener('click', () => openSearch());
 function openSearch(){
   document.getElementById('ubSearchOverlay').style.display = 'block';
   setTimeout(() => document.getElementById('ubSearchInput')?.focus(), 100);
