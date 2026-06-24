@@ -26,7 +26,6 @@ window._ubCollection = collection;
 window._ubQuery = query;
 window._ubOrderBy = orderBy;
 window._ubGetDocs = getDocs;
-// Load beats from Firestore on page load
 async function loadFirestoreBeats() {
   try {
     const snap = await getDocs(query(collection(db, 'marketplace_beats'), orderBy('createdAt', 'desc')));
@@ -54,9 +53,9 @@ loadFirestoreBeats();
       <li><a href="#platforms">Platforms</a></li>
       <li><a href="#membership">Membership</a></li>
       <li><a href="#" onclick="openStudioModal();return false;">🎙️ Studio</a></li>
-      <li><a href="unifreestyle.html">⚔️ App</a></li>
+      <li><a href="https://battle.unibeatzproduction.com">⚔️ App</a></li>
       <li><a href="unibeatzworld.html">🌍 World + Pack Studio</a></li>
-      <li><a href="radio.html">📻 Radio</a></li>
+      <li><a href="https://radio.unibeatzproduction.com">📻 Radio</a></li>
       <li><a href="legal.html">Legal</a></li>
       <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
     </ul>
@@ -75,10 +74,9 @@ loadFirestoreBeats();
     <li><a href="#beats" onclick="closeMobileMenu()"><span class="link-icon">🎵</span>Beats</a></li>
     <li><a href="#battles" onclick="closeMobileMenu()"><span class="link-icon">⚔️</span>Battle Highlights<span class="link-badge badge-new">NEW</span></a></li>
     <li><a href="#platforms" onclick="closeMobileMenu()"><span class="link-icon">🌍</span>Platforms</a></li>
-    <li><a href="unifreestyle.html" onclick="closeMobileMenu()"><span class="link-icon">📹</span>Battle App<span class="link-badge badge-live">LIVE</span></a></li>
-    
+    <li><a href="https://battle.unibeatzproduction.com" onclick="closeMobileMenu()"><span class="link-icon">📹</span>Battle App<span class="link-badge badge-live">LIVE</span></a></li>
     <li><a href="unibeatzworld.html" onclick="closeMobileMenu()"><span class="link-icon">🌐</span>UniBeatz World</a></li>
-    <li><a href="radio.html" onclick="closeMobileMenu()"><span class="link-icon">📻</span>Radio Station</a></li>
+    <li><a href="https://radio.unibeatzproduction.com" onclick="closeMobileMenu()"><span class="link-icon">📻</span>Radio Station</a></li>
     <li><a href="#membership" onclick="closeMobileMenu()"><span class="link-icon">💎</span>Membership</a></li>
     <li><a href="#" onclick="openStudioModal();closeMobileMenu();return false;"><span class="link-icon">🎙️</span>Studio Booking</a></li>
     <li><a href="#coming" onclick="closeMobileMenu()"><span class="link-icon">📅</span>Coming Soon</a></li>
@@ -103,7 +101,7 @@ loadFirestoreBeats();
   </div>
 </section>
 
-<!-- ══ BEATS — HORIZONTAL SLIDER ══ -->
+<!-- ══ BEATS ══ -->
 <section id="beats">
   <div class="sec-hd">
     <span class="sec-label">Stream & Purchase</span>
@@ -132,7 +130,7 @@ loadFirestoreBeats();
   </div>
 </section>
 
-<!-- ══ BATTLE HIGHLIGHTS — HORIZONTAL SLIDER ══ -->
+<!-- ══ BATTLE HIGHLIGHTS ══ -->
 <section id="battles">
   <div class="sec-hd">
     <span class="sec-label">UniFreestyle Highlights</span>
@@ -149,11 +147,11 @@ loadFirestoreBeats();
     </div>
   </div>
   <div class="see-more-row">
-    <a href="unifreestyle.html" class="see-more">Enter Battle App →</a>
+    <a href="https://battle.unibeatzproduction.com" class="see-more">Enter Battle App →</a>
   </div>
 </section>
 
-<!-- ══ PLATFORMS HUB — ONE LINK PER PLATFORM ══ -->
+<!-- ══ PLATFORMS ══ -->
 <section id="platforms">
   <div class="sec-hd">
     <span class="sec-label">The Full Empire</span>
@@ -161,7 +159,7 @@ loadFirestoreBeats();
     <span class="sec-line"></span>
   </div>
   <div class="platforms-grid">
-    <a href="unifreestyle.html" class="platform-card">
+    <a href="https://battle.unibeatzproduction.com" class="platform-card">
       <span class="platform-icon">⚔️</span>
       <div class="platform-name">UniFreestyle Battle App</div>
       <div class="platform-desc">Face-to-face live freestyle battles. Vote. Judge. Climb the ranks.</div>
@@ -173,7 +171,7 @@ loadFirestoreBeats();
       <div class="platform-desc">Beats, sound packs, <strong style="color:var(--gold-light);">merch</strong>, plus <strong style="color:var(--gold-light);">UniBeatz Pack Studio</strong> — make your own packs.</div>
       <span class="platform-tag tag-live">● PACK STUDIO + MERCH LIVE</span>
     </a>
-    <a href="radio.html" class="platform-card">
+    <a href="https://radio.unibeatzproduction.com" class="platform-card">
       <span class="platform-icon">📻</span>
       <div class="platform-name">UniBeatz Radio Station</div>
       <div class="platform-desc">24/7 stream of UniBeatz music, battle replays, live shows, artist features.</div>
@@ -285,7 +283,7 @@ loadFirestoreBeats();
       <h4>Platforms</h4>
       <ul>
         <li><a href="#beats">Beat Store</a></li>
-        <li><a href="unifreestyle.html">Battle App</a></li>
+        <li><a href="https://battle.unibeatzproduction.com">Battle App</a></li>
         <li><a href="unibeatzworld.html">UniBeatz World</a></li>
         <li><a href="#" onclick="openStudioModal();return false;">Studio Booking</a></li>
       </ul>
@@ -326,7 +324,6 @@ loadFirestoreBeats();
     <button class="modal-close" onclick="closeStudioModal()">✕</button>
     <h2>🎙️ Studio Booking</h2>
     <p class="modal-sub">Reserve your professional studio session</p>
-
     <div class="studio-info">
       <ul class="studio-perks">
         <li>🎙️ Professional Engineer Included</li>
@@ -342,7 +339,6 @@ loadFirestoreBeats();
         <div class="rate-row"><span>Full Day (8hr)</span><span style="color:var(--gold-light);font-weight:700;">$500</span></div>
       </div>
     </div>
-
     <div class="form-group"><label>Your Name</label><input type="text" id="bName"/></div>
     <div class="form-group"><label>Email</label><input type="email" id="bEmail"/></div>
     <div class="form-row">
@@ -404,8 +400,7 @@ loadFirestoreBeats();
 <div class="toast" id="toast"></div>
 
 <script>
-// DATA
-let beats = []; // Loaded from Firestore
+let beats = [];
 let videos = JSON.parse(localStorage.getItem('ub_videos')||'null') || [
   {id:1,artist:'KD Wavez',title:'KD vs Phantom — Round 1',ytId:'',date:'Apr 2025',badge:'CHAMP'},
   {id:2,artist:'Layah Monroe',title:'Layah vs Storm — Semifinal',ytId:'',date:'Mar 2025',badge:''},
@@ -413,16 +408,13 @@ let videos = JSON.parse(localStorage.getItem('ub_videos')||'null') || [
 ];
 const saveVideos = ()=>localStorage.setItem('ub_videos',JSON.stringify(videos));
 
-// NAV
 let menuOpen=false;
 function toggleMobileMenu(){menuOpen=!menuOpen;document.getElementById('hamburger').classList.toggle('open',menuOpen);document.getElementById('mobileMenu').classList.toggle('open',menuOpen);document.getElementById('navOverlay').classList.toggle('open',menuOpen);document.body.style.overflow=menuOpen?'hidden':'';}
 function closeMobileMenu(){menuOpen=false;document.getElementById('hamburger').classList.remove('open');document.getElementById('mobileMenu').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
 window.addEventListener('scroll',()=>{if(menuOpen)closeMobileMenu();});
 
-// WAVEFORM
 function waveform(){const h=[20,38,55,72,48,80,60,42,75,50,35,65,80,44,30,70];return h.map((v,i)=>`<span style="height:${v}%;animation-delay:${i*0.05}s"></span>`).join('');}
 
-// BEATS — HORIZONTAL SLIDER
 let curFilter='all';
 let _currentAudio=null;
 let _currentBeatId=null;
@@ -450,10 +442,7 @@ function renderBeats(filter){
   const track=document.getElementById('beatsTrack');
   track.innerHTML='';
   const list = curFilter==='all'?beats:beats.filter(b=>b.tag===curFilter);
-  if(!list.length){
-    track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No beats in this category yet.</div>';
-    return;
-  }
+  if(!list.length){track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No beats in this category yet.</div>';return;}
   list.forEach(b=>{
     const card=document.createElement('div');card.className='beat-slide';
     card.innerHTML=`
@@ -474,7 +463,7 @@ function togglePreview(beatId, audioUrl) {
   const btn = document.getElementById('prev-' + beatId);
   if(_currentBeatId === beatId && _currentAudio) {
     _currentAudio.pause();
-    if(btn) { btn.innerHTML='▶ Preview'; }
+    if(btn) btn.innerHTML='▶ Preview';
     if(_previewTimer) clearTimeout(_previewTimer);
     _currentBeatId = null; _currentAudio = null;
     return;
@@ -485,7 +474,7 @@ function togglePreview(beatId, audioUrl) {
     if(_previewTimer) clearTimeout(_previewTimer);
   }
   _currentAudio = new Audio(audioUrl);
-  _currentAudio.play().catch(e=>showToast('Preview failed'));
+  _currentAudio.play().catch(()=>showToast('Preview failed'));
   _currentBeatId = beatId;
   if(btn) btn.innerHTML = '⏸ Pause';
   _previewTimer = setTimeout(()=>{
@@ -503,7 +492,6 @@ function togglePreview(beatId, audioUrl) {
 function filterBeats(tag,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderBeats(tag);}
 function slideBeat(dir){const t=document.getElementById('beatsTrack');t.scrollBy({left:dir*280,behavior:'smooth'});}
 
-// VIDEOS — HORIZONTAL SLIDER
 function renderVideos(){
   const track=document.getElementById('videosTrack');track.innerHTML='';
   if(!videos.length){track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No battle videos yet.</div>';return;}
@@ -516,20 +504,17 @@ function renderVideos(){
 }
 function slideVideo(dir){const t=document.getElementById('videosTrack');t.scrollBy({left:dir*300,behavior:'smooth'});}
 
-// MODALS
 let _stripe='';
 function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent=`Price: ${price}`;document.getElementById('modal').classList.add('active');}
 function closeModal(){document.getElementById('modal').classList.remove('active');}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Stripe link not set yet.');}}
 
-// STUDIO MODAL
 function openStudioModal(){document.getElementById('studioModal').classList.add('active');}
 function closeStudioModal(){document.getElementById('studioModal').classList.remove('active');}
 document.getElementById('studioModal').addEventListener('click',e=>{if(e.target===document.getElementById('studioModal'))closeStudioModal();});
 function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}showToast('💳 Processing deposit via Stripe...');}
 
-// ADMIN
 const ADMIN_PASSCODE='empire2026';
 let adminUnlocked=false;
 function openAdmin(){document.getElementById('adminModal').classList.add('active');document.getElementById('passcodeInput').value='';document.getElementById('passcodeError').style.display='none';if(adminUnlocked){document.getElementById('passcodeScreen').style.display='none';document.getElementById('adminPanel').classList.add('unlocked');}else{document.getElementById('passcodeScreen').style.display='block';document.getElementById('adminPanel').classList.remove('unlocked');}setTimeout(()=>document.getElementById('passcodeInput').focus(),200);}
@@ -540,87 +525,20 @@ document.getElementById('adminModal').addEventListener('click',e=>{if(e.target==
 function publishVideo(){const a=document.getElementById('pArtist').value.trim(),t=document.getElementById('pTitle').value.trim();if(!a||!t){showToast('Fill artist and title');return;}videos.unshift({id:Date.now(),artist:a,title:t,ytId:document.getElementById('pYtId').value.trim(),date:document.getElementById('pDate').value.trim()||'2025',badge:document.getElementById('pBadge').value.trim()});saveVideos();renderVideos();showToast(`✅ "${t}" published!`);['pArtist','pTitle','pYtId','pDate','pBadge'].forEach(id=>document.getElementById(id).value='');}
 function saveSocials(){const ig=document.getElementById('sIgInput').value.trim(),yt=document.getElementById('sYtInput').value.trim(),tk=document.getElementById('sTkInput').value.trim();if(ig)document.getElementById('sIg').href=ig;if(yt)document.getElementById('sYt').href=yt;if(tk)document.getElementById('sTk').href=tk;showToast('✅ Saved!');}
 
-// TOAST
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 
-// LIGHTNING — Built From Pressure atmosphere upgrade
 const cv=document.getElementById('bg-canvas'),cx=cv.getContext('2d');
 let electricParticles=[];
-function rsz(){
-  cv.width=window.innerWidth;
-  cv.height=window.innerHeight;
-  electricParticles=Array.from({length:Math.min(95,Math.floor(cv.width/18))},()=>({
-    x:Math.random()*cv.width,
-    y:Math.random()*cv.height,
-    r:Math.random()*1.8+0.35,
-    a:Math.random()*0.42+0.12,
-    s:Math.random()*0.45+0.12
-  }));
-}
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;electricParticles=Array.from({length:Math.min(95,Math.floor(cv.width/18))},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:Math.random()*1.8+0.35,a:Math.random()*0.42+0.12,s:Math.random()*0.45+0.12}));}
 rsz();window.addEventListener('resize',rsz);
-function bolt(x1,y1,x2,y2,o,d){
-  if(!d){cx.lineTo(x2,y2);return;}
-  const mx=(x1+x2)/2+(Math.random()-0.5)*o;
-  const my=(y1+y2)/2+(Math.random()-0.5)*o;
-  bolt(x1,y1,mx,my,o/2,d-1);
-  bolt(mx,my,x2,y2,o/2,d-1);
-  if(Math.random()<0.22 && d<5){
-    const bx=mx+(Math.random()-0.5)*110;
-    const by=my+(Math.random()-0.5)*110;
-    cx.moveTo(mx,my);bolt(mx,my,bx,by,o/2.4,d-1);
-  }
-}
-function drawParticles(){
-  electricParticles.forEach(p=>{
-    p.y-=p.s;
-    p.x+=Math.sin((Date.now()*0.001)+p.y*0.015)*0.18;
-    if(p.y<-12){p.y=cv.height+12;p.x=Math.random()*cv.width;}
-    cx.beginPath();
-    cx.fillStyle=`rgba(0,190,255,${p.a})`;
-    cx.shadowColor='rgba(0,190,255,0.85)';
-    cx.shadowBlur=10;
-    cx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    cx.fill();
-    cx.shadowBlur=0;
-  });
-}
-function strikePath(color,wide=false){
-  cx.beginPath();
-  const sx=Math.random()*cv.width;
-  const ex=sx+(Math.random()-0.5)*(wide?620:420);
-  const ey=cv.height*(0.55+Math.random()*0.35);
-  cx.moveTo(sx,-20);
-  bolt(sx,-20,ex,ey,wide?280:220,8);
-  cx.strokeStyle=color;
-  cx.lineWidth=wide?3.2:2.1;
-  cx.shadowColor=color;
-  cx.shadowBlur=wide?28:18;
-  cx.stroke();
-  cx.shadowBlur=0;
-}
-function flash(){
-  cx.clearRect(0,0,cv.width,cv.height);
-  drawParticles();
-  cx.fillStyle='rgba(0,170,255,0.045)';
-  cx.fillRect(0,0,cv.width,cv.height);
-  strikePath(`rgba(64,208,255,${0.75+Math.random()*0.22})`,true);
-  strikePath(`rgba(0,170,255,${0.46+Math.random()*0.28})`);
-  if(Math.random()<0.55) strikePath(`rgba(240,192,64,${0.28+Math.random()*0.24})`);
-}
-(function loop(){
-  cx.clearRect(0,0,cv.width,cv.height);
-  drawParticles();
-  if(Math.random()<0.065){
-    flash();
-    setTimeout(()=>{cx.fillStyle='rgba(0,8,18,0.16)';cx.fillRect(0,0,cv.width,cv.height);},65+Math.random()*95);
-  }
-  requestAnimationFrame(loop);
-})();
+function bolt(x1,y1,x2,y2,o,d){if(!d){cx.lineTo(x2,y2);return;}const mx=(x1+x2)/2+(Math.random()-0.5)*o;const my=(y1+y2)/2+(Math.random()-0.5)*o;bolt(x1,y1,mx,my,o/2,d-1);bolt(mx,my,x2,y2,o/2,d-1);if(Math.random()<0.22&&d<5){const bx=mx+(Math.random()-0.5)*110;const by=my+(Math.random()-0.5)*110;cx.moveTo(mx,my);bolt(mx,my,bx,by,o/2.4,d-1);}}
+function drawParticles(){electricParticles.forEach(p=>{p.y-=p.s;p.x+=Math.sin((Date.now()*0.001)+p.y*0.015)*0.18;if(p.y<-12){p.y=cv.height+12;p.x=Math.random()*cv.width;}cx.beginPath();cx.fillStyle=`rgba(0,190,255,${p.a})`;cx.shadowColor='rgba(0,190,255,0.85)';cx.shadowBlur=10;cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fill();cx.shadowBlur=0;});}
+function strikePath(color,wide=false){cx.beginPath();const sx=Math.random()*cv.width;const ex=sx+(Math.random()-0.5)*(wide?620:420);const ey=cv.height*(0.55+Math.random()*0.35);cx.moveTo(sx,-20);bolt(sx,-20,ex,ey,wide?280:220,8);cx.strokeStyle=color;cx.lineWidth=wide?3.2:2.1;cx.shadowColor=color;cx.shadowBlur=wide?28:18;cx.stroke();cx.shadowBlur=0;}
+function flash(){cx.clearRect(0,0,cv.width,cv.height);drawParticles();cx.fillStyle='rgba(0,170,255,0.045)';cx.fillRect(0,0,cv.width,cv.height);strikePath(`rgba(64,208,255,${0.75+Math.random()*0.22})`,true);strikePath(`rgba(0,170,255,${0.46+Math.random()*0.28})`);if(Math.random()<0.55)strikePath(`rgba(240,192,64,${0.28+Math.random()*0.24})`);}
+(function loop(){cx.clearRect(0,0,cv.width,cv.height);drawParticles();if(Math.random()<0.065){flash();setTimeout(()=>{cx.fillStyle='rgba(0,8,18,0.16)';cx.fillRect(0,0,cv.width,cv.height);},65+Math.random()*95);}requestAnimationFrame(loop);})();
 
-// Show loading state for beats until Firestore loads
 document.getElementById('beatsTrack').innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">Loading beats...</div>';
 renderVideos();
 </script>
-
 </body>
 </html>
