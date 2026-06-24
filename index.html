@@ -618,12 +618,17 @@ function runSearch(q){
     return;
   }
 
-  results.innerHTML = hits.slice(0, 12).map(h => `
-    <div class="ub-search-result" onclick="${h.action || (h.url ? 'window.location='' + h.url + ''' : 'closeSearch();document.querySelector('' + h.section + '')?.scrollIntoView({behavior:'smooth'})')}">
-      <div class="ub-search-result-name">${h.name}</div>
-      <div class="ub-search-result-meta">${h.meta}</div>
-    </div>
-  `).join('');
+  results.innerHTML = hits.slice(0, 12).map(h => {
+    const action = h.action
+      ? h.action
+      : h.url
+        ? 'window.location=\''+h.url+'\''
+        : 'closeSearch();document.querySelector(\''+h.section+'\')?.scrollIntoView({behavior:\'smooth\'})';
+    return '<div class="ub-search-result" onclick="'+action+'">'
+      + '<div class="ub-search-result-name">'+h.name+'</div>'
+      + '<div class="ub-search-result-meta">'+h.meta+'</div>'
+      + '</div>';
+  }).join('');
 }
 </script>
 
