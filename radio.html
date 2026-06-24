@@ -296,7 +296,7 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
 loadTracks();
 </script>
 <script type="module">
-import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 
 const btn         = document.getElementById('radioAccountBtn');
 const menu        = document.getElementById('radioAccountMenu');
@@ -344,7 +344,8 @@ document.getElementById('radioMenuGoogle')?.addEventListener('click', async () =
 
 // Sign out — no popup, just signs out
 document.getElementById('radioMenuSignout')?.addEventListener('click', async () => {
-  await window.UniBeatzAuth?.signOut?.();
+  const _auth = window.UB_FIREBASE?.auth || getAuth();
+  await signOut(_auth);
   hideMenu();
 });
 
@@ -369,9 +370,18 @@ function updateMenu(user, profile){
 
 window.addEventListener('ub-auth-ready', e => updateMenu(e.detail?.user, e.detail?.profile));
 
-// Check if already signed in on load
-const stored = localStorage.getItem('ub_unified_user');
-if(stored){ try{ const u = JSON.parse(stored); if(u?.uid) btn.textContent = u.username || u.displayName || u.email || 'Account'; }catch(e){} }
+// Listen to auth state directly
+const _authInst = window.UB_FIREBASE?.auth || getAuth();
+onAuthStateChanged(_authInst, user => {
+  if(user && !user.isAnonymous){
+    const stored = localStorage.getItem('ub_unified_user');
+    let profile = null;
+    try{ profile = stored ? JSON.parse(stored) : null; }catch(e){}
+    updateMenu(user, profile);
+  } else {
+    updateMenu(null, null);
+  }
+});
 </script>
 </body>
 </html>
