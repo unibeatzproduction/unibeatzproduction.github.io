@@ -71,7 +71,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return r;
-      }).catch(() => caches.match(e.request).then(cached => cached || caches.match('/radio.html')))
+      }).catch(() => caches.match(e.request).then(cached => cached || caches.match('/')))
     );
   }
 });
