@@ -13,13 +13,16 @@ let lastResume        = 0;
 let _keepAliveCtx     = null;
 let _wakeLock         = null;
 
+// Set true before intentionally pausing one player (genre switch / station switch)
+// Prevents radio-player from fighting back and resuming the paused player
+window.ubRadioIntentionalPause = false;
+
 // Returns whichever player is currently active
 function activePlayer(){
   const main    = document.getElementById('mainStationAudio');
   const channel = document.getElementById('channelAudio');
   if(main    && !main.paused    && main.src)    return main;
   if(channel && !channel.paused && channel.src) return channel;
-  // Neither playing — return whichever has a src
   if(main?.src    && main.src    !== window.location.href) return main;
   if(channel?.src && channel.src !== window.location.href) return channel;
   return channel;
@@ -36,7 +39,6 @@ function allPlayers(){
 function updateMediaSession(){
   if(!('mediaSession' in navigator)) return;
   const audio = activePlayer();
-  // Title from channel bar or default
   const title  = document.getElementById('channelBarTitle')?.textContent?.trim() || 'UniBeatz Radio';
   const artist = document.getElementById('channelBarArtist')?.textContent?.trim() || 'UniBeatzProduction';
   try{
@@ -63,8 +65,9 @@ function setupMediaControls(){
       try{ await a?.play(); } catch(e){}
       updateMediaSession();
     });
-    // Android fires pause from notification — don't let it kill the station
+    // Android fires pause from notification — only resume if not an intentional switch
     navigator.mediaSession.setActionHandler('pause', () => {
+      if(window.ubRadioIntentionalPause){ window.ubRadioIntentionalPause = false; return; }
       setTimeout(tryResume, 150);
       setTimeout(tryResume, 1000);
     });
@@ -86,20 +89,21 @@ function setupMediaControls(){
 // ── Resume ──
 async function tryResume(){
   if(!listenerStarted || userPaused || !shouldResume) return;
+  if(window.ubRadioIntentionalPause) return;
   const now = Date.now();
-  if(now - lastResume < 300) return; // reduced throttle for notification recovery
+  if(now - lastResume < 300) return;
   lastResume = now;
+  // Don't resume if another player is already playing
+  if(allPlayers().some(a => a && !a.paused)) return;
   for(const audio of allPlayers()){
     if(!audio.src || audio.src === window.location.href) continue;
-    if(!audio.paused) return; // already playing
+    if(!audio.paused) return;
     try{
       await audio.play();
       navigator.mediaSession && (navigator.mediaSession.playbackState = 'playing');
       updateMediaSession();
       break;
     } catch(e){
-      // NotAllowedError = browser blocked autoplay after focus loss
-      // Try again after a short wait
       if(e.name === 'NotAllowedError') setTimeout(tryResume, 800);
     }
   }
@@ -157,29 +161,31 @@ function attachToAudio(audio){
 
   audio.addEventListener('pause', () => {
     const justManual = Date.now() - lastManualPause < 900;
-    if(justManual){
-      // User intentionally paused — respect it
+    if(justManual){ updateMediaSession(); return; }
+    if(!listenerStarted){ updateMediaSession(); return; }
+    // Check if this was an intentional switch (genre → main or main → genre)
+    if(window.ubRadioIntentionalPause){
+      window.ubRadioIntentionalPause = false;
       updateMediaSession();
       return;
     }
-    if(!listenerStarted){ updateMediaSession(); return; }
     // Notification or system interrupted — fight back
-    // Android audio focus loss: retry aggressively
     shouldResume = true; userPaused = false;
-    setTimeout(tryResume, 100);  // immediate
-    setTimeout(tryResume, 500);  // after notification sound ends (~500ms)
-    setTimeout(tryResume, 1200); // fallback
-    setTimeout(tryResume, 2500); // last resort
+    setTimeout(tryResume, 100);
+    setTimeout(tryResume, 500);
+    setTimeout(tryResume, 1200);
+    setTimeout(tryResume, 2500);
     updateMediaSession();
   });
 
-  // Android audio focus: also listen for the 'interrupted' event
   audio.addEventListener('waiting', () => {
-    if(listenerStarted && !userPaused) setTimeout(tryResume, 300);
+    if(listenerStarted && !userPaused && !window.ubRadioIntentionalPause) setTimeout(tryResume, 300);
   });
 
-  audio.addEventListener('stalled', () => tryResume());
-  audio.addEventListener('canplay', () => { if(shouldResume && !userPaused) tryResume(); });
+  audio.addEventListener('stalled', () => {
+    if(!window.ubRadioIntentionalPause) tryResume();
+  });
+  audio.addEventListener('canplay', () => { if(shouldResume && !userPaused && !window.ubRadioIntentionalPause) tryResume(); });
   audio.addEventListener('loadedmetadata', updateMediaSession);
   audio.addEventListener('ended', updateMediaSession);
   audio.addEventListener('timeupdate', () => { if(Math.floor(audio.currentTime)%15===0) updateMediaSession(); });
@@ -191,17 +197,19 @@ function setupWindowEvents(){
     updateMediaSession();
     if(document.visibilityState === 'visible'){
       if(listenerStarted && !userPaused) shouldResume = true;
-      setTimeout(tryResume, 200);
-      setTimeout(tryResume, 1200);
-      setTimeout(tryResume, 2600);
+      if(!window.ubRadioIntentionalPause){
+        setTimeout(tryResume, 200);
+        setTimeout(tryResume, 1200);
+        setTimeout(tryResume, 2600);
+      }
       await requestWakeLock();
       if(_keepAliveCtx?.state === 'suspended') _keepAliveCtx.resume().catch(()=>{});
     }
   });
-  window.addEventListener('focus',    () => { if(shouldResume) tryResume(); });
-  window.addEventListener('pageshow', () => { if(shouldResume) tryResume(); });
-  window.addEventListener('online',   () => { if(shouldResume) tryResume(); });
-  window.addEventListener('resume',   () => { if(shouldResume) tryResume(); });
+  window.addEventListener('focus',    () => { if(shouldResume && !window.ubRadioIntentionalPause) tryResume(); });
+  window.addEventListener('pageshow', () => { if(shouldResume && !window.ubRadioIntentionalPause) tryResume(); });
+  window.addEventListener('online',   () => { if(shouldResume && !window.ubRadioIntentionalPause) tryResume(); });
+  window.addEventListener('resume',   () => { if(shouldResume && !window.ubRadioIntentionalPause) tryResume(); });
 
   // Track manual pause from our buttons
   ['chPlay', 'mainStationPlay'].forEach(id => {
@@ -233,7 +241,6 @@ function boot(){
   setupWindowEvents();
   watchNowPlaying();
 
-  // Attach to both players — retry until they exist
   function tryAttach(){
     const attached = allPlayers().filter(a => a._ubAttached).length;
     allPlayers().forEach(attachToAudio);
