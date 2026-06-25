@@ -17,9 +17,8 @@
 .compact-home{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;align-items:start}
 .compact-tools{display:grid;gap:14px}
 .compact-note{margin-top:12px;border:1px solid rgba(0,170,255,.25);border-radius:12px;padding:12px;background:rgba(0,170,255,.06);color:#cbd3e4;line-height:1.35}
-.live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:12px;overflow:visible}
-.live365-frame{width:100%;max-width:650px;height:420px;min-height:420px;border:0;border-radius:14px;display:block;margin:0 auto;background:#100b22}
-.live365-mini{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
+.live365-box{margin-top:14px;border:1px solid rgba(64,208,255,.28);border-radius:16px;background:rgba(0,0,0,.34);padding:20px 16px;text-align:center}
+.live365-mini{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;color:#cbd3e4;font-size:.9rem}
 .live365-mini a{color:#40D0FF;text-decoration:none;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.5px;text-transform:uppercase}
 #genreChannelsSection{margin-top:20px}
 .channels-header{margin-bottom:14px}
@@ -46,8 +45,18 @@
 .btn-mini{padding:7px 10px;font-size:.44rem}
 #ubRadioProgress{display:none;margin:8px 0 4px;border-radius:999px;height:8px;background:rgba(255,255,255,.1);overflow:hidden}
 #ubRadioProgressFill{height:100%;width:0%;background:linear-gradient(90deg,#C9A84C,#F0C040);border-radius:999px;transition:width .3s}
-@media(max-width:930px){.compact-home{grid-template-columns:1fr}.live365-frame{height:360px;min-height:360px}}
-@media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}}
+
+/* Custom Live Player UI */
+.live-player-wrap{padding:10px 0 6px}
+.live-station-label{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:#F0C040;margin-bottom:4px}
+.live-station-sub{font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:2px;color:#40D0FF;margin-bottom:20px}
+#mainStationPlay{min-width:220px;font-size:.62rem;padding:15px 28px;border-radius:10px;letter-spacing:2px;transition:all .2s}
+#mainStationPlay:active{transform:scale(.97)}
+#liveNowPlaying{margin-top:12px;font-family:Orbitron,sans-serif;font-size:.42rem;letter-spacing:1.5px;color:#8d94a5;min-height:18px}
+#liveNowPlaying.on{color:#40D0FF}
+
+@media(max-width:930px){.compact-home{grid-template-columns:1fr}}
+@media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}.live-station-label{font-size:1.5rem}#mainStationPlay{min-width:180px;font-size:.56rem;padding:13px 20px}}
 </style>
 </head>
 <body>
@@ -85,10 +94,15 @@
         </div>
       </div>
 
-      <div class="player uni-player live365-box">
-        <iframe id="live365Frame" class="live365-frame" title="UniBeatz Radio Live365 Player"
-          src="https://live365.com/embeds/v1/player/a01878?s=md&m=dark&c=mp3"
-          allow="autoplay; encrypted-media" loading="lazy"></iframe>
+      <!-- Custom Live Player — works on desktop + mobile -->
+      <div class="live365-box">
+        <audio id="mainStationAudio" preload="none" src="https://streaming.live365.com/a01878"></audio>
+        <div class="live-player-wrap">
+          <div class="live-station-label">📻 UniBeatz Radio</div>
+          <div class="live-station-sub">LIVE365 · 24/7 BROADCAST · EMPIRE ROTATION</div>
+          <button id="mainStationPlay" class="btn btn-gold" type="button">▶ PLAY LIVE STATION</button>
+          <div id="liveNowPlaying"></div>
+        </div>
         <div class="live365-mini">
           <span id="trackCountLabel">24/7 Live365 rotation</span>
           <a href="https://live365.com/station/UniBeatz-Radio-a01878" target="_blank" rel="noopener">Open Station ↗</a>
@@ -196,7 +210,7 @@
 <script type="module" src="radio-premium-popup.js"></script>
 <script src="radio-pwa-register.js"></script>
 
-<!-- Genre Channel Engine -->
+<!-- Genre Channel Engine + Main Station Player -->
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getFirestore, collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
@@ -211,57 +225,111 @@ const app = getApps().length ? getApp() : initializeApp({
 });
 const db = getFirestore(app);
 
-let allTracks = [], queue = [], queueIndex = 0, currentGenre = 'live365';
-const audio     = document.getElementById('channelAudio');
-const bar       = document.getElementById('channelBar');
-const barTitle  = document.getElementById('channelBarTitle');
-const barArtist = document.getElementById('channelBarArtist');
-const chPlay    = document.getElementById('chPlay');
+// ── Elements ──
+const mainAudio    = document.getElementById('mainStationAudio');
+const mainPlayBtn  = document.getElementById('mainStationPlay');
+const liveLabel    = document.getElementById('liveNowPlaying');
+const channelAudio = document.getElementById('channelAudio');
+const bar          = document.getElementById('channelBar');
+const barTitle     = document.getElementById('channelBarTitle');
+const barArtist    = document.getElementById('channelBarArtist');
+const chPlay       = document.getElementById('chPlay');
 
-async function loadTracks(){
-  try{
-    const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
-    allTracks = snap.docs.map(d => ({ id:d.id, ...d.data() }));
-  } catch(e){ console.warn('[channels]', e); }
+let allTracks = [], queue = [], queueIndex = 0, currentGenre = 'live365';
+
+// ── Main Station Player ──
+function setMainBtn(playing) {
+  mainPlayBtn.textContent = playing ? '⏸ PAUSE' : '▶ PLAY LIVE STATION';
+  liveLabel.textContent   = playing ? '🔴 Live — UniBeatz Radio' : '';
+  liveLabel.className     = playing ? 'on' : '';
 }
 
-function switchGenre(genre){
+mainPlayBtn.addEventListener('click', async () => {
+  if (!mainAudio.paused) {
+    mainAudio.pause();
+    setMainBtn(false);
+    return;
+  }
+  // Pause genre channel first
+  if (!channelAudio.paused) {
+    channelAudio.pause();
+    chPlay.textContent = '▶';
+  }
+  try {
+    mainAudio.load();
+    await mainAudio.play();
+    setMainBtn(true);
+  } catch(e) {
+    liveLabel.textContent = '⚠️ Tap again or use Open Station ↗';
+    liveLabel.className = '';
+  }
+});
+
+mainAudio.addEventListener('pause',  () => setMainBtn(false));
+mainAudio.addEventListener('playing', () => setMainBtn(true));
+mainAudio.addEventListener('error',  () => {
+  setMainBtn(false);
+  liveLabel.textContent = '⚠️ Stream error — try Open Station ↗';
+});
+
+// ── Genre Channels ──
+async function loadTracks() {
+  try {
+    const snap = await getDocs(query(collection(db,'radio_submissions'), where('status','==','approved')));
+    allTracks = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+  } catch(e) { console.warn('[channels]', e); }
+}
+
+function switchGenre(genre) {
   currentGenre = genre;
-  if(genre === 'live365'){ audio.pause(); audio.src = ''; bar.classList.remove('visible'); return; }
+  if (genre === 'live365') {
+    channelAudio.pause();
+    channelAudio.src = '';
+    bar.classList.remove('visible');
+    return;
+  }
+  // Pause main station when genre starts
+  if (!mainAudio.paused) {
+    mainAudio.pause();
+    setMainBtn(false);
+  }
   queue = allTracks.filter(t => t.genre === genre && t.audioUrl)
     .sort((a,b) => Number(b.featured||0) - Number(a.featured||0));
   queueIndex = 0;
-  if(!queue.length){
+  if (!queue.length) {
     barTitle.textContent  = 'No tracks yet in ' + genre;
     barArtist.textContent = 'Submit music above to be first';
     bar.classList.add('visible');
-    audio.pause();
+    channelAudio.pause();
     return;
   }
   playIndex(0);
   bar.classList.add('visible');
 }
 
-function playIndex(index){
-  if(!queue.length) return;
-  if(index < 0) index = queue.length - 1;
-  if(index >= queue.length) index = 0;
+function playIndex(index) {
+  if (!queue.length) return;
+  if (index < 0) index = queue.length - 1;
+  if (index >= queue.length) index = 0;
   queueIndex = index;
   const track = queue[queueIndex];
-  audio.src = track.audioUrl;
-  audio.load();
-  audio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
+  channelAudio.src = track.audioUrl;
+  channelAudio.load();
+  channelAudio.play().then(() => { chPlay.textContent = '⏸'; }).catch(() => { chPlay.textContent = '▶'; });
   barTitle.textContent  = track.trackTitle  || 'Untitled';
   barArtist.textContent = (track.artistName || 'Unknown') + ' · ' + currentGenre;
 }
 
-audio.addEventListener('ended', () => playIndex(queueIndex + 1));
-audio.addEventListener('play',  () => { chPlay.textContent = '⏸'; });
-audio.addEventListener('pause', () => { chPlay.textContent = '▶'; });
+channelAudio.addEventListener('ended', () => playIndex(queueIndex + 1));
+channelAudio.addEventListener('play',  () => { chPlay.textContent = '⏸'; });
+channelAudio.addEventListener('pause', () => { chPlay.textContent = '▶'; });
 
 chPlay.addEventListener('click', () => {
-  if(!audio.src || audio.src === window.location.href){ if(queue.length) playIndex(0); return; }
-  audio.paused ? audio.play().catch(()=>{}) : audio.pause();
+  if (!channelAudio.src || channelAudio.src === window.location.href) {
+    if (queue.length) playIndex(0);
+    return;
+  }
+  channelAudio.paused ? channelAudio.play().catch(()=>{}) : channelAudio.pause();
 });
 document.getElementById('chPrev').addEventListener('click', () => playIndex(queueIndex - 1));
 document.getElementById('chNext').addEventListener('click', () => playIndex(queueIndex + 1));
