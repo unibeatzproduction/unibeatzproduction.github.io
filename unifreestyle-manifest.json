@@ -2,7 +2,7 @@
   "name": "UniFreestyle Battle App",
   "short_name": "UniFreestyle",
   "description": "Face to Face Live Rap Battles · Real Rankings · UniBeatz Production",
-  "start_url": "/unifreestyle.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -24,7 +24,7 @@
   ],
   "categories": ["entertainment", "music", "social"],
   "shortcuts": [
-    { "name": "Join Battle", "url": "/unifreestyle.html" },
-    { "name": "Cypher Room", "url": "/unifreestyle.html" }
+    { "name": "Join Battle", "url": "/" },
+    { "name": "Cypher Room", "url": "/" }
   ]
 }
