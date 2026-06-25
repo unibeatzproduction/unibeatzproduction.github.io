@@ -1,7 +1,7 @@
 // unifreestyle-sw.js — UniFreestyle Battle App Service Worker
 const CACHE_NAME = 'unifreestyle-v2';
 const STATIC_ASSETS = [
-  '/unifreestyle.html',
+  '/',
   '/unifreestyle.css',
   '/unifreestyle-core.js',
   '/unifreestyle-profile.js',
@@ -61,7 +61,7 @@ self.addEventListener('push', e => {
       body: data.body || 'New activity in your battle!',
       icon: '/icons/unifreestyle-192.png',
       badge: '/icons/unifreestyle-192.png',
-      data: { url: data.url || '/unifreestyle.html' },
+      data: { url: data.url || '/' },
       vibrate: [200, 100, 200],
       tag: 'unifreestyle-notif'
     })
@@ -70,5 +70,5 @@ self.addEventListener('push', e => {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(clients.openWindow(e.notification.data?.url || '/unifreestyle.html'));
+  e.waitUntil(clients.openWindow(e.notification.data?.url || '/'));
 });
