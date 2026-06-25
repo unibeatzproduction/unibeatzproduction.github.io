@@ -1,5 +1,6 @@
 // unibeatz-auth.js — UniBeatz Auth System
 // Floating account button removed.
+// Google sign-in fixed for browser + installed PWA.
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
@@ -9,11 +10,14 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   updateProfile,
   setPersistence,
   browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+
 import {
   getFirestore,
   doc,
@@ -47,11 +51,7 @@ let currentUser = null;
 
 function safeUsername(user) {
   const base = user.displayName || (user.email || "user").split("@")[0] || "user";
-  return base
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^_|_$/g, "") || "user";
+  return base.toLowerCase().replace(/[^a-z0-9_]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "") || "user";
 }
 
 async function ensureProfile(user, extra = {}) {
@@ -78,25 +78,48 @@ async function ensureProfile(user, extra = {}) {
 
   currentProfile = { ...existing, ...profile };
 
-  localStorage.setItem(
-    "ub_unified_user",
-    JSON.stringify({
-      uid: user.uid,
-      email: user.email || "",
-      displayName: currentProfile.displayName,
-      username: currentProfile.username,
-      role: currentProfile.role,
-      isAdmin: currentProfile.isAdmin
-    })
-  );
+  localStorage.setItem("ub_unified_user", JSON.stringify({
+    uid: user.uid,
+    email: user.email || "",
+    displayName: currentProfile.displayName,
+    username: currentProfile.username,
+    role: currentProfile.role,
+    isAdmin: currentProfile.isAdmin
+  }));
 
-  window.dispatchEvent(
-    new CustomEvent("ub-auth-ready", {
-      detail: { user, profile: currentProfile }
-    })
-  );
+  window.dispatchEvent(new CustomEvent("ub-auth-ready", {
+    detail: { user, profile: currentProfile }
+  }));
 
   return currentProfile;
+}
+
+async function handleGoogleLogin(status, modal) {
+  try {
+    await persistenceReady;
+    if (status) status.textContent = "Opening Google sign-in...";
+
+    const cred = await signInWithPopup(auth, googleProvider);
+    await ensureProfile(cred.user);
+    if (modal) modal.remove();
+  } catch (err) {
+    console.warn("[UniBeatz Auth] Popup failed, using redirect:", err);
+
+    if (status) status.textContent = "Redirecting to Google...";
+    await signInWithRedirect(auth, googleProvider);
+  }
+}
+
+async function checkRedirectLogin() {
+  try {
+    await persistenceReady;
+    const result = await getRedirectResult(auth);
+    if (result && result.user) {
+      await ensureProfile(result.user);
+    }
+  } catch (err) {
+    console.warn("[UniBeatz Auth] Redirect login failed:", err);
+  }
 }
 
 function showAccountModal(mode = "login") {
@@ -108,71 +131,14 @@ function showAccountModal(mode = "login") {
 
   modal.innerHTML = `
     <style>
-      #ub-auth-modal{
-        position:fixed;
-        inset:0;
-        z-index:999999;
-        background:rgba(0,0,0,.82);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        padding:18px;
-        font-family:sans-serif;
-        color:#fff;
-      }
-      #ub-auth-modal .ub-card{
-        width:min(430px,100%);
-        background:#0d0d18;
-        border:1px solid rgba(201,168,76,.45);
-        border-radius:18px;
-        padding:24px;
-      }
-      #ub-auth-modal h2{
-        font-size:22px;
-        color:#F0C040;
-        margin:0 0 12px;
-      }
-      #ub-auth-modal input{
-        width:100%;
-        box-sizing:border-box;
-        background:rgba(255,255,255,.06);
-        border:1px solid rgba(255,255,255,.12);
-        border-radius:10px;
-        color:#fff;
-        padding:12px;
-        font-size:15px;
-        outline:none;
-        margin:6px 0;
-      }
-      #ub-auth-modal .ub-btn{
-        width:100%;
-        border:0;
-        border-radius:10px;
-        padding:13px;
-        font-weight:900;
-        cursor:pointer;
-        margin-top:10px;
-        background:linear-gradient(135deg,#C9A84C,#F0C040);
-        color:#050505;
-      }
-      #ub-auth-modal .ub-google{
-        background:rgba(255,255,255,.08);
-        color:#fff;
-        border:1px solid rgba(255,255,255,.14);
-      }
-      #ub-auth-modal .ub-x{
-        float:right;
-        background:transparent;
-        border:0;
-        color:#aaa;
-        font-size:24px;
-        cursor:pointer;
-      }
-      #ub-auth-modal .ub-status{
-        margin-top:10px;
-        font-size:13px;
-        color:#ff8092;
-      }
+      #ub-auth-modal{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:18px;font-family:sans-serif;color:#fff}
+      #ub-auth-modal .ub-card{width:min(430px,100%);background:#0d0d18;border:1px solid rgba(201,168,76,.45);border-radius:18px;padding:24px}
+      #ub-auth-modal h2{font-size:22px;color:#F0C040;margin:0 0 12px}
+      #ub-auth-modal input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;padding:12px;font-size:15px;outline:none;margin:6px 0}
+      #ub-auth-modal .ub-btn{width:100%;border:0;border-radius:10px;padding:13px;font-weight:900;cursor:pointer;margin-top:10px;background:linear-gradient(135deg,#C9A84C,#F0C040);color:#050505}
+      #ub-auth-modal .ub-google{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14)}
+      #ub-auth-modal .ub-x{float:right;background:transparent;border:0;color:#aaa;font-size:24px;cursor:pointer}
+      #ub-auth-modal .ub-status{margin-top:10px;font-size:13px;color:#ff8092}
     </style>
 
     <div class="ub-card">
@@ -191,7 +157,7 @@ function showAccountModal(mode = "login") {
             <input id="ub-auth-email" type="email" placeholder="Email">
             <input id="ub-auth-pass" type="password" placeholder="Password">
             <button class="ub-btn" id="ub-auth-submit">${mode === "signup" ? "Create Account" : "Log In"}</button>
-            <button class="ub-btn ub-google" id="ub-auth-google">Continue with Google</button>
+            <button class="ub-btn ub-google" id="ub-auth-google" type="button">Continue with Google</button>
             <div style="margin-top:12px;font-size:13px;color:#ccc;text-align:center;">
               ${
                 mode === "signup"
@@ -208,10 +174,9 @@ function showAccountModal(mode = "login") {
 
   document.body.appendChild(modal);
 
-  const closeBtn = document.getElementById("ub-auth-close");
   const status = document.getElementById("ub-auth-status");
 
-  closeBtn.onclick = () => modal.remove();
+  document.getElementById("ub-auth-close").onclick = () => modal.remove();
   modal.onclick = e => {
     if (e.target === modal) modal.remove();
   };
@@ -242,9 +207,7 @@ function showAccountModal(mode = "login") {
         if (mode === "signup") {
           const name = document.getElementById("ub-auth-name")?.value.trim() || "";
           const cred = await createUserWithEmailAndPassword(auth, email, pass);
-
           if (name) await updateProfile(cred.user, { displayName: name });
-
           await ensureProfile(cred.user, { displayName: name });
         } else {
           const cred = await signInWithEmailAndPassword(auth, email, pass);
@@ -260,30 +223,16 @@ function showAccountModal(mode = "login") {
 
   const googleBtn = document.getElementById("ub-auth-google");
   if (googleBtn) {
-    googleBtn.onclick = async () => {
-      try {
-        await persistenceReady;
-        const cred = await signInWithPopup(auth, googleProvider);
-        await ensureProfile(cred.user);
-        modal.remove();
-      } catch (err) {
-        status.textContent = err.message || "Google sign-in failed.";
-      }
-    };
+    googleBtn.onclick = () => handleGoogleLogin(status, modal);
   }
 
   const switchSignup = document.getElementById("ub-switch-signup");
-  if (switchSignup) {
-    switchSignup.onclick = () => showAccountModal("signup");
-  }
+  if (switchSignup) switchSignup.onclick = () => showAccountModal("signup");
 
   const switchLogin = document.getElementById("ub-switch-login");
-  if (switchLogin) {
-    switchLogin.onclick = () => showAccountModal("login");
-  }
+  if (switchLogin) switchLogin.onclick = () => showAccountModal("login");
 }
 
-// Removed automatic floating account button.
 function mountAccountButton() {
   const float = document.getElementById("ub-auth-float");
   if (float) float.remove();
@@ -297,7 +246,6 @@ function mountAccountButton() {
 
 onAuthStateChanged(auth, async user => {
   await persistenceReady;
-
   currentUser = user;
 
   if (user) {
@@ -306,15 +254,15 @@ onAuthStateChanged(auth, async user => {
     currentProfile = null;
     localStorage.removeItem("ub_unified_user");
 
-    window.dispatchEvent(
-      new CustomEvent("ub-auth-ready", {
-        detail: { user: null, profile: null }
-      })
-    );
+    window.dispatchEvent(new CustomEvent("ub-auth-ready", {
+      detail: { user: null, profile: null }
+    }));
   }
 
   mountAccountButton();
 });
+
+checkRedirectLogin();
 
 window.UniBeatzAuth = {
   app,
