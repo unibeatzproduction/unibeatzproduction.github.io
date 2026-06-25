@@ -12,7 +12,7 @@
   var TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
   var UBP_CUT = 0.10;
 
-  function ok(){ return location.pathname.toLowerCase().includes('unifreestyle.html'); }
+  function ok(){ return location.pathname.toLowerCase().includes('/'); }
   function toast(msg){ if(window.showToast) window.showToast(msg); else console.log('[profile]', msg); }
   function esc(s){ return String(s||'').replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
   function clean(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9_]/g,''); }
