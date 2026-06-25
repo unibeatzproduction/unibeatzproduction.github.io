@@ -252,6 +252,7 @@ mainPlayBtn.addEventListener('click', async () => {
   }
   // Pause genre channel first
   if (!channelAudio.paused) {
+    window.ubRadioIntentionalPause = true;
     channelAudio.pause();
     chPlay.textContent = '▶';
   }
@@ -283,6 +284,7 @@ async function loadTracks() {
 function switchGenre(genre) {
   currentGenre = genre;
   if (genre === 'live365') {
+    window.ubRadioIntentionalPause = true;
     channelAudio.pause();
     channelAudio.src = '';
     bar.classList.remove('visible');
@@ -290,6 +292,7 @@ function switchGenre(genre) {
   }
   // Pause main station when genre starts
   if (!mainAudio.paused) {
+    window.ubRadioIntentionalPause = true;
     mainAudio.pause();
     setMainBtn(false);
   }
