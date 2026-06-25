@@ -2,7 +2,7 @@
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
-    navigator.serviceWorker.register('/unifreestyle-sw.js', { scope: '/unifreestyle.html' })
+    navigator.serviceWorker.register('/unifreestyle-sw.js', { scope: '/' })
       .then(function(reg){
         console.log('[UniFreestyle SW] registered:', reg.scope);
         reg.addEventListener('updatefound', function(){
