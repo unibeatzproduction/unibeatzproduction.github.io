@@ -1032,8 +1032,13 @@ function saveUsers(users) {
 }
 function setCurrentUser(user) {
   currentUser = user;
-  if(user) localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
-  else localStorage.removeItem(STORAGE.CURRENT);
+  if(user) {
+    localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
+    localStorage.setItem('ub_user', JSON.stringify(user));
+  } else {
+    localStorage.removeItem(STORAGE.CURRENT);
+    localStorage.removeItem('ub_user');
+  }
 }
 function loadCurrentUser() {
   try {
@@ -1311,12 +1316,24 @@ async function finishGoogleLogin(fbUser) {
 
   const users = getUsers();
   const email = fbUser.email.toLowerCase();
+  const uid   = fbUser.uid;
   let userData = null;
 
-  for (const k in users) {
-    if (users[k].email === email) {
-      userData = users[k];
-      break;
+  // Check ub_user key first — unifreestyle-profile.js reads this key
+  try {
+    const ubUser = JSON.parse(localStorage.getItem('ub_user') || 'null');
+    if (ubUser && (ubUser.email === email || ubUser.uid === uid)) {
+      userData = ubUser;
+    }
+  } catch(e) {}
+
+  // Also check ub_users registry by email or uid
+  if (!userData) {
+    for (const k in users) {
+      if (users[k].email === email || users[k].uid === uid) {
+        userData = users[k];
+        break;
+      }
     }
   }
 
