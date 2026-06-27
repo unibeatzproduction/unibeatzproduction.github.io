@@ -68,7 +68,11 @@ function loadTo(deck, item){
 }
 
 async function loadQueue(){
-  qList.innerHTML = '<div class="track">Loading queue...</div>';
+  const _loading = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div>';
+  const aqEl = document.getElementById('deckAQueue');
+  const bqEl = document.getElementById('deckBQueue');
+  if(aqEl) aqEl.innerHTML = _loading;
+  if(bqEl) bqEl.innerHTML = _loading;
   try{
     const [tracksSnap, assetsSnap] = await Promise.all([
       getDocs(collection(db,'radio_submissions')),
@@ -80,7 +84,9 @@ async function loadQueue(){
     renderQueue(); renderPads();
   } catch(e){
     console.error(e);
-    qList.innerHTML = '<div class="track">Queue failed. Check rules.</div>';
+    const _err = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:#ff7474;">Queue failed. Check Firestore rules.</div></div></div>';
+    if(aqEl) aqEl.innerHTML = _err;
+    if(bqEl) bqEl.innerHTML = _err;
   }
 }
 
