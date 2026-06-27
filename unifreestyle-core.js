@@ -109,21 +109,13 @@
         var d = doc.data();
         var name = (doc.id || d.username || '').toLowerCase().replace(/[^a-z0-9_]/g,'');
         if(!name || name === 'djblaze' || name === 'phantombeats') return;
-        if(!all[name]){
-          all[name] = {
-            username: name,
-            name: d.displayName || d.name || niceName(name),
-            role: d.role || 'artist',
-            avatar: d.avatar || '🎤',
-            photo: d.photo || d.photoUrl || '',
-            bio: d.bio || '',
-            verified: d.verified || false
-          };
-          changed = true;
-        } else {
+        // ONLY update existing local users — never create new ones from Firestore
+        // Creating from Firestore was causing duplicate profiles for Google users
+        if(all[name]){
           if(d.photo || d.photoUrl){ all[name].photo = d.photo || d.photoUrl; changed = true; }
           if(d.bio){ all[name].bio = d.bio; changed = true; }
           if(d.displayName || d.name){ all[name].name = d.displayName || d.name; changed = true; }
+          if(d.avatar){ all[name].avatar = d.avatar; changed = true; }
         }
       });
       if(changed){
@@ -170,5 +162,5 @@
   else boot();
 
   setTimeout(boot, 800);
-  setInterval(syncGoogleUser, 5000);
+  // Removed: setInterval syncGoogleUser was overwriting current user every 5s
 })();
