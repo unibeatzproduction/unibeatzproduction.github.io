@@ -21,7 +21,7 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
 .h1 span{color:var(--gold-light)}
 .sub{max-width:760px;color:#cbd3e4;line-height:1.5}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.deck-grid{display:grid;grid-template-columns:1fr 280px 1fr;gap:14px;margin-top:16px}
+.deck-grid{display:grid;grid-template-columns:1fr 260px 1fr;gap:14px;margin-top:16px}
 .btn{border:0;border-radius:10px;padding:11px 13px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;cursor:pointer}
 .btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}
 .btn-blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}
@@ -29,14 +29,29 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
 .btn-green{background:rgba(0,204,102,.12);border:1px solid rgba(0,204,102,.55);color:#5dff9e}
 .btn-rec{background:rgba(255,60,60,.85);border:1px solid #ff3c3c;color:#fff}
 .btn-rec.recording{background:#ff3c3c;animation:recPulse 1s infinite}
+.btn-sm{padding:6px 10px;font-size:.44rem;border-radius:7px}
 @keyframes recPulse{0%,100%{opacity:1}50%{opacity:.6}}
 .input,select{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.25);background:#090d18;color:var(--white);font-family:Rajdhani,sans-serif}
-.track-list{display:grid;gap:9px;max-height:430px;overflow:auto}
+
+/* Deck queue — inside each deck panel */
+.deck-queue{margin-top:12px;max-height:260px;overflow-y:auto;display:grid;gap:6px}
+.deck-queue::-webkit-scrollbar{width:4px}
+.deck-queue::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:4px}
+.dq-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.03);cursor:pointer;transition:border-color .15s}
+.dq-item:hover{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.05)}
+.dq-item.loaded{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.dq-num{font-family:Orbitron,sans-serif;font-size:.38rem;color:var(--gray);min-width:18px;text-align:right}
+.dq-info{flex:1;min-width:0}
+.dq-name{font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:1.2px;color:var(--gold-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dq-meta{font-size:.78rem;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dq-load{flex-shrink:0}
+
+.track-list{display:grid;gap:9px;max-height:300px;overflow:auto}
 .track{border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.035);padding:11px;text-align:left;color:var(--white);cursor:pointer}
 .track .name{font-family:Bebas Neue,sans-serif;letter-spacing:1.4px;font-size:1.3rem;color:var(--gold-light)}
 .track .desc{color:#aeb8cb}
-.turntable{border-radius:16px;border:1px solid rgba(64,208,255,.25);background:radial-gradient(circle,#151b2d,#05060a 58%,#000);min-height:240px;display:grid;place-items:center;text-align:center}
-.disc{width:150px;height:150px;border-radius:50%;border:8px solid rgba(201,168,76,.35);background:radial-gradient(circle,#050505 0 20%,#141414 21% 50%,#050505 51%);display:grid;place-items:center;color:var(--blue-bright);font-family:Orbitron,sans-serif;font-size:.6rem;letter-spacing:2px}
+.turntable{border-radius:16px;border:1px solid rgba(64,208,255,.25);background:radial-gradient(circle,#151b2d,#05060a 58%,#000);min-height:180px;display:grid;place-items:center;text-align:center}
+.disc{width:130px;height:130px;border-radius:50%;border:8px solid rgba(201,168,76,.35);background:radial-gradient(circle,#050505 0 20%,#141414 21% 50%,#050505 51%);display:grid;place-items:center;color:var(--blue-bright);font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:2px;text-align:center;padding:10px}
 .range{width:100%}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .notice{min-height:22px;margin-top:10px;color:var(--blue-bright)}
@@ -61,86 +76,94 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
   <input id="lockInput" type="password" placeholder="Admin code" style="padding:11px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.4);background:#090d18;color:#fff;font-family:Rajdhani,sans-serif;font-size:1rem;width:260px;"/>
   <button onclick="if(document.getElementById('lockInput').value==='empire2026'){document.getElementById('lockOverlay').style.display='none'}else{document.getElementById('lockInput').value='';document.getElementById('lockInput').placeholder='Wrong code';}" style="border:0;border-radius:10px;padding:11px 24px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a;">UNLOCK</button>
 </div>
+
 <nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO DJ DECK</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button onclick="document.getElementById('lockOverlay').style.display='flex';document.getElementById('lockInput').value='';" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ff7474;background:transparent;border:1px solid rgba(255,60,60,.4);border-radius:8px;padding:6px 10px;cursor:pointer;">🔒 Lock</button></div></div></nav>
+
 <main class="wrap">
 
 <section class="hero">
   <div class="eyebrow">Virtual Broadcast Control Room</div>
   <h1 class="h1">DJ <span>Deck</span></h1>
-  <p class="sub">Virtual deck panel with queue management, crossfader, mic toggle, station drop triggers, voiceover triggers, podcast triggers, MIDI hardware, and Stream Deck controls.</p>
+  <p class="sub">Live broadcast, crossfader, queue, mic, MIDI, Stream Deck, and mix recorder — all in one panel.</p>
   <div class="actions">
-    <button id="startBroadcast" class="btn btn-green">Start Live Broadcast</button>
-    <button id="endBroadcast" class="btn btn-red">End Broadcast</button>
+    <button id="startBroadcast" class="btn btn-green">🔴 Start Live Broadcast</button>
+    <button id="endBroadcast" class="btn btn-red" disabled>⏹ End Broadcast</button>
     <button id="micToggle" class="btn btn-blue">🎙 Mic Off</button>
+    <button id="reloadQueue" class="btn btn-blue">↻ Reload Queue</button>
   </div>
   <div id="deckNotice" class="notice"></div>
+  <p class="sub" id="broadcastStatus" style="margin-top:8px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;color:var(--gray);">Offline. Start live mode when ready.</p>
 </section>
 
 <section class="deck-grid">
+
+  <!-- DECK A -->
   <article class="panel">
     <div class="eyebrow">Deck A</div>
     <div class="turntable"><div class="disc" id="deckALabel">LOAD A</div></div>
     <audio id="deckA" controls style="width:100%;margin-top:10px"></audio>
     <div class="actions">
-      <button id="playA" class="btn btn-gold">Play A</button>
-      <button id="stopA" class="btn btn-blue">Stop A</button>
+      <button id="playA" class="btn btn-gold">▶ Play</button>
+      <button id="stopA" class="btn btn-blue">⏹ Stop</button>
+      <button id="cueA" class="btn btn-blue">⏮ Cue</button>
+    </div>
+    <!-- Queue directly in Deck A -->
+    <div style="margin-top:14px;">
+      <div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px;">QUEUE — TAP TO LOAD</div>
+      <div id="deckAQueue" class="deck-queue"><div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div></div>
     </div>
   </article>
+
+  <!-- MIXER -->
   <article class="panel">
     <div class="eyebrow">Mixer</div>
-    <p class="sub">Crossfader</p>
+    <p class="sub" style="margin-bottom:6px;">Crossfader</p>
     <input id="crossfader" class="range" type="range" min="0" max="100" value="50"/>
-    <div class="grid" style="grid-template-columns:1fr 1fr">
-      <button id="cueA" class="btn btn-blue">Cue A</button>
-      <button id="cueB" class="btn btn-blue">Cue B</button>
-    </div>
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light);margin-top:14px">Trigger Pads</h2>
+    <div style="display:flex;justify-content:space-between;font-family:Orbitron,sans-serif;font-size:.38rem;color:var(--gray);margin-bottom:10px;"><span>A</span><span>B</span></div>
+    <h2 style="font-family:Bebas Neue;color:var(--gold-light);margin-top:8px;font-size:1.4rem;">Trigger Pads</h2>
+    <p style="font-size:.8rem;color:var(--gray);margin-bottom:6px;">Station drops, voiceovers, podcasts</p>
     <div id="triggerPads" class="track-list"></div>
   </article>
+
+  <!-- DECK B -->
   <article class="panel">
     <div class="eyebrow">Deck B</div>
     <div class="turntable"><div class="disc" id="deckBLabel">LOAD B</div></div>
     <audio id="deckB" controls style="width:100%;margin-top:10px"></audio>
     <div class="actions">
-      <button id="playB" class="btn btn-gold">Play B</button>
-      <button id="stopB" class="btn btn-blue">Stop B</button>
+      <button id="playB" class="btn btn-gold">▶ Play</button>
+      <button id="stopB" class="btn btn-blue">⏹ Stop</button>
+      <button id="cueB" class="btn btn-blue">⏮ Cue</button>
+    </div>
+    <!-- Queue directly in Deck B -->
+    <div style="margin-top:14px;">
+      <div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px;">QUEUE — TAP TO LOAD</div>
+      <div id="deckBQueue" class="deck-queue"><div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div></div>
     </div>
   </article>
+
 </section>
 
+<!-- RECORD PANEL -->
 <section id="recordPanel">
   <div class="eyebrow">🔴 Mix Recorder</div>
   <h2 style="font-family:Bebas Neue;color:#ff7474;font-size:2rem;letter-spacing:2px;">RECORD YOUR MIX</h2>
-  <p class="sub" style="margin-bottom:12px;">Records everything playing through the decks. Download as audio to upload to Live365. Live broadcast is NOT affected.</p>
+  <p class="sub" style="margin-bottom:12px;">Records everything playing through the decks. Download to upload to Live365.</p>
   <div class="actions">
     <button id="recStart" class="btn btn-rec">⏺ Start Recording</button>
     <button id="recStop" class="btn btn-blue" disabled>⏹ Stop & Save</button>
+    <button id="saveQueue" class="btn btn-gold">💾 Save Queue</button>
   </div>
   <div id="recTimer" style="display:none;">0:00</div>
   <div id="recNotice" class="notice"></div>
   <div id="recSavedList"></div>
 </section>
 
-<section class="grid">
-  <article class="panel">
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light)">Queue Management</h2>
-    <div class="actions">
-      <button id="reloadQueue" class="btn btn-blue">Reload Queue</button>
-      <button id="saveQueue" class="btn btn-gold">Save Broadcast Queue</button>
-    </div>
-    <div id="queueList" class="track-list" style="margin-top:10px"></div>
-  </article>
-  <article class="panel">
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light)">Broadcast Status</h2>
-    <p class="sub" id="broadcastStatus">Offline. Start live mode when ready.</p>
-    <p class="sub" style="margin-top:8px;">This is the control surface foundation. Full WebRTC/mic streaming can connect later to LiveKit/Agora.</p>
-  </article>
-</section>
-
+<!-- HARDWARE / MIDI / STREAM DECK -->
 <section class="panel" style="margin-top:16px" id="hardwareManager">
   <div class="eyebrow">DJ Hardware Manager</div>
   <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:2rem">MIDI / Equipment / Stream Deck</h2>
-  <p class="sub">Connect MIDI controllers like FLKey, Akai, DDJ-style controllers, or a Stream Deck-style hotkey board.</p>
+  <p class="sub">Connect MIDI controllers — FLKey, Akai, DDJ-style, or Stream Deck hotkeys.</p>
   <div class="actions">
     <button id="connectMidi" class="btn btn-gold">Connect MIDI Equipment</button>
     <button id="startMidiLearn" class="btn btn-blue">Start MIDI Learn</button>
