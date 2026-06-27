@@ -556,13 +556,18 @@ function onMidiMessage(e){
     return;
   }
 
-  // Intercept Note On (0x90) — Akai pads
-  if((data[0] & 0xF0) === 0x90 && data[2] > 0){
+  // Intercept Note On — Akai pads (ch10 = 0x89, ch1 = 0x90)
+  // Akai MPK Mini 4 fires on note-on with velocity 0 for pad press
+  const statusNibble = data[0] & 0xF0;
+  if(statusNibble === 0x80 || statusNibble === 0x90){
     const note_num = data[1];
     if(AKAI_PAD_MAP[note_num]){
-      AKAI_PAD_MAP[note_num]();
-      const sig2=document.getElementById('lastMidiSignal');
-      if(sig2) sig2.textContent=`Pad ${note_num} fired`;
+      // Trigger on press (any velocity) but not on release (0x80 = note off)
+      if(statusNibble === 0x90){
+        AKAI_PAD_MAP[note_num]();
+        const sig2=document.getElementById('lastMidiSignal');
+        if(sig2) sig2.textContent=`Pad ${note_num} triggered`;
+      }
       return;
     }
   }
@@ -628,6 +633,9 @@ function getEqCtx(){
 }
 
 function buildEQ(deck){
+  // EQ routing disabled — prevents audio kill
+  // Will be re-enabled once routing is confirmed
+  return;
   const ctx = getEqCtx();
   const audio = deck === 'A' ? deckA : deckB;
   if(_eq[deck].built) return;
@@ -804,16 +812,16 @@ const AKAI_PAD_MAP = {
 };
 
 const AKAI_KNOB_MAP = {
-  // Knobs 1-4 → Deck A EQ
-  70: v=>setEQBand('A','low',v),
-  71: v=>setEQBand('A','midLo',v),
-  72: v=>setEQBand('A','midHi',v),
-  73: v=>setEQBand('A','high',v),
-  // Knobs 5-8 → Deck B EQ
-  74: v=>setEQBand('B','low',v),
-  75: v=>setEQBand('B','midLo',v),
-  76: v=>setEQBand('B','midHi',v),
-  77: v=>setEQBand('B','high',v),
+  // Knobs 1-4 → Deck A EQ (CC 24-27)
+  24: v=>setEQBand('A','low',v),
+  25: v=>setEQBand('A','midLo',v),
+  26: v=>setEQBand('A','midHi',v),
+  27: v=>setEQBand('A','high',v),
+  // Knobs 5-8 → Deck B EQ (CC 28-31)
+  28: v=>setEQBand('B','low',v),
+  29: v=>setEQBand('B','midLo',v),
+  30: v=>setEQBand('B','midHi',v),
+  31: v=>setEQBand('B','high',v),
 };
 
 // ═══════════════════════════════════════════════
@@ -859,13 +867,8 @@ function scratchPlay(deck, offset){
   src.playbackRate.value = s.rate;
   src.loop = false;
 
-  // Route through EQ if built
-  const eq = _eq[deck];
-  if(eq && eq.built && eq.low){
-    src.connect(eq.low);
-  } else {
-    src.connect(ctx.destination);
-  }
+  // Route directly to destination (EQ disabled)
+  src.connect(ctx.destination);
 
   const startAt = offset !== undefined ? offset : s.startOffset;
   src.start(0, Math.max(0, Math.min(startAt, s.buffer.duration - 0.01)));
@@ -976,4 +979,4 @@ function loadTo(deck, item){
 
 // ── Boot ──
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
-setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue(); setTimeout(initEQ, 500);
+setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
