@@ -57,6 +57,15 @@
 
 @media(max-width:930px){.compact-home{grid-template-columns:1fr}}
 @media(max-width:560px){.genre-pill{font-size:.42rem;padding:8px 12px}.live-station-label{font-size:1.5rem}#mainStationPlay{min-width:180px;font-size:.56rem;padding:13px 20px}}
+
+/* Genre pill source indicator */
+.genre-pill:not(.main-pill)::after{content:"UB";display:inline-block;margin-left:5px;font-family:Orbitron,sans-serif;font-size:.3rem;letter-spacing:1px;color:rgba(240,192,64,.6);vertical-align:middle}
+.genre-pill:not(.main-pill).active::after{color:rgba(3,3,5,.7)}
+
+/* Channel bar source badge */
+#channelSourceBadge{display:inline-block;padding:2px 8px;border-radius:999px;font-family:Orbitron,sans-serif;font-size:.35rem;letter-spacing:1.5px;margin-left:8px;vertical-align:middle}
+#channelSourceBadge.live365-badge{background:rgba(0,170,255,.15);border:1px solid rgba(64,208,255,.4);color:#40D0FF;}
+#channelSourceBadge.ub-badge{background:rgba(201,168,76,.15);border:1px solid rgba(240,192,64,.4);color:#F0C040;}
 </style>
 </head>
 <body>
@@ -132,11 +141,29 @@
 
   <section id="genreChannelsSection" class="panel">
     <div class="channels-header">
-      <div class="channels-title">🎵 Genre Channels</div>
-      <div class="channels-sub">Tap a channel to switch · Plays approved tracks in that genre</div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;">
+        <div>
+          <div class="channels-title">🎚️ Tune In</div>
+          <div class="channels-sub">Two broadcast sources — pick your listen</div>
+        </div>
+      </div>
+      <!-- Source legend -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(64,208,255,.4);border-radius:8px;background:rgba(0,170,255,.07);">
+          <span style="width:8px;height:8px;border-radius:50%;background:#40D0FF;display:inline-block;"></span>
+          <span style="font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#40D0FF;">LIVE365 LICENSED BROADCAST</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid rgba(201,168,76,.4);border-radius:8px;background:rgba(201,168,76,.07);">
+          <span style="width:8px;height:8px;border-radius:50%;background:#F0C040;display:inline-block;"></span>
+          <span style="font-family:Orbitron,sans-serif;font-size:.4rem;letter-spacing:1.5px;color:#F0C040;">UNIBEATZ GENRE CHANNEL · COMMUNITY TRACKS</span>
+        </div>
+      </div>
     </div>
     <div class="genre-pill-row" id="genrePillRow">
-      <button class="genre-pill main-pill active" data-genre="live365">📻 Main Station</button>
+      <button class="genre-pill main-pill active" data-genre="live365" style="border-color:rgba(64,208,255,.6);position:relative;">
+        📻 Main Station
+        <span style="display:block;font-family:Orbitron,sans-serif;font-size:.32rem;letter-spacing:1px;color:#40D0FF;margin-top:2px;">LIVE365</span>
+      </button>
       <button class="genre-pill" data-genre="Hip-Hop">🔥 Hip-Hop</button>
       <button class="genre-pill" data-genre="Boom Bap">🥁 Boom Bap</button>
       <button class="genre-pill" data-genre="Trap">⚡ Trap</button>
@@ -153,7 +180,7 @@
     <div id="channelBar">
       <div id="channelBarDot"></div>
       <div id="channelBarInfo">
-        <div id="channelBarTitle">—</div>
+        <div id="channelBarTitle">—<span id="channelSourceBadge" class="ub-badge">UNIBEATZ</span></div>
         <div id="channelBarArtist">Genre Channel</div>
       </div>
       <button class="ch-ctrl" id="chPrev" title="Previous">⏮</button>
@@ -290,6 +317,9 @@ function switchGenre(genre) {
     bar.classList.remove('visible');
     return;
   }
+  // Mark as UniBeatz genre channel
+  const sourceBadge = document.getElementById('channelSourceBadge');
+  if(sourceBadge){ sourceBadge.textContent = 'UNIBEATZ'; sourceBadge.className = 'ub-badge'; }
   // Pause main station when genre starts
   if (!mainAudio.paused) {
     window.ubRadioIntentionalPause = true;
