@@ -1314,32 +1314,108 @@ async function finishGoogleLogin(fbUser) {
     return;
   }
 
+  const fb = window.UB_FIREBASE;
+  const email = String(fbUser.email || '').toLowerCase();
+  const uid = String(fbUser.uid || '');
   const users = getUsers();
-  const email = fbUser.email.toLowerCase();
-  const uid   = fbUser.uid;
   let userData = null;
+  let userKey = '';
 
-  // Check ub_user key first — unifreestyle-profile.js reads this key
+  function sameEmail(u) {
+    return String(u?.email || '').toLowerCase() === email;
+  }
+
+  function sameUid(u) {
+    return uid && String(u?.uid || '') === uid;
+  }
+
+  function cleanName(v) {
+    return String(v || '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+  }
+
+  function absorbProfile(profile, fallbackKey) {
+    if (!profile) return null;
+
+    const username = cleanName(profile.username || fallbackKey || profile.name || email.split('@')[0] || 'artist');
+    return {
+      uid: profile.uid || uid,
+      name: profile.name || profile.displayName || fbUser.displayName || email.split('@')[0],
+      username: username,
+      email: String(profile.email || email).toLowerCase(),
+      password: profile.password || '',
+      photo: profile.photo || profile.photoURL || profile.photoUrl || fbUser.photoURL || '',
+      avatar: profile.avatar || '🎤',
+      bio: profile.bio || '',
+      role: profile.role || 'artist',
+      city: profile.city || 'UniBeatz World',
+      points: profile.points || 0,
+      wins: profile.wins || 0,
+      losses: profile.losses || 0,
+      battles: profile.battles || 0,
+      votes: profile.votes || 0,
+      accuracy: profile.accuracy || 0,
+      followers: profile.followers || 0,
+      following: profile.following || 0,
+      joined: profile.joined || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      verified: true,
+      unipackTier: profile.unipackTier || 'free',
+      signInProvider: 'google',
+      authProvider: 'google'
+    };
+  }
+
+  // 1) Current saved profile first. This protects the artist profile already on this device.
   try {
-    const ubUser = JSON.parse(localStorage.getItem('ub_user') || 'null');
-    if (ubUser && (ubUser.email === email || ubUser.uid === uid)) {
-      userData = ubUser;
+    const savedCurrent = JSON.parse(localStorage.getItem(STORAGE.CURRENT) || 'null') || JSON.parse(localStorage.getItem('ub_user') || 'null');
+    if (savedCurrent && (sameEmail(savedCurrent) || sameUid(savedCurrent))) {
+      userData = absorbProfile(savedCurrent, savedCurrent.username);
+      userKey = userData.username;
     }
   } catch(e) {}
 
-  // Also check ub_users registry by email or uid
+  // 2) Local registry by UID/email.
   if (!userData) {
     for (const k in users) {
-      if (users[k].email === email || users[k].uid === uid) {
-        userData = users[k];
+      if (sameUid(users[k]) || sameEmail(users[k])) {
+        userData = absorbProfile(users[k], k);
+        userKey = userData.username || k;
         break;
       }
     }
   }
 
+  // 3) Firestore users/{uid}. This is the permanent account match.
+  if (!userData && fb && fb.db && fb.getDoc && fb.doc) {
+    try {
+      const userSnap = await fb.getDoc(fb.doc(fb.db, 'users', uid));
+      if (userSnap.exists()) {
+        userData = absorbProfile(userSnap.data(), userSnap.data().username || email.split('@')[0]);
+        userKey = userData.username;
+      }
+    } catch(e) {
+      console.warn('users/{uid} lookup failed:', e.message);
+    }
+  }
+
+  // 4) Firestore profiles where email matches. This recovers old artist profiles made before UID was saved.
+  if (!userData && fb && fb.db && fb.getDocs && fb.collection && fb.query && fb.where) {
+    try {
+      const q = fb.query(fb.collection(fb.db, 'profiles'), fb.where('email', '==', email));
+      const snap = await fb.getDocs(q);
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        userData = absorbProfile(d.data(), d.id);
+        userKey = userData.username || d.id;
+      }
+    } catch(e) {
+      console.warn('profiles email lookup failed:', e.message);
+    }
+  }
+
+  // 5) Only create a new profile if no local or Firestore profile exists.
   if (!userData) {
-    let username = email.split('@')[0].replace(/[^a-z0-9_]/g, '') || 'artist';
-    let baseUsername = username;
+    let username = cleanName(email.split('@')[0]) || 'artist';
+    const baseUsername = username;
     let n = 1;
 
     while (users[username]) {
@@ -1347,44 +1423,49 @@ async function finishGoogleLogin(fbUser) {
       n++;
     }
 
-    userData = {
-      uid: fbUser.uid,
+    userData = absorbProfile({
+      uid: uid,
       name: fbUser.displayName || email.split('@')[0],
       username: username,
       email: email,
-      password: '',
       photo: fbUser.photoURL || '',
       avatar: '🎤',
-      bio: '',
-      role: 'artist',
-      city: '',
-      points: 0,
-      wins: 0,
-      losses: 0,
-      battles: 0,
-      votes: 0,
-      accuracy: 0,
-      followers: 0,
-      following: 0,
-      joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      verified: true,
-      unipackTier: 'free',
-      signInProvider: 'google'
-    };
+      role: 'artist'
+    }, username);
 
-    users[username] = userData;
-    saveUsers(users);
+    userKey = username;
   }
 
-  if (!userData.photo && fbUser.photoURL) {
-    userData.photo = fbUser.photoURL;
-    const allUsers = getUsers();
-    allUsers[userData.username] = userData;
-    saveUsers(allUsers);
+  userKey = cleanName(userKey || userData.username || email.split('@')[0]);
+
+  // Remove duplicate keys pointing to the same email/uid, but keep the best merged profile.
+  const allUsers = getUsers();
+  for (const k in allUsers) {
+    if (k !== userKey && (sameUid(allUsers[k]) || sameEmail(allUsers[k]))) {
+      userData = Object.assign({}, allUsers[k], userData, {
+        uid: allUsers[k].uid || userData.uid,
+        email: allUsers[k].email || userData.email,
+        username: userKey
+      });
+      delete allUsers[k];
+    }
   }
 
-  setCurrentUser(userData);
-  showToast(`✅ Welcome, ${userData.name.split(' ')[0]}!`);
+  allUsers[userKey] = Object.assign({}, allUsers[userKey] || {}, userData, { username: userKey });
+  saveUsers(allUsers);
+  setCurrentUser(allUsers[userKey]);
+
+  // Save permanent match back to Firestore so next login loads the same artist profile.
+  if (fb && fb.db && fb.setDoc && fb.doc) {
+    try {
+      await fb.setDoc(fb.doc(fb.db, 'users', uid), allUsers[userKey], { merge: true });
+      await fb.setDoc(fb.doc(fb.db, 'profiles', userKey), allUsers[userKey], { merge: true });
+    } catch(e) {
+      console.warn('profile save after Google login failed:', e.message);
+    }
+  }
+
+  showToast(`✅ Welcome, ${allUsers[userKey].name.split(' ')[0]}!`);
   goToPage('home');
 }
 
@@ -1618,6 +1699,18 @@ function saveProfileEdits() {
   users[username] = currentUser;
   saveUsers(users);
   setCurrentUser(currentUser);
+
+  if (window.UB_FIREBASE && window.UB_FIREBASE.ready) {
+    const fb = window.UB_FIREBASE;
+    try {
+      if (currentUser.uid) {
+        fb.setDoc(fb.doc(fb.db, 'users', currentUser.uid), currentUser, { merge: true });
+      }
+      fb.setDoc(fb.doc(fb.db, 'profiles', currentUser.username), currentUser, { merge: true });
+    } catch(e) {
+      console.warn('Profile Firestore save failed:', e.message);
+    }
+  }
 
   showToast('✅ Profile updated!');
   setTimeout(() => goToPage('profile'), 400);
