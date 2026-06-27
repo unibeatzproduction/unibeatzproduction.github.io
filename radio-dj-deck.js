@@ -1,220 +1,832 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Uni Radio DJ Deck</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
-<style>
-:root{--gold:#C9A84C;--gold-light:#F0C040;--blue:#00AAFF;--blue-bright:#40D0FF;--white:#F0EDE8;--gray:#9aa3b8;--green:#00cc66;--red:#ff3c3c}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,255,.20),transparent 30%),radial-gradient(circle at 80% 20%,rgba(201,168,76,.16),transparent 32%),linear-gradient(145deg,#030305,#0a0a14,#030305);color:var(--white);font-family:Rajdhani,sans-serif}
-.nav{position:sticky;top:0;z-index:20;background:rgba(5,8,14,.94);border-bottom:1px solid rgba(201,168,76,.55)}
-.nav-inner{max-width:1260px;margin:auto;padding:14px 18px;display:flex;justify-content:space-between;gap:12px;align-items:center}
-.brand{font-family:Bebas Neue,sans-serif;letter-spacing:2px;font-size:1.55rem;color:var(--gold-light);text-decoration:none}
-.links{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-.links a{font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#dce3f3;text-decoration:none}
-.wrap{max-width:1260px;margin:auto;padding:24px 18px 50px}
-.hero,.panel{border:1px solid rgba(201,168,76,.34);border-radius:18px;background:linear-gradient(145deg,rgba(4,6,12,.88),rgba(0,0,0,.72));box-shadow:0 24px 70px rgba(0,0,0,.52);padding:18px}
-.eyebrow{font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:3px;color:var(--blue-bright);text-transform:uppercase}
-.h1{font-family:Bebas Neue,sans-serif;font-size:clamp(3rem,8vw,5.8rem);line-height:.85;letter-spacing:3px;margin:10px 0}
-.h1 span{color:var(--gold-light)}
-.sub{max-width:760px;color:#cbd3e4;line-height:1.5}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
-.deck-grid{display:grid;grid-template-columns:1fr 260px 1fr;gap:14px;margin-top:16px}
-.btn{border:0;border-radius:10px;padding:11px 13px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;text-transform:uppercase;font-weight:900;cursor:pointer}
-.btn-gold{background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));color:#05050a}
-.btn-blue{background:rgba(0,170,255,.10);border:1px solid var(--blue);color:var(--blue-bright)}
-.btn-red{background:rgba(255,60,60,.11);border:1px solid rgba(255,60,60,.55);color:#ff7474}
-.btn-green{background:rgba(0,204,102,.12);border:1px solid rgba(0,204,102,.55);color:#5dff9e}
-.btn-rec{background:rgba(255,60,60,.85);border:1px solid #ff3c3c;color:#fff}
-.btn-rec.recording{background:#ff3c3c;animation:recPulse 1s infinite}
-.btn-sm{padding:6px 10px;font-size:.44rem;border-radius:7px}
-@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.6}}
-.input,select{width:100%;padding:11px;border-radius:10px;border:1px solid rgba(201,168,76,.25);background:#090d18;color:var(--white);font-family:Rajdhani,sans-serif}
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
-/* Deck queue — inside each deck panel */
-.deck-queue{margin-top:12px;max-height:260px;overflow-y:auto;display:grid;gap:6px}
-.deck-queue::-webkit-scrollbar{width:4px}
-.deck-queue::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:4px}
-.dq-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid rgba(255,255,255,.07);border-radius:9px;background:rgba(255,255,255,.03);cursor:pointer;transition:border-color .15s}
-.dq-item:hover{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.05)}
-.dq-item.loaded{border-color:var(--gold);background:rgba(201,168,76,.08)}
-.dq-num{font-family:Orbitron,sans-serif;font-size:.38rem;color:var(--gray);min-width:18px;text-align:right}
-.dq-info{flex:1;min-width:0}
-.dq-name{font-family:Bebas Neue,sans-serif;font-size:1rem;letter-spacing:1.2px;color:var(--gold-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dq-meta{font-size:.78rem;color:var(--gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dq-load{flex-shrink:0}
+const firebaseConfig = {
+  apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+  authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
+  projectId: 'unibeatzproduction-7ae31',
+  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+  messagingSenderId: '70667820609',
+  appId: '1:70667820609:web:57762df5510e6b4000b0c0'
+};
 
-.track-list{display:grid;gap:9px;max-height:300px;overflow:auto}
-.track{border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.035);padding:11px;text-align:left;color:var(--white);cursor:pointer}
-.track .name{font-family:Bebas Neue,sans-serif;letter-spacing:1.4px;font-size:1.3rem;color:var(--gold-light)}
-.track .desc{color:#aeb8cb}
-.turntable{border-radius:16px;border:1px solid rgba(64,208,255,.25);background:radial-gradient(circle,#151b2d,#05060a 58%,#000);min-height:180px;display:grid;place-items:center;text-align:center}
-.disc{width:130px;height:130px;border-radius:50%;border:8px solid rgba(201,168,76,.35);background:radial-gradient(circle,#050505 0 20%,#141414 21% 50%,#050505 51%);display:grid;place-items:center;color:var(--blue-bright);font-family:Orbitron,sans-serif;font-size:.55rem;letter-spacing:2px;text-align:center;padding:10px}
-.range{width:100%}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.notice{min-height:22px;margin-top:10px;color:var(--blue-bright)}
-.hardware-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-.mapping-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
-.stream-pad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.stream-pad{min-height:70px}
-#recordPanel{margin-top:16px;border:2px solid rgba(255,60,60,.45);border-radius:18px;background:linear-gradient(145deg,rgba(20,4,4,.88),rgba(0,0,0,.72));padding:18px}
-#recordPanel .eyebrow{color:#ff7474}
-#recTimer{font-family:Bebas Neue,sans-serif;font-size:2.5rem;letter-spacing:4px;color:#ff3c3c;margin:8px 0}
-#recSavedList{display:grid;gap:9px;margin-top:12px;max-height:300px;overflow:auto}
-.rec-item{border:1px solid rgba(255,60,60,.3);border-radius:12px;background:rgba(255,60,60,.06);padding:11px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
-.rec-item .name{font-family:Bebas Neue,sans-serif;letter-spacing:1.4px;font-size:1.1rem;color:var(--gold-light)}
-.rec-item .desc{color:#aeb8cb;font-size:.85rem}
-#lockOverlay{position:fixed;inset:0;z-index:9999;background:#030305;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
-@media(max-width:980px){.deck-grid,.grid,.hardware-grid{grid-template-columns:1fr}.nav-inner{flex-direction:column;align-items:flex-start}.stream-pad-grid{grid-template-columns:1fr 1fr}}
-</style>
-</head>
-<body>
-<div id="lockOverlay">
-  <div style="font-family:Bebas Neue,sans-serif;font-size:3rem;letter-spacing:3px;color:#F0C040;">DJ DECK</div>
-  <input id="lockInput" type="password" placeholder="Admin code" style="padding:11px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.4);background:#090d18;color:#fff;font-family:Rajdhani,sans-serif;font-size:1rem;width:260px;"/>
-  <button onclick="if(document.getElementById('lockInput').value==='empire2026'){document.getElementById('lockOverlay').style.display='none'}else{document.getElementById('lockInput').value='';document.getElementById('lockInput').placeholder='Wrong code';}" style="border:0;border-radius:10px;padding:11px 24px;font-family:Orbitron,sans-serif;font-size:.52rem;letter-spacing:1.6px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#8B6914,#C9A84C,#F0C040);color:#05050a;">UNLOCK</button>
-</div>
+const app  = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO DJ DECK</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-apply.html">Apply To DJ</a><a href="admin-radio.html">Admin</a><button onclick="document.getElementById('lockOverlay').style.display='flex';document.getElementById('lockInput').value='';" style="font-family:Orbitron,sans-serif;font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:#ff7474;background:transparent;border:1px solid rgba(255,60,60,.4);border-radius:8px;padding:6px 10px;cursor:pointer;">🔒 Lock</button></div></div></nav>
+const UB_LIVEKIT_TOKEN_FUNCTION = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+const RADIO_LIVE_ROOM = 'unibeatz-radio-live';
 
-<main class="wrap">
+const deckA      = document.getElementById('deckA');
+const deckB      = document.getElementById('deckB');
+const deckALabel = document.getElementById('deckALabel');
+const deckBLabel = document.getElementById('deckBLabel');
+const qList      = document.getElementById('queueList');
+const pads       = document.getElementById('triggerPads');
+const notice     = document.getElementById('deckNotice');
 
-<section class="hero">
-  <div class="eyebrow">Virtual Broadcast Control Room</div>
-  <h1 class="h1">DJ <span>Deck</span></h1>
-  <p class="sub">Live broadcast, crossfader, queue, mic, MIDI, Stream Deck, and mix recorder — all in one panel.</p>
-  <div class="actions">
-    <button id="startBroadcast" class="btn btn-green">🔴 Start Live Broadcast</button>
-    <button id="endBroadcast" class="btn btn-red" disabled>⏹ End Broadcast</button>
-    <button id="micToggle" class="btn btn-blue">🎙 Mic Off</button>
+let queue = [], assets = [], micOn = false, live = false;
+let midiAccess = null, midiLearn = false, mappings = {};
 
-  </div>
-  <div id="deckNotice" class="notice"></div>
-  <p class="sub" id="broadcastStatus" style="margin-top:8px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;color:var(--gray);">Offline. Start live mode when ready.</p>
-</section>
+// ═══════════════════════════════════════════════
+// LIVEKIT BROADCAST STATE
+// ═══════════════════════════════════════════════
+let _lkRoom        = null;
+let _lkMicTrack    = null;
+let _lkMixTrack    = null;
+let _broadcastCtx  = null;
+let _broadcastDest = null;
 
-<section class="deck-grid">
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function note(m, c='#40D0FF'){ notice.textContent = m; notice.style.color = c; }
+function recNote(m, c='#40D0FF'){ const el=document.getElementById('recNotice'); if(el){el.textContent=m;el.style.color=c;} }
+function broadcastStatus(m){ const el=document.getElementById('broadcastStatus'); if(el) el.textContent=m; }
+async function ensure(){ if(!auth.currentUser) await signInAnonymously(auth); return auth.currentUser; }
+function itemName(x){ return x.trackTitle||x.title||'Untitled'; }
+function itemUrl(x){ return x.audioUrl||''; }
 
-  <!-- DECK A -->
-  <article class="panel">
-    <div class="eyebrow">Deck A</div>
-    <div class="turntable"><div class="disc" id="deckALabel">LOAD A</div></div>
-    <audio id="deckA" controls style="width:100%;margin-top:10px"></audio>
-    <div class="actions">
-      <button id="playA" class="btn btn-gold">▶ Play</button>
-      <button id="stopA" class="btn btn-blue">⏹ Stop</button>
-      <button id="cueA" class="btn btn-blue">⏮ Cue</button>
-    </div>
-    <!-- Queue directly in Deck A -->
-    <div style="margin-top:14px;">
-      <div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px;">QUEUE — TAP TO LOAD</div>
-      <div id="deckAQueue" class="deck-queue"><div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div></div>
-    </div>
-  </article>
+function setVolumes(){
+  const v = Number(document.getElementById('crossfader').value);
+  deckA.volume = (100-v)/100;
+  deckB.volume = v/100;
+  if(_recGainA && _recGainB){
+    _recGainA.gain.value = (100-v)/100;
+    _recGainB.gain.value = v/100;
+  }
+  if(_broadcastGainA && _broadcastGainB){
+    _broadcastGainA.gain.value = (100-v)/100;
+    _broadcastGainB.gain.value = v/100;
+  }
+}
 
-  <!-- MIXER -->
-  <article class="panel">
-    <div class="eyebrow">Mixer</div>
-    <p class="sub" style="margin-bottom:6px;">Crossfader</p>
-    <input id="crossfader" class="range" type="range" min="0" max="100" value="50"/>
-    <div style="display:flex;justify-content:space-between;font-family:Orbitron,sans-serif;font-size:.38rem;color:var(--gray);margin-bottom:10px;"><span>A</span><span>B</span></div>
-    <h2 style="font-family:Bebas Neue;color:var(--gold-light);margin-top:8px;font-size:1.4rem;">Trigger Pads</h2>
-    <p style="font-size:.8rem;color:var(--gray);margin-bottom:6px;">Station drops, voiceovers, podcasts</p>
-    <div id="triggerPads" class="track-list"></div>
-  </article>
+function loadTo(deck, item){
+  if(!itemUrl(item)){ note('This item has no audio URL.','#ff7474'); return; }
+  if(deck==='A'){ deckA.src=itemUrl(item); deckALabel.textContent='A: '+itemName(item).slice(0,20); }
+  else           { deckB.src=itemUrl(item); deckBLabel.textContent='B: '+itemName(item).slice(0,20); }
+  note('Loaded '+itemName(item)+' to Deck '+deck,'#5dff9e');
+}
 
-  <!-- DECK B -->
-  <article class="panel">
-    <div class="eyebrow">Deck B</div>
-    <div class="turntable"><div class="disc" id="deckBLabel">LOAD B</div></div>
-    <audio id="deckB" controls style="width:100%;margin-top:10px"></audio>
-    <div class="actions">
-      <button id="playB" class="btn btn-gold">▶ Play</button>
-      <button id="stopB" class="btn btn-blue">⏹ Stop</button>
-      <button id="cueB" class="btn btn-blue">⏮ Cue</button>
-    </div>
-    <!-- Queue directly in Deck B -->
-    <div style="margin-top:14px;">
-      <div style="font-family:Orbitron,sans-serif;font-size:.44rem;letter-spacing:2px;color:var(--gold);margin-bottom:8px;">QUEUE — TAP TO LOAD</div>
-      <div id="deckBQueue" class="deck-queue"><div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div></div>
-    </div>
-  </article>
+async function loadQueue(){
+  if(qList) qList.innerHTML = '<div class="track"><div class="name" style="color:var(--gray);">Loading tracks...</div></div>';
+  try{
+    const [tracksSnap, assetsSnap] = await Promise.all([
+      getDocs(collection(db,'radio_submissions')),
+      getDocs(collection(db,'radio_assets')).catch(()=>({docs:[]}))
+    ]);
+    queue  = tracksSnap.docs.map(d=>({id:d.id,kind:'track',...d.data()})).filter(x=>x.status==='approved');
+    assets = assetsSnap.docs.map(d=>({id:d.id,kind:'asset',...d.data()})).filter(x=>x.active!==false);
+    queue  = [...queue,...assets].sort((a,b)=>Number(a.sortOrder||0)-Number(b.sortOrder||0));
+    renderQueue(); renderPads();
+  } catch(e){
+    console.error(e);
+    if(qList) qList.innerHTML = '<div class="track"><div class="name" style="color:#ff7474;">Queue failed. Check Firestore rules.</div></div>';
+  }
+}
 
-</section>
+function renderQueue(){
+  // Full track browser in bottom queue section
+  if(!qList) return;
+  if(!queue.length){ qList.innerHTML='<div class="track"><div class="name" style="color:var(--gray);">No approved tracks yet.</div></div>'; return; }
+  qList.innerHTML = queue.map((x,i)=>`
+    <div class="track">
+      <div class="name">${i+1}. ${esc(itemName(x))}</div>
+      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
+      <div class="actions" style="margin-top:6px;">
+        <button class="btn btn-blue" data-stage="A" data-i="${i}">+ Stage to A</button>
+        <button class="btn btn-blue" data-stage="B" data-i="${i}">+ Stage to B</button>
+        <button class="btn btn-gold" data-load="A" data-i="${i}">▶ Load A</button>
+        <button class="btn btn-gold" data-load="B" data-i="${i}">▶ Load B</button>
+      </div>
+    </div>`).join('');
+}
 
-<!-- RECORD PANEL -->
-<section id="recordPanel">
-  <div class="eyebrow">🔴 Mix Recorder</div>
-  <h2 style="font-family:Bebas Neue;color:#ff7474;font-size:2rem;letter-spacing:2px;">RECORD YOUR MIX</h2>
-  <p class="sub" style="margin-bottom:12px;">Records everything playing through the decks. Download to upload to Live365.</p>
-  <div class="actions">
-    <button id="recStart" class="btn btn-rec">⏺ Start Recording</button>
-    <button id="recStop" class="btn btn-blue" disabled>⏹ Stop & Save</button>
-  </div>
-  <div id="recTimer" style="display:none;">0:00</div>
-  <div id="recNotice" class="notice"></div>
-  <div id="recSavedList"></div>
-</section>
+// Staged track lists per deck (separate from queue)
+let stageA = [], stageB = [];
 
-<!-- FULL QUEUE BROWSER -->
-<section class="panel" style="margin-top:16px">
-  <div class="eyebrow">Track Browser</div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:2rem;">FULL QUEUE</h2>
-  <p class="sub" style="margin-bottom:10px;">Browse all approved tracks. Stage to a deck queue above, or load directly.</p>
-  <div class="actions" style="margin-bottom:10px;">
-    <button id="reloadQueue" class="btn btn-blue">↻ Reload Tracks</button>
-    <button id="saveQueue" class="btn btn-gold">💾 Save Queue</button>
-  </div>
-  <div id="queueList" class="track-list"></div>
-</section>
+function renderDeckQueue(deck){
+  const el = document.getElementById('deck' + deck + 'Queue');
+  if(!el) return;
+  const stage = deck === 'A' ? stageA : stageB;
+  if(!stage.length){
+    el.innerHTML = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Stage tracks from queue below</div></div></div>';
+    return;
+  }
+  el.innerHTML = stage.map((x,i)=>`
+    <div class="dq-item ${x._loaded?'loaded':''}">
+      <div class="dq-num">${i+1}</div>
+      <div class="dq-info">
+        <div class="dq-name">${esc(itemName(x))}</div>
+        <div class="dq-meta">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn btn-sm btn-gold" data-load-staged="${deck}" data-si="${i}">▶</button>
+        <button class="btn btn-sm btn-red" data-remove-staged="${deck}" data-si="${i}">✕</button>
+      </div>
+    </div>`).join('');
+}
 
-<!-- HARDWARE / MIDI / STREAM DECK -->
-<section class="panel" style="margin-top:16px" id="hardwareManager">
-  <div class="eyebrow">DJ Hardware Manager</div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:2rem">MIDI / Equipment / Stream Deck</h2>
-  <p class="sub">Connect MIDI controllers — FLKey, Akai, DDJ-style, or Stream Deck hotkeys.</p>
-  <div class="actions">
-    <button id="connectMidi" class="btn btn-gold">Connect MIDI Equipment</button>
-    <button id="startMidiLearn" class="btn btn-blue">Start MIDI Learn</button>
-    <button id="stopMidiLearn" class="btn btn-red">Stop MIDI Learn</button>
-  </div>
-  <div id="midiStatus" class="notice">No MIDI device connected yet.</div>
-  <div class="hardware-grid">
-    <article class="track"><div class="name">Connected Devices</div><div id="midiDevices" class="desc">None detected.</div></article>
-    <article class="track"><div class="name">Last MIDI Signal</div><div id="lastMidiSignal" class="desc">Waiting...</div></article>
-    <article class="track"><div class="name">MIDI Learn Target</div>
-      <select id="midiTarget" class="input">
-        <option value="playA">Play Deck A</option>
-        <option value="playB">Play Deck B</option>
-        <option value="stopA">Stop Deck A</option>
-        <option value="stopB">Stop Deck B</option>
-        <option value="crossfader">Crossfader</option>
-        <option value="micToggle">Mic On/Off</option>
-        <option value="nextTrigger">Trigger Next Drop</option>
-        <option value="startBroadcast">Go Live</option>
-        <option value="endBroadcast">End Live</option>
-        <option value="startRecording">Start Recording</option>
-        <option value="stopRecording">Stop Recording</option>
-      </select>
-    </article>
-  </div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:1.6rem;margin-top:14px">Saved Mappings</h2>
-  <div id="midiMappings" class="track-list"></div>
-  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:1.6rem;margin-top:14px">Stream Deck Pads</h2>
-  <div class="stream-pad-grid">
-    <button class="btn btn-green stream-pad" data-stream-action="startBroadcast">🔴 GO LIVE</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="micToggle">🎤 MIC</button>
-    <button class="btn btn-gold stream-pad" data-stream-action="nextTrigger">📻 DROP</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="playA">▶ DECK A</button>
-    <button class="btn btn-blue stream-pad" data-stream-action="playB">▶ DECK B</button>
-    <button class="btn btn-rec stream-pad" data-stream-action="startRecording">⏺ RECORD</button>
-  </div>
-</section>
+function renderPads(){
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  if(!triggers.length){ pads.innerHTML='<div class="track">Upload voiceovers, drops, podcasts, or DJ sets in admin.</div>'; return; }
+  pads.innerHTML = triggers.map((x,i)=>`
+    <button class="track" data-pad="${i}" type="button">
+      <div class="name">${esc(x.title||'Drop')}</div>
+      <div class="desc">${esc(x.type||'Asset')}</div>
+    </button>`).join('');
+}
 
-</main>
-<script type="module" src="radio-dj-deck.js"></script>
-<script>document.getElementById('lockInput').addEventListener('keydown',function(e){if(e.key==='Enter')e.target.nextElementSibling.click();});</script>
-</body>
-</html>
+function triggerNextDrop(){
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  const x = triggers[0]||queue[0];
+  if(x){ loadTo('B',x); deckB.play(); }
+}
+
+// ═══════════════════════════════════════════════
+// LIVEKIT BROADCAST — streams mic + deck mix live
+// ═══════════════════════════════════════════════
+let _broadcastGainA = null;
+let _broadcastGainB = null;
+let _broadcastSrcA  = null;
+let _broadcastSrcB  = null;
+
+async function startBroadcast(){
+  if(live){ note('Already live.','#F0C040'); return; }
+  if(!window.LivekitClient){
+    note('Loading LiveKit...','#F0C040');
+    // Load LiveKit UMD if not already loaded
+    await new Promise((res,rej)=>{
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  try{
+    note('Connecting to broadcast room...','#F0C040');
+    await ensure();
+    const djName = 'dj_' + (auth.currentUser?.uid||'guest').slice(0,8);
+
+    // Get LiveKit token
+    const res = await fetch(`${UB_LIVEKIT_TOKEN_FUNCTION}?room=${RADIO_LIVE_ROOM}&username=${djName}`);
+    const { token, url } = await res.json();
+    if(!token || !url) throw new Error('Could not get broadcast token');
+
+    // Connect to LiveKit room
+    _lkRoom = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+    await _lkRoom.connect(url, token);
+
+    // Build Web Audio mix: deckA + deckB → single stream → LiveKit
+    _broadcastCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    if(_broadcastCtx.state === 'suspended') await _broadcastCtx.resume();
+
+    _broadcastDest  = _broadcastCtx.createMediaStreamDestination();
+    _broadcastSrcA  = _broadcastCtx.createMediaElementSource(deckA);
+    _broadcastSrcB  = _broadcastCtx.createMediaElementSource(deckB);
+    _broadcastGainA = _broadcastCtx.createGain();
+    _broadcastGainB = _broadcastCtx.createGain();
+
+    const v = Number(document.getElementById('crossfader').value);
+    _broadcastGainA.gain.value = (100-v)/100;
+    _broadcastGainB.gain.value = v/100;
+
+    // Route decks to mix destination AND speakers
+    _broadcastSrcA.connect(_broadcastGainA);
+    _broadcastGainA.connect(_broadcastDest);
+    _broadcastGainA.connect(_broadcastCtx.destination);
+
+    _broadcastSrcB.connect(_broadcastGainB);
+    _broadcastGainB.connect(_broadcastDest);
+    _broadcastGainB.connect(_broadcastCtx.destination);
+
+    // Publish the deck mix as a custom audio track
+    const mixTrack = _broadcastDest.stream.getAudioTracks()[0];
+    if(mixTrack){
+      _lkMixTrack = await LivekitClient.createLocalAudioTrack({ mediaStreamTrack: mixTrack });
+      await _lkRoom.localParticipant.publishTrack(_lkMixTrack);
+    }
+
+    live = true;
+    broadcastStatus('🔴 LIVE — Streaming to UniBeatz Radio · Room: ' + RADIO_LIVE_ROOM);
+    note('🔴 Live broadcast started! Listeners can tune in on the radio page.','#5dff9e');
+
+    // Update Firestore so radio page knows DJ is live
+    await setDoc(doc(db,'radio_broadcast','main'),{
+      live: true, djRoom: RADIO_LIVE_ROOM, micOn,
+      updatedAt: serverTimestamp(),
+      hostUid: auth.currentUser?.uid || ''
+    },{ merge: true });
+
+    // Update button states
+    document.getElementById('startBroadcast').disabled = true;
+    document.getElementById('endBroadcast').disabled   = false;
+
+  } catch(e){
+    console.error('[broadcast]', e);
+    note('Broadcast failed: ' + (e.message||e),'#ff7474');
+    await endBroadcast();
+  }
+}
+
+async function endBroadcast(){
+  live = false;
+  try{
+    if(_lkMicTrack)  { await _lkRoom?.localParticipant?.unpublishTrack(_lkMicTrack); _lkMicTrack = null; }
+    if(_lkMixTrack)  { await _lkRoom?.localParticipant?.unpublishTrack(_lkMixTrack); _lkMixTrack = null; }
+    if(_lkRoom)      { _lkRoom.disconnect(); _lkRoom = null; }
+    if(_broadcastSrcA){ try{ _broadcastSrcA.disconnect(); } catch(e){} _broadcastSrcA = null; }
+    if(_broadcastSrcB){ try{ _broadcastSrcB.disconnect(); } catch(e){} _broadcastSrcB = null; }
+    if(_broadcastCtx) { _broadcastCtx.close(); _broadcastCtx = null; }
+    _broadcastDest = null; _broadcastGainA = null; _broadcastGainB = null;
+  } catch(e){ console.warn('[broadcast end]', e); }
+
+  broadcastStatus('Offline. Start live mode when ready.');
+  note('Broadcast ended.','#ff7474');
+
+  await ensure();
+  await setDoc(doc(db,'radio_broadcast','main'),{
+    live: false, micOn: false, updatedAt: serverTimestamp()
+  },{ merge: true });
+
+  document.getElementById('startBroadcast').disabled = false;
+  document.getElementById('endBroadcast').disabled   = true;
+}
+
+async function toggleMic(){
+  micOn = !micOn;
+  const btn = document.getElementById('micToggle');
+  btn.textContent = micOn ? '🎙 Mic On' : '🎙 Mic Off';
+
+  if(!live){ note(micOn ? 'Mic armed. Start broadcast to go live.' : 'Mic off.'); return; }
+
+  if(micOn){
+    try{
+      // Get mic and publish to LiveKit
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      _lkMicTrack = await LivekitClient.createLocalAudioTrack({ mediaStreamTrack: micStream.getAudioTracks()[0] });
+      await _lkRoom.localParticipant.publishTrack(_lkMicTrack);
+      note('🎙 Mic live — you are broadcasting voice.','#5dff9e');
+    } catch(e){
+      micOn = false; btn.textContent = '🎙 Mic Off';
+      note('Mic failed: ' + (e.message||e),'#ff7474');
+    }
+  } else {
+    if(_lkMicTrack){
+      await _lkRoom?.localParticipant?.unpublishTrack(_lkMicTrack);
+      _lkMicTrack = null;
+    }
+    note('Mic muted.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// MIX RECORDER
+// ═══════════════════════════════════════════════
+let _audioCtx    = null;
+let _recDest     = null;
+let _mediaRec    = null;
+let _recChunks   = [];
+let _recGainA    = null;
+let _recGainB    = null;
+let _recSrcA     = null;
+let _recSrcB     = null;
+let _recTimerInt = null;
+let _recStart    = null;
+let _savedMixes  = [];
+
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function startRecording(){
+  // If broadcast is active, reuse that audio context
+  if(live && _broadcastCtx && _broadcastDest){
+    note('Recording from live broadcast mix.','#F0C040');
+    _recChunks = [];
+    _mediaRec  = new MediaRecorder(_broadcastDest.stream, { mimeType: 'audio/webm' });
+    _mediaRec.ondataavailable = e => { if(e.data.size>0) _recChunks.push(e.data); };
+    _mediaRec.onstop = finishRecording;
+    _mediaRec.start(1000);
+    _recStart = Date.now();
+    startRecTimer();
+    updateRecButtons(true);
+    recNote('🔴 Recording live broadcast mix.','#ff3c3c');
+    return;
+  }
+
+  if(_mediaRec && _mediaRec.state==='recording'){ recNote('Already recording.','#F0C040'); return; }
+
+  const ctx = getAudioCtx();
+  if(ctx.state==='suspended') ctx.resume();
+
+  _recSrcA  = ctx.createMediaElementSource(deckA);
+  _recSrcB  = ctx.createMediaElementSource(deckB);
+  _recGainA = ctx.createGain();
+  _recGainB = ctx.createGain();
+  _recDest  = ctx.createMediaStreamDestination();
+
+  const v = Number(document.getElementById('crossfader').value);
+  _recGainA.gain.value = (100-v)/100;
+  _recGainB.gain.value = v/100;
+
+  _recSrcA.connect(_recGainA);
+  _recGainA.connect(_recDest);
+  _recGainA.connect(ctx.destination);
+
+  _recSrcB.connect(_recGainB);
+  _recGainB.connect(_recDest);
+  _recGainB.connect(ctx.destination);
+
+  _recChunks = [];
+  _mediaRec  = new MediaRecorder(_recDest.stream, { mimeType: 'audio/webm' });
+  _mediaRec.ondataavailable = e => { if(e.data.size>0) _recChunks.push(e.data); };
+  _mediaRec.onstop = finishRecording;
+  _mediaRec.start(1000);
+  _recStart = Date.now();
+  startRecTimer();
+  updateRecButtons(true);
+  recNote('🔴 Recording mix — play your tracks on the decks.','#ff3c3c');
+}
+
+function startRecTimer(){
+  const timerEl = document.getElementById('recTimer');
+  if(timerEl) timerEl.style.display='block';
+  _recTimerInt = setInterval(()=>{
+    const elapsed = Math.floor((Date.now()-_recStart)/1000);
+    const m = Math.floor(elapsed/60), s = elapsed%60;
+    if(timerEl) timerEl.textContent = m+':'+(s<10?'0':'')+s;
+  }, 500);
+}
+
+function updateRecButtons(recording){
+  const startBtn = document.getElementById('recStart');
+  const stopBtn  = document.getElementById('recStop');
+  if(startBtn){ startBtn.textContent = recording ? '⏺ Recording...' : '⏺ Start Recording'; startBtn.classList.toggle('recording', recording); startBtn.disabled = recording; }
+  if(stopBtn)  stopBtn.disabled = !recording;
+}
+
+function stopRecording(){
+  if(!_mediaRec||_mediaRec.state!=='recording'){ recNote('No recording in progress.','#F0C040'); return; }
+  _mediaRec.stop();
+  clearInterval(_recTimerInt);
+  const timerEl = document.getElementById('recTimer');
+  if(timerEl) timerEl.style.display='none';
+  updateRecButtons(false);
+}
+
+function finishRecording(){
+  const blob = new Blob(_recChunks, { type:'audio/webm' });
+  const url  = URL.createObjectURL(blob);
+  const duration = Math.floor((Date.now()-_recStart)/1000);
+  const m = Math.floor(duration/60), s = duration%60;
+  const name = 'UniBeatz_Mix_'+new Date().toISOString().slice(0,16).replace('T','_').replace(/:/g,'-');
+
+  _savedMixes.unshift({ name, blob, url, duration, date: new Date().toLocaleString() });
+
+  // Only disconnect if not using broadcast context
+  if(!live){
+    try{ _recSrcA.disconnect(); }catch(e){}
+    try{ _recSrcB.disconnect(); }catch(e){}
+    try{ _recSrcA.connect(_audioCtx.destination); }catch(e){}
+    try{ _recSrcB.connect(_audioCtx.destination); }catch(e){}
+    _recGainA = null; _recGainB = null;
+  }
+
+  renderSavedMixes();
+  recNote('✅ Mix saved! '+m+'m '+s+'s — download to upload to Live365.','#5dff9e');
+}
+
+function renderSavedMixes(){
+  const list = document.getElementById('recSavedList');
+  if(!list) return;
+  if(!_savedMixes.length){ list.innerHTML=''; return; }
+  list.innerHTML = _savedMixes.map((mix,i)=>`
+    <div class="rec-item">
+      <div>
+        <div class="name">${esc(mix.name)}</div>
+        <div class="desc">${mix.date} · ${Math.floor(mix.duration/60)}m ${mix.duration%60}s</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <a href="${mix.url}" download="${mix.name}.webm" class="btn btn-gold" style="text-decoration:none;white-space:nowrap;">⬇ Download</a>
+        <button class="btn btn-red" data-delete-mix="${i}">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+document.getElementById('recSavedList')?.addEventListener('click', e=>{
+  const btn = e.target.closest('[data-delete-mix]');
+  if(!btn) return;
+  const i = Number(btn.dataset.deleteMix);
+  URL.revokeObjectURL(_savedMixes[i]?.url);
+  _savedMixes.splice(i,1);
+  renderSavedMixes();
+});
+
+document.getElementById('recStart')?.addEventListener('click', startRecording);
+document.getElementById('recStop')?.addEventListener('click',  stopRecording);
+
+// ═══════════════════════════════════════════════
+// DECK CONTROLS
+// ═══════════════════════════════════════════════
+function runDeckAction(action, value=null){
+  if(action==='playA')          deckA.play();
+  if(action==='playB')          deckB.play();
+  if(action==='stopA')         { deckA.pause(); deckA.currentTime=0; }
+  if(action==='stopB')         { deckB.pause(); deckB.currentTime=0; }
+  if(action==='micToggle')      toggleMic();
+  if(action==='startBroadcast') startBroadcast();
+  if(action==='endBroadcast')   endBroadcast();
+  if(action==='nextTrigger')    triggerNextDrop();
+  if(action==='startRecording') startRecording();
+  if(action==='stopRecording')  stopRecording();
+  if(action==='crossfader' && value!==null){
+    document.getElementById('crossfader').value = Math.round((value/127)*100);
+    setVolumes();
+  }
+}
+
+// Bottom queue — stage to deck or load directly
+qList?.addEventListener('click', e => {
+  const stageBtn = e.target.closest('[data-stage]');
+  if(stageBtn){
+    const deck = stageBtn.dataset.stage;
+    const item = queue[Number(stageBtn.dataset.i)];
+    if(!item) return;
+    if(deck === 'A'){ stageA.push({...item}); renderDeckQueue('A'); }
+    else             { stageB.push({...item}); renderDeckQueue('B'); }
+    note('Staged "' + itemName(item) + '" to Deck ' + deck,'#5dff9e');
+    return;
+  }
+  const loadBtn = e.target.closest('[data-load]');
+  if(loadBtn){
+    const deck = loadBtn.dataset.load;
+    const item = queue[Number(loadBtn.dataset.i)];
+    if(item) loadTo(deck, item);
+  }
+});
+
+// Deck queue — play staged track or remove it
+['A','B'].forEach(deck => {
+  document.getElementById('deck' + deck + 'Queue')?.addEventListener('click', e => {
+    const playBtn = e.target.closest('[data-load-staged]');
+    if(playBtn){
+      const stage = deck === 'A' ? stageA : stageB;
+      const si = Number(playBtn.dataset.si);
+      const item = stage[si];
+      if(!item) return;
+      // Mark loaded
+      stage.forEach(x => x._loaded = false);
+      item._loaded = true;
+      loadTo(deck, item);
+      renderDeckQueue(deck);
+      return;
+    }
+    const removeBtn = e.target.closest('[data-remove-staged]');
+    if(removeBtn){
+      const si = Number(removeBtn.dataset.si);
+      if(deck === 'A') stageA.splice(si, 1);
+      else             stageB.splice(si, 1);
+      renderDeckQueue(deck);
+    }
+  });
+});
+
+pads.addEventListener('click', e=>{
+  const p = e.target.closest('[data-pad]');
+  if(!p) return;
+  const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
+  const x = triggers[Number(p.dataset.pad)];
+  loadTo('B',x); deckB.play();
+});
+
+document.getElementById('crossfader').addEventListener('input', setVolumes);
+document.getElementById('playA').onclick  = ()=>deckA.play();
+document.getElementById('playB').onclick  = ()=>deckB.play();
+document.getElementById('stopA').onclick  = ()=>{ deckA.pause(); deckA.currentTime=0; };
+document.getElementById('stopB').onclick  = ()=>{ deckB.pause(); deckB.currentTime=0; };
+document.getElementById('cueA').onclick   = ()=>{ deckA.currentTime=0; deckA.play(); };
+document.getElementById('cueB').onclick   = ()=>{ deckB.currentTime=0; deckB.play(); };
+document.getElementById('micToggle').onclick    = toggleMic;
+document.getElementById('startBroadcast').onclick = startBroadcast;
+document.getElementById('endBroadcast').onclick   = endBroadcast;
+document.getElementById('endBroadcast').disabled  = true;
+
+document.getElementById('reloadQueue').onclick = loadQueue;
+document.getElementById('saveQueue').onclick = async()=>{
+  await ensure();
+  await setDoc(doc(db,'radio_dj_queues','main'),{
+    items: queue.map((x,i)=>({id:x.id,kind:x.kind||'item',title:itemName(x),audioUrl:itemUrl(x),order:i})),
+    updatedAt: serverTimestamp()
+  },{merge:true});
+  note('Broadcast queue saved.','#5dff9e');
+};
+
+// ═══════════════════════════════════════════════
+// MIDI
+// ═══════════════════════════════════════════════
+function renderMappings(){
+  const box = document.getElementById('midiMappings');
+  if(!box) return;
+  const rows = Object.entries(mappings);
+  if(!rows.length){ box.innerHTML='<div class="track">No MIDI mappings yet. Click Start MIDI Learn, choose a target, then move a control.</div>'; return; }
+  box.innerHTML = rows.map(([key,action])=>`
+    <div class="track mapping-row">
+      <div><div class="name">${esc(action)}</div><div class="desc">MIDI ${esc(key)}</div></div>
+      <button class="btn btn-red" data-clear-map="${esc(key)}">Clear</button>
+    </div>`).join('');
+}
+function midiKey(data){ return `${data[0]}-${data[1]}`; }
+// ── Pitch Wheel Scratch (Akai MPK Mini / any pitch wheel) ──
+// Pitch bend status = 0xE0-0xEF. Two data bytes form a 14-bit value.
+let _scratchActive = false;
+let _scratchResetTimer = null;
+
+function handlePitchWheel(lsb, msb){
+  // 14-bit value: 0-8191 = below center, 8192 = center, 8193-16383 = above center
+  const raw = ((msb & 0x7F) << 7) | (lsb & 0x7F);
+  const centered = raw - 8192; // -8192 to +8191
+  const normalized = centered / 8192; // -1.0 to +1.0
+
+  // Which deck is active? Use whichever is playing, prefer A
+  const targetDeck = (!deckA.paused) ? deckA : (!deckB.paused) ? deckB : deckA;
+
+  if(Math.abs(normalized) < 0.04){
+    // Wheel at center — restore normal speed
+    targetDeck.playbackRate = 1.0;
+    _scratchActive = false;
+  } else {
+    // Scratch: map -1→0.3x speed, +1→2.5x speed
+    // Center = 1.0, giving a natural scratch feel
+    const rate = 1.0 + (normalized * 1.5);
+    targetDeck.playbackRate = Math.max(0.1, Math.min(3.0, rate));
+    _scratchActive = true;
+
+    // Auto-restore after wheel released (no new messages for 150ms)
+    clearTimeout(_scratchResetTimer);
+    _scratchResetTimer = setTimeout(() => {
+      targetDeck.playbackRate = 1.0;
+      _scratchActive = false;
+    }, 150);
+  }
+
+  const sig = document.getElementById('lastMidiSignal');
+  if(sig) sig.textContent = `Pitch Wheel: ${normalized.toFixed(2)} → rate ${targetDeck.playbackRate.toFixed(2)}x`;
+}
+
+function onMidiMessage(e){
+  const data=[...e.data], key=midiKey(data), val=data[2]??0;
+
+  // Intercept pitch bend messages (status 0xE0-0xEF)
+  if((data[0] & 0xF0) === 0xE0){
+    handlePitchWheel(data[1], data[2]);
+    return;
+  }
+
+  // Intercept Note On (0x90) — Akai pads
+  if((data[0] & 0xF0) === 0x90 && data[2] > 0){
+    const note_num = data[1];
+    if(AKAI_PAD_MAP[note_num]){
+      AKAI_PAD_MAP[note_num]();
+      const sig2=document.getElementById('lastMidiSignal');
+      if(sig2) sig2.textContent=`Pad ${note_num} fired`;
+      return;
+    }
+  }
+
+  // Intercept CC (0xB0) — Akai knobs
+  if((data[0] & 0xF0) === 0xB0){
+    const cc = data[1], ccVal = data[2];
+    if(AKAI_KNOB_MAP[cc]){
+      AKAI_KNOB_MAP[cc](ccVal);
+      return;
+    }
+  }
+
+  const sig=document.getElementById('lastMidiSignal');
+  if(sig) sig.textContent=`${key} value ${val}`;
+  if(midiLearn){
+    const target=document.getElementById('midiTarget').value;
+    mappings[key]=target;
+    localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
+    renderMappings();
+    note(`Mapped MIDI ${key} to ${target}`,'#5dff9e');
+    return;
+  }
+  const action=mappings[key];
+  if(action) runDeckAction(action,val);
+}
+async function connectMidi(){
+  const status=document.getElementById('midiStatus');
+  try{
+    if(!navigator.requestMIDIAccess){ status.textContent='Web MIDI not supported. Use Chrome/Edge desktop.'; status.style.color='#ff7474'; return; }
+    midiAccess=await navigator.requestMIDIAccess({sysex:false});
+    const inputs=[...midiAccess.inputs.values()];
+    inputs.forEach(input=>input.onmidimessage=onMidiMessage);
+    document.getElementById('midiDevices').textContent=inputs.length?inputs.map(i=>i.name).join(', '):'No MIDI inputs detected.';
+    status.textContent=inputs.length?'MIDI equipment connected.':'MIDI ready, but no inputs detected.';
+    status.style.color=inputs.length?'#5dff9e':'#F0C040';
+  } catch(e){ console.error(e); status.textContent='MIDI connect failed: '+(e.message||e); status.style.color='#ff7474'; }
+}
+document.getElementById('connectMidi')?.addEventListener('click',connectMidi);
+document.getElementById('startMidiLearn')?.addEventListener('click',()=>{ midiLearn=true; note('MIDI Learn ON. Move a hardware control now.','#F0C040'); });
+document.getElementById('stopMidiLearn')?.addEventListener('click',()=>{ midiLearn=false; note('MIDI Learn OFF.'); });
+document.getElementById('midiMappings')?.addEventListener('click',e=>{
+  const b=e.target.closest('[data-clear-map]');
+  if(!b) return;
+  delete mappings[b.dataset.clearMap];
+  localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
+  renderMappings();
+});
+document.querySelectorAll('[data-stream-action]').forEach(btn=>btn.addEventListener('click',()=>runDeckAction(btn.dataset.streamAction)));
+
+// ═══════════════════════════════════════════════
+// WEB AUDIO EQ + FX + LOOP ENGINE
+// ═══════════════════════════════════════════════
+
+let _eqCtx = null;
+const _eq = { A: {}, B: {} };
+const _fx = { A: {}, B: {} };
+const _loop = { A: { active:false, start:0, length:0, timer:null }, B: { active:false, start:0, length:0, timer:null } };
+
+function getEqCtx(){
+  if(!_eqCtx) _eqCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return _eqCtx;
+}
+
+function buildEQ(deck){
+  const ctx = getEqCtx();
+  const audio = deck === 'A' ? deckA : deckB;
+  if(_eq[deck].built) return;
+
+  try{
+    const src    = ctx.createMediaElementSource(audio);
+    const low    = ctx.createBiquadFilter(); low.type='lowshelf';  low.frequency.value=250;
+    const midLo  = ctx.createBiquadFilter(); midLo.type='peaking'; midLo.frequency.value=500;  midLo.Q.value=1;
+    const midHi  = ctx.createBiquadFilter(); midHi.type='peaking'; midHi.frequency.value=2000; midHi.Q.value=1;
+    const high   = ctx.createBiquadFilter(); high.type='highshelf'; high.frequency.value=8000;
+
+    // Bass boost node
+    const bassBoost = ctx.createBiquadFilter(); bassBoost.type='lowshelf'; bassBoost.frequency.value=200; bassBoost.gain.value=0;
+    // Filter node
+    const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=20000;
+    // Reverb (convolver + gain)
+    const reverbGain = ctx.createGain(); reverbGain.gain.value=0;
+    const reverbDelay = ctx.createDelay(2.0); reverbDelay.delayTime.value=0.3;
+    const reverbFeed  = ctx.createGain(); reverbFeed.gain.value=0.4;
+    reverbDelay.connect(reverbFeed); reverbFeed.connect(reverbDelay);
+    // Stutter (gain toggler)
+    const stutterGain = ctx.createGain(); stutterGain.gain.value=1;
+
+    src.connect(low);
+    low.connect(midLo);
+    midLo.connect(midHi);
+    midHi.connect(high);
+    high.connect(bassBoost);
+    bassBoost.connect(filter);
+    filter.connect(stutterGain);
+    stutterGain.connect(reverbGain);
+    stutterGain.connect(ctx.destination);
+    reverbDelay.connect(reverbGain);
+    reverbGain.connect(ctx.destination);
+
+    _eq[deck] = { built:true, src, low, midLo, midHi, high, bassBoost, filter, reverbGain, reverbDelay, reverbFeed, stutterGain };
+    console.log('[EQ] Built for Deck', deck);
+  } catch(e){ console.warn('[EQ] Build failed for deck', deck, e); }
+}
+
+// ── EQ Knob control ──
+// Gain range: -15 to +15 dB, knob val 0-127
+function setEQBand(deck, band, val){
+  buildEQ(deck);
+  const db = ((val / 127) * 30) - 15; // -15 to +15 dB
+  const eq = _eq[deck];
+  if(!eq.built) return;
+  if(band==='low')   eq.low.gain.value   = db;
+  if(band==='midLo') eq.midLo.gain.value = db;
+  if(band==='midHi') eq.midHi.gain.value = db;
+  if(band==='high')  eq.high.gain.value  = db;
+  note(`Deck ${deck} ${band} EQ: ${db>0?'+':''}${db.toFixed(1)}dB`);
+}
+
+// ── Loop engine ──
+const LOOP_LENGTHS = [4, 2, 1, 0.5]; // bars in beats (assuming ~120bpm = 2s/bar)
+const BPM = 120;
+const BAR_SECS = (60 / BPM) * 4;
+
+function startLoop(deck, bars){
+  const audio = deck === 'A' ? deckA : deckB;
+  const lp = _loop[deck];
+  if(lp.active && lp.bars === bars){ stopLoop(deck); return; } // toggle off
+  stopLoop(deck);
+  lp.active = true;
+  lp.bars = bars;
+  lp.start = audio.currentTime;
+  lp.length = bars * BAR_SECS;
+  clearInterval(lp.timer);
+  lp.timer = setInterval(()=>{
+    if(!lp.active){ clearInterval(lp.timer); return; }
+    if(audio.currentTime >= lp.start + lp.length){
+      audio.currentTime = lp.start;
+    }
+  }, 10);
+  note(`🔁 Deck ${deck} Loop ${bars} bar${bars!==1?'s':''} ON`,'#F0C040');
+}
+
+function stopLoop(deck){
+  const lp = _loop[deck];
+  lp.active = false;
+  clearInterval(lp.timer);
+}
+
+// ── FX toggles ──
+let _stutterTimers = { A: null, B: null };
+let _fxState = { A: { bass:false, filter:false, reverb:false, stutter:false }, B: { bass:false, filter:false, reverb:false, stutter:false } };
+
+function toggleFX(deck, fx){
+  buildEQ(deck);
+  const eq = _eq[deck];
+  if(!eq.built) return;
+  const state = _fxState[deck];
+
+  if(fx === 'bass'){
+    state.bass = !state.bass;
+    eq.bassBoost.gain.value = state.bass ? 12 : 0;
+    note(`Deck ${deck} Bass Boost ${state.bass?'ON':'OFF'}`, state.bass?'#5dff9e':'#ff7474');
+  }
+  if(fx === 'filter'){
+    state.filter = !state.filter;
+    // Sweep filter down when on
+    if(state.filter){
+      eq.filter.frequency.value = 800;
+      note(`Deck ${deck} Filter ON`,'#5dff9e');
+    } else {
+      eq.filter.frequency.value = 20000;
+      note(`Deck ${deck} Filter OFF`,'#ff7474');
+    }
+  }
+  if(fx === 'reverb'){
+    state.reverb = !state.reverb;
+    eq.reverbGain.gain.value = state.reverb ? 0.5 : 0;
+    note(`Deck ${deck} Reverb ${state.reverb?'ON':'OFF'}`, state.reverb?'#5dff9e':'#ff7474');
+  }
+  if(fx === 'stutter'){
+    state.stutter = !state.stutter;
+    if(state.stutter){
+      let tog = true;
+      _stutterTimers[deck] = setInterval(()=>{
+        if(!state.stutter){ eq.stutterGain.gain.value=1; clearInterval(_stutterTimers[deck]); return; }
+        eq.stutterGain.gain.value = tog ? 1 : 0;
+        tog = !tog;
+      }, 80);
+      note(`Deck ${deck} Stutter ON`,'#5dff9e');
+    } else {
+      clearInterval(_stutterTimers[deck]);
+      eq.stutterGain.gain.value = 1;
+      note(`Deck ${deck} Stutter OFF`,'#ff7474');
+    }
+  }
+}
+
+// ── Akai MPK Mini 4 Pad + Knob MIDI map ──
+// Bank A pads: note 36-43, Bank B pads: note 44-51 (MPK Mini 4 default)
+// Knobs: CC 70-77
+
+const AKAI_PAD_MAP = {
+  // Bank A → Deck A
+  36: ()=>startLoop('A', 4),
+  37: ()=>startLoop('A', 2),
+  38: ()=>startLoop('A', 1),
+  39: ()=>startLoop('A', 0.5),
+  40: ()=>toggleFX('A','bass'),
+  41: ()=>toggleFX('A','filter'),
+  42: ()=>toggleFX('A','reverb'),
+  43: ()=>toggleFX('A','stutter'),
+  // Bank B → Deck B
+  44: ()=>startLoop('B', 4),
+  45: ()=>startLoop('B', 2),
+  46: ()=>startLoop('B', 1),
+  47: ()=>startLoop('B', 0.5),
+  48: ()=>toggleFX('B','bass'),
+  49: ()=>toggleFX('B','filter'),
+  50: ()=>toggleFX('B','reverb'),
+  51: ()=>toggleFX('B','stutter'),
+};
+
+const AKAI_KNOB_MAP = {
+  // Knobs 1-4 → Deck A EQ
+  70: v=>setEQBand('A','low',v),
+  71: v=>setEQBand('A','midLo',v),
+  72: v=>setEQBand('A','midHi',v),
+  73: v=>setEQBand('A','high',v),
+  // Knobs 5-8 → Deck B EQ
+  74: v=>setEQBand('B','low',v),
+  75: v=>setEQBand('B','midLo',v),
+  76: v=>setEQBand('B','midHi',v),
+  77: v=>setEQBand('B','high',v),
+};
+
+// ── Boot ──
+try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
+setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
