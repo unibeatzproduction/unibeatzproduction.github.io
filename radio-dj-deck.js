@@ -22,7 +22,7 @@ const deckA      = document.getElementById('deckA');
 const deckB      = document.getElementById('deckB');
 const deckALabel = document.getElementById('deckALabel');
 const deckBLabel = document.getElementById('deckBLabel');
-const qList      = document.getElementById('queueList');
+// qList moved into deck panels
 const pads       = document.getElementById('triggerPads');
 const notice     = document.getElementById('deckNotice');
 
@@ -85,17 +85,25 @@ async function loadQueue(){
 }
 
 function renderQueue(){
-  if(!queue.length){ qList.innerHTML='<div class="track">No queue items yet.</div>'; return; }
-  qList.innerHTML = queue.map((x,i)=>`
-    <div class="track">
-      <div class="name">${i+1}. ${esc(itemName(x))}</div>
-      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
-      <div class="actions">
-        <button class="btn btn-blue" data-load="A" data-i="${i}">Load A</button>
-        <button class="btn btn-blue" data-load="B" data-i="${i}">Load B</button>
-        <button class="btn btn-gold" data-trigger="${i}">Trigger</button>
+  const aqEl = document.getElementById('deckAQueue');
+  const bqEl = document.getElementById('deckBQueue');
+  if(!queue.length){
+    const empty = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">No tracks yet</div></div></div>';
+    if(aqEl) aqEl.innerHTML = empty;
+    if(bqEl) bqEl.innerHTML = empty;
+    return;
+  }
+  const rows = queue.map((x,i) => `
+    <div class="dq-item" data-i="${i}">
+      <div class="dq-num">${i+1}</div>
+      <div class="dq-info">
+        <div class="dq-name">${esc(itemName(x))}</div>
+        <div class="dq-meta">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
       </div>
+      <button class="btn btn-sm btn-gold dq-load" data-load-deck="__DECK__" data-i="${i}">Load</button>
     </div>`).join('');
+  if(aqEl) aqEl.innerHTML = rows.replace(/__DECK__/g, 'A');
+  if(bqEl) bqEl.innerHTML = rows.replace(/__DECK__/g, 'B');
 }
 
 function renderPads(){
@@ -419,11 +427,19 @@ function runDeckAction(action, value=null){
   }
 }
 
-qList.addEventListener('click', e=>{
-  const load = e.target.closest('[data-load]');
-  if(load){ loadTo(load.dataset.load, queue[Number(load.dataset.i)]); return; }
-  const trig = e.target.closest('[data-trigger]');
-  if(trig){ const x=queue[Number(trig.dataset.trigger)]; loadTo('B',x); deckB.play(); }
+// Deck queue click handlers
+['deckAQueue','deckBQueue'].forEach(id => {
+  document.getElementById(id)?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-load-deck]');
+    if(!btn) return;
+    const deck = btn.dataset.loadDeck;
+    const item = queue[Number(btn.dataset.i)];
+    if(item) loadTo(deck, item);
+    // Mark as loaded
+    const parent = btn.closest('.deck-queue');
+    parent?.querySelectorAll('.dq-item').forEach(el => el.classList.remove('loaded'));
+    btn.closest('.dq-item')?.classList.add('loaded');
+  });
 });
 
 pads.addEventListener('click', e=>{
