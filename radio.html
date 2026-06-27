@@ -103,6 +103,17 @@
         </div>
       </div>
 
+      <!-- Live DJ Banner — shows when a DJ is broadcasting live via LiveKit -->
+      <div id="liveDjBanner" style="display:none;margin-bottom:14px;padding:14px 16px;border:1px solid rgba(255,60,60,.5);border-radius:14px;background:rgba(255,60,60,.08);text-align:center;">
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#ff3c3c;animation:chPulse 1s infinite;display:inline-block;"></span>
+          <span style="font-family:Orbitron,sans-serif;font-size:.5rem;letter-spacing:2px;color:#ff7474;font-weight:700;">DJ LIVE NOW</span>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:#F0C040;margin-bottom:10px;">UniBeatz Radio · Live DJ Set</div>
+        <button id="joinLiveDjBtn" class="btn btn-gold" style="min-width:200px;">🎧 Listen Live</button>
+        <div id="liveDjAudio" style="margin-top:10px;"></div>
+      </div>
+
       <!-- Custom Live Player — works on desktop + mobile -->
       <div class="live365-box">
         <audio id="mainStationAudio" preload="none" src="https://streaming.live365.com/a01878"></audio>
@@ -378,5 +389,42 @@ document.querySelectorAll('.genre-pill').forEach(pill => {
 loadTracks();
 </script>
 <script type="module" src="/unibeatz-auth.js"></script>
+
+<!-- Live DJ Listener -->
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getFirestore, doc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+const _fbApp = getApps().length ? getApp() : initializeApp({apiKey:'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',authDomain:'unibeatzproduction-7ae31.firebaseapp.com',projectId:'unibeatzproduction-7ae31',storageBucket:'unibeatzproduction-7ae31.firebasestorage.app',messagingSenderId:'70667820609',appId:'1:70667820609:web:57762df5510e6b4000b0c0'});
+const _db = getFirestore(_fbApp);
+const UB_LK_TOKEN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+let _lkRoom = null;
+const banner = document.getElementById('liveDjBanner');
+const joinBtn = document.getElementById('joinLiveDjBtn');
+const audioWrap = document.getElementById('liveDjAudio');
+onSnapshot(doc(_db,'radio_broadcast','main'), snap => {
+  const data = snap.exists() ? snap.data() : null;
+  if(data && data.live && data.djRoom){ if(banner) banner.style.display='block'; }
+  else { if(banner) banner.style.display='none'; if(_lkRoom){_lkRoom.disconnect();_lkRoom=null;} if(joinBtn) joinBtn.textContent='🎧 Listen Live'; if(audioWrap) audioWrap.innerHTML=''; }
+});
+joinBtn?.addEventListener('click', async () => {
+  if(_lkRoom){ _lkRoom.disconnect(); _lkRoom=null; joinBtn.textContent='🎧 Listen Live'; audioWrap.innerHTML=''; return; }
+  try{
+    joinBtn.textContent='Connecting...'; joinBtn.disabled=true;
+    if(!window.LivekitClient){ await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); }); }
+    const snap = await getDoc(doc(_db,'radio_broadcast','main'));
+    const roomName = snap.data()?.djRoom || 'unibeatz-radio-live';
+    const res = await fetch(`${UB_LK_TOKEN}?room=${encodeURIComponent(roomName)}&username=listener_${Math.floor(Math.random()*9999)}`);
+    const {token,url} = await res.json();
+    _lkRoom = new LivekitClient.Room();
+    _lkRoom.on('trackSubscribed', track => { if(track.kind==='audio'){ const el=track.attach(); el.autoplay=true; audioWrap.appendChild(el); } });
+    _lkRoom.on('disconnected', () => { joinBtn.textContent='🎧 Listen Live'; joinBtn.disabled=false; audioWrap.innerHTML=''; _lkRoom=null; });
+    const mainAudio=document.getElementById('mainStationAudio'); const chanAudio=document.getElementById('channelAudio');
+    if(mainAudio&&!mainAudio.paused){window.ubRadioIntentionalPause=true;mainAudio.pause();}
+    if(chanAudio&&!chanAudio.paused){window.ubRadioIntentionalPause=true;chanAudio.pause();}
+    await _lkRoom.connect(url,token);
+    joinBtn.textContent='⏹ Stop Listening'; joinBtn.disabled=false;
+  } catch(e){ console.error(e); joinBtn.textContent='🎧 Listen Live'; joinBtn.disabled=false; }
+});
+</script>
 </body>
 </html>
