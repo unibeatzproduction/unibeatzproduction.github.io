@@ -22,7 +22,7 @@ const deckA      = document.getElementById('deckA');
 const deckB      = document.getElementById('deckB');
 const deckALabel = document.getElementById('deckALabel');
 const deckBLabel = document.getElementById('deckBLabel');
-// qList moved into deck panels
+const qList      = document.getElementById('queueList');
 const pads       = document.getElementById('triggerPads');
 const notice     = document.getElementById('deckNotice');
 
@@ -68,11 +68,7 @@ function loadTo(deck, item){
 }
 
 async function loadQueue(){
-  const _loading = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Loading tracks...</div></div></div>';
-  const aqEl = document.getElementById('deckAQueue');
-  const bqEl = document.getElementById('deckBQueue');
-  if(aqEl) aqEl.innerHTML = _loading;
-  if(bqEl) bqEl.innerHTML = _loading;
+  if(qList) qList.innerHTML = '<div class="track"><div class="name" style="color:var(--gray);">Loading tracks...</div></div>';
   try{
     const [tracksSnap, assetsSnap] = await Promise.all([
       getDocs(collection(db,'radio_submissions')),
@@ -84,32 +80,50 @@ async function loadQueue(){
     renderQueue(); renderPads();
   } catch(e){
     console.error(e);
-    const _err = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:#ff7474;">Queue failed. Check Firestore rules.</div></div></div>';
-    if(aqEl) aqEl.innerHTML = _err;
-    if(bqEl) bqEl.innerHTML = _err;
+    if(qList) qList.innerHTML = '<div class="track"><div class="name" style="color:#ff7474;">Queue failed. Check Firestore rules.</div></div>';
   }
 }
 
 function renderQueue(){
-  const aqEl = document.getElementById('deckAQueue');
-  const bqEl = document.getElementById('deckBQueue');
-  if(!queue.length){
-    const empty = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">No tracks yet</div></div></div>';
-    if(aqEl) aqEl.innerHTML = empty;
-    if(bqEl) bqEl.innerHTML = empty;
+  // Full track browser in bottom queue section
+  if(!qList) return;
+  if(!queue.length){ qList.innerHTML='<div class="track"><div class="name" style="color:var(--gray);">No approved tracks yet.</div></div>'; return; }
+  qList.innerHTML = queue.map((x,i)=>`
+    <div class="track">
+      <div class="name">${i+1}. ${esc(itemName(x))}</div>
+      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
+      <div class="actions" style="margin-top:6px;">
+        <button class="btn btn-blue" data-stage="A" data-i="${i}">+ Stage to A</button>
+        <button class="btn btn-blue" data-stage="B" data-i="${i}">+ Stage to B</button>
+        <button class="btn btn-gold" data-load="A" data-i="${i}">▶ Load A</button>
+        <button class="btn btn-gold" data-load="B" data-i="${i}">▶ Load B</button>
+      </div>
+    </div>`).join('');
+}
+
+// Staged track lists per deck (separate from queue)
+let stageA = [], stageB = [];
+
+function renderDeckQueue(deck){
+  const el = document.getElementById('deck' + deck + 'Queue');
+  if(!el) return;
+  const stage = deck === 'A' ? stageA : stageB;
+  if(!stage.length){
+    el.innerHTML = '<div class="dq-item"><div class="dq-info"><div class="dq-name" style="color:var(--gray);">Stage tracks from queue below</div></div></div>';
     return;
   }
-  const rows = queue.map((x,i) => `
-    <div class="dq-item" data-i="${i}">
+  el.innerHTML = stage.map((x,i)=>`
+    <div class="dq-item ${x._loaded?'loaded':''}">
       <div class="dq-num">${i+1}</div>
       <div class="dq-info">
         <div class="dq-name">${esc(itemName(x))}</div>
         <div class="dq-meta">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
       </div>
-      <button class="btn btn-sm btn-gold dq-load" data-load-deck="__DECK__" data-i="${i}">Load</button>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn btn-sm btn-gold" data-load-staged="${deck}" data-si="${i}">▶</button>
+        <button class="btn btn-sm btn-red" data-remove-staged="${deck}" data-si="${i}">✕</button>
+      </div>
     </div>`).join('');
-  if(aqEl) aqEl.innerHTML = rows.replace(/__DECK__/g, 'A');
-  if(bqEl) bqEl.innerHTML = rows.replace(/__DECK__/g, 'B');
 }
 
 function renderPads(){
@@ -433,18 +447,49 @@ function runDeckAction(action, value=null){
   }
 }
 
-// Deck queue click handlers
-['deckAQueue','deckBQueue'].forEach(id => {
-  document.getElementById(id)?.addEventListener('click', e => {
-    const btn = e.target.closest('[data-load-deck]');
-    if(!btn) return;
-    const deck = btn.dataset.loadDeck;
-    const item = queue[Number(btn.dataset.i)];
+// Bottom queue — stage to deck or load directly
+qList?.addEventListener('click', e => {
+  const stageBtn = e.target.closest('[data-stage]');
+  if(stageBtn){
+    const deck = stageBtn.dataset.stage;
+    const item = queue[Number(stageBtn.dataset.i)];
+    if(!item) return;
+    if(deck === 'A'){ stageA.push({...item}); renderDeckQueue('A'); }
+    else             { stageB.push({...item}); renderDeckQueue('B'); }
+    note('Staged "' + itemName(item) + '" to Deck ' + deck,'#5dff9e');
+    return;
+  }
+  const loadBtn = e.target.closest('[data-load]');
+  if(loadBtn){
+    const deck = loadBtn.dataset.load;
+    const item = queue[Number(loadBtn.dataset.i)];
     if(item) loadTo(deck, item);
-    // Mark as loaded
-    const parent = btn.closest('.deck-queue');
-    parent?.querySelectorAll('.dq-item').forEach(el => el.classList.remove('loaded'));
-    btn.closest('.dq-item')?.classList.add('loaded');
+  }
+});
+
+// Deck queue — play staged track or remove it
+['A','B'].forEach(deck => {
+  document.getElementById('deck' + deck + 'Queue')?.addEventListener('click', e => {
+    const playBtn = e.target.closest('[data-load-staged]');
+    if(playBtn){
+      const stage = deck === 'A' ? stageA : stageB;
+      const si = Number(playBtn.dataset.si);
+      const item = stage[si];
+      if(!item) return;
+      // Mark loaded
+      stage.forEach(x => x._loaded = false);
+      item._loaded = true;
+      loadTo(deck, item);
+      renderDeckQueue(deck);
+      return;
+    }
+    const removeBtn = e.target.closest('[data-remove-staged]');
+    if(removeBtn){
+      const si = Number(removeBtn.dataset.si);
+      if(deck === 'A') stageA.splice(si, 1);
+      else             stageB.splice(si, 1);
+      renderDeckQueue(deck);
+    }
   });
 });
 
@@ -534,4 +579,4 @@ document.querySelectorAll('[data-stream-action]').forEach(btn=>btn.addEventListe
 
 // ── Boot ──
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
-setVolumes(); renderMappings(); loadQueue();
+setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
