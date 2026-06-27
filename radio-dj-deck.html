@@ -89,7 +89,7 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
     <button id="startBroadcast" class="btn btn-green">🔴 Start Live Broadcast</button>
     <button id="endBroadcast" class="btn btn-red" disabled>⏹ End Broadcast</button>
     <button id="micToggle" class="btn btn-blue">🎙 Mic Off</button>
-    <button id="reloadQueue" class="btn btn-blue">↻ Reload Queue</button>
+
   </div>
   <div id="deckNotice" class="notice"></div>
   <p class="sub" id="broadcastStatus" style="margin-top:8px;font-family:Orbitron,sans-serif;font-size:.46rem;letter-spacing:1.5px;color:var(--gray);">Offline. Start live mode when ready.</p>
@@ -152,11 +152,22 @@ body{min-height:100vh;background:radial-gradient(circle at 18% 10%,rgba(0,170,25
   <div class="actions">
     <button id="recStart" class="btn btn-rec">⏺ Start Recording</button>
     <button id="recStop" class="btn btn-blue" disabled>⏹ Stop & Save</button>
-    <button id="saveQueue" class="btn btn-gold">💾 Save Queue</button>
   </div>
   <div id="recTimer" style="display:none;">0:00</div>
   <div id="recNotice" class="notice"></div>
   <div id="recSavedList"></div>
+</section>
+
+<!-- FULL QUEUE BROWSER -->
+<section class="panel" style="margin-top:16px">
+  <div class="eyebrow">Track Browser</div>
+  <h2 style="font-family:Bebas Neue;color:var(--gold-light);font-size:2rem;">FULL QUEUE</h2>
+  <p class="sub" style="margin-bottom:10px;">Browse all approved tracks. Stage to a deck queue above, or load directly.</p>
+  <div class="actions" style="margin-bottom:10px;">
+    <button id="reloadQueue" class="btn btn-blue">↻ Reload Tracks</button>
+    <button id="saveQueue" class="btn btn-gold">💾 Save Queue</button>
+  </div>
+  <div id="queueList" class="track-list"></div>
 </section>
 
 <!-- HARDWARE / MIDI / STREAM DECK -->
