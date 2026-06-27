@@ -182,8 +182,10 @@ async function startBroadcast(){
     if(_broadcastCtx.state === 'suspended') await _broadcastCtx.resume();
 
     _broadcastDest  = _broadcastCtx.createMediaStreamDestination();
-    _broadcastSrcA  = _broadcastCtx.createMediaElementSource(deckA);
-    _broadcastSrcB  = _broadcastCtx.createMediaElementSource(deckB);
+    _broadcastSrcA  = deckA._eqSrc || _broadcastCtx.createMediaElementSource(deckA);
+    _broadcastSrcB  = deckB._eqSrc || _broadcastCtx.createMediaElementSource(deckB);
+    if(!deckA._eqSrc) deckA._eqSrc = _broadcastSrcA;
+    if(!deckB._eqSrc) deckB._eqSrc = _broadcastSrcB;
     _broadcastGainA = _broadcastCtx.createGain();
     _broadcastGainB = _broadcastCtx.createGain();
 
@@ -321,8 +323,11 @@ function startRecording(){
   const ctx = getAudioCtx();
   if(ctx.state==='suspended') ctx.resume();
 
-  _recSrcA  = ctx.createMediaElementSource(deckA);
-  _recSrcB  = ctx.createMediaElementSource(deckB);
+  // Reuse existing MediaElementSource if EQ already claimed it
+  _recSrcA  = deckA._eqSrc || ctx.createMediaElementSource(deckA);
+  _recSrcB  = deckB._eqSrc || ctx.createMediaElementSource(deckB);
+  if(!deckA._eqSrc) deckA._eqSrc = _recSrcA;
+  if(!deckB._eqSrc) deckB._eqSrc = _recSrcB;
   _recGainA = ctx.createGain();
   _recGainB = ctx.createGain();
   _recDest  = ctx.createMediaStreamDestination();
@@ -538,42 +543,9 @@ function renderMappings(){
     </div>`).join('');
 }
 function midiKey(data){ return `${data[0]}-${data[1]}`; }
-// ── Pitch Wheel Scratch (Akai MPK Mini / any pitch wheel) ──
-// Pitch bend status = 0xE0-0xEF. Two data bytes form a 14-bit value.
+// Pitch wheel handled by scratch engine above
 let _scratchActive = false;
 let _scratchResetTimer = null;
-
-function handlePitchWheel(lsb, msb){
-  // 14-bit value: 0-8191 = below center, 8192 = center, 8193-16383 = above center
-  const raw = ((msb & 0x7F) << 7) | (lsb & 0x7F);
-  const centered = raw - 8192; // -8192 to +8191
-  const normalized = centered / 8192; // -1.0 to +1.0
-
-  // Which deck is active? Use whichever is playing, prefer A
-  const targetDeck = (!deckA.paused) ? deckA : (!deckB.paused) ? deckB : deckA;
-
-  if(Math.abs(normalized) < 0.04){
-    // Wheel at center — restore normal speed
-    targetDeck.playbackRate = 1.0;
-    _scratchActive = false;
-  } else {
-    // Scratch: map -1→0.3x speed, +1→2.5x speed
-    // Center = 1.0, giving a natural scratch feel
-    const rate = 1.0 + (normalized * 1.5);
-    targetDeck.playbackRate = Math.max(0.1, Math.min(3.0, rate));
-    _scratchActive = true;
-
-    // Auto-restore after wheel released (no new messages for 150ms)
-    clearTimeout(_scratchResetTimer);
-    _scratchResetTimer = setTimeout(() => {
-      targetDeck.playbackRate = 1.0;
-      _scratchActive = false;
-    }, 150);
-  }
-
-  const sig = document.getElementById('lastMidiSignal');
-  if(sig) sig.textContent = `Pitch Wheel: ${normalized.toFixed(2)} → rate ${targetDeck.playbackRate.toFixed(2)}x`;
-}
 
 function onMidiMessage(e){
   const data=[...e.data], key=midiKey(data), val=data[2]??0;
@@ -661,24 +633,27 @@ function buildEQ(deck){
   if(_eq[deck].built) return;
 
   try{
-    const src    = ctx.createMediaElementSource(audio);
-    const low    = ctx.createBiquadFilter(); low.type='lowshelf';  low.frequency.value=250;
-    const midLo  = ctx.createBiquadFilter(); midLo.type='peaking'; midLo.frequency.value=500;  midLo.Q.value=1;
-    const midHi  = ctx.createBiquadFilter(); midHi.type='peaking'; midHi.frequency.value=2000; midHi.Q.value=1;
-    const high   = ctx.createBiquadFilter(); high.type='highshelf'; high.frequency.value=8000;
+    // Use existing MediaElementSource if already created (e.g. by recorder or broadcast)
+    let src;
+    if(audio._eqSrc){
+      src = audio._eqSrc;
+    } else {
+      src = ctx.createMediaElementSource(audio);
+      audio._eqSrc = src;
+    }
 
-    // Bass boost node
+    const low       = ctx.createBiquadFilter(); low.type='lowshelf';  low.frequency.value=250;  low.gain.value=0;
+    const midLo     = ctx.createBiquadFilter(); midLo.type='peaking'; midLo.frequency.value=500;  midLo.Q.value=1; midLo.gain.value=0;
+    const midHi     = ctx.createBiquadFilter(); midHi.type='peaking'; midHi.frequency.value=2000; midHi.Q.value=1; midHi.gain.value=0;
+    const high      = ctx.createBiquadFilter(); high.type='highshelf'; high.frequency.value=8000; high.gain.value=0;
     const bassBoost = ctx.createBiquadFilter(); bassBoost.type='lowshelf'; bassBoost.frequency.value=200; bassBoost.gain.value=0;
-    // Filter node
-    const filter = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=20000;
-    // Reverb (convolver + gain)
-    const reverbGain = ctx.createGain(); reverbGain.gain.value=0;
+    const filter    = ctx.createBiquadFilter(); filter.type='lowpass'; filter.frequency.value=20000;
+    const reverbGain  = ctx.createGain(); reverbGain.gain.value=0;
     const reverbDelay = ctx.createDelay(2.0); reverbDelay.delayTime.value=0.3;
-    const reverbFeed  = ctx.createGain(); reverbFeed.gain.value=0.4;
-    reverbDelay.connect(reverbFeed); reverbFeed.connect(reverbDelay);
-    // Stutter (gain toggler)
+    const reverbFeed  = ctx.createGain(); reverbFeed.gain.value=0.35;
     const stutterGain = ctx.createGain(); stutterGain.gain.value=1;
 
+    // Chain: src → EQ bands → bassBoost → filter → stutter → destination
     src.connect(low);
     low.connect(midLo);
     midLo.connect(midHi);
@@ -686,14 +661,28 @@ function buildEQ(deck){
     high.connect(bassBoost);
     bassBoost.connect(filter);
     filter.connect(stutterGain);
-    stutterGain.connect(reverbGain);
-    stutterGain.connect(ctx.destination);
+    stutterGain.connect(ctx.destination); // dry signal to speakers
+
+    // Reverb send: stutter → reverbDelay → reverbFeed loop → reverbGain → destination
+    stutterGain.connect(reverbDelay);
+    reverbDelay.connect(reverbFeed);
+    reverbFeed.connect(reverbDelay); // feedback loop
     reverbDelay.connect(reverbGain);
     reverbGain.connect(ctx.destination);
 
     _eq[deck] = { built:true, src, low, midLo, midHi, high, bassBoost, filter, reverbGain, reverbDelay, reverbFeed, stutterGain };
     console.log('[EQ] Built for Deck', deck);
-  } catch(e){ console.warn('[EQ] Build failed for deck', deck, e); }
+  } catch(e){
+    console.error('[EQ] Build failed for deck', deck, e);
+    // Mark as built anyway to prevent infinite retry loops
+    if(!_eq[deck].built) _eq[deck] = { built:false };
+  }
+}
+
+// Build EQ chains early — call after DOM ready so audio elements exist
+function initEQ(){
+  buildEQ('A');
+  buildEQ('B');
 }
 
 // ── EQ Knob control ──
@@ -827,6 +816,164 @@ const AKAI_KNOB_MAP = {
   77: v=>setEQBand('B','high',v),
 };
 
+// ═══════════════════════════════════════════════
+// TRUE SCRATCH ENGINE — AudioBufferSourceNode
+// Loads track into buffer for real scratch control
+// ═══════════════════════════════════════════════
+
+const _scratch = {
+  A: { buffer:null, src:null, playing:false, startTime:0, startOffset:0, rate:1, url:null, loading:false },
+  B: { buffer:null, src:null, playing:false, startTime:0, startOffset:0, rate:1, url:null, loading:false }
+};
+
+async function loadScratchBuffer(deck, url){
+  const s = _scratch[deck];
+  if(s.url === url && s.buffer) return; // already loaded
+  s.loading = true;
+  s.buffer = null;
+  s.url = url;
+  note('⏳ Loading scratch buffer for Deck ' + deck + '...', '#F0C040');
+  try{
+    const ctx = getEqCtx();
+    const resp = await fetch(url);
+    const arrayBuf = await resp.arrayBuffer();
+    s.buffer = await ctx.decodeAudioData(arrayBuf);
+    s.loading = false;
+    note('✅ Deck ' + deck + ' scratch ready — use pitch wheel', '#5dff9e');
+  } catch(e){
+    s.loading = false;
+    s.url = null;
+    console.warn('[scratch] Buffer load failed', e);
+    note('⚠️ Scratch buffer failed — normal playback only', '#ff7474');
+  }
+}
+
+function scratchPlay(deck, offset){
+  const s = _scratch[deck];
+  const ctx = getEqCtx();
+  if(!s.buffer) return;
+  if(s.src){ try{ s.src.stop(); }catch(e){} s.src = null; }
+
+  const src = ctx.createBufferSource();
+  src.buffer = s.buffer;
+  src.playbackRate.value = s.rate;
+  src.loop = false;
+
+  // Route through EQ if built
+  const eq = _eq[deck];
+  if(eq && eq.built && eq.low){
+    src.connect(eq.low);
+  } else {
+    src.connect(ctx.destination);
+  }
+
+  const startAt = offset !== undefined ? offset : s.startOffset;
+  src.start(0, Math.max(0, Math.min(startAt, s.buffer.duration - 0.01)));
+  s.src = src;
+  s.startTime = ctx.currentTime;
+  s.startOffset = startAt;
+  s.playing = true;
+
+  src.onended = () => { if(s.src === src) s.playing = false; };
+}
+
+function scratchStop(deck){
+  const s = _scratch[deck];
+  if(s.src){
+    const ctx = getEqCtx();
+    // Save current position
+    s.startOffset = s.startOffset + (ctx.currentTime - s.startTime) * s.rate;
+    try{ s.src.stop(); }catch(e){}
+    s.src = null;
+  }
+  s.playing = false;
+}
+
+function getCurrentScratchPos(deck){
+  const s = _scratch[deck];
+  const ctx = getEqCtx();
+  if(!s.playing || !s.src) return s.startOffset;
+  return s.startOffset + (ctx.currentTime - s.startTime) * s.rate;
+}
+
+// ── Updated pitch wheel scratch using buffer ──
+function handlePitchWheel(lsb, msb){
+  const raw = ((msb & 0x7F) << 7) | (lsb & 0x7F);
+  const centered = raw - 8192;
+  const normalized = centered / 8192; // -1.0 to +1.0
+
+  // Target whichever deck has a loaded scratch buffer and is playing
+  let deck = null;
+  if(_scratch.A.buffer && !_scratch.A.loading) deck = 'A';
+  else if(_scratch.B.buffer && !_scratch.B.loading) deck = 'B';
+
+  const sig = document.getElementById('lastMidiSignal');
+
+  if(!deck){
+    // No buffer loaded — fall back to playbackRate on HTML element
+    const audio = (!deckA.paused) ? deckA : (!deckB.paused) ? deckB : deckA;
+    if(Math.abs(normalized) < 0.04){
+      audio.playbackRate = 1.0;
+    } else {
+      audio.playbackRate = Math.max(0.05, 1.0 + normalized * 1.5);
+    }
+    if(sig) sig.textContent = 'Scratch (speed): ' + audio.playbackRate.toFixed(2) + 'x';
+    clearTimeout(_scratchResetTimer);
+    if(Math.abs(normalized) > 0.04){
+      _scratchResetTimer = setTimeout(()=>{ audio.playbackRate=1.0; }, 200);
+    }
+    return;
+  }
+
+  const s = _scratch[deck];
+
+  if(Math.abs(normalized) < 0.04){
+    // Wheel center — resume normal forward play
+    if(s.playing){
+      scratchStop(deck);
+      s.rate = 1.0;
+      scratchPlay(deck);
+    }
+    if(sig) sig.textContent = 'Scratch: center — normal play';
+    return;
+  }
+
+  // Scratch: negative normalized = backward, positive = forward fast
+  // Map: -1.0 = -2.0x (reverse), +1.0 = +3.0x (fast forward scratch)
+  const newRate = normalized * 2.5;  // -2.5 to +2.5
+  s.rate = newRate;
+
+  // Get current position and restart with new rate
+  const pos = getCurrentScratchPos(deck);
+  scratchStop(deck);
+  s.startOffset = Math.max(0, pos);
+  s.rate = newRate;
+
+  if(newRate !== 0){
+    scratchPlay(deck, s.startOffset);
+  }
+
+  if(sig) sig.textContent = 'Scratch: ' + (newRate > 0 ? '+' : '') + newRate.toFixed(2) + 'x';
+
+  // Auto-restore to normal when wheel released
+  clearTimeout(_scratchResetTimer);
+  _scratchResetTimer = setTimeout(()=>{
+    if(s.playing){
+      scratchStop(deck);
+      s.rate = 1.0;
+      scratchPlay(deck);
+    }
+  }, 200);
+}
+
+// Hook loadTo to also load scratch buffer
+const _origLoadTo = loadTo;
+function loadTo(deck, item){
+  _origLoadTo(deck, item);
+  const url = itemUrl(item);
+  if(url) loadScratchBuffer(deck, url);
+}
+
 // ── Boot ──
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
-setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
+setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue(); setTimeout(initEQ, 500);
