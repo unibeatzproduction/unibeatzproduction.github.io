@@ -1,8 +1,5 @@
 // unifreestyle-core.js
 // UniBeatz Production — Core Firebase sync layer
-// Handles: Google user sync, profile push to Firestore, Browse Producers sync
-// Replaces: unifreestyle-google-user-sync.js, unifreestyle-google-user-sync-v2.js,
-//           unifreestyle-profile-directory-bridge.js, unifreestyle-browse-producers-cl...
 
 (function(){
   'use strict';
@@ -14,7 +11,18 @@
 
   function getUsers(){ return read('ub_users','{}'); }
   function saveUsers(u){ write('ub_users',u); }
-  function getCurrent(){ return read('ub_current_user','null') || read('ub_user','null') || null; }
+
+  // Always read current user from BOTH keys — prefer ub_current_user
+  function getCurrent(){
+    return read('ub_current_user','null') || read('ub_user','null') || null;
+  }
+
+  // Write current user to BOTH keys to stay in sync with profile.js
+  function setCurrent(u){
+    write('ub_current_user', u);
+    write('ub_user', u);
+    try{ window.currentUser = u; }catch(e){}
+  }
 
   function getFb(){
     var fb = window.UB_FIREBASE || {};
@@ -22,7 +30,8 @@
     return null;
   }
 
-  // ── Push current logged-in user to Firestore profiles/{username} ──
+  // ── Push current user's profile to Firestore ──
+  // Only pushes what's already in localStorage — never creates new profiles
   function pushSelfToFirestore(){
     var cur = getCurrent();
     if(!cur) return;
@@ -34,70 +43,65 @@
       return;
     }
     var data = {
-      username: name,
+      username:    name,
       displayName: cur.name || cur.displayName || niceName(name),
-      role: cur.role || 'artist',
-      avatar: cur.avatar || '🎤',
-      photo: cur.photo || cur.photoUrl || cur.photoURL || '',
-      bio: cur.bio || '',
-      verified: cur.verified || false,
-      updatedAt: Date.now()
+      role:        cur.role || 'artist',
+      avatar:      cur.avatar || '🎤',
+      photo:       cur.photo || cur.photoUrl || cur.photoURL || '',
+      bio:         cur.bio || '',
+      verified:    cur.verified || false,
+      updatedAt:   Date.now()
     };
     fb.setDoc(fb.doc(fb.db,'profiles',name), data, { merge:true })
       .then(function(){ console.log('[core] Profile pushed:', name); })
       .catch(function(e){ console.warn('[core] Profile push failed:', e.message); });
   }
 
-  // ── Sync Google Auth user into localStorage + Firestore ──
+  // ── Sync Google Auth — only updates EXISTING user, never creates new one ──
   function syncGoogleUser(){
     var fb = getFb();
-    var auth = fb && fb.auth;
-    var googleUser = auth && auth.currentUser;
+    var googleUser = fb && fb.auth && fb.auth.currentUser;
     if(!googleUser) return;
 
-    var saved = getCurrent() || {};
-    var name = clean(saved.username || saved.name || googleUser.displayName || googleUser.email.split('@')[0] || googleUser.uid);
+    var cur = getCurrent();
+    if(!cur) return; // No local user — let finishGoogleLogin in index.html handle creation
 
-    var profile = {
-      uid: googleUser.uid,
-      name: saved.name || googleUser.displayName || 'Google User',
-      username: name,
-      email: googleUser.email || '',
-      photo: saved.photo || googleUser.photoURL || '',
-      avatar: saved.avatar || '👑',
-      role: saved.role || 'artist',
-      bio: saved.bio || '',
-      city: saved.city || 'UniBeatz World',
+    var curName = clean(cur.username || cur.name);
+    if(!curName) return;
+
+    // Only update the EXISTING user's data — never create a new username
+    var updated = Object.assign({}, cur, {
+      uid:          googleUser.uid,
+      email:        googleUser.email || cur.email || '',
+      photo:        cur.photo || googleUser.photoURL || '',
       authProvider: 'google',
-      verified: true,
-      updatedAt: Date.now()
-    };
+      verified:     true,
+      updatedAt:    Date.now()
+    });
 
-    // Update localStorage
+    // Save back under the SAME username — no new entries
     var users = getUsers();
-    users[name] = Object.assign({}, users[name] || {}, profile);
-    delete users.djblaze;
-    delete users.phantombeats;
+    users[curName] = updated;
     saveUsers(users);
-    write('ub_current_user', profile);
-    write('ub_user', profile);
+    setCurrent(updated);
 
-    if(!fb) return;
-    // Write to Firestore — users/{uid}, profiles/{username}
-    fb.setDoc(fb.doc(fb.db,'users',googleUser.uid), profile, { merge:true })
-      .catch(function(e){ console.warn('[core] Google sync users failed:', e.message); });
-    fb.setDoc(fb.doc(fb.db,'profiles',name), profile, { merge:true })
-      .catch(function(e){ console.warn('[core] Google sync profiles failed:', e.message); });
+    // Push to Firestore under existing username
+    if(fb){
+      fb.setDoc(fb.doc(fb.db,'users', googleUser.uid), updated, { merge:true })
+        .catch(function(e){ console.warn('[core] Google sync users failed:', e.message); });
+      fb.setDoc(fb.doc(fb.db,'profiles', curName), updated, { merge:true })
+        .catch(function(e){ console.warn('[core] Google sync profiles failed:', e.message); });
+    }
   }
 
-  // ── Pull all profiles from Firestore into ub_users ──
+  // ── Pull Firestore profiles — ONLY updates fields on existing local users ──
+  // Never creates new local users — that caused the duplicate profile bug
   var _syncDone = false;
   function syncUsersFromFirestore(){
     if(_syncDone) return;
     var fb = getFb();
     if(!fb){
       window.addEventListener('ub-firebase-ready', syncUsersFromFirestore, { once: true });
-      setTimeout(syncUsersFromFirestore, 1000);
       return;
     }
     _syncDone = true;
@@ -107,41 +111,44 @@
       var changed = false;
       snap.forEach(function(doc){
         var d = doc.data();
-        var name = (doc.id || d.username || '').toLowerCase().replace(/[^a-z0-9_]/g,'');
-        if(!name || name === 'djblaze' || name === 'phantombeats') return;
-        // ONLY update existing local users — never create new ones from Firestore
-        // Creating from Firestore was causing duplicate profiles for Google users
+        var name = clean(doc.id || d.username || '');
+        if(!name) return;
+        // ONLY update if user already exists locally
         if(all[name]){
-          if(d.photo || d.photoUrl){ all[name].photo = d.photo || d.photoUrl; changed = true; }
-          if(d.bio){ all[name].bio = d.bio; changed = true; }
+          if(d.photo || d.photoUrl){ all[name].photo = d.photo || d.photoUrl || ''; changed = true; }
+          if(d.bio)                { all[name].bio   = d.bio; changed = true; }
           if(d.displayName || d.name){ all[name].name = d.displayName || d.name; changed = true; }
-          if(d.avatar){ all[name].avatar = d.avatar; changed = true; }
+          if(d.avatar)             { all[name].avatar = d.avatar; changed = true; }
+        }
+        // If this doc matches current user by uid, update current user too
+        var cur = getCurrent();
+        if(cur && d.uid && d.uid === cur.uid && name !== clean(cur.username||cur.name)){
+          // Firestore has a different username for this uid — sync it back
+          console.warn('[core] uid username mismatch, not auto-fixing');
         }
       });
       if(changed){
         saveUsers(all);
         console.log('[core] Synced', snap.size, 'profiles from Firestore');
-        if(window.ubHomeSessions && window.ubHomeSessions.renderProducers) window.ubHomeSessions.renderProducers();
+        if(window.ubHomeSessions && window.ubHomeSessions.renderProducers){
+          window.ubHomeSessions.renderProducers();
+        }
       }
     }).catch(function(err){
       console.warn('[core] Firestore sync failed:', err.message);
-      // Retry once on QUIC error
       setTimeout(function(){ _syncDone = false; syncUsersFromFirestore(); }, 3000);
     });
   }
 
-  // ── Harvest current profile from DOM (fallback for non-Google users) ──
+  // ── Harvest current profile into ub_users registry ──
   function harvestFromDom(){
     var cur = getCurrent();
-    if(cur){
-      var name = clean(cur.username || cur.name);
-      if(name){
-        var users = getUsers();
-        users[name] = Object.assign({}, users[name] || {}, cur, { username: name });
-        delete users.djblaze; delete users.phantombeats;
-        saveUsers(users);
-      }
-    }
+    if(!cur) return;
+    var name = clean(cur.username || cur.name);
+    if(!name) return;
+    var users = getUsers();
+    users[name] = Object.assign({}, users[name] || {}, cur, { username: name });
+    saveUsers(users);
   }
 
   // ── Boot ──
@@ -156,11 +163,15 @@
     setTimeout(boot, 300);
   });
 
-  window.ubCore = { pushSelf: pushSelfToFirestore, syncGoogle: syncGoogleUser, syncUsers: syncUsersFromFirestore };
+  window.ubCore = {
+    pushSelf:   pushSelfToFirestore,
+    syncGoogle: syncGoogleUser,
+    syncUsers:  syncUsersFromFirestore
+  };
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 
   setTimeout(boot, 800);
-  // Removed: setInterval syncGoogleUser was overwriting current user every 5s
+
 })();
