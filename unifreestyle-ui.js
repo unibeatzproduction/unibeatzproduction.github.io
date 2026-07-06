@@ -21,24 +21,7 @@
   function getCurrent(){ return get('ub_current_user','null')||get('ub_user','null')||{}; }
   function getFollows(){ return get(FOLLOWS,'{}'); }
   function saveFollows(f){ set(FOLLOWS,f); }
-  var _liveCache={};
-  function isLive(t){
-    // Check memory cache first (populated by syncLiveProfiles)
-    if(_liveCache[t]!==undefined) return !!_liveCache[t];
-    // Fallback: check ubProfile's live cache if available
-    try{ return window.ubProfile&&window.ubProfile._liveCache&&!!window.ubProfile._liveCache[t]; }catch(e){ return false; }
-  }
-
-  function syncLiveProfiles(){
-    var fb=getFb&&getFb(); if(!fb) return;
-    fb.getDocs(fb.query(fb.collection(fb.db,'live_profiles'),fb.where('isLive','==',true)))
-      .then(function(snap){
-        var live={};
-        snap.forEach(function(doc){ var d=doc.data(); if(d.username) live[clean(d.username)]=true; });
-        _liveCache=live;
-        renderProducers();
-      }).catch(function(){});
-  }
+  function isLive(t){ try{ return localStorage.getItem('ub_profile_live_'+t)==='1'; }catch(e){ return false; } }
 
   // ═══════════════════════════════════════════════════
   // NAV FIX
@@ -143,51 +126,19 @@
     });
   }
 
-  var _fsFollowCounts={}; // { username: count } from Firestore
-
   function countFollowers(t){
-    // Use Firestore count if available, otherwise fall back to localStorage
-    if(_fsFollowCounts[t]!==undefined) return _fsFollowCounts[t];
     var f=getFollows(), c=0;
-    Object.keys(f||{}).forEach(function(k){ if(clean((f[k]||{}).following)===t) c++; });
+    Object.keys(f||{}).forEach(function(k){ if(uname({username:(f[k]||{}).following})===t) c++; });
     return c;
-  }
-
-  function syncFollowCounts(targets){
-    var fb=getFb&&getFb(); if(!fb||!targets||!targets.length) return;
-    targets.forEach(function(t){
-      fb.getDocs(fb.query(fb.collection(fb.db,'profile_follows'),fb.where('following','==',t)))
-        .then(function(snap){
-          var c=0;
-          snap.forEach(function(doc){ if(doc.data().active!==false) c++; });
-          _fsFollowCounts[t]=c;
-          renderProducers();
-        }).catch(function(){});
-    });
   }
 
   function isFollowing(t){ var me=uname(getCurrent()); return !!(getFollows())[me+'__'+t]; }
 
-  function getFb(){ var fb=window.UB_FIREBASE||{}; return (fb.db&&fb.collection&&fb.setDoc&&fb.doc)?fb:null; }
-
   function followProducer(t){
-    t=clean(t); var me=uname(getCurrent());
-    if(!me) return window.showToast&&showToast('Sign in first');
-    if(!t||me===t) return window.showToast&&showToast('This is your profile');
-    var f=getFollows(), k=me+'__'+t, currently=!!f[k];
-    // Toggle in localStorage
-    if(currently) delete f[k]; else f[k]={ follower:me, following:t, active:true, at:Date.now() };
-    saveFollows(f);
-    // Also write to Firestore so other devices/sessions see it
-    var fb=getFb();
-    if(fb){
-      fb.setDoc(fb.doc(fb.db,'profile_follows',me+'_'+t),
-        { follower:me, following:t, active:!currently, at:Date.now() },
-        { merge:true }
-      ).catch(function(e){ console.warn('[ui] follow write failed:',e); });
-    }
-    if(window.showToast) showToast(currently?'Unfollowed @'+t:'✅ Following @'+t);
-    renderProducers();
+    var me=uname(getCurrent()); if(!me||me===t) return;
+    var f=getFollows(), k=me+'__'+t;
+    if(f[k]) delete f[k]; else f[k]={ follower:me, following:t, at:Date.now() };
+    saveFollows(f); renderProducers();
   }
 
   function watchProducer(t){
@@ -232,15 +183,27 @@
   // ═══════════════════════════════════════════════════
   function cleanupHome(){
     var home=document.getElementById('page-home'); if(!home) return;
-    // Hide instant mode card
     var i=home.querySelector('.instant-card'); if(i) i.style.display='none';
-    // Remove DJ Blaze / Phantom from session cards
-    home.querySelectorAll('.session-dj').forEach(function(x){
-      x.textContent=x.textContent.replace(/DJ Blaze|DJ Phantom/g,'').replace(/🎧\s*·/,'🎧');
-    });
-    // Remove instant mode section header
     home.querySelectorAll('.section-head').forEach(function(x){
       if(norm(x.textContent).indexOf('instant mode')>-1) x.style.display='none';
+    });
+    injectWatchButtons();
+  }
+
+  function injectWatchButtons(){
+    var sessions=[{id:'ubSession1Card',sessionId:'open_freestyle'},{id:'ubSession2Card',sessionId:'beat_kill'}];
+    sessions.forEach(function(entry){
+      var card=document.getElementById(entry.id);
+      if(!card||card.querySelector('.ub-watch-btn')) return;
+      var bottom=card.querySelector('.session-bottom');
+      if(!bottom) return;
+      var watchBtn=document.createElement('button');
+      watchBtn.className='btn btn-blue btn-sm ub-watch-btn';
+      watchBtn.style.cssText='width:auto;padding:6px 10px;font-size:.42rem;margin-left:6px;';
+      watchBtn.textContent='Watch Live';
+      var sid=entry.sessionId;
+      watchBtn.onclick=function(e){ e.stopPropagation(); if(window.ubBattle&&window.ubBattle.joinAsViewer) window.ubBattle.joinAsViewer(sid); };
+      bottom.appendChild(watchBtn);
     });
   }
 
@@ -290,14 +253,6 @@
     if(document.querySelector('#page-browseproducer.active')) renderProducers();
   }
 
-  function syncAll(){
-    var fb=getFb(); if(!fb) return;
-    syncLiveProfiles();
-    // Sync follow counts for all known producers
-    var targets=Object.keys(getUsers()||{}).filter(function(k){ return k!=='djblaze'&&k!=='phantombeats'; });
-    if(targets.length) syncFollowCounts(targets);
-  }
-
   window.ubUI = {
     render: render,
     renderProducers: renderProducers,
@@ -318,10 +273,7 @@
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',render);
   else render();
 
-  window.addEventListener('ub-firebase-ready',function(){ setTimeout(syncAll,500); });
   setTimeout(render,400);
   setTimeout(render,1200);
-  setTimeout(syncAll,1500);
   setInterval(render,1000);
-  setInterval(syncAll,15000);
 })();
