@@ -41,7 +41,11 @@ let _broadcastDest = null;
 function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function note(m, c='#40D0FF'){ notice.textContent = m; notice.style.color = c; }
 function recNote(m, c='#40D0FF'){ const el=document.getElementById('recNotice'); if(el){el.textContent=m;el.style.color=c;} }
-function broadcastStatus(m){ const el=document.getElementById('broadcastStatus'); if(el) el.textContent=m; }
+function broadcastStatus(m){
+  const el=document.getElementById('broadcastStatus'); if(el) el.textContent=m.length>30?m.slice(0,30)+'...':m;
+  const el2=document.getElementById('broadcastStatusFull'); if(el2) el2.textContent=m;
+  const badge=document.getElementById('broadcastLiveBadge'); if(badge) badge.style.display=m.includes('LIVE')?'flex':'none';
+}
 async function ensure(){ if(!auth.currentUser) await signInAnonymously(auth); return auth.currentUser; }
 function itemName(x){ return x.trackTitle||x.title||'Untitled'; }
 function itemUrl(x){ return x.audioUrl||''; }
@@ -85,18 +89,20 @@ async function loadQueue(){
 }
 
 function renderQueue(){
-  // Full track browser in bottom queue section
   if(!qList) return;
-  if(!queue.length){ qList.innerHTML='<div class="track"><div class="name" style="color:var(--gray);">No approved tracks yet.</div></div>'; return; }
+  if(!queue.length){ qList.innerHTML='<div style="padding:10px;color:var(--gray);font-size:.7rem;">No approved tracks yet.</div>'; return; }
   qList.innerHTML = queue.map((x,i)=>`
-    <div class="track">
-      <div class="name">${i+1}. ${esc(itemName(x))}</div>
-      <div class="desc">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
-      <div class="actions" style="margin-top:6px;">
-        <button class="btn btn-blue" data-stage="A" data-i="${i}">+ Stage to A</button>
-        <button class="btn btn-blue" data-stage="B" data-i="${i}">+ Stage to B</button>
-        <button class="btn btn-gold" data-load="A" data-i="${i}">▶ Load A</button>
-        <button class="btn btn-gold" data-load="B" data-i="${i}">▶ Load B</button>
+    <div class="tb-row">
+      <div class="tb-num">${i+1}</div>
+      <div class="tb-info">
+        <div class="tb-name">${esc(itemName(x))}</div>
+        <div class="tb-artist">${esc(x.artistName||x.genre||x.type||'Radio')}</div>
+      </div>
+      <div class="tb-actions">
+        <button class="tb-btn a" data-stage="A" data-i="${i}">A+</button>
+        <button class="tb-btn b" data-stage="B" data-i="${i}">B+</button>
+        <button class="tb-btn a" data-load="A" data-i="${i}">▶A</button>
+        <button class="tb-btn b" data-load="B" data-i="${i}">▶B</button>
       </div>
     </div>`).join('');
 }
@@ -128,11 +134,11 @@ function renderDeckQueue(deck){
 
 function renderPads(){
   const triggers = assets.filter(a=>['station_drop','voiceover','podcast','dj_set'].includes(a.type));
-  if(!triggers.length){ pads.innerHTML='<div class="track">Upload voiceovers, drops, podcasts, or DJ sets in admin.</div>'; return; }
+  if(!triggers.length){ pads.innerHTML='<div class="pad-btn" style="grid-column:1/-1;color:var(--gray);font-size:.6rem;">Upload drops in admin</div>'; return; }
   pads.innerHTML = triggers.map((x,i)=>`
-    <button class="track" data-pad="${i}" type="button">
-      <div class="name">${esc(x.title||'Drop')}</div>
-      <div class="desc">${esc(x.type||'Asset')}</div>
+    <button class="pad-btn" data-pad="${i}" type="button">
+      <span class="pad-name">${esc((x.title||'Drop').slice(0,10))}</span>
+      <span style="font-size:.28rem;color:var(--gray);">${esc(x.type||'')}</span>
     </button>`).join('');
 }
 
@@ -547,52 +553,208 @@ function midiKey(data){ return `${data[0]}-${data[1]}`; }
 let _scratchActive = false;
 let _scratchResetTimer = null;
 
-function onMidiMessage(e){
-  const data=[...e.data], key=midiKey(data), val=data[2]??0;
+// ═══════════════════════════════════════════════
+// HERCULES DJControl Inpulse 200 MK3 — Auto Mapping
+// No setup needed. Plug in and Connect MIDI.
+// ═══════════════════════════════════════════════
 
-  // Intercept pitch bend messages (status 0xE0-0xEF)
-  if((data[0] & 0xF0) === 0xE0){
+let _shiftA = false, _shiftB = false;
+let _jogScratchMode = true; // vinyl mode on by default
+
+function hercPlayPause(deck){
+  const audio = deck === 'A' ? deckA : deckB;
+  if(audio.paused) audio.play();
+  else audio.pause();
+}
+
+function hercCue(deck){
+  const audio = deck === 'A' ? deckA : deckB;
+  if(_shiftA && deck === 'A' || _shiftB && deck === 'B'){
+    audio.currentTime = 0; audio.pause(); // return to start
+  } else {
+    audio.currentTime = 0; audio.play(); // cue play
+  }
+}
+
+function hercSync(deck){
+  // Sync playback rate to the other deck's BPM (basic tempo sync)
+  const srcAudio = deck === 'A' ? deckA : deckB;
+  const dstAudio = deck === 'A' ? deckB : deckA;
+  if(!dstAudio.paused && dstAudio.playbackRate){
+    srcAudio.playbackRate = dstAudio.playbackRate;
+    note('Deck ' + deck + ' synced', '#5dff9e');
+  }
+}
+
+function hercJog(deck, val){
+  // Relative jog wheel: 1-63 = forward, 65-127 = backward
+  const audio = deck === 'A' ? deckA : deckB;
+  const forward = val < 64;
+  const speed = forward ? val : val - 128;
+  if(_shiftA && deck === 'A' || _shiftB && deck === 'B'){
+    // Search mode — jump position
+    audio.currentTime = Math.max(0, audio.currentTime + speed * 0.5);
+  } else if(_jogScratchMode){
+    // Scratch mode via playbackRate
+    audio.playbackRate = 1.0 + (speed * 0.08);
+    clearTimeout(hercJog._timer);
+    hercJog._timer = setTimeout(() => { audio.playbackRate = 1.0; }, 120);
+  } else {
+    // Pitch bend mode
+    audio.playbackRate = 1.0 + (speed * 0.02);
+    clearTimeout(hercJog._timer);
+    hercJog._timer = setTimeout(() => { audio.playbackRate = 1.0; }, 80);
+  }
+}
+hercJog._timer = null;
+
+function hercEQ(deck, band, val){
+  // EQ via filter nodes — mapped to -12 to +12 dB
+  const db = ((val / 127) * 24) - 12;
+  const eq = _eq[deck];
+  if(!eq || !eq.built) return;
+  if(band === 'high') { if(eq.high) eq.high.gain.value = db; }
+  if(band === 'mid')  { if(eq.midHi) eq.midHi.gain.value = db; }
+  if(band === 'low')  { if(eq.low) eq.low.gain.value = db; }
+  note('Deck ' + deck + ' ' + band + ' EQ: ' + (db > 0 ? '+' : '') + db.toFixed(1) + 'dB');
+}
+
+function hercFilter(deck, val){
+  // Filter knob — center=off, left=low pass, right=high pass
+  const eq = _eq[deck];
+  if(!eq || !eq.built || !eq.filter) return;
+  if(val < 54) {
+    eq.filter.type = 'lowpass';
+    eq.filter.frequency.value = 200 + (val / 54) * 18000;
+  } else if(val > 73) {
+    eq.filter.type = 'highpass';
+    eq.filter.frequency.value = 20 + ((val - 73) / 54) * 8000;
+  } else {
+    eq.filter.frequency.value = 20000; // open/flat
+  }
+}
+
+function hercPitch(deck, val){
+  const audio = deck === 'A' ? deckA : deckB;
+  // Center = 64, range -8% to +8%
+  const pct = ((val - 64) / 64) * 8;
+  audio.playbackRate = 1.0 + (pct / 100);
+  // Update pitch display
+  const el = document.getElementById('pitch' + deck + 'Val');
+  if(el) el.textContent = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
+  const slider = document.getElementById('pitch' + deck);
+  if(slider) slider.value = pct;
+}
+
+function hercPad(deck, padNum, velocity){
+  if(velocity === 0) return; // ignore note off
+  if(_shiftA && deck === 'A' || _shiftB && deck === 'B'){
+    // Shift + pad = FX mode
+    const fxMap = { 0: 'bass', 1: 'filter', 2: 'reverb', 3: 'stutter' };
+    if(fxMap[padNum] !== undefined) toggleFX(deck, fxMap[padNum]);
+  } else {
+    // Pad mode — loops
+    const loopMap = { 0: 4, 1: 2, 2: 1, 3: 0.5 };
+    if(loopMap[padNum] !== undefined) startLoop(deck, loopMap[padNum]);
+  }
+}
+
+function onMidiMessage(e){
+  const data=[...e.data], val=data[2]??0;
+  const status = data[0];
+  const note_num = data[1];
+
+  // Show raw signal
+  const sig=document.getElementById('lastMidiSignal');
+  if(sig) sig.textContent = status + '-' + note_num + ' val ' + val;
+
+  // ── Pitch bend (scratch wheel alternative) ──
+  if((status & 0xF0) === 0xE0){
     handlePitchWheel(data[1], data[2]);
     return;
   }
 
-  // Intercept Note On — Akai pads (ch10 = 0x89, ch1 = 0x90)
-  // Akai MPK Mini 4 fires on note-on with velocity 0 for pad press
-  const statusNibble = data[0] & 0xF0;
-  if(statusNibble === 0x80 || statusNibble === 0x90){
-    const note_num = data[1];
-    if(AKAI_PAD_MAP[note_num]){
-      // Trigger on press (any velocity) but not on release (0x80 = note off)
-      if(statusNibble === 0x90){
-        AKAI_PAD_MAP[note_num]();
-        const sig2=document.getElementById('lastMidiSignal');
-        if(sig2) sig2.textContent=`Pad ${note_num} triggered`;
-      }
-      return;
-    }
-  }
-
-  // Intercept CC (0xB0) — Akai knobs
-  if((data[0] & 0xF0) === 0xB0){
-    const cc = data[1], ccVal = data[2];
-    if(AKAI_KNOB_MAP[cc]){
-      AKAI_KNOB_MAP[cc](ccVal);
-      return;
-    }
-  }
-
-  const sig=document.getElementById('lastMidiSignal');
-  if(sig) sig.textContent=`${key} value ${val}`;
+  // ── MIDI Learn mode ──
   if(midiLearn){
+    const key = status + '-' + note_num;
     const target=document.getElementById('midiTarget').value;
     mappings[key]=target;
     localStorage.setItem('ub_radio_dj_midi_mappings',JSON.stringify(mappings));
     renderMappings();
-    note(`Mapped MIDI ${key} to ${target}`,'#5dff9e');
+    note('Mapped MIDI ' + key + ' to ' + target, '#5dff9e');
     return;
   }
-  const action=mappings[key];
-  if(action) runDeckAction(action,val);
+
+  const ch = status & 0x0F; // 0=ch1(DeckA), 1=ch2(DeckB)
+  const deck = (ch === 0) ? 'A' : 'B';
+  const msgType = status & 0xF0;
+
+  // ── NOTE ON (buttons, pads) ──
+  if(msgType === 0x90 && val > 0){
+    switch(note_num){
+      // Play/Pause
+      case 0x0B: hercPlayPause(deck); note('Deck ' + deck + ' Play/Pause'); break;
+      // Cue
+      case 0x0C: hercCue(deck); break;
+      // Sync
+      case 0x15: hercSync(deck); break;
+      // Shift hold
+      case 0x10: if(deck==='A') _shiftA=true; else _shiftB=true; break;
+      // Loop IN — start loop 4 bars
+      case 0x14: startLoop(deck, 4); note('Deck ' + deck + ' Loop 4'); break;
+      // Loop OUT — stop loop
+      case 0x13: stopLoop(deck); note('Deck ' + deck + ' Loop off'); break;
+      // Performance pads 1-4
+      case 0x00:
+      case 0x01:
+      case 0x02:
+      case 0x03: hercPad(deck, note_num, val); break;
+      // Vinyl button — toggle scratch mode
+      case 0x17: _jogScratchMode = !_jogScratchMode; note('Scratch mode ' + (_jogScratchMode?'ON':'OFF')); break;
+      default:
+        // Fall through to manual mappings
+        const key = status + '-' + note_num;
+        const action = mappings[key];
+        if(action) runDeckAction(action, val);
+    }
+    return;
+  }
+
+  // ── NOTE OFF (release shift) ──
+  if(msgType === 0x80 || (msgType === 0x90 && val === 0)){
+    if(note_num === 0x10){ if(deck==='A') _shiftA=false; else _shiftB=false; }
+    return;
+  }
+
+  // ── CC (knobs, faders, jog wheel) ──
+  if(msgType === 0xB0){
+    switch(note_num){
+      // Pitch fader
+      case 0x00: hercPitch(deck, val); break;
+      // EQ High
+      case 0x05: hercEQ(deck, 'high', val); break;
+      // EQ Low
+      case 0x06: hercEQ(deck, 'low', val); break;
+      // Volume fader
+      case 0x08:
+        if(deck==='A'){ deckA.volume=(val/127); document.getElementById('gainA').value=val; }
+        else          { deckB.volume=(val/127); document.getElementById('gainB').value=val; }
+        setVolumes(); break;
+      // Crossfader
+      case 0x07:
+        document.getElementById('crossfader').value = Math.round((val/127)*100);
+        setVolumes(); break;
+      // Filter knob
+      case 0x46: hercFilter(deck, val); break;
+      // Jog wheel (relative, 0x60)
+      case 0x60: hercJog(deck, val); break;
+      default:
+        const key2 = status + '-' + note_num;
+        const action2 = mappings[key2];
+        if(action2) runDeckAction(action2, val);
+    }
+    return;
+  }
 }
 async function connectMidi(){
   const status=document.getElementById('midiStatus');
