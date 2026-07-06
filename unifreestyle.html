@@ -294,20 +294,45 @@
       <div class="stat-cell"><div class="stat-num">1.2K</div><div class="stat-lbl">Watching</div></div>
     </div>
 
-    <div class="section-head"><h3>📅 Scheduled Sessions</h3><div class="line"></div><div class="more">All</div></div>
+    <div class="section-head"><h3>📅 Scheduled Sessions</h3><div class="line"></div><div id="ubSessionStatus" style="font-family:Orbitron,sans-serif;font-size:.42rem;color:#40D0FF;"></div></div>
 
-    <div class="session-card live" onclick="goToPage('queue')">
-      <div class="session-top"><div class="session-time">8:00 PM</div><div class="session-badge sb-live"><span class="live-dot"></span>LIVE NOW</div></div>
-      <div class="session-title">Open Freestyle Battle</div>
-      <div class="session-dj">🎧 DJ Blaze · Trap + Drill Rotation</div>
-      <div class="session-bottom"><div class="session-lobby">⚡ 24 Artists in Lobby</div><button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" onclick="event.stopPropagation();goToPage('queue')">JOIN</button></div>
+    <!-- Opponent Waiting Banner -->
+    <div id="ubOpponentWaitingBanner" style="display:none;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,51,51,.5);background:rgba(255,51,51,.1);animation:pulse 1.5s infinite;">
+      <span style="width:8px;height:8px;background:#ff3333;border-radius:50%;flex-shrink:0;"></span>
+      <span id="ubOpponentWaitingLabel" style="font-family:Orbitron,sans-serif;font-size:.48rem;color:#ff6b6b;flex:1;">⚡ Opponent waiting to battle!</span>
+      <button class="btn btn-red" style="width:auto;padding:6px 12px;font-size:.44rem;" onclick="ubBattle&&ubBattle.joinQueue&&ubBattle.joinQueue('open_freestyle')">BATTLE NOW</button>
     </div>
 
-    <div class="session-card upcoming" onclick="goToPage('queue')">
-      <div class="session-top"><div class="session-time">10:00 PM</div><div class="session-badge sb-up">⏱ STARTING IN</div></div>
+    <!-- Session 1: 8 PM EST -->
+    <div id="ubSession1Card" class="session-card">
+      <div class="session-top">
+        <div class="session-time">8:00 PM EST</div>
+        <div id="ubSession1Badge" class="session-badge sb-live"><span class="live-dot"></span>LOADING</div>
+      </div>
+      <div class="session-title">Open Freestyle Battle</div>
+      <div class="session-dj">🎧 Trap + Drill Rotation · All Styles Welcome</div>
+      <div class="session-bottom">
+        <div class="session-lobby">👁️ <span id="ubHomeViewerCount">0</span> watching</div>
+        <div id="ubSession1Actions">
+          <button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" id="ubSession1JoinBtn" onclick="ubBattle&&ubBattle.joinQueue('open_freestyle')">FIND OPPONENT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session 2: 10 PM EST -->
+    <div id="ubSession2Card" class="session-card upcoming">
+      <div class="session-top">
+        <div class="session-time">10:00 PM EST</div>
+        <div id="ubSession2Badge" class="session-badge sb-up">⏱ LOADING</div>
+      </div>
       <div class="session-title">Beat Kill Session</div>
-      <div class="session-dj">🎧 DJ Phantom · R&B + Afrobeats</div>
-      <div class="session-bottom"><div class="session-lobby">⚡ 18 Artists Queued</div><div class="session-countdown" id="homeCountdown">01:24:00</div></div>
+      <div class="session-dj">🎧 R&B + Afrobeats · Producer Beats Only</div>
+      <div class="session-bottom">
+        <div class="session-lobby">⚡ Opens at 10 PM EST</div>
+        <div id="ubSession2Actions">
+          <button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" id="ubSession2JoinBtn" onclick="ubBattle&&ubBattle.joinQueue('beat_kill')">FIND OPPONENT</button>
+        </div>
+      </div>
     </div>
 
     <div class="section-head" style="margin-top:6px;"><h3>⚡ Instant Mode</h3><div class="line"></div></div>
@@ -1032,13 +1057,8 @@ function saveUsers(users) {
 }
 function setCurrentUser(user) {
   currentUser = user;
-  if(user) {
-    localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
-    localStorage.setItem('ub_user', JSON.stringify(user));
-  } else {
-    localStorage.removeItem(STORAGE.CURRENT);
-    localStorage.removeItem('ub_user');
-  }
+  if(user) localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
+  else localStorage.removeItem(STORAGE.CURRENT);
 }
 function loadCurrentUser() {
   try {
@@ -1314,89 +1334,51 @@ async function finishGoogleLogin(fbUser) {
     return;
   }
 
+  const users = getUsers();
   const email = fbUser.email.toLowerCase();
-  const uid   = fbUser.uid;
   let userData = null;
 
-  // 1. Check Firestore by uid — works on mobile where localStorage is empty
-  if (window.UB_FIREBASE && window.UB_FIREBASE.ready) {
-    try {
-      const fb = window.UB_FIREBASE;
-      // Search profiles collection for this uid
-      const snap = await fb.getDocs(
-        fb.query(fb.collection(fb.db, 'profiles'), fb.where('uid', '==', uid))
-      );
-      if (!snap.empty) {
-        const d = snap.docs[0].data();
-        userData = {
-          uid,
-          name:        d.name        || d.displayName || fbUser.displayName || email.split('@')[0],
-          username:    d.username    || snap.docs[0].id,
-          email,
-          password:    '',
-          photo:       d.photo       || fbUser.photoURL || '',
-          avatar:      d.avatar      || '🎤',
-          bio:         d.bio         || '',
-          role:        d.role        || 'artist',
-          city:        d.city        || '',
-          points:      d.points      || 0,
-          wins:        d.wins        || 0,
-          losses:      d.losses      || 0,
-          battles:     d.battles     || 0,
-          votes:       d.votes       || 0,
-          accuracy:    d.accuracy    || 0,
-          followers:   d.followers   || 0,
-          following:   d.following   || 0,
-          joined:      d.joined      || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          verified:    true,
-          unipackTier: d.unipackTier || 'free',
-          signInProvider: 'google',
-          authProvider:   'google'
-        };
-      }
-    } catch(e) {
-      console.warn('[googleLogin] Firestore uid lookup failed:', e.message);
+  for (const k in users) {
+    if (users[k].email === email) {
+      userData = users[k];
+      break;
     }
   }
 
-  // 2. Fall back to localStorage by email or uid
   if (!userData) {
-    const users = getUsers();
-    for (const k in users) {
-      if (users[k].email === email || users[k].uid === uid) {
-        userData = users[k];
-        break;
-      }
-    }
-  }
-
-  // 3. Brand new user — create profile
-  if (!userData) {
-    const users = getUsers();
     let username = email.split('@')[0].replace(/[^a-z0-9_]/g, '') || 'artist';
-    let base = username, n = 1;
-    while (users[username]) { username = base + n; n++; }
+    let baseUsername = username;
+    let n = 1;
+
+    while (users[username]) {
+      username = baseUsername + n;
+      n++;
+    }
 
     userData = {
-      uid, name: fbUser.displayName || email.split('@')[0],
-      username, email, password: '',
-      photo: fbUser.photoURL || '', avatar: '🎤', bio: '',
-      role: 'artist', city: '',
-      points: 0, wins: 0, losses: 0, battles: 0,
-      votes: 0, accuracy: 0, followers: 0, following: 0,
+      uid: fbUser.uid,
+      name: fbUser.displayName || email.split('@')[0],
+      username: username,
+      email: email,
+      password: '',
+      photo: fbUser.photoURL || '',
+      avatar: '🎤',
+      bio: '',
+      role: 'artist',
+      city: '',
+      points: 0,
+      wins: 0,
+      losses: 0,
+      battles: 0,
+      votes: 0,
+      accuracy: 0,
+      followers: 0,
+      following: 0,
       joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      verified: true, unipackTier: 'free', signInProvider: 'google'
+      verified: true,
+      unipackTier: 'free',
+      signInProvider: 'google'
     };
-
-    // Save new profile to Firestore so future logins find it
-    if (window.UB_FIREBASE && window.UB_FIREBASE.ready) {
-      try {
-        const fb = window.UB_FIREBASE;
-        await fb.setDoc(fb.doc(fb.db, 'profiles', username), {
-          ...userData, updatedAt: fb.serverTimestamp()
-        }, { merge: true });
-      } catch(e) { console.warn('[googleLogin] Firestore save failed:', e.message); }
-    }
 
     users[username] = userData;
     saveUsers(users);
@@ -1404,14 +1386,10 @@ async function finishGoogleLogin(fbUser) {
 
   if (!userData.photo && fbUser.photoURL) {
     userData.photo = fbUser.photoURL;
+    const allUsers = getUsers();
+    allUsers[userData.username] = userData;
+    saveUsers(allUsers);
   }
-
-  userData.uid = uid;
-
-  // Save to localStorage under the correct username
-  const allUsers = getUsers();
-  allUsers[userData.username] = userData;
-  saveUsers(allUsers);
 
   setCurrentUser(userData);
   showToast(`✅ Welcome, ${userData.name.split(' ')[0]}!`);
@@ -1694,19 +1672,79 @@ function changePassword() {
 function refreshHome() {
   if(!currentUser) { goToPage('splash'); return; }
   document.getElementById('homeWelcomeName').textContent = currentUser.name.split(' ')[0];
+  updateSessionCards();
 }
 
-let homeCountdownSecs = 5040; // 1h 24min
-function tickHomeCountdown() {
-  homeCountdownSecs--;
-  if(homeCountdownSecs < 0) homeCountdownSecs = 5040;
-  const h = Math.floor(homeCountdownSecs / 3600);
-  const m = Math.floor((homeCountdownSecs % 3600) / 60);
-  const s = homeCountdownSecs % 60;
-  const el = document.getElementById('homeCountdown');
-  if(el) el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+function updateSessionCards() {
+  if(!window.ubBattle || !window.ubBattle.getSessionWindow) return;
+  var win = window.ubBattle.getSessionWindow();
+
+  var s1Badge = document.getElementById('ubSession1Badge');
+  var s1Btn   = document.getElementById('ubSession1JoinBtn');
+  var s1Card  = document.getElementById('ubSession1Card');
+  var s2Badge = document.getElementById('ubSession2Badge');
+  var s2Btn   = document.getElementById('ubSession2JoinBtn');
+  var s2Card  = document.getElementById('ubSession2Card');
+  var status  = document.getElementById('ubSessionStatus');
+
+  if(!s1Badge) return;
+
+  if(win.open) {
+    // Sessions are live
+    if(status) status.textContent = '🔴 LIVE NOW · EST';
+
+    // Session 1 (8 PM) — always open during window
+    s1Card.className = 'session-card live';
+    s1Badge.className = 'session-badge sb-live';
+    s1Badge.innerHTML = '<span class="live-dot"></span>LIVE NOW';
+    s1Btn.disabled = false;
+    s1Btn.style.opacity = '1';
+    s1Btn.textContent = 'FIND OPPONENT';
+
+    // Session 2 (10 PM) — only open after 10 PM
+    var ny = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    var h = ny.getHours();
+    if(h >= 22) {
+      s2Card.className = 'session-card live';
+      s2Badge.className = 'session-badge sb-live';
+      s2Badge.innerHTML = '<span class="live-dot"></span>LIVE NOW';
+      s2Btn.disabled = false;
+      s2Btn.style.opacity = '1';
+      s2Btn.textContent = 'FIND OPPONENT';
+    } else {
+      s2Card.className = 'session-card upcoming';
+      s2Badge.className = 'session-badge sb-up';
+      s2Badge.textContent = '⏱ STARTS 10 PM';
+      s2Btn.disabled = true;
+      s2Btn.style.opacity = '0.4';
+      s2Btn.textContent = 'NOT YET';
+    }
+
+  } else {
+    // Sessions closed
+    var msg = win.minsUntil ? ('Opens in ' + (win.minsUntil > 60 ? Math.floor(win.minsUntil/60)+'h '+win.minsUntil%60+'m' : win.minsUntil+'m')) : 'Opens 8 PM EST';
+    if(status) status.textContent = msg;
+
+    s1Card.className = 'session-card upcoming';
+    s1Badge.className = 'session-badge sb-up';
+    s1Badge.textContent = '⏱ ' + msg;
+    s1Btn.disabled = true;
+    s1Btn.style.opacity = '0.4';
+    s1Btn.textContent = 'LOCKED';
+
+    s2Card.className = 'session-card upcoming';
+    s2Badge.className = 'session-badge sb-up';
+    s2Badge.textContent = '⏱ Opens 10 PM EST';
+    s2Btn.disabled = true;
+    s2Btn.style.opacity = '0.4';
+    s2Btn.textContent = 'LOCKED';
+  }
 }
-setInterval(tickHomeCountdown, 1000);
+
+// Update every 30 seconds
+setInterval(updateSessionCards, 30000);
+
+// Session countdown handled by updateSessionCards()
 
 // ════════════════════════════════════════
 // BATTLE QUEUE
