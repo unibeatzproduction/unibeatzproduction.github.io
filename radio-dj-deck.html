@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniBeatz Radio — DJ Deck</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════ */
+:root{
+  --bg0:#0a0a0f;
+  --bg1:#111118;
+  --bg2:#181820;
+  --bg3:#1e1e28;
+  --surface:#22222e;
+  --border:rgba(255,255,255,.07);
+  --border-gold:rgba(201,168,76,.4);
+  --gold:#C9A84C;
+  --gold-light:#F0C040;
+  --blue:#00AAFF;
+  --cyan:#40D0FF;
+  --green:#00e676;
+  --red:#ff3c3c;
+  --white:#f0ede8;
+  --gray:#6b7280;
+  --gray2:#9aa3b8;
+  --deck-a:#40D0FF;
+  --deck-b:#F0C040;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-ui:'Orbitron',sans-serif;
+  --font-body:'Rajdhani',sans-serif;
+  --font-mono:'Share Tech Mono',monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg0);
+  color:var(--white);
+  font-family:var(--font-body);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Lock Screen ── */
+#lockOverlay{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg0);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.lock-logo{font-family:var(--font-display);font-size:3.5rem;letter-spacing:4px;color:var(--gold-light);}
+.lock-sub{font-family:var(--font-ui);font-size:.5rem;letter-spacing:3px;color:var(--gray2);margin-top:-8px;}
+.lock-input{
+  padding:12px 16px;border-radius:8px;
+  border:1px solid var(--border-gold);
+  background:var(--bg2);color:var(--white);
+  font-family:var(--font-mono);font-size:.95rem;width:240px;text-align:center;
+  outline:none;margin-top:8px;
+}
+.lock-btn{
+  padding:11px 28px;border:0;border-radius:8px;
+  background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));
+  color:#030305;font-family:var(--font-ui);font-size:.52rem;
+  letter-spacing:2px;font-weight:900;cursor:pointer;
+}
+
+/* ── Top Bar ── */
+.topbar{
+  height:48px;
+  background:rgba(10,10,15,.96);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;position:sticky;top:0;z-index:10;
+}
+.topbar-brand{font-family:var(--font-display);font-size:1.2rem;letter-spacing:3px;color:var(--gold-light);}
+.topbar-links{display:flex;gap:10px;align-items:center;}
+.topbar-links a{
+  font-family:var(--font-ui);font-size:.42rem;letter-spacing:2px;
+  color:var(--gray2);text-decoration:none;padding:5px 10px;
+  border-radius:6px;border:1px solid transparent;
+  transition:border-color .15s;
+}
+.topbar-links a:hover{border-color:var(--border-gold);color:var(--gold);}
+.live-badge{
+  display:flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:999px;
+  background:rgba(255,60,60,.12);border:1px solid rgba(255,60,60,.5);
+  font-family:var(--font-ui);font-size:.42rem;letter-spacing:2px;color:#ff7474;
+}
+.live-dot{width:7px;height:7px;background:#ff3c3c;border-radius:50%;animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+#broadcastLiveBadge{display:none;}
+
+/* ── Status Bar ── */
+.statusbar{
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  padding:8px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.status-item{font-family:var(--font-mono);font-size:.7rem;color:var(--gray2);}
+.status-item span{color:var(--white);}
+#deckNotice{font-family:var(--font-mono);font-size:.7rem;color:var(--cyan);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── Main Layout ── */
+.djapp{display:grid;grid-template-rows:auto;min-height:calc(100vh - 48px);}
+.deckzone{
+  display:grid;
+  grid-template-columns:1fr 200px 1fr;
+  gap:0;
+  background:var(--bg0);
+  border-bottom:2px solid var(--border);
+}
+
+/* ── Deck Panel ── */
+.deck{
+  background:var(--bg1);
+  padding:14px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.deck-a{border-right:1px solid var(--border);}
+.deck-b{border-left:1px solid var(--border);}
+
+.deck-header{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.deck-label{
+  font-family:var(--font-ui);font-size:.52rem;letter-spacing:3px;
+  padding:3px 10px;border-radius:4px;font-weight:900;
+}
+.deck-label-a{background:rgba(64,208,255,.12);border:1px solid rgba(64,208,255,.4);color:var(--cyan);}
+.deck-label-b{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.4);color:var(--gold-light);}
+.deck-bpm{
+  font-family:var(--font-mono);font-size:.85rem;color:var(--gray2);
+  display:flex;align-items:center;gap:4px;
+}
+.deck-bpm span{color:var(--white);font-size:1rem;}
+
+/* ── Waveform Area ── */
+.waveform-wrap{
+  position:relative;height:70px;
+  background:var(--bg0);border-radius:6px;overflow:hidden;
+  border:1px solid var(--border);
+}
+.waveform-canvas{width:100%;height:100%;display:block;}
+.waveform-playhead{
+  position:absolute;top:0;left:50%;width:2px;height:100%;
+  background:var(--cyan);opacity:.8;pointer-events:none;
+}
+.waveform-b .waveform-playhead{background:var(--gold-light);}
+.waveform-time{
+  position:absolute;bottom:4px;right:6px;
+  font-family:var(--font-mono);font-size:.65rem;color:rgba(255,255,255,.5);
+}
+
+/* ── Platter ── */
+.platter-wrap{display:flex;justify-content:center;padding:6px 0;}
+.platter{
+  width:130px;height:130px;border-radius:50%;
+  background:radial-gradient(circle,#1a1a22 0 28%,#111118 29% 48%,#1a1a22 49% 62%,#111118 63% 78%,#222230 79%);
+  border:3px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;cursor:grab;
+  box-shadow:0 0 30px rgba(0,0,0,.6),inset 0 0 20px rgba(0,0,0,.4);
+  transition:border-color .3s;
+}
+.platter:active{cursor:grabbing;}
+.platter.playing{border-color:rgba(64,208,255,.4);box-shadow:0 0 30px rgba(64,208,255,.12),inset 0 0 20px rgba(0,0,0,.4);}
+.platter-b.playing{border-color:rgba(240,192,64,.4);box-shadow:0 0 30px rgba(240,192,64,.12),inset 0 0 20px rgba(0,0,0,.4);}
+.platter-inner{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg0);border:2px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+}
+.platter-label{
+  font-family:var(--font-ui);font-size:.3rem;letter-spacing:1px;
+  color:var(--gray);text-align:center;line-height:1.3;max-width:28px;overflow:hidden;
+}
+.track-name-display{
+  font-family:var(--font-mono);font-size:.7rem;color:var(--gray2);
+  text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:0 4px;
+}
+
+/* ── Transport Controls ── */
+.transport{display:flex;gap:6px;justify-content:center;align-items:center;}
+.t-btn{
+  border:1px solid var(--border);border-radius:6px;
+  background:var(--bg3);color:var(--gray2);
+  font-family:var(--font-ui);font-size:.38rem;letter-spacing:1px;
+  padding:7px 10px;cursor:pointer;transition:all .12s;
+  font-weight:900;
+}
+.t-btn:hover{background:var(--surface);border-color:rgba(255,255,255,.15);color:var(--white);}
+.t-btn.play{background:rgba(0,230,118,.1);border-color:rgba(0,230,118,.4);color:var(--green);}
+.t-btn.play:hover{background:rgba(0,230,118,.18);}
+.t-btn.play.active{background:rgba(0,230,118,.2);border-color:var(--green);color:var(--green);box-shadow:0 0 12px rgba(0,230,118,.2);}
+.t-btn.cue{background:rgba(64,208,255,.08);border-color:rgba(64,208,255,.3);color:var(--cyan);}
+.t-btn.sync{background:rgba(240,192,64,.08);border-color:rgba(240,192,64,.3);color:var(--gold-light);}
+
+/* ── Pitch Fader ── */
+.pitch-section{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.pitch-label{font-family:var(--font-ui);font-size:.36rem;letter-spacing:2px;color:var(--gray);text-transform:uppercase;}
+.pitch-value{font-family:var(--font-mono);font-size:.75rem;color:var(--white);}
+.pitch-fader{
+  -webkit-appearance:none;appearance:none;
+  writing-mode:vertical-lr;direction:rtl;
+  width:24px;height:80px;
+  background:var(--bg0);border-radius:4px;
+  cursor:pointer;outline:none;
+  border:1px solid var(--border);
+}
+.pitch-fader::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:22px;height:14px;border-radius:3px;
+  background:var(--surface);border:1px solid rgba(255,255,255,.2);
+  cursor:grab;
+}
+
+/* ── Hot Cue Pads ── */
+.hotcues{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.hc-pad{
+  aspect-ratio:1;border-radius:6px;border:1px solid rgba(255,255,255,.08);
+  background:var(--bg0);cursor:pointer;
+  font-family:var(--font-ui);font-size:.32rem;letter-spacing:1px;
+  color:var(--gray);transition:all .08s;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  padding:4px;
+}
+.hc-pad:hover{background:var(--bg3);}
+.hc-pad.loop{background:rgba(64,208,255,.08);border-color:rgba(64,208,255,.3);color:var(--cyan);}
+.hc-pad.fx{background:rgba(240,192,64,.08);border-color:rgba(240,192,64,.3);color:var(--gold-light);}
+.hc-pad.active{box-shadow:0 0 10px currentColor;opacity:1;}
+.hc-icon{font-size:.7rem;}
+.hc-label{font-size:.28rem;color:inherit;opacity:.8;}
+
+/* ── Track Queue in Deck ── */
+.deck-queue-wrap{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:6px;}
+.deck-queue-label{font-family:var(--font-ui);font-size:.36rem;letter-spacing:2px;color:var(--gray);}
+.deck-queue{
+  flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;
+  max-height:140px;
+}
+.deck-queue::-webkit-scrollbar{width:3px;}
+.deck-queue::-webkit-scrollbar-thumb{background:var(--border-gold);border-radius:3px;}
+.dq-item{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;border:1px solid var(--border);border-radius:6px;
+  background:var(--bg0);cursor:pointer;transition:all .12s;
+}
+.dq-item:hover{border-color:rgba(255,255,255,.15);background:var(--bg2);}
+.dq-item.loaded{border-color:var(--cyan);background:rgba(64,208,255,.06);}
+.dq-item.loaded-b{border-color:var(--gold);background:rgba(240,192,64,.06);}
+.dq-num{font-family:var(--font-mono);font-size:.6rem;color:var(--gray);min-width:16px;}
+.dq-info{flex:1;min-width:0;}
+.dq-name{font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--white);}
+.dq-meta{font-size:.68rem;color:var(--gray2);}
+
+/* ── Mixer Center ── */
+.mixer{
+  background:var(--bg0);
+  display:flex;flex-direction:column;
+  align-items:center;gap:12px;
+  padding:14px 10px;
+  border-left:1px solid var(--border);
+  border-right:1px solid var(--border);
+}
+.mixer-label{font-family:var(--font-ui);font-size:.38rem;letter-spacing:3px;color:var(--gray);text-align:center;}
+
+/* ── EQ Knobs ── */
+.eq-section{width:100%;display:flex;flex-direction:column;gap:8px;}
+.eq-row{display:flex;gap:6px;justify-content:center;}
+.knob-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.knob{
+  width:36px;height:36px;border-radius:50%;
+  background:radial-gradient(circle at 40% 35%,#2a2a38,#111118);
+  border:2px solid rgba(255,255,255,.12);
+  position:relative;cursor:pointer;
+  box-shadow:0 3px 8px rgba(0,0,0,.5);
+}
+.knob::after{
+  content:'';position:absolute;top:4px;left:50%;
+  width:2px;height:8px;background:var(--white);
+  transform:translateX(-50%);border-radius:1px;
+  transform-origin:bottom center;
+}
+.knob-label{font-family:var(--font-ui);font-size:.3rem;letter-spacing:1px;color:var(--gray);}
+.knob-val{font-family:var(--font-mono);font-size:.55rem;color:var(--gray2);}
+
+/* ── Crossfader ── */
+.xfader-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.xfader-labels{width:100%;display:flex;justify-content:space-between;font-family:var(--font-ui);font-size:.38rem;color:var(--gray);}
+.xfader-labels span:first-child{color:var(--cyan);}
+.xfader-labels span:last-child{color:var(--gold-light);}
+.xfader{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:8px;border-radius:4px;
+  background:linear-gradient(to right,var(--bg3),var(--surface),var(--bg3));
+  border:1px solid var(--border);cursor:pointer;outline:none;
+}
+.xfader::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px;height:22px;border-radius:4px;
+  background:linear-gradient(180deg,#2a2a38,#111118);
+  border:1px solid rgba(255,255,255,.2);cursor:grab;
+  box-shadow:0 2px 6px rgba(0,0,0,.5);
+}
+
+/* ── Master Gain / Channel Faders ── */
+.fader-row{display:flex;gap:10px;justify-content:center;align-items:flex-end;}
+.ch-fader-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.ch-fader{
+  -webkit-appearance:none;appearance:none;
+  writing-mode:vertical-lr;direction:rtl;
+  width:20px;height:90px;
+  background:var(--bg2);border-radius:4px;
+  cursor:pointer;outline:none;border:1px solid var(--border);
+}
+.ch-fader::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:20px;height:12px;border-radius:3px;
+  background:linear-gradient(180deg,#2a2a38,#111118);
+  border:1px solid rgba(255,255,255,.15);cursor:grab;
+}
+.ch-fader-label{font-family:var(--font-ui);font-size:.3rem;letter-spacing:1px;color:var(--gray);}
+
+/* ── VU Meters ── */
+.vu-wrap{display:flex;gap:3px;height:80px;align-items:flex-end;}
+.vu-bar-wrap{display:flex;flex-direction:column-reverse;gap:2px;}
+.vu-seg{width:8px;height:5px;border-radius:1px;background:var(--bg3);transition:background .05s;}
+.vu-seg.on-green{background:var(--green);}
+.vu-seg.on-yellow{background:#F0C040;}
+.vu-seg.on-red{background:#ff3c3c;}
+
+/* ── Bottom Zone ── */
+.bottomzone{display:grid;grid-template-columns:1fr 1fr;gap:0;border-bottom:1px solid var(--border);}
+.bpanel{background:var(--bg1);padding:14px;border-right:1px solid var(--border);}
+.bpanel:last-child{border-right:0;}
+.bpanel-title{font-family:var(--font-display);font-size:1.4rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:8px;}
+.bpanel-eyebrow{font-family:var(--font-ui);font-size:.38rem;letter-spacing:3px;color:var(--gray);margin-bottom:4px;}
+
+/* ── Track Browser ── */
+.track-browser{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;}
+.track-browser::-webkit-scrollbar{width:3px;}
+.track-browser::-webkit-scrollbar-thumb{background:var(--border-gold);border-radius:3px;}
+.tb-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border:1px solid var(--border);border-radius:7px;
+  background:var(--bg0);cursor:pointer;transition:all .12s;
+}
+.tb-row:hover{background:var(--bg2);border-color:rgba(255,255,255,.12);}
+.tb-num{font-family:var(--font-mono);font-size:.6rem;color:var(--gray);min-width:20px;}
+.tb-info{flex:1;min-width:0;}
+.tb-name{font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-artist{font-size:.7rem;color:var(--gray2);}
+.tb-actions{display:flex;gap:5px;flex-shrink:0;}
+.tb-btn{
+  padding:4px 8px;border-radius:5px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--gray2);cursor:pointer;
+  font-family:var(--font-ui);font-size:.32rem;letter-spacing:1px;transition:all .1s;
+}
+.tb-btn:hover{border-color:rgba(255,255,255,.2);color:var(--white);}
+.tb-btn.a{border-color:rgba(64,208,255,.3);color:var(--cyan);}
+.tb-btn.b{border-color:rgba(240,192,64,.3);color:var(--gold-light);}
+
+/* ── Broadcast Panel ── */
+.bcast-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
+.bcast-btn{
+  padding:9px 14px;border-radius:7px;border:0;
+  font-family:var(--font-ui);font-size:.44rem;letter-spacing:1.5px;font-weight:900;cursor:pointer;
+  transition:all .12s;
+}
+.bcast-go{background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.4);color:var(--green);}
+.bcast-go:hover{background:rgba(0,230,118,.2);}
+.bcast-go.live{background:rgba(255,60,60,.12);border-color:rgba(255,60,60,.5);color:#ff7474;}
+.bcast-end{background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.3);color:#ff7474;}
+.bcast-end:disabled{opacity:.35;cursor:not-allowed;}
+.bcast-mic{background:rgba(64,208,255,.08);border:1px solid rgba(64,208,255,.3);color:var(--cyan);}
+.bcast-mic.active{background:rgba(64,208,255,.18);border-color:var(--cyan);}
+.bcast-status{
+  font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);
+  padding:6px 0;line-height:1.4;
+}
+
+/* ── Trigger Pads ── */
+.pads-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.pad-btn{
+  padding:10px 6px;border-radius:7px;
+  border:1px solid rgba(255,255,255,.06);
+  background:var(--bg0);color:var(--gray2);
+  cursor:pointer;text-align:center;
+  font-family:var(--font-ui);font-size:.32rem;letter-spacing:1px;
+  transition:all .1s;min-height:52px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+}
+.pad-btn:hover{background:var(--bg3);border-color:rgba(255,255,255,.12);}
+.pad-btn .pad-name{font-size:.6rem;color:var(--white);font-weight:700;}
+
+/* ── Record Panel ── */
+.rec-panel{
+  background:var(--bg1);padding:14px;
+  border-top:2px solid rgba(255,60,60,.2);
+}
+.rec-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.rec-btn{
+  padding:8px 14px;border-radius:7px;border:0;
+  font-family:var(--font-ui);font-size:.44rem;letter-spacing:1.5px;font-weight:900;cursor:pointer;
+}
+.rec-start{background:rgba(255,60,60,.85);border:1px solid #ff3c3c;color:#fff;}
+.rec-start.recording{animation:recPulse 1s infinite;}
+.rec-start:disabled{opacity:.4;cursor:not-allowed;}
+.rec-stop{background:rgba(64,208,255,.08);border:1px solid rgba(64,208,255,.3);color:var(--cyan);}
+.rec-stop:disabled{opacity:.35;cursor:not-allowed;}
+.rec-timer{font-family:var(--font-display);font-size:2rem;letter-spacing:3px;color:#ff3c3c;display:none;}
+.rec-saved{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:180px;overflow:auto;}
+.rec-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border:1px solid rgba(255,60,60,.2);border-radius:7px;
+  background:rgba(255,60,60,.04);
+}
+.rec-item-info{flex:1;min-width:0;}
+.rec-item-name{font-size:.8rem;font-weight:700;color:var(--gold-light);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rec-item-meta{font-size:.68rem;color:var(--gray2);}
+.rec-dl{
+  padding:5px 10px;border-radius:5px;
+  background:linear-gradient(135deg,#8B6914,var(--gold));
+  color:#030305;font-family:var(--font-ui);font-size:.36rem;
+  font-weight:900;text-decoration:none;white-space:nowrap;
+}
+
+/* ── MIDI Panel ── */
+.midi-panel{background:var(--bg1);padding:14px;border-top:1px solid var(--border);}
+.midi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;}
+.midi-card{
+  padding:10px;border:1px solid var(--border);border-radius:7px;background:var(--bg0);
+}
+.midi-card-title{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);margin-bottom:4px;}
+.midi-card-val{font-family:var(--font-mono);font-size:.75rem;color:var(--white);}
+.midi-mappings{display:flex;flex-direction:column;gap:5px;margin-top:8px;max-height:160px;overflow:auto;}
+.mapping-row{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg0);
+}
+.mapping-action{font-size:.78rem;font-weight:700;flex:1;}
+.mapping-key{font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);}
+.midi-select{
+  width:100%;padding:7px;border-radius:6px;
+  border:1px solid var(--border-gold);background:var(--bg2);
+  color:var(--white);font-family:var(--font-body);font-size:.8rem;outline:none;
+}
+.midi-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;}
+.m-btn{
+  padding:7px 12px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--gray2);cursor:pointer;
+  font-family:var(--font-ui);font-size:.38rem;letter-spacing:1px;
+}
+.m-btn.gold{background:linear-gradient(135deg,#8B6914,var(--gold));color:#030305;border:0;}
+.m-btn.blue{border-color:rgba(64,208,255,.3);color:var(--cyan);}
+.m-btn.red{border-color:rgba(255,60,60,.3);color:#ff7474;}
+
+/* ── Scrollbar Global ── */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg0);}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px;}
+
+/* ── Util ── */
+.hidden{display:none!important;}
+.sep{height:1px;background:var(--border);margin:10px 0;}
+
+@media(max-width:900px){
+  .deckzone{grid-template-columns:1fr;}
+  .mixer{flex-direction:row;flex-wrap:wrap;justify-content:center;padding:10px;}
+  .bottomzone{grid-template-columns:1fr;}
+  .midi-grid{grid-template-columns:1fr 1fr;}
+}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+</head>
+<body>
+
+<!-- Lock Screen -->
+<div id="lockOverlay">
+  <div class="lock-logo">DJ DECK</div>
+  <div class="lock-sub">UniBeatz Radio · Broadcast Control</div>
+  <input id="lockInput" class="lock-input" type="password" placeholder="Enter admin code"/>
+  <button class="lock-btn" id="lockBtn">UNLOCK</button>
+</div>
+
+<!-- Top Bar -->
+<header class="topbar">
+  <a class="topbar-brand" href="radio.html">⚡ UNIBEATZ RADIO</a>
+  <div class="topbar-links">
+    <div id="broadcastLiveBadge" class="live-badge"><span class="live-dot"></span>ON AIR</div>
+    <a href="radio.html">Radio</a>
+    <a href="admin-radio.html">Admin</a>
+    <a href="#" onclick="document.getElementById('lockOverlay').style.display='flex';document.getElementById('lockInput').value='';return false;" style="color:#ff7474;border-color:rgba(255,60,60,.3);">Lock</a>
+  </div>
+</header>
+
+<!-- Status Bar -->
+<div class="statusbar">
+  <div class="status-item">DECK A: <span id="deckALabel">NO TRACK</span></div>
+  <div class="status-item" style="color:rgba(255,255,255,.15);">|</div>
+  <div class="status-item">DECK B: <span id="deckBLabel">NO TRACK</span></div>
+  <div id="deckNotice"></div>
+  <div class="status-item" id="broadcastStatus" style="color:var(--gray);">OFFLINE</div>
+</div>
+
+<div class="djapp">
+
+  <!-- ═══ DECK ZONE ═══ -->
+  <div class="deckzone">
+
+    <!-- DECK A -->
+    <div class="deck deck-a">
+      <div class="deck-header">
+        <span class="deck-label deck-label-a">DECK A</span>
+        <div class="deck-bpm">BPM <span id="bpmA">—</span></div>
+      </div>
+
+      <!-- Waveform -->
+      <div class="waveform-wrap" id="waveA">
+        <canvas class="waveform-canvas" id="waveCanvasA"></canvas>
+        <div class="waveform-playhead"></div>
+        <div class="waveform-time" id="timeA">0:00</div>
+      </div>
+
+      <!-- Platter -->
+      <div class="platter-wrap">
+        <div class="platter" id="platterA">
+          <div class="platter-inner">
+            <div class="platter-label" id="platterALabel">LOAD<br>TRACK</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="transport">
+        <button class="t-btn cue" id="cueA">CUE</button>
+        <button class="t-btn play" id="playA">▶ PLAY</button>
+        <button class="t-btn" id="stopA">■ STOP</button>
+        <button class="t-btn sync" id="syncA">SYNC</button>
+      </div>
+
+      <!-- Pitch Fader -->
+      <div style="display:flex;gap:16px;align-items:center;justify-content:center;">
+        <div class="pitch-section">
+          <div class="pitch-label">PITCH</div>
+          <input type="range" class="pitch-fader" id="pitchA" min="-8" max="8" value="0" step="0.1"/>
+          <div class="pitch-value" id="pitchAVal">0.0%</div>
+        </div>
+        <!-- VU Meter A -->
+        <div class="vu-wrap" id="vuA"></div>
+      </div>
+
+      <!-- Hot Cues / Pads -->
+      <div class="hotcues" id="hotcuesA">
+        <button class="hc-pad loop" onclick="startLoop('A',4)"><span class="hc-icon">🔁</span><span class="hc-label">4 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('A',2)"><span class="hc-icon">🔁</span><span class="hc-label">2 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('A',1)"><span class="hc-icon">🔁</span><span class="hc-label">1 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('A',0.5)"><span class="hc-icon">🔁</span><span class="hc-label">½ BAR</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('A','bass')"><span class="hc-icon">🔊</span><span class="hc-label">BASS</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('A','filter')"><span class="hc-icon">〰️</span><span class="hc-label">FILTER</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('A','reverb')"><span class="hc-icon">🌀</span><span class="hc-label">REVERB</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('A','stutter')"><span class="hc-icon">⚡</span><span class="hc-label">STUTTER</span></button>
+      </div>
+
+      <!-- Deck A Queue -->
+      <div class="deck-queue-wrap">
+        <div class="deck-queue-label">DECK A QUEUE</div>
+        <div class="deck-queue" id="deckAQueue"></div>
+      </div>
+
+      <audio id="deckA" crossorigin="anonymous"></audio>
+    </div>
+
+    <!-- MIXER CENTER -->
+    <div class="mixer">
+      <div class="mixer-label">MIXER</div>
+
+      <!-- Channel Faders -->
+      <div class="fader-row">
+        <div class="ch-fader-wrap">
+          <div class="ch-fader-label" style="color:var(--cyan);">A</div>
+          <input type="range" class="ch-fader" id="gainA" min="0" max="100" value="100"/>
+        </div>
+        <div class="ch-fader-wrap">
+          <div class="ch-fader-label" style="color:var(--gold);">B</div>
+          <input type="range" class="ch-fader" id="gainB" min="0" max="100" value="100"/>
+        </div>
+      </div>
+
+      <!-- EQ -->
+      <div class="eq-section">
+        <div class="mixer-label">EQ</div>
+        <div style="display:flex;gap:5px;justify-content:center;">
+          <div class="knob-wrap"><div class="knob" id="eqHighA" title="High EQ A"></div><div class="knob-label">HI</div></div>
+          <div class="knob-wrap"><div class="knob" id="eqMidA" title="Mid EQ A"></div><div class="knob-label">MID</div></div>
+          <div class="knob-wrap"><div class="knob" id="eqLowA" title="Low EQ A"></div><div class="knob-label">LOW</div></div>
+        </div>
+        <div style="font-family:var(--font-ui);font-size:.28rem;letter-spacing:1px;color:var(--cyan);text-align:center;">DECK A</div>
+        <div class="sep"></div>
+        <div style="font-family:var(--font-ui);font-size:.28rem;letter-spacing:1px;color:var(--gold);text-align:center;">DECK B</div>
+        <div style="display:flex;gap:5px;justify-content:center;">
+          <div class="knob-wrap"><div class="knob" id="eqHighB" title="High EQ B"></div><div class="knob-label">HI</div></div>
+          <div class="knob-wrap"><div class="knob" id="eqMidB" title="Mid EQ B"></div><div class="knob-label">MID</div></div>
+          <div class="knob-wrap"><div class="knob" id="eqLowB" title="Low EQ B"></div><div class="knob-label">LOW</div></div>
+        </div>
+      </div>
+
+      <!-- Crossfader -->
+      <div class="xfader-wrap">
+        <div class="xfader-labels"><span>A</span><span>B</span></div>
+        <input type="range" class="xfader" id="crossfader" min="0" max="100" value="50"/>
+      </div>
+
+      <!-- Master -->
+      <div class="ch-fader-wrap">
+        <div class="ch-fader-label">MASTER</div>
+        <input type="range" class="ch-fader" id="masterVol" min="0" max="100" value="80"/>
+      </div>
+    </div>
+
+    <!-- DECK B -->
+    <div class="deck deck-b">
+      <div class="deck-header">
+        <span class="deck-label deck-label-b">DECK B</span>
+        <div class="deck-bpm">BPM <span id="bpmB">—</span></div>
+      </div>
+
+      <!-- Waveform -->
+      <div class="waveform-wrap waveform-b" id="waveB">
+        <canvas class="waveform-canvas" id="waveCanvasB"></canvas>
+        <div class="waveform-playhead"></div>
+        <div class="waveform-time" id="timeB">0:00</div>
+      </div>
+
+      <!-- Platter -->
+      <div class="platter-wrap">
+        <div class="platter platter-b" id="platterB">
+          <div class="platter-inner">
+            <div class="platter-label" id="platterBLabel">LOAD<br>TRACK</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="transport">
+        <button class="t-btn cue" id="cueB">CUE</button>
+        <button class="t-btn play" id="playB">▶ PLAY</button>
+        <button class="t-btn" id="stopB">■ STOP</button>
+        <button class="t-btn sync" id="syncB">SYNC</button>
+      </div>
+
+      <!-- Pitch Fader -->
+      <div style="display:flex;gap:16px;align-items:center;justify-content:center;">
+        <div class="pitch-section">
+          <div class="pitch-label">PITCH</div>
+          <input type="range" class="pitch-fader" id="pitchB" min="-8" max="8" value="0" step="0.1"/>
+          <div class="pitch-value" id="pitchBVal">0.0%</div>
+        </div>
+        <!-- VU Meter B -->
+        <div class="vu-wrap" id="vuB"></div>
+      </div>
+
+      <!-- Hot Cues / Pads -->
+      <div class="hotcues" id="hotcuesB">
+        <button class="hc-pad loop" onclick="startLoop('B',4)"><span class="hc-icon">🔁</span><span class="hc-label">4 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('B',2)"><span class="hc-icon">🔁</span><span class="hc-label">2 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('B',1)"><span class="hc-icon">🔁</span><span class="hc-label">1 BAR</span></button>
+        <button class="hc-pad loop" onclick="startLoop('B',0.5)"><span class="hc-icon">🔁</span><span class="hc-label">½ BAR</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('B','bass')"><span class="hc-icon">🔊</span><span class="hc-label">BASS</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('B','filter')"><span class="hc-icon">〰️</span><span class="hc-label">FILTER</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('B','reverb')"><span class="hc-icon">🌀</span><span class="hc-label">REVERB</span></button>
+        <button class="hc-pad fx" onclick="toggleFX('B','stutter')"><span class="hc-icon">⚡</span><span class="hc-label">STUTTER</span></button>
+      </div>
+
+      <!-- Deck B Queue -->
+      <div class="deck-queue-wrap">
+        <div class="deck-queue-label">DECK B QUEUE</div>
+        <div class="deck-queue" id="deckBQueue"></div>
+      </div>
+
+      <audio id="deckB" crossorigin="anonymous"></audio>
+    </div>
+
+  </div><!-- /deckzone -->
+
+  <!-- ═══ BOTTOM ZONE ═══ -->
+  <div class="bottomzone">
+
+    <!-- Track Browser -->
+    <div class="bpanel">
+      <div class="bpanel-eyebrow">Library</div>
+      <div class="bpanel-title">TRACK BROWSER</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button class="m-btn gold" id="reloadQueue">↻ RELOAD</button>
+        <button class="m-btn" id="saveQueue">💾 SAVE</button>
+      </div>
+      <div class="track-browser" id="queueList"></div>
+    </div>
+
+    <!-- Broadcast + Pads -->
+    <div class="bpanel">
+      <div class="bpanel-eyebrow">Broadcast</div>
+      <div class="bpanel-title">LIVE CONTROL</div>
+      <div class="bcast-row">
+        <button class="bcast-btn bcast-go" id="startBroadcast">🔴 GO LIVE</button>
+        <button class="bcast-btn bcast-end" id="endBroadcast" disabled>⏹ END</button>
+        <button class="bcast-btn bcast-mic" id="micToggle">🎙 MIC OFF</button>
+      </div>
+      <div class="bcast-status" id="broadcastStatusFull">Offline · Start live mode when ready</div>
+      <div class="sep"></div>
+      <div class="bpanel-eyebrow">Trigger Pads</div>
+      <div class="pads-grid" id="triggerPads">
+        <div class="pad-btn" style="color:var(--gray);font-size:.6rem;">Loading drops...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ RECORD PANEL ═══ -->
+  <div class="rec-panel">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <div>
+        <div class="bpanel-eyebrow" style="color:#ff7474;">Recorder</div>
+        <div style="font-family:var(--font-display);font-size:1.4rem;color:#ff7474;letter-spacing:2px;">MIX RECORDER</div>
+      </div>
+      <div class="rec-controls">
+        <button class="rec-btn rec-start" id="recStart">⏺ RECORD</button>
+        <button class="rec-btn rec-stop" id="recStop" disabled>⏹ STOP</button>
+        <div class="rec-timer" id="recTimer">0:00</div>
+        <div id="recNotice" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);"></div>
+      </div>
+    </div>
+    <div class="rec-saved" id="recSavedList"></div>
+  </div>
+
+  <!-- ═══ MIDI PANEL ═══ -->
+  <div class="midi-panel">
+    <div class="bpanel-eyebrow">Hardware</div>
+    <div style="font-family:var(--font-display);font-size:1.4rem;color:var(--gold-light);letter-spacing:2px;margin-bottom:8px;">MIDI CONTROLLER</div>
+    <div class="midi-actions">
+      <button class="m-btn gold" id="connectMidi">CONNECT MIDI</button>
+      <button class="m-btn blue" id="startMidiLearn">MIDI LEARN ON</button>
+      <button class="m-btn red" id="stopMidiLearn">MIDI LEARN OFF</button>
+    </div>
+    <div class="midi-grid">
+      <div class="midi-card">
+        <div class="midi-card-title">CONNECTED DEVICE</div>
+        <div class="midi-card-val" id="midiDevices">None detected</div>
+      </div>
+      <div class="midi-card">
+        <div class="midi-card-title">LAST SIGNAL</div>
+        <div class="midi-card-val" id="lastMidiSignal">Waiting...</div>
+      </div>
+      <div class="midi-card">
+        <div class="midi-card-title">LEARN TARGET</div>
+        <select class="midi-select" id="midiTarget">
+          <option value="playA">Play Deck A</option>
+          <option value="playB">Play Deck B</option>
+          <option value="stopA">Stop Deck A</option>
+          <option value="stopB">Stop Deck B</option>
+          <option value="crossfader">Crossfader</option>
+          <option value="micToggle">Mic On/Off</option>
+          <option value="nextTrigger">Trigger Drop</option>
+          <option value="startBroadcast">Go Live</option>
+          <option value="endBroadcast">End Live</option>
+          <option value="startRecording">Start Recording</option>
+          <option value="stopRecording">Stop Recording</option>
+        </select>
+      </div>
+    </div>
+    <div id="midiStatus" style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);margin-top:8px;">No MIDI device connected.</div>
+    <div class="midi-mappings" id="midiMappings"></div>
+  </div>
+
+</div><!-- /djapp -->
+
+<script>
+// Lock screen
+document.getElementById('lockBtn').onclick = function(){
+  if(document.getElementById('lockInput').value === 'empire2026'){
+    document.getElementById('lockOverlay').style.display = 'none';
+    initDeckUI();
+  } else {
+    document.getElementById('lockInput').value = '';
+    document.getElementById('lockInput').placeholder = 'Wrong code — try again';
+  }
+};
+document.getElementById('lockInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') document.getElementById('lockBtn').click();
+});
+
+// ── Waveform Visualizer ──
+function drawWaveform(canvasId, audio, color){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const ctx2 = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+  ctx2.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const w = canvas.offsetWidth, h = canvas.offsetHeight;
+  ctx2.clearRect(0,0,w,h);
+
+  // Draw fake waveform bars (real waveform needs AnalyserNode)
+  const bars = Math.floor(w / 3);
+  for(let i = 0; i < bars; i++){
+    const x = i * 3;
+    const progress = audio.currentTime / (audio.duration || 1);
+    const isPast = (i / bars) < progress;
+    const barH = (Math.sin(i * 0.3) * 0.4 + Math.sin(i * 0.7) * 0.3 + 0.3) * h * 0.9;
+    ctx2.fillStyle = isPast ? color : 'rgba(255,255,255,0.08)';
+    ctx2.fillRect(x, (h - barH) / 2, 2, barH);
+  }
+}
+
+function startWaveformLoop(){
+  const deckA = document.getElementById('deckA');
+  const deckB = document.getElementById('deckB');
+  function loop(){
+    drawWaveform('waveCanvasA', deckA, '#40D0FF');
+    drawWaveform('waveCanvasB', deckB, '#F0C040');
+    // Update time displays
+    const fmt = t => { const m=Math.floor(t/60),s=Math.floor(t%60); return m+':'+(s<10?'0':'')+s; };
+    const tA = document.getElementById('timeA');
+    const tB = document.getElementById('timeB');
+    if(tA) tA.textContent = fmt(deckA.currentTime) + ' / ' + fmt(deckA.duration||0);
+    if(tB) tB.textContent = fmt(deckB.currentTime) + ' / ' + fmt(deckB.duration||0);
+    // Platter spin animation
+    if(!deckA.paused) document.getElementById('platterA').classList.add('playing');
+    else document.getElementById('platterA').classList.remove('playing');
+    if(!deckB.paused) document.getElementById('platterB').classList.add('playing');
+    else document.getElementById('platterB').classList.remove('playing');
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ── VU Meters ──
+function buildVU(wrapperId, color){
+  const wrap = document.getElementById(wrapperId);
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  for(let ch = 0; ch < 2; ch++){
+    const col = document.createElement('div');
+    col.className = 'vu-bar-wrap';
+    col.id = wrapperId + '_ch' + ch;
+    for(let i = 0; i < 12; i++){
+      const seg = document.createElement('div');
+      seg.className = 'vu-seg';
+      col.appendChild(seg);
+    }
+    wrap.appendChild(col);
+  }
+}
+
+function updateVU(wrapperId, level){
+  for(let ch = 0; ch < 2; ch++){
+    const col = document.getElementById(wrapperId + '_ch' + ch);
+    if(!col) continue;
+    const segs = col.querySelectorAll('.vu-seg');
+    const active = Math.round(level * 12);
+    segs.forEach((s, i) => {
+      s.className = 'vu-seg';
+      if(i < active){
+        if(i >= 10) s.classList.add('on-red');
+        else if(i >= 8) s.classList.add('on-yellow');
+        else s.classList.add('on-green');
+      }
+    });
+  }
+}
+
+// ── Pitch Faders ──
+function initPitchFaders(){
+  const pitchA = document.getElementById('pitchA');
+  const pitchB = document.getElementById('pitchB');
+  const deckA  = document.getElementById('deckA');
+  const deckB  = document.getElementById('deckB');
+
+  pitchA.addEventListener('input', function(){
+    const pct = parseFloat(this.value);
+    deckA.playbackRate = 1 + (pct / 100);
+    document.getElementById('pitchAVal').textContent = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
+  });
+  pitchB.addEventListener('input', function(){
+    const pct = parseFloat(this.value);
+    deckB.playbackRate = 1 + (pct / 100);
+    document.getElementById('pitchBVal').textContent = (pct > 0 ? '+' : '') + pct.toFixed(1) + '%';
+  });
+}
+
+// ── Broadcast status badge ──
+function updateBroadcastUI(isLive){
+  const badge = document.getElementById('broadcastLiveBadge');
+  const goBtn = document.getElementById('startBroadcast');
+  if(badge) badge.style.display = isLive ? 'flex' : 'none';
+  if(goBtn) goBtn.classList.toggle('live', isLive);
+}
+
+// Override broadcastStatus to also update badge
+const _origBroadcastStatus = window.broadcastStatus;
+window.broadcastStatus = function(m){
+  const el = document.getElementById('broadcastStatusFull');
+  if(el) el.textContent = m;
+  const el2 = document.getElementById('broadcastStatus');
+  if(el2) el2.textContent = m.length > 30 ? m.slice(0,30)+'…' : m;
+  const isLive = m.includes('LIVE');
+  updateBroadcastUI(isLive);
+};
+
+// ── renderQueue override for new track browser style ──
+window._origRenderQueue = null; // will be set after JS loads
+
+// ── Platter label update ──
+function updatePlatterLabel(deck, name){
+  const id = deck === 'A' ? 'platterALabel' : 'platterBLabel';
+  const el = document.getElementById(id);
+  if(el) el.textContent = name ? name.slice(0,12) : (deck === 'A' ? 'LOAD TRACK' : 'LOAD TRACK');
+}
+
+// Hook into deckALabel / deckBLabel changes
+const deckALabelObs = new MutationObserver(() => {
+  const t = document.getElementById('deckALabel').textContent.replace('A: ','');
+  updatePlatterLabel('A', t);
+});
+const deckBLabelObs = new MutationObserver(() => {
+  const t = document.getElementById('deckBLabel').textContent.replace('B: ','');
+  updatePlatterLabel('B', t);
+});
+
+function initDeckUI(){
+  buildVU('vuA', '#40D0FF');
+  buildVU('vuB', '#F0C040');
+  startWaveformLoop();
+  initPitchFaders();
+
+  // Watch label changes for platter
+  const la = document.getElementById('deckALabel');
+  const lb = document.getElementById('deckBLabel');
+  if(la) deckALabelObs.observe(la, {childList:true,characterData:true,subtree:true});
+  if(lb) deckBLabelObs.observe(lb, {childList:true,characterData:true,subtree:true});
+
+  // Animate VU meters with audio
+  const deckA = document.getElementById('deckA');
+  const deckB = document.getElementById('deckB');
+  setInterval(()=>{
+    const lvlA = deckA.paused ? 0 : 0.3 + Math.random() * 0.5;
+    const lvlB = deckB.paused ? 0 : 0.3 + Math.random() * 0.5;
+    updateVU('vuA', lvlA);
+    updateVU('vuB', lvlB);
+  }, 80);
+}
+</script>
+
+<script src="/unibeatz-dj-os-v4.js"></script>
+<script type="module" src="radio-dj-deck.js"></script>
+<script src="/unibeatz-radio-v5-patch.js"></script>
+</body>
+</html>
