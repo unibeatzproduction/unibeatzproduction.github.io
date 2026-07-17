@@ -65,10 +65,33 @@ function setVolumes(){
 }
 
 function loadTo(deck, item){
-  if(!itemUrl(item)){ note('This item has no audio URL.','#ff7474'); return; }
-  if(deck==='A'){ deckA.src=itemUrl(item); deckALabel.textContent='A: '+itemName(item).slice(0,20); }
-  else           { deckB.src=itemUrl(item); deckBLabel.textContent='B: '+itemName(item).slice(0,20); }
-  note('Loaded '+itemName(item)+' to Deck '+deck,'#5dff9e');
+  const url = itemUrl(item);
+  if(!url){ note('This item has no audio URL.','#ff7474'); return; }
+  const name = itemName(item);
+  if(deck==='A'){
+    deckA.src = url;
+    deckALabel.textContent = 'A: ' + name.slice(0,20);
+    // Update platter label
+    const pl = document.getElementById('platterALabel');
+    if(pl) pl.textContent = name.slice(0,12);
+    // Mark loaded in deck queue
+    stageA.forEach(x => x._loaded = false);
+    const staged = stageA.find(x => itemName(x) === name);
+    if(staged) staged._loaded = true;
+    renderDeckQueue('A');
+  } else {
+    deckB.src = url;
+    deckBLabel.textContent = 'B: ' + name.slice(0,20);
+    const pl = document.getElementById('platterBLabel');
+    if(pl) pl.textContent = name.slice(0,12);
+    stageB.forEach(x => x._loaded = false);
+    const staged = stageB.find(x => itemName(x) === name);
+    if(staged) staged._loaded = true;
+    renderDeckQueue('B');
+  }
+  note('Loaded ' + name + ' to Deck ' + deck, '#5dff9e');
+  // Try scratch buffer in background — won't block playback if it fails
+  try { loadScratchBuffer(deck, url); } catch(e) {}
 }
 
 async function loadQueue(){
@@ -483,21 +506,111 @@ document.getElementById('recStop')?.addEventListener('click',  stopRecording);
 // DECK CONTROLS
 // ═══════════════════════════════════════════════
 function runDeckAction(action, value=null){
-  if(action==='playA')          deckA.play();
-  if(action==='playB')          deckB.play();
-  if(action==='stopA')         { deckA.pause(); deckA.currentTime=0; }
-  if(action==='stopB')         { deckB.pause(); deckB.currentTime=0; }
+  const v = value !== null ? value : 0;
+  // Play / Pause
+  if(action==='playA')  { deckA.paused ? deckA.play() : deckA.pause(); }
+  if(action==='playB')  { deckB.paused ? deckB.play() : deckB.pause(); }
+  // Stop
+  if(action==='stopA')  { deckA.pause(); deckA.currentTime=0; }
+  if(action==='stopB')  { deckB.pause(); deckB.currentTime=0; }
+  // Cue — jump to 0 and play
+  if(action==='cueA')   { deckA.currentTime=0; deckA.play(); }
+  if(action==='cueB')   { deckB.currentTime=0; deckB.play(); }
+  // Sync — match playback rate to other deck
+  if(action==='syncA')  { if(!deckB.paused) deckA.playbackRate=deckB.playbackRate; }
+  if(action==='syncB')  { if(!deckA.paused) deckB.playbackRate=deckA.playbackRate; }
+  // Pitch fader — center=64, range -8% to +8%
+  if(action==='pitchA') {
+    const pct = ((v-64)/64)*8;
+    deckA.playbackRate = 1.0+(pct/100);
+    const el=document.getElementById('pitchAVal'); if(el) el.textContent=(pct>0?'+':'')+pct.toFixed(1)+'%';
+    const sl=document.getElementById('pitchA'); if(sl) sl.value=pct;
+  }
+  if(action==='pitchB') {
+    const pct = ((v-64)/64)*8;
+    deckB.playbackRate = 1.0+(pct/100);
+    const el=document.getElementById('pitchBVal'); if(el) el.textContent=(pct>0?'+':'')+pct.toFixed(1)+'%';
+    const sl=document.getElementById('pitchB'); if(sl) sl.value=pct;
+  }
+  // Volume faders
+  if(action==='volumeA') { deckA.volume=v/127; const g=document.getElementById('gainA'); if(g) g.value=Math.round((v/127)*100); }
+  if(action==='volumeB') { deckB.volume=v/127; const g=document.getElementById('gainB'); if(g) g.value=Math.round((v/127)*100); }
+  // Crossfader
+  if(action==='crossfader') {
+    const cf=document.getElementById('crossfader'); if(cf) cf.value=Math.round((v/127)*100);
+    setVolumes();
+  }
+  // Jog wheel (relative: 1-63=fwd, 65-127=back)
+  if(action==='jogA' || action==='jogB'){
+    const audio = action==='jogA' ? deckA : deckB;
+    const speed = v < 64 ? v : v-128;
+    audio.playbackRate = 1.0+(speed*0.06);
+    clearTimeout(runDeckAction._jogTimer);
+    runDeckAction._jogTimer = setTimeout(()=>{ audio.playbackRate=1.0; }, 120);
+  }
+  // EQ
+  if(action==='eqHighA') hercEQ('A','high',v);
+  if(action==='eqMidA')  hercEQ('A','mid',v);
+  if(action==='eqLowA')  hercEQ('A','low',v);
+  if(action==='eqHighB') hercEQ('B','high',v);
+  if(action==='eqMidB')  hercEQ('B','mid',v);
+  if(action==='eqLowB')  hercEQ('B','low',v);
+  // Filter
+  if(action==='filterA') hercFilter('A',v);
+  if(action==='filterB') hercFilter('B',v);
+  // Loops
+  if(action==='loop4A')    startLoop('A',4);
+  if(action==='loop2A')    startLoop('A',2);
+  if(action==='loop1A')    startLoop('A',1);
+  if(action==='loopHA')    startLoop('A',0.5);
+  if(action==='loop4B')    startLoop('B',4);
+  if(action==='loop2B')    startLoop('B',2);
+  if(action==='loop1B')    startLoop('B',1);
+  if(action==='loopHB')    startLoop('B',0.5);
+  if(action==='loopOffA')  stopLoop('A');
+  if(action==='loopOffB')  stopLoop('B');
+  // Hercules Loop IN button → 4 bar loop
+  if(action==='loop4A' || action==='loopInA') startLoop('A',4);
+  if(action==='loop4B' || action==='loopInB') startLoop('B',4);
+  // Pads (with shift state tracked in hercules handler)
+  if(action==='pad0A') { startLoop('A',4); }
+  if(action==='pad1A') { startLoop('A',2); }
+  if(action==='pad2A') { startLoop('A',1); }
+  if(action==='pad3A') { startLoop('A',0.5); }
+  if(action==='pad0B') { startLoop('B',4); }
+  if(action==='pad1B') { startLoop('B',2); }
+  if(action==='pad2B') { startLoop('B',1); }
+  if(action==='pad3B') { startLoop('B',0.5); }
+  // Filter actions from controller
+  if(action==='filterA') hercFilter('A', v);
+  if(action==='filterB') hercFilter('B', v);
+  // FX
+  if(action==='fxBassA')    toggleFX('A','bass');
+  if(action==='fxFilterA')  toggleFX('A','filter');
+  if(action==='fxReverbA')  toggleFX('A','reverb');
+  if(action==='fxStutterA') toggleFX('A','stutter');
+  if(action==='fxBassB')    toggleFX('B','bass');
+  if(action==='fxFilterB')  toggleFX('B','filter');
+  if(action==='fxReverbB')  toggleFX('B','reverb');
+  if(action==='fxStutterB') toggleFX('B','stutter');
+  // Broadcast / record
   if(action==='micToggle')      toggleMic();
   if(action==='startBroadcast') startBroadcast();
   if(action==='endBroadcast')   endBroadcast();
   if(action==='nextTrigger')    triggerNextDrop();
   if(action==='startRecording') startRecording();
   if(action==='stopRecording')  stopRecording();
-  if(action==='crossfader' && value!==null){
-    document.getElementById('crossfader').value = Math.round((value/127)*100);
-    setVolumes();
-  }
 }
+runDeckAction._jogTimer = null;
+
+// Bridge: dj-midi-controller.js dispatches 'ub-dj-action' custom events
+window.ubDeckAction = runDeckAction;
+window.addEventListener('ub-dj-action', function(e){
+  const { action, signal } = e.detail || {};
+  if(!action) return;
+  const val = signal ? (signal.value !== undefined ? signal.value : 0) : 0;
+  runDeckAction(action, val);
+});
 
 // Bottom queue — stage to deck or load directly
 qList?.addEventListener('click', e => {
@@ -933,25 +1046,63 @@ function handlePitchWheel(lsb, msb){
 }
 
 // Hook loadTo to also load scratch buffer without redeclaring the function.
-const _origLoadTo = loadTo;
-loadTo = function(deck, item){
-  _origLoadTo(deck, item);
-  const url = itemUrl(item);
-  if(url) loadScratchBuffer(deck, url);
-};
+// Scratch buffer loading handled inside loadTo directly
 
 // ── Boot ──
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
 setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
-(function(){
-  const ids = ['connectMidi','startMidiLearn','stopMidiLearn','midiTarget',
-    'midiMappings','midiDevices','midiStatus','lastMidiSignal'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if(!el) return;
-    const panel = el.closest('.panel,section,.card');
-    if(panel && panel.id !== 'ubDjOSPanel') panel.style.display = 'none';
-    else el.style.display = 'none';
-  });
-  console.log('[UniBeatz Radio Deck] Old MIDI system removed. DJ OS V4 is the only controller system.');
-})();
+
+// ── Audio Output Device Routing ──
+// When a MIDI controller is plugged in, route audio to it via setSinkId
+async function routeAudioToController(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  try{
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioOuts = devices.filter(d => d.kind === 'audiooutput');
+    // Look for Hercules or any external audio device
+    const controller = audioOuts.find(d =>
+      d.label.toLowerCase().includes('hercules') ||
+      d.label.toLowerCase().includes('inpulse') ||
+      d.label.toLowerCase().includes('djcontrol')
+    );
+    if(controller && deckA.setSinkId && deckB.setSinkId){
+      await deckA.setSinkId(controller.deviceId);
+      await deckB.setSinkId(controller.deviceId);
+      note('Audio routed to: ' + controller.label, '#5dff9e');
+      console.log('[audio] routed to', controller.label);
+    } else {
+      // Use default device
+      if(deckA.setSinkId) await deckA.setSinkId('default');
+      if(deckB.setSinkId) await deckB.setSinkId('default');
+    }
+  } catch(e){ console.warn('[audio] setSinkId failed:', e.message); }
+}
+
+// Re-route audio when MIDI connects (controller may bring its own audio)
+window._origConnectMidi = window._connectMidi;
+const _origMidiConnect = connectMidi;
+// MIDI UI managed by unibeatz-dj-os-v3.js
+
+// Wire MIDI buttons to DJ OS
+setTimeout(function(){
+  const connectBtn = document.getElementById('connectMidi');
+  if(connectBtn) connectBtn.onclick = function(){
+    if(window.UniBeatzDJOS && window.UniBeatzDJOS.midi){
+      window.UniBeatzDJOS.midi.connect().then(function(ok){
+        if(ok) routeAudioToController();
+      });
+    }
+  };
+  const learnOnBtn = document.getElementById('startMidiLearn');
+  if(learnOnBtn) learnOnBtn.onclick = function(){
+    midiLearn = true;
+    const s = document.getElementById('midiStatus');
+    if(s) s.textContent = 'MIDI Learn ON — touch a control then pick action';
+  };
+  const learnOffBtn = document.getElementById('stopMidiLearn');
+  if(learnOffBtn) learnOffBtn.onclick = function(){
+    midiLearn = false;
+    const s = document.getElementById('midiStatus');
+    if(s) s.textContent = 'MIDI Learn OFF';
+  };
+}, 800);
