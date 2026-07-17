@@ -333,11 +333,23 @@
         if (n === 0x0B) return `play${deck}`;
         if (n === 0x0C) return `cue${deck}`;
         if (n === 0x15) return `sync${deck}`;
+        if (n === 0x10) return `shift${deck}`;   // Shift button
+        if (n === 0x17) return `vinyl${deck}`;   // Vinyl/scratch mode
+        if (n === 0x14) return `loop4${deck}`;   // Loop IN → 4 bar
+        if (n === 0x13) return `loopOff${deck}`; // Loop OUT → off
+        // Pads
+        if (n === 0x00) return `pad0${deck}`;
+        if (n === 0x01) return `pad1${deck}`;
+        if (n === 0x02) return `pad2${deck}`;
+        if (n === 0x03) return `pad3${deck}`;
       }
       if (t === 0xB0) {
         if (n === 0x00) return `pitch${deck}`;
+        if (n === 0x05) return `eqHigh${deck}`;
+        if (n === 0x06) return `eqLow${deck}`;
         if (n === 0x07) return 'crossfader';
         if (n === 0x08) return `volume${deck}`;
+        if (n === 0x46) return `filter${deck}`;
         if (n === 0x60) return `jog${deck}`;
       }
     }
