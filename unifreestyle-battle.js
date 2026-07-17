@@ -739,6 +739,89 @@ function watchQueueForBanner(sessionId) {
   }
 
   // Public API
+
+  // ═══════════════════════════════════════════════
+  // BATTLE DJ DECK ENGINE
+  // Local beat player + controller bridge for DJ role
+  // ═══════════════════════════════════════════════
+
+  var _djBeatAudio = null;
+  var _djBeatCtx   = null;
+  var _djBeatSrc   = null;
+
+  function getDjAudio(){
+    if(!_djBeatAudio){
+      _djBeatAudio = new Audio();
+      _djBeatAudio.crossOrigin = 'anonymous';
+      _djBeatAudio.loop = true;
+    }
+    return _djBeatAudio;
+  }
+
+  // Load beat into local DJ player
+  function djLoadBeat(url, name){
+    var a = getDjAudio();
+    a.src = url;
+    a.load();
+    toast('DJ deck loaded: ' + (name||'Beat'));
+    // Update DJ deck UI if visible
+    var el = document.getElementById('ubDjDeckTrack');
+    if(el) el.textContent = name || 'Beat';
+  }
+
+  // Hook into selectBeat — also load locally for DJ
+  var _origSelectBeat = selectBeat;
+  async function selectBeat(id){
+    await _origSelectBeat(id);
+    var beat = (_beatCache||[]).find(function(b){ return b.id===id; });
+    if(beat && beat.audioUrl) djLoadBeat(beat.audioUrl, beat.name);
+  }
+
+  // Battle DJ deck actions — maps to runDeckAction compatible interface
+  function battleDjAction(action, val){
+    var a = getDjAudio();
+    val = val !== undefined ? val : 0;
+
+    if(action==='playA' || action==='playB'){
+      a.paused ? a.play() : a.pause();
+    }
+    if(action==='stopA' || action==='stopB'){
+      a.pause(); a.currentTime=0;
+    }
+    if(action==='cueA' || action==='cueB'){
+      a.currentTime=0; a.play();
+    }
+    if(action==='pitchA' || action==='pitchB'){
+      var pct = ((val-64)/64)*8;
+      a.playbackRate = 1.0+(pct/100);
+    }
+    if(action==='volumeA' || action==='volumeB'){
+      a.volume = val/127;
+    }
+    if(action==='jogA' || action==='jogB'){
+      var speed = val < 64 ? val : val-128;
+      a.playbackRate = 1.0+(speed*0.06);
+      clearTimeout(battleDjAction._jogTimer);
+      battleDjAction._jogTimer = setTimeout(function(){ a.playbackRate=1.0; }, 120);
+    }
+  }
+  battleDjAction._jogTimer = null;
+
+  // Listen for ub-dj-action events from dj-midi-controller.js
+  window.addEventListener('ub-dj-action', function(e){
+    var detail  = e.detail || {};
+    var action  = detail.action;
+    var signal  = detail.signal || {};
+    var val     = signal.value !== undefined ? signal.value : 0;
+    if(!action) return;
+
+    // Only handle if current user is DJ in this battle
+    var myRole = resolveUsername('dj') ? 'dj' : null;
+    if(!myRole) return;
+
+    battleDjAction(action, val);
+  });
+
   window.ubBattle = {
     modes:MODES, open:openMode, inject:injectModeSelector,
     joinQueue:joinMatchmakingQueue, cancelQueue:cancelQueue,
