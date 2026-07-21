@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>UniBeatz Production | The Empire</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --black:#020202;--gold:#C9A84C;--gold-light:#F0C040;--gold-dark:#8B6914;
+  --blue:#00AAFF;--blue-bright:#40D0FF;
+  --white:#F0EDE8;--gray:#777;--red:#FF3333;--green:#00CC66;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.13;}
+
+/* ══ NAVBAR ══ */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:60px;background:linear-gradient(90deg,#08080f,#0d0d1a);border-bottom:2px solid var(--gold);box-shadow:0 4px 30px rgba(0,0,0,0.8),0 0 20px rgba(201,168,76,0.12);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:100%;padding:0 16px;max-width:1200px;margin:0 auto;}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;flex-shrink:0;}
+.nav-logo img{height:38px;width:38px;object-fit:contain;filter:drop-shadow(0 0 6px rgba(0,170,255,0.6));}
+.nav-logo-text{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;background:linear-gradient(135deg,var(--gold-light),var(--blue-bright));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-desktop{display:flex;gap:2px;align-items:center;list-style:none;}
+.nav-desktop a{color:rgba(240,237,232,0.7);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.48rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:6px 10px;border:1px solid transparent;transition:all 0.2s;white-space:nowrap;}
+.nav-desktop a:hover{color:var(--gold-light);border-color:rgba(201,168,76,0.3);background:rgba(201,168,76,0.06);}
+.nav-desktop a.nav-cta{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black) !important;border:none !important;font-weight:700;}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-icon-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;font-size:1rem;cursor:pointer;color:var(--white);position:relative;}
+.nav-icon-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.1);}
+.nav-notif-dot{position:absolute;top:-1px;right:-1px;width:8px;height:8px;background:var(--red);border-radius:50%;border:1px solid var(--black);}
+.nav-hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;padding:4px;border:1px solid rgba(201,168,76,0.25);border-radius:4px;background:rgba(255,255,255,0.04);}
+.nav-hamburger span{display:block;height:2px;background:var(--gold);border-radius:2px;transition:all 0.3s;}
+.nav-hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.nav-hamburger.open span:nth-child(2){opacity:0;}
+.nav-hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+
+/* Mobile dropdown */
+.nav-mobile-menu{position:fixed;top:60px;left:0;right:0;z-index:299;background:linear-gradient(180deg,#0d0d1a,#08080f);border-bottom:2px solid rgba(201,168,76,0.2);transform:translateY(-110%);transition:transform 0.3s ease;box-shadow:0 10px 40px rgba(0,0,0,0.6);}
+.nav-mobile-menu.open{transform:translateY(0);}
+.nav-mobile-links{list-style:none;padding:8px 0;}
+.nav-mobile-links li a,.nav-mobile-links li button{display:flex;align-items:center;gap:12px;width:100%;padding:14px 20px;color:rgba(240,237,232,0.8);text-decoration:none;font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2px;text-transform:uppercase;border:none;background:transparent;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);}
+.nav-mobile-links li a:hover{background:rgba(201,168,76,0.06);color:var(--gold-light);}
+.nav-mobile-links .link-icon{font-size:1.1rem;width:22px;text-align:center;flex-shrink:0;}
+.nav-mobile-links .link-badge{margin-left:auto;padding:2px 8px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;}
+.badge-live{background:var(--red);color:#fff;border-radius:10px;animation:pb 1.5s infinite;}
+@keyframes pb{0%,100%{opacity:1;}50%{opacity:0.7;}}
+.badge-new{background:rgba(0,170,255,0.2);color:var(--blue-bright);border:1px solid rgba(0,170,255,0.3);border-radius:10px;}
+.nav-mobile-cta{margin:10px 16px 14px;padding:13px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black) !important;font-weight:700 !important;border-radius:4px;justify-content:center !important;font-size:0.65rem !important;letter-spacing:3px !important;}
+.nav-overlay{position:fixed;inset:0;top:60px;z-index:298;background:rgba(0,0,0,0.5);display:none;}
+.nav-overlay.open{display:block;}
+@media(max-width:860px){.nav-desktop{display:none;}.nav-hamburger{display:flex;}}
+@media(min-width:861px){.nav-mobile-menu{display:none;}.nav-overlay{display:none !important;}}
+
+/* HERO */
+#hero{min-height:90vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:80px 20px 50px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 40%,rgba(0,100,200,0.1),transparent 70%),radial-gradient(ellipse 40% 40% at 10% 80%,rgba(201,168,76,0.06),transparent 60%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,170,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,170,255,0.03) 1px,transparent 1px);background-size:55px 55px;}
+.hero-content{position:relative;z-index:2;max-width:900px;margin:0 auto;}
+.hero-logo{width:140px;height:140px;object-fit:contain;margin-bottom:16px;filter:drop-shadow(0 0 24px rgba(0,170,255,0.7)) drop-shadow(0 0 48px rgba(201,168,76,0.35));animation:pulseLogo 3s ease-in-out infinite;}
+@keyframes pulseLogo{0%,100%{transform:scale(1);}50%{transform:scale(1.04);}}
+.hero-eyebrow{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);margin-bottom:10px;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,10vw,7rem);line-height:0.9;letter-spacing:4px;margin-bottom:6px;}
+.hero-title .g{color:var(--gold-light);}
+.hero-title .b{color:var(--blue-bright);text-shadow:0 0 20px rgba(0,170,255,0.8);}
+.hero-sub{font-family:'Bebas Neue',sans-serif;font-size:clamp(0.95rem,2.6vw,1.6rem);letter-spacing:8px;color:var(--gold);margin-bottom:10px;}
+.hero-desc{font-size:0.92rem;color:rgba(240,237,232,0.55);max-width:500px;margin:0 auto 22px;line-height:1.6;}
+.hero-btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+
+/* SECTION */
+section{position:relative;z-index:1;}
+.sec-hd{text-align:center;margin-bottom:24px;padding:0 20px;}
+.sec-label{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:6px;color:var(--blue-bright);display:block;margin-bottom:8px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.8rem,5vw,3.2rem);letter-spacing:3px;background:linear-gradient(135deg,var(--gold-light),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sec-line{display:block;width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),transparent);margin:10px auto 0;}
+
+/* ══ HORIZONTAL SLIDER ══ */
+.slider-wrap{position:relative;max-width:1200px;margin:0 auto;padding:0 16px;}
+.slider-controls{display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px;padding:0 16px;max-width:1200px;margin:0 auto 14px;}
+.slider-btn{width:38px;height:38px;border-radius:50%;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);color:var(--gold-light);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.slider-btn:hover:not(:disabled){background:rgba(201,168,76,0.18);border-color:var(--gold);}
+.slider-btn:disabled{opacity:0.3;cursor:not-allowed;}
+.slider-track-wrap{overflow:hidden;}
+.slider-track{display:flex;gap:14px;transition:transform 0.4s cubic-bezier(0.4,0,0.2,1);scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+.slider-track.scrollable{overflow-x:auto;scrollbar-width:none;}
+.slider-track.scrollable::-webkit-scrollbar{display:none;}
+
+/* BEAT SLIDE CARD */
+.beat-slide{flex:0 0 calc(85% - 7px);max-width:300px;background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,0.18);padding:20px;position:relative;overflow:hidden;scroll-snap-align:start;border-radius:8px;}
+.beat-slide::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--blue));}
+.beat-slide:hover{border-color:rgba(201,168,76,0.4);}
+.beat-tag{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:5px;}
+.beat-name{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:2px;margin-bottom:4px;}
+.beat-meta{font-size:0.8rem;color:var(--gray);margin-bottom:11px;}
+.waveform{display:flex;align-items:center;gap:2px;height:30px;margin-bottom:11px;}
+.waveform span{display:block;width:3px;background:linear-gradient(180deg,var(--blue-bright),var(--gold));border-radius:2px;animation:wave 1.2s ease-in-out infinite;opacity:0.5;}
+@keyframes wave{0%,100%{transform:scaleY(0.3);}50%{transform:scaleY(1);}}
+.beat-footer{display:flex;align-items:center;justify-content:space-between;}
+.beat-price{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:900;color:var(--gold-light);}
+
+/* VIDEO SLIDE */
+.video-slide{flex:0 0 calc(85% - 7px);max-width:320px;background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(0,170,255,0.16);overflow:hidden;scroll-snap-align:start;border-radius:8px;}
+.video-thumb{position:relative;padding-top:56.25%;background:#05050f;}
+.video-thumb iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.video-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:7px;}
+.video-badge{position:absolute;top:9px;left:9px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;padding:3px 8px;font-weight:700;z-index:2;}
+.video-info{padding:14px;}
+.video-artist{font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:3px;}
+.video-title{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:2px;}
+.video-date{font-size:0.7rem;color:var(--gray);}
+
+/* SECTIONS */
+#beats{padding:60px 0 40px;background:linear-gradient(180deg,var(--black),#05050f);}
+.filter-row{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-bottom:22px;padding:0 16px;}
+.filter-btn{padding:6px 14px;border:1px solid rgba(201,168,76,0.22);background:transparent;color:rgba(240,237,232,0.6);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;cursor:pointer;border-radius:14px;transition:all 0.2s;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold-light);background:rgba(201,168,76,0.07);}
+.see-more-row{text-align:center;margin-top:24px;}
+.see-more{display:inline-block;padding:9px 22px;border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;text-decoration:none;border-radius:6px;transition:all 0.2s;}
+.see-more:hover{background:rgba(201,168,76,0.07);border-color:var(--gold);}
+
+#battles{padding:60px 0 40px;background:linear-gradient(180deg,#05050f,var(--black));}
+
+/* PLATFORMS — MAIN HUB */
+#platforms{padding:60px 24px;background:var(--black);}
+.platforms-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:1100px;margin:0 auto;}
+.platform-card{border:1px solid rgba(201,168,76,0.18);background:linear-gradient(135deg,#0a0a14,#060610);padding:32px 22px;text-align:center;position:relative;overflow:hidden;transition:all 0.3s;cursor:pointer;text-decoration:none;display:block;border-radius:8px;}
+.platform-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dark),var(--gold),var(--blue-bright));transform:scaleX(0);transition:transform 0.3s;}
+.platform-card:hover::after{transform:scaleX(1);}
+.platform-card:hover{border-color:rgba(201,168,76,0.45);transform:translateY(-5px);box-shadow:0 24px 50px rgba(0,0,0,0.5);}
+.platform-icon{font-size:2.6rem;margin-bottom:12px;display:block;}
+.platform-name{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:6px;}
+.platform-desc{font-size:0.85rem;color:rgba(240,237,232,0.5);line-height:1.6;margin-bottom:14px;}
+.platform-tag{display:inline-block;padding:4px 12px;font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;border-radius:14px;}
+.tag-live{background:rgba(255,51,51,0.15);border:1px solid rgba(255,51,51,0.4);color:#ff6666;}
+.tag-soon{background:rgba(0,170,255,0.1);border:1px solid rgba(0,170,255,0.3);color:var(--blue-bright);}
+
+/* MEMBERSHIP */
+#membership{padding:60px 20px;background:linear-gradient(180deg,#05050f,var(--black));}
+.plans-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;max-width:980px;margin:0 auto;}
+.plan-card{border:1px solid rgba(201,168,76,0.16);padding:30px 22px;text-align:center;position:relative;background:linear-gradient(160deg,#090910,#040408);transition:all 0.3s;border-radius:8px;}
+.plan-card.featured{border-color:var(--gold);box-shadow:0 0 36px rgba(201,168,76,0.1);}
+.plan-badge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;padding:3px 14px;font-weight:700;white-space:nowrap;border-radius:0 0 4px 4px;}
+.plan-name{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:3px;margin-bottom:3px;margin-top:8px;}
+.plan-price{font-family:'Orbitron',sans-serif;font-size:2.2rem;font-weight:900;color:var(--gold-light);line-height:1;}
+.plan-period{font-size:0.76rem;color:var(--gray);letter-spacing:2px;margin-bottom:18px;}
+.plan-features{list-style:none;margin-bottom:20px;text-align:left;}
+.plan-features li{padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:0.86rem;color:rgba(240,237,232,0.7);display:flex;align-items:center;gap:7px;}
+.plan-features li::before{content:'⚡';font-size:0.58rem;color:var(--gold);flex-shrink:0;}
+
+/* COMING SOON */
+#coming{padding:60px 20px;background:var(--black);}
+.coming-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;max-width:900px;margin:0 auto;}
+.coming-card{border:1px solid rgba(201,168,76,0.12);padding:24px 18px;text-align:center;background:rgba(255,255,255,0.013);transition:all 0.3s;border-radius:8px;}
+.coming-card:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-3px);}
+.coming-icon{font-size:2.2rem;margin-bottom:10px;display:block;}
+.coming-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:6px;}
+.coming-desc{font-size:0.8rem;color:rgba(240,237,232,0.45);line-height:1.5;margin-bottom:12px;}
+.cs-badge{display:inline-block;padding:3px 12px;border:1px solid var(--blue);color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;border-radius:14px;}
+
+/* BUTTONS */
+.btn-gold{display:inline-block;padding:11px 24px;background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:3px;text-decoration:none;border:none;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all 0.3s;}
+.btn-gold:hover{box-shadow:0 0 22px rgba(201,168,76,0.5);transform:translateY(-2px);}
+.btn-blue{display:inline-block;padding:11px 24px;border:1px solid var(--blue);background:transparent;color:var(--blue-bright);font-family:'Orbitron',sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:3px;text-decoration:none;cursor:pointer;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);transition:all 0.3s;}
+.btn-blue:hover{background:rgba(0,170,255,0.1);box-shadow:0 0 18px rgba(0,170,255,0.4);transform:translateY(-2px);}
+.btn-full{width:100%;padding:13px;}
+
+/* FOOTER */
+footer{padding:42px 22px 22px;background:#030305;border-top:1px solid rgba(201,168,76,0.14);position:relative;z-index:1;}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:34px;max-width:1100px;margin:0 auto 30px;}
+.footer-brand img{height:46px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(0,170,255,0.4));margin-bottom:11px;}
+.footer-brand p{font-size:0.78rem;color:rgba(240,237,232,0.36);line-height:1.6;max-width:220px;}
+.socials{display:flex;gap:6px;margin-top:12px;}
+.social-btn{width:30px;height:30px;border:1px solid rgba(201,168,76,0.25);display:flex;align-items:center;justify-content:center;color:var(--gold);text-decoration:none;font-size:0.66rem;font-family:'Rajdhani',sans-serif;font-weight:700;border-radius:4px;}
+.social-btn:hover{background:rgba(201,168,76,0.1);}
+.footer-col h4{font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:11px;}
+.footer-col ul{list-style:none;}
+.footer-col ul li{margin-bottom:6px;}
+.footer-col ul a{color:rgba(240,237,232,0.4);text-decoration:none;font-size:0.78rem;}
+.footer-col ul a:hover{color:var(--gold-light);}
+.footer-bottom{text-align:center;padding-top:18px;border-top:1px solid rgba(255,255,255,0.04);font-size:0.66rem;color:rgba(240,237,232,0.2);}
+.footer-bottom span{color:var(--gold);}
+
+/* MODAL */
+/* FULL BEAT CATALOG — LOCAL TO INDEX ONLY */
+.catalog-overlay{display:none;position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.96);overflow-y:auto;padding:72px 18px 40px;}
+.catalog-overlay.active{display:block;}
+.catalog-shell{width:min(1180px,100%);margin:0 auto;}
+.catalog-top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:24px;}
+.catalog-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.7rem);letter-spacing:4px;color:var(--gold-light);}
+.catalog-close{position:fixed;top:18px;right:18px;width:46px;height:46px;border-radius:50%;border:1px solid var(--gold);background:#09090f;color:var(--gold-light);font-size:1.15rem;cursor:pointer;z-index:960;}
+.catalog-filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.catalog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(245px,1fr));gap:16px;}
+.catalog-card{background:linear-gradient(135deg,#0a0a14,#060610);border:1px solid rgba(201,168,76,.22);padding:20px;border-radius:8px;position:relative;overflow:hidden;}
+.catalog-card::before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,var(--gold),var(--blue));}
+.catalog-card .beat-name{font-size:1.7rem;}
+@media(max-width:600px){.catalog-overlay{padding:68px 12px 28px}.catalog-grid{grid-template-columns:1fr}.catalog-close{top:12px;right:12px}}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:16px;}
+.modal-overlay.active{display:flex;}
+.modal{background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid rgba(201,168,76,0.3);padding:30px;max-width:500px;width:100%;position:relative;max-height:90vh;overflow-y:auto;border-radius:8px;}
+.modal-close{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--gray);font-size:1.3rem;cursor:pointer;}
+.modal h2{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:5px;}
+.modal-sub{font-size:0.78rem;color:var(--gray);margin-bottom:18px;}
+.form-group{margin-bottom:13px;}
+.form-group label{display:block;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:5px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.18);color:var(--white);padding:10px 12px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;outline:none;border-radius:5px;-webkit-appearance:none;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);}
+.form-group select option{background:#0a0a14;}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.stripe-note{display:flex;align-items:center;gap:5px;margin-top:9px;font-size:0.68rem;color:var(--gray);}
+.stripe-note .lock{color:var(--blue-bright);}
+
+/* STUDIO MODAL info */
+.studio-info{margin-bottom:18px;}
+.studio-perks{list-style:none;margin-bottom:14px;}
+.studio-perks li{padding:7px 0;border-bottom:1px solid rgba(0,170,255,0.07);color:rgba(240,237,232,0.7);display:flex;gap:8px;align-items:center;font-size:0.85rem;}
+.rates-box{background:rgba(0,170,255,0.04);border:1px solid rgba(0,170,255,0.16);padding:14px;margin-bottom:18px;border-radius:6px;}
+.rate-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.86rem;}
+.rate-row:last-child{border-bottom:none;}
+
+/* ADMIN */
+.admin-modal{max-width:580px;}
+.passcode-screen{text-align:center;padding:8px 0;}
+.passcode-icon{font-size:2.6rem;margin-bottom:9px;}
+.passcode-title{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:5px;}
+.passcode-desc{font-size:0.8rem;color:var(--gray);margin-bottom:16px;}
+.passcode-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.28);color:var(--white);padding:12px;font-family:'Orbitron',sans-serif;font-size:1rem;text-align:center;letter-spacing:7px;outline:none;margin-bottom:9px;border-radius:5px;-webkit-appearance:none;}
+.passcode-input:focus{border-color:var(--gold);}
+.passcode-error{color:var(--red);font-size:0.74rem;margin-bottom:9px;display:none;}
+.admin-panel{display:none;}
+.admin-panel.unlocked{display:block;}
+.admin-section{margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid rgba(201,168,76,0.1);}
+.admin-section:last-child{border-bottom:none;margin-bottom:0;}
+.admin-section-title{font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:3px;color:var(--gold);margin-bottom:13px;}
+.admin-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,51,51,0.12);border:1px solid rgba(255,51,51,0.35);color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;padding:3px 10px;margin-bottom:14px;border-radius:14px;}
+.upload-zone{border:2px dashed rgba(0,170,255,0.28);padding:18px;text-align:center;cursor:pointer;margin-bottom:10px;border-radius:6px;}
+.upload-zone:hover{border-color:var(--blue);background:rgba(0,170,255,0.04);}
+.upload-zone p{font-size:0.78rem;color:var(--gray);margin-top:4px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#0d0d1a,#070710);border:1px solid var(--gold);padding:11px 18px;color:var(--white);font-family:'Rajdhani',sans-serif;font-size:0.86rem;z-index:9999;transform:translateY(100px);opacity:0;transition:all 0.4s;box-shadow:0 0 24px rgba(201,168,76,0.18);border-radius:5px;max-width:90%;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* RESPONSIVE */
+@media(max-width:860px){
+  .footer-grid{grid-template-columns:1fr 1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .modal{padding:24px 18px;}
+  .beat-slide,.video-slide{flex:0 0 calc(88% - 7px);}
+}
+@media(max-width:600px){
+  .footer-grid{grid-template-columns:1fr;}
+  .hero-btn-row{flex-direction:column;align-items:center;}
+  .plans-grid{grid-template-columns:1fr;}
+  .beat-slide,.video-slide{flex:0 0 calc(82%);}
+}
+</style>
+</head>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+const firebaseConfig = {
+  apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+  authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+  projectId: "unibeatzproduction-7ae31",
+  storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+  messagingSenderId: "70667820609",
+  appId: "1:70667820609:web:57762df5510e6b4000b0c0"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+window._ubDB = db;
+window._ubCollection = collection;
+window._ubQuery = query;
+window._ubOrderBy = orderBy;
+window._ubGetDocs = getDocs;
+// Load beats from Firestore on page load
+async function loadFirestoreBeats() {
+  try {
+    const snap = await getDocs(query(collection(db, 'marketplace_beats'), orderBy('createdAt', 'desc')));
+    if(!snap.empty) {
+      window._firestoreBeats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if(typeof window.renderBeatsFromFirestore === 'function') window.renderBeatsFromFirestore();
+    }
+  } catch(e) { console.warn('Firestore beats load failed:', e.message); }
+}
+loadFirestoreBeats();
+</script>
+<body>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#hero" class="nav-logo">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <span class="nav-logo-text">UNIBEATZ</span>
+    </a>
+    <ul class="nav-desktop">
+      <li><a href="#beats">Beats</a></li>
+      <li><a href="#battles">Battles</a></li>
+      <li><a href="#platforms">Platforms</a></li>
+      <li><a href="#membership">Membership</a></li>
+      <li><a href="#" onclick="openStudioModal();return false;">🎙️ Studio</a></li>
+      <li><a href="unifreestyle.html">⚔️ App</a></li>
+      <li><a href="unibeatzworld.html">🌍 World + UniPack</a></li>
+      <li><a href="legal.html">Legal</a></li>
+      <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="nav-icon-btn" onclick="showToast('🔍 Search coming soon')">🔍</div>
+      <div class="nav-icon-btn" onclick="showToast('🔔 Notifications coming soon')">🔔<div class="nav-notif-dot"></div></div>
+      <div class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="nav-overlay" id="navOverlay" onclick="closeMobileMenu()"></div>
+<div class="nav-mobile-menu" id="mobileMenu">
+  <ul class="nav-mobile-links">
+    <li><a href="#beats" onclick="closeMobileMenu()"><span class="link-icon">🎵</span>Beats</a></li>
+    <li><a href="#battles" onclick="closeMobileMenu()"><span class="link-icon">⚔️</span>Battle Highlights<span class="link-badge badge-new">NEW</span></a></li>
+    <li><a href="#platforms" onclick="closeMobileMenu()"><span class="link-icon">🌍</span>Platforms</a></li>
+    <li><a href="unifreestyle.html" onclick="closeMobileMenu()"><span class="link-icon">📹</span>Battle App<span class="link-badge badge-live">LIVE</span></a></li>
+    
+    <li><a href="unibeatzworld.html" onclick="closeMobileMenu()"><span class="link-icon">🌐</span>UniBeatz World</a></li>
+    <li><a href="#membership" onclick="closeMobileMenu()"><span class="link-icon">💎</span>Membership</a></li>
+    <li><a href="#" onclick="openStudioModal();closeMobileMenu();return false;"><span class="link-icon">🎙️</span>Studio Booking</a></li>
+    <li><a href="#coming" onclick="closeMobileMenu()"><span class="link-icon">📅</span>Coming Soon</a></li>
+    <li><a href="legal.html" onclick="closeMobileMenu()"><span class="link-icon">⚖️</span>Legal & Contact</a></li>
+    <li><button class="nav-mobile-cta" onclick="openAdmin();closeMobileMenu()"><span class="link-icon">⚙️</span>Admin Panel</button></li>
+  </ul>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div><div class="hero-grid"></div>
+  <div class="hero-content">
+    <img src="logo.png" class="hero-logo" alt="UniBeatz" onerror="this.style.display='none'"/>
+    <p class="hero-eyebrow">Welcome to the Empire</p>
+    <h1 class="hero-title"><span class="g">UNI</span><span class="b">BEATZ</span></h1>
+    <p class="hero-sub">Production</p>
+    <p class="hero-desc">The brand. The sound. The movement.</p>
+    <div class="hero-btn-row">
+      <button type="button" class="btn-gold" onclick="openBeatCatalog()">🎵 Browse Beats</button>
+      <a href="#platforms" class="btn-blue">🌍 All Platforms</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ BEATS — HORIZONTAL SLIDER ══ -->
+<section id="beats">
+  <div class="sec-hd">
+    <span class="sec-label">Stream & Purchase</span>
+    <h2 class="sec-title">Beat Store</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" onclick="filterBeats('all',this)">All</button>
+    <button class="filter-btn" onclick="filterBeats('Hip-Hop',this)">Hip-Hop</button>
+    <button class="filter-btn" onclick="filterBeats('Trap',this)">Trap</button>
+    <button class="filter-btn" onclick="filterBeats('R&B',this)">R&B</button>
+    <button class="filter-btn" onclick="filterBeats('Drill',this)">Drill</button>
+    <button class="filter-btn" onclick="filterBeats('Afrobeats',this)">Afrobeats</button>
+  </div>
+  <div class="slider-controls">
+    <button class="slider-btn" onclick="slideBeat(-1)" id="beatPrev">←</button>
+    <button class="slider-btn" onclick="slideBeat(1)" id="beatNext">→</button>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-track-wrap">
+      <div class="slider-track scrollable" id="beatsTrack"></div>
+    </div>
+  </div>
+  <div class="see-more-row">
+    <button type="button" class="see-more" onclick="openBeatCatalog()" style="background:none;cursor:pointer;">View Full Catalog →</button>
+  </div>
+</section>
+
+<!-- ══ BATTLE HIGHLIGHTS — HORIZONTAL SLIDER ══ -->
+<section id="battles">
+  <div class="sec-hd">
+    <span class="sec-label">UniFreestyle Highlights</span>
+    <h2 class="sec-title">Artist Battles</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="slider-controls">
+    <button class="slider-btn" onclick="slideVideo(-1)" id="videoPrev">←</button>
+    <button class="slider-btn" onclick="slideVideo(1)" id="videoNext">→</button>
+  </div>
+  <div class="slider-wrap">
+    <div class="slider-track-wrap">
+      <div class="slider-track scrollable" id="videosTrack"></div>
+    </div>
+  </div>
+  <div class="see-more-row">
+    <a href="unifreestyle.html" class="see-more">Enter Battle App →</a>
+  </div>
+</section>
+
+<!-- ══ PLATFORMS HUB — ONE LINK PER PLATFORM ══ -->
+<section id="platforms">
+  <div class="sec-hd">
+    <span class="sec-label">The Full Empire</span>
+    <h2 class="sec-title">All Platforms</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="platforms-grid">
+    <a href="unifreestyle.html" class="platform-card">
+      <span class="platform-icon">⚔️</span>
+      <div class="platform-name">UniFreestyle Battle App</div>
+      <div class="platform-desc">Face-to-face live freestyle battles. Vote. Judge. Climb the ranks.</div>
+      <span class="platform-tag tag-live">● LIVE NOW</span>
+    </a>
+    <a href="unibeatzworld.html" class="platform-card">
+      <span class="platform-icon">🌍</span>
+      <div class="platform-name">UniBeatz World</div>
+      <div class="platform-desc">Beats, sound packs, <strong style="color:var(--gold-light);">merch</strong>, plus <strong style="color:var(--gold-light);">UniPack Studio</strong> — make your own packs.</div>
+      <span class="platform-tag tag-live">● UNIPACK + MERCH LIVE</span>
+    </a>
+    <a href="#coming" class="platform-card">
+      <span class="platform-icon">📻</span>
+      <div class="platform-name">Uni Radio Station</div>
+      <div class="platform-desc">24/7 stream of UniBeatz music, battle replays, live shows, artist features.</div>
+      <span class="platform-tag tag-soon">COMING SOON</span>
+    </a>
+    <a href="#coming" class="platform-card">
+      <span class="platform-icon">🎙️</span>
+      <div class="platform-name">Uni Podcast</div>
+      <div class="platform-desc">Industry talk, artist interviews, music business knowledge, the UniBeatz story.</div>
+      <span class="platform-tag tag-soon">COMING SOON</span>
+    </a>
+  </div>
+</section>
+
+<!-- MEMBERSHIP -->
+<section id="membership">
+  <div class="sec-hd">
+    <span class="sec-label">Unlimited Access</span>
+    <h2 class="sec-title">Membership Plans</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$29</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>5 Beat Downloads / Month</li>
+        <li>MP3 Format</li>
+        <li>Non-Exclusive License</li>
+        <li>Basic Support</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Starter Membership','$29/month')">Get Started</button>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$79</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Downloads</li>
+        <li>WAV + Trackouts</li>
+        <li>Priority Support</li>
+        <li>Early Beat Access</li>
+        <li>10% Off Studio Bookings</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Pro Membership','$79/month')">Go Pro</button>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Elite</div>
+      <div class="plan-price">$149</div>
+      <div class="plan-period">/ month</div>
+      <ul class="plan-features">
+        <li>Unlimited Everything</li>
+        <li>WAV + Trackouts + Stems</li>
+        <li>Exclusive Licensing</li>
+        <li>VIP Direct Access</li>
+        <li>Free Monthly Studio Hour</li>
+      </ul>
+      <button class="btn-gold btn-full" onclick="openModal('Elite Membership','$149/month')">Go Elite</button>
+    </div>
+  </div>
+</section>
+
+<!-- COMING SOON -->
+<section id="coming">
+  <div class="sec-hd">
+    <span class="sec-label">Expanding the Empire</span>
+    <h2 class="sec-title">Coming Soon</h2>
+    <span class="sec-line"></span>
+  </div>
+  <div class="coming-grid">
+    <div class="coming-card">
+      <span class="coming-icon">🌍</span>
+      <div class="coming-title">UniBeatz World</div>
+      <div class="coming-desc">Full universe of UniBeatz culture.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+    <div class="coming-card">
+      <span class="coming-icon">🎙️</span>
+      <div class="coming-title">UB Podcast</div>
+      <div class="coming-desc">Industry talk & interviews.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+    <div class="coming-card">
+      <span class="coming-icon">📻</span>
+      <div class="coming-title">UB Radio</div>
+      <div class="coming-desc">24/7 UniBeatz stream.</div>
+      <span class="cs-badge">Coming Soon</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <img src="logo.png" alt="UniBeatz" onerror="this.style.display='none'"/>
+      <p>The brand. The sound. The movement. UniBeatz Production — gateway to the empire.</p>
+      <div class="socials">
+        <a href="#" class="social-btn" id="sIg">IG</a>
+        <a href="#" class="social-btn" id="sTw">TW</a>
+        <a href="#" class="social-btn" id="sYt">YT</a>
+        <a href="#" class="social-btn" id="sSc">SC</a>
+        <a href="#" class="social-btn" id="sTk">TK</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Platforms</h4>
+      <ul>
+        <li><a href="#beats">Beat Store</a></li>
+        <li><a href="unifreestyle.html">Battle App</a></li>
+        <li><a href="unibeatzworld.html">UniBeatz World</a></li>
+        <li><a href="#" onclick="openStudioModal();return false;">Studio Booking</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal & Contact</h4>
+      <ul>
+        <li><a href="legal.html">License Info</a></li>
+        <li><a href="legal.html#terms">Terms</a></li>
+        <li><a href="legal.html#refund">Refund Policy</a></li>
+        <li><a href="mailto:unibeatzproduction@gmail.com">📧 Email Us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2025 <span>UniBeatz Production</span>. All rights reserved.</div>
+</footer>
+
+<!-- FULL BEAT CATALOG — INDEX POPUP ONLY -->
+<div class="catalog-overlay" id="beatCatalogModal" aria-hidden="true">
+  <button class="catalog-close" type="button" onclick="closeBeatCatalog()" aria-label="Close catalog">✕</button>
+  <div class="catalog-shell">
+    <div class="catalog-top"><div><div class="sec-label">Complete Collection</div><div class="catalog-title">Full Beat Catalog</div></div></div>
+    <div class="catalog-filter-row">
+      <button class="filter-btn active" data-catalog-filter="all" onclick="filterCatalogBeats('all',this)">All</button>
+      <button class="filter-btn" data-catalog-filter="Hip-Hop" onclick="filterCatalogBeats('Hip-Hop',this)">Hip-Hop</button>
+      <button class="filter-btn" data-catalog-filter="Trap" onclick="filterCatalogBeats('Trap',this)">Trap</button>
+      <button class="filter-btn" data-catalog-filter="R&B" onclick="filterCatalogBeats('R&B',this)">R&B</button>
+      <button class="filter-btn" data-catalog-filter="Drill" onclick="filterCatalogBeats('Drill',this)">Drill</button>
+      <button class="filter-btn" data-catalog-filter="Afrobeats" onclick="filterCatalogBeats('Afrobeats',this)">Afrobeats</button>
+    </div>
+    <div class="catalog-grid" id="catalogBeatsGrid"></div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Purchase</h2>
+    <p class="modal-sub" id="modal-sub">Complete your purchase</p>
+    <div class="form-group"><label>Full Name</label><input type="text" id="mName"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="mEmail"/></div>
+    <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.18);padding:12px;margin-bottom:11px;text-align:center;border-radius:5px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:4px;">STRIPE PAYMENT</div>
+      <p style="font-size:0.74rem;color:var(--gray);">Stripe Payment Link required.</p>
+    </div>
+    <button class="btn-gold btn-full" onclick="processPayment()">Complete Purchase</button>
+    <div class="stripe-note"><span class="lock">🔒</span>Secured by Stripe</div>
+  </div>
+</div>
+
+<!-- STUDIO BOOKING MODAL -->
+<div class="modal-overlay" id="studioModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeStudioModal()">✕</button>
+    <h2>🎙️ Studio Booking</h2>
+    <p class="modal-sub">Reserve your professional studio session</p>
+
+    <div class="studio-info">
+      <ul class="studio-perks">
+        <li>🎙️ Professional Engineer Included</li>
+        <li>🎚️ Mixing & Mastering Available</li>
+        <li>🎧 Industry-Grade Monitoring</li>
+        <li>🎵 Full Beat Catalog Access</li>
+        <li>💳 50% Deposit Secures Session</li>
+      </ul>
+      <div class="rates-box">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:8px;">HOURLY RATES</div>
+        <div class="rate-row"><span>Recording</span><span style="color:var(--gold-light);font-weight:700;">$75/hr</span></div>
+        <div class="rate-row"><span>Mixing</span><span style="color:var(--gold-light);font-weight:700;">$100/hr</span></div>
+        <div class="rate-row"><span>Full Day (8hr)</span><span style="color:var(--gold-light);font-weight:700;">$500</span></div>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Your Name</label><input type="text" id="bName"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="bEmail"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" id="bDate"/></div>
+      <div class="form-group"><label>Time</label><input type="time" id="bTime"/></div>
+    </div>
+    <div class="form-group"><label>Session Type</label>
+      <select id="bType">
+        <option>Recording — $75/hr</option>
+        <option>Mixing — $100/hr</option>
+        <option>Full Day — $500</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes</label><textarea id="bNotes" placeholder="Tell us about your project..."></textarea></div>
+    <button class="btn-gold btn-full" onclick="bookSession()">Book & Pay Deposit</button>
+    <div class="stripe-note"><span class="lock">🔒</span>50% deposit via Stripe</div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal admin-modal">
+    <button class="modal-close" onclick="closeAdminModal()">✕</button>
+    <div class="passcode-screen" id="passcodeScreen">
+      <div class="passcode-icon">🔐</div>
+      <div class="passcode-title">Admin Access</div>
+      <div class="passcode-desc">Enter your secure passcode.</div>
+      <input type="password" class="passcode-input" id="passcodeInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPasscode()"/>
+      <div class="passcode-error" id="passcodeError">⚠ Incorrect passcode</div>
+      <button class="btn-gold btn-full" onclick="checkPasscode()">Unlock</button>
+    </div>
+    <div class="admin-panel" id="adminPanel">
+      <div class="admin-badge">🔐 Admin Unlocked</div>
+      <div class="admin-section">
+        <div class="admin-section-title">📹 Publish Battle Video</div>
+        <div class="form-row">
+          <div class="form-group"><label>Artist</label><input type="text" id="pArtist"/></div>
+          <div class="form-group"><label>Title</label><input type="text" id="pTitle"/></div>
+        </div>
+        <div class="form-group"><label>YouTube ID</label><input type="text" id="pYtId" placeholder="Video ID after ?v="/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="text" id="pDate"/></div>
+          <div class="form-group"><label>Badge</label><input type="text" id="pBadge"/></div>
+        </div>
+        <button class="btn-gold btn-full" onclick="publishVideo()">Publish Video</button>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🔗 Social Links</div>
+        <div class="form-group"><label>Instagram</label><input type="text" id="sIgInput"/></div>
+        <div class="form-group"><label>YouTube</label><input type="text" id="sYtInput"/></div>
+        <div class="form-group"><label>TikTok</label><input type="text" id="sTkInput"/></div>
+        <button class="btn-gold btn-full" onclick="saveSocials()">Save</button>
+      </div>
+      <button class="btn-blue btn-full" onclick="lockAdmin()" style="margin-top:8px;">🔒 Lock Panel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// DATA
+let beats = []; // Loaded from Firestore
+let videos = JSON.parse(localStorage.getItem('ub_videos')||'null') || [
+  {id:1,artist:'KD Wavez',title:'KD vs Phantom — Round 1',ytId:'',date:'Apr 2025',badge:'CHAMP'},
+  {id:2,artist:'Layah Monroe',title:'Layah vs Storm — Semifinal',ytId:'',date:'Mar 2025',badge:''},
+  {id:3,artist:'DJ Phantom',title:'Phantom vs Blaze — Championship',ytId:'',date:'Feb 2025',badge:'🏆'},
+];
+const saveVideos = ()=>localStorage.setItem('ub_videos',JSON.stringify(videos));
+
+// NAV
+let menuOpen=false;
+function toggleMobileMenu(){menuOpen=!menuOpen;document.getElementById('hamburger').classList.toggle('open',menuOpen);document.getElementById('mobileMenu').classList.toggle('open',menuOpen);document.getElementById('navOverlay').classList.toggle('open',menuOpen);document.body.style.overflow=menuOpen?'hidden':'';}
+function closeMobileMenu(){menuOpen=false;document.getElementById('hamburger').classList.remove('open');document.getElementById('mobileMenu').classList.remove('open');document.getElementById('navOverlay').classList.remove('open');document.body.style.overflow='';}
+window.addEventListener('scroll',()=>{if(menuOpen)closeMobileMenu();});
+
+// WAVEFORM
+function waveform(){const h=[20,38,55,72,48,80,60,42,75,50,35,65,80,44,30,70];return h.map((v,i)=>`<span style="height:${v}%;animation-delay:${i*0.05}s"></span>`).join('');}
+
+// BEATS — HORIZONTAL SLIDER
+let curFilter='all';
+let _currentAudio=null;
+let _currentBeatId=null;
+let _previewTimer=null;
+
+window.renderBeatsFromFirestore = function() {
+  if(window._firestoreBeats && window._firestoreBeats.length) {
+    beats = window._firestoreBeats.map(b => ({
+      id: b.id,
+      name: (b.name || b.beatName || 'Untitled').toUpperCase(),
+      tag: b.tag || b.genre || 'Hip-Hop',
+      bpm: b.bpm || '?',
+      key: b.key || '?',
+      price: b.basicPrice || b.price || 0,
+      stripe: b.stripeBasic || b.stripe || '',
+      stream: b.audioUrl || b.stream || '',
+      cover: b.coverUrl || ''
+    }));
+    renderBeats();
+    renderCatalogBeats();
+  }
+};
+
+function renderBeats(filter){
+  if(filter!==undefined) curFilter=filter;
+  const track=document.getElementById('beatsTrack');
+  track.innerHTML='';
+  const list = curFilter==='all'?beats:beats.filter(b=>b.tag===curFilter);
+  if(!list.length){
+    track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No beats in this category yet.</div>';
+    return;
+  }
+  list.forEach(b=>{
+    const card=document.createElement('div');card.className='beat-slide';
+    card.innerHTML=`
+      <div class="beat-tag">${b.tag}</div>
+      <div class="beat-name">${b.name}</div>
+      <div class="beat-meta">${b.bpm} BPM · Key: ${b.key}</div>
+      <div class="waveform">${waveform()}</div>
+      ${b.stream?`<button id="prev-${b.id}" class="btn-gold" style="width:100%;padding:7px;font-size:0.5rem;margin-bottom:8px;" onclick="togglePreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}
+      <div class="beat-footer">
+        <div class="beat-price">$${b.price}</div>
+        <button class="btn-gold" style="padding:7px 14px;font-size:0.5rem;" onclick="openModal('${b.name.replace(/'/g,"\\'")}','$${b.price}','${b.stripe}')">BUY</button>
+      </div>`;
+    track.appendChild(card);
+  });
+}
+
+function togglePreview(beatId, audioUrl) {
+  const btn = document.getElementById('prev-' + beatId);
+  if(_currentBeatId === beatId && _currentAudio) {
+    _currentAudio.pause();
+    if(btn) { btn.innerHTML='▶ Preview'; }
+    if(_previewTimer) clearTimeout(_previewTimer);
+    _currentBeatId = null; _currentAudio = null;
+    return;
+  }
+  if(_currentAudio) {
+    _currentAudio.pause();
+    if(_currentBeatId) { const old=document.getElementById('prev-'+_currentBeatId); if(old) old.innerHTML='▶ Preview'; }
+    if(_previewTimer) clearTimeout(_previewTimer);
+  }
+  _currentAudio = new Audio(audioUrl);
+  _currentAudio.play().catch(e=>showToast('Preview failed'));
+  _currentBeatId = beatId;
+  if(btn) btn.innerHTML = '⏸ Pause';
+  _previewTimer = setTimeout(()=>{
+    if(_currentAudio) { _currentAudio.pause(); _currentAudio=null; }
+    if(btn) btn.innerHTML='▶ Preview';
+    _currentBeatId=null;
+  }, 30000);
+  _currentAudio.addEventListener('ended',()=>{
+    if(_previewTimer) clearTimeout(_previewTimer);
+    if(btn) btn.innerHTML='▶ Preview';
+    _currentBeatId=null; _currentAudio=null;
+  });
+}
+
+function filterBeats(tag,btn){document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderBeats(tag);}
+function slideBeat(dir){const t=document.getElementById('beatsTrack');t.scrollBy({left:dir*280,behavior:'smooth'});}
+
+// FULL CATALOG POPUP — INDEX ONLY. PAYMENT FUNCTIONS BELOW ARE UNCHANGED.
+let catalogFilter='all';
+let _catalogAudio=null;
+let _catalogBeatId=null;
+function openBeatCatalog(){renderCatalogBeats();const modal=document.getElementById('beatCatalogModal');modal.classList.add('active');modal.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+function closeBeatCatalog(){const modal=document.getElementById('beatCatalogModal');modal.classList.remove('active');modal.setAttribute('aria-hidden','true');document.body.style.overflow='';if(_catalogAudio){_catalogAudio.pause();_catalogAudio=null;_catalogBeatId=null;}}
+function filterCatalogBeats(tag,btn){catalogFilter=tag;document.querySelectorAll('[data-catalog-filter]').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');renderCatalogBeats();}
+function renderCatalogBeats(){
+  const grid=document.getElementById('catalogBeatsGrid');if(!grid)return;
+  const list=catalogFilter==='all'?beats:beats.filter(b=>b.tag===catalogFilter);
+  if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;color:var(--gray);padding:40px;text-align:center;font-family:Orbitron,sans-serif;font-size:.7rem;letter-spacing:3px;">No beats in this category yet.</div>';return;}
+  grid.innerHTML=list.map(b=>`<article class="catalog-card"><div class="beat-tag">${b.tag}</div><div class="beat-name">${b.name}</div><div class="beat-meta">${b.bpm} BPM · Key: ${b.key}</div><div class="waveform">${waveform()}</div>${b.stream?`<button id="cat-prev-${b.id}" class="btn-gold" style="width:100%;padding:8px;font-size:.5rem;margin-bottom:9px;" onclick="toggleCatalogPreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}<div class="beat-footer"><div class="beat-price">$${b.price}</div><button class="btn-gold" style="padding:7px 14px;font-size:.5rem;" onclick="openModal('${b.name.replace(/'/g,"\'")}','$${b.price}','${b.stripe}')">BUY</button></div></article>`).join('');
+}
+function toggleCatalogPreview(beatId,audioUrl){const btn=document.getElementById('cat-prev-'+beatId);if(_catalogBeatId===beatId&&_catalogAudio){_catalogAudio.pause();if(btn)btn.textContent='▶ Preview';_catalogAudio=null;_catalogBeatId=null;return;}if(_catalogAudio){_catalogAudio.pause();const old=document.getElementById('cat-prev-'+_catalogBeatId);if(old)old.textContent='▶ Preview';}_catalogAudio=new Audio(audioUrl);_catalogBeatId=beatId;_catalogAudio.play().catch(()=>showToast('Preview failed'));if(btn)btn.textContent='⏸ Pause';_catalogAudio.addEventListener('ended',()=>{if(btn)btn.textContent='▶ Preview';_catalogAudio=null;_catalogBeatId=null;},{once:true});}
+document.getElementById('beatCatalogModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBeatCatalog();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('beatCatalogModal').classList.contains('active'))closeBeatCatalog();});
+
+// VIDEOS — HORIZONTAL SLIDER
+function renderVideos(){
+  const track=document.getElementById('videosTrack');track.innerHTML='';
+  if(!videos.length){track.innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">No battle videos yet.</div>';return;}
+  videos.forEach(v=>{
+    const card=document.createElement('div');card.className='video-slide';
+    const embed=v.ytId?`<iframe src="https://www.youtube.com/embed/${v.ytId}" allowfullscreen></iframe>`:`<div class="video-ph"><div style="font-size:2.6rem;">⚔️</div><p style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;color:var(--blue-bright);">BATTLE VIDEO</p></div>`;
+    card.innerHTML=`${v.badge?`<div class="video-badge">${v.badge}</div>`:''}<div class="video-thumb">${embed}</div><div class="video-info"><div class="video-artist">${v.artist}</div><div class="video-title">${v.title}</div><div class="video-date">${v.date}</div></div>`;
+    track.appendChild(card);
+  });
+}
+function slideVideo(dir){const t=document.getElementById('videosTrack');t.scrollBy({left:dir*300,behavior:'smooth'});}
+
+// MODALS
+let _stripe='';
+function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent=`Price: ${price}`;document.getElementById('modal').classList.add('active');}
+function closeModal(){document.getElementById('modal').classList.remove('active');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
+function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Stripe link not set yet.');}}
+
+// STUDIO MODAL
+function openStudioModal(){document.getElementById('studioModal').classList.add('active');}
+function closeStudioModal(){document.getElementById('studioModal').classList.remove('active');}
+document.getElementById('studioModal').addEventListener('click',e=>{if(e.target===document.getElementById('studioModal'))closeStudioModal();});
+function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}showToast('💳 Processing deposit via Stripe...');}
+
+// ADMIN
+const ADMIN_PASSCODE='empire2026';
+let adminUnlocked=false;
+function openAdmin(){document.getElementById('adminModal').classList.add('active');document.getElementById('passcodeInput').value='';document.getElementById('passcodeError').style.display='none';if(adminUnlocked){document.getElementById('passcodeScreen').style.display='none';document.getElementById('adminPanel').classList.add('unlocked');}else{document.getElementById('passcodeScreen').style.display='block';document.getElementById('adminPanel').classList.remove('unlocked');}setTimeout(()=>document.getElementById('passcodeInput').focus(),200);}
+function checkPasscode(){const v=document.getElementById('passcodeInput').value;if(v===ADMIN_PASSCODE){adminUnlocked=true;document.getElementById('passcodeScreen').style.display='none';document.getElementById('adminPanel').classList.add('unlocked');showToast('🔐 Admin unlocked!');}else{document.getElementById('passcodeError').style.display='block';document.getElementById('passcodeInput').value='';setTimeout(()=>document.getElementById('passcodeError').style.display='none',3000);}}
+function lockAdmin(){adminUnlocked=false;document.getElementById('adminPanel').classList.remove('unlocked');document.getElementById('passcodeScreen').style.display='block';showToast('🔒 Locked');}
+function closeAdminModal(){document.getElementById('adminModal').classList.remove('active');}
+document.getElementById('adminModal').addEventListener('click',e=>{if(e.target===document.getElementById('adminModal'))closeAdminModal();});
+function publishVideo(){const a=document.getElementById('pArtist').value.trim(),t=document.getElementById('pTitle').value.trim();if(!a||!t){showToast('Fill artist and title');return;}videos.unshift({id:Date.now(),artist:a,title:t,ytId:document.getElementById('pYtId').value.trim(),date:document.getElementById('pDate').value.trim()||'2025',badge:document.getElementById('pBadge').value.trim()});saveVideos();renderVideos();showToast(`✅ "${t}" published!`);['pArtist','pTitle','pYtId','pDate','pBadge'].forEach(id=>document.getElementById(id).value='');}
+function saveSocials(){const ig=document.getElementById('sIgInput').value.trim(),yt=document.getElementById('sYtInput').value.trim(),tk=document.getElementById('sTkInput').value.trim();if(ig)document.getElementById('sIg').href=ig;if(yt)document.getElementById('sYt').href=yt;if(tk)document.getElementById('sTk').href=tk;showToast('✅ Saved!');}
+
+// TOAST
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+// LIGHTNING
+const cv=document.getElementById('bg-canvas'),cx=cv.getContext('2d');
+function rsz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}rsz();window.addEventListener('resize',rsz);
+function bolt(x1,y1,x2,y2,o,d){if(!d){cx.moveTo(x1,y1);cx.lineTo(x2,y2);return;}const mx=(x1+x2)/2+(Math.random()-0.5)*o,my=(y1+y2)/2+(Math.random()-0.5)*o;bolt(x1,y1,mx,my,o/2,d-1);bolt(mx,my,x2,y2,o/2,d-1);}
+function flash(){cx.clearRect(0,0,cv.width,cv.height);for(let i=0;i<3;i++){cx.beginPath();cx.strokeStyle=i%2===0?`rgba(0,170,255,${0.3+Math.random()*0.4})`:`rgba(201,168,76,${0.2+Math.random()*0.3})`;cx.lineWidth=i===0?1.5:0.8;const sx=Math.random()*cv.width;bolt(sx,0,sx+(Math.random()-0.5)*300,cv.height*0.8,200,7);cx.stroke();}}
+(function loop(){if(Math.random()<0.035){flash();setTimeout(()=>cx.clearRect(0,0,cv.width,cv.height),80+Math.random()*120);}requestAnimationFrame(loop);})();
+
+// Show loading state for beats until Firestore loads
+document.getElementById('beatsTrack').innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">Loading beats...</div>';
+renderVideos();
+</script>
+</body>
+</html>
