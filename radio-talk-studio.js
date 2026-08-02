@@ -43,18 +43,36 @@ window.tsStartSession = async function(){
   btn.disabled = true;
   btn.textContent = 'STARTING...';
 
-  // Verify admin is signed in
+  // Wait for Firebase auth to fully resolve
   const fb = window.UB_FIREBASE;
-  const currentFbUser = fb && fb.auth && fb.auth.currentUser;
-  if (!currentFbUser || currentFbUser.isAnonymous) {
-    status('Sign in as admin first to start a session.', '#ff7474');
+  if (!fb || !fb.auth) {
+    status('Firebase not ready. Reload and try again.', '#ff7474');
     btn.disabled = false;
     btn.textContent = 'START SESSION';
-    // Try to trigger sign in
+    return;
+  }
+
+  // Wait up to 3 seconds for auth state
+  await new Promise(resolve => {
+    const authChange = fb.onAuthStateChanged || (cb => fb.auth.onAuthStateChanged(cb));
+    const unsub = authChange(fb.auth, user => {
+      unsub();
+      resolve(user);
+    });
+    setTimeout(resolve, 3000);
+  });
+
+  const currentFbUser = fb.auth.currentUser;
+  const isSignedIn = currentFbUser && !currentFbUser.isAnonymous;
+
+  if (!isSignedIn) {
+    status('Sign in with your admin Google account first.', '#ff7474');
+    btn.disabled = false;
+    btn.textContent = 'START SESSION';
     if (window.UniBeatzAuth && window.UniBeatzAuth.showLogin) {
       window.UniBeatzAuth.showLogin();
     } else {
-      alert('Please sign in with your admin Google account first, then start the session.');
+      alert('Please sign in with your admin Google account, then try again.');
     }
     return;
   }
