@@ -92,23 +92,20 @@ function loadTo(deck, item){
   note('Loaded ' + name + ' to Deck ' + deck, '#5dff9e');
   // Try scratch buffer in background — won't block playback if it fails
   try { loadScratchBuffer(deck, url); } catch(e) {}
-  // Push now playing to Talk Studio hosts
-  if (window.ubTalkNowPlaying) {
-    window.ubTalkNowPlaying({
-      trackTitle: item.title || name,
-      artistName: item.artistName || item.name || '',
-      genre: item.genre || item.type || '',
-      bio: item.bio || item.description || '',
-      instagram: item.instagram || item.social || '',
-      email: item.email || '',
-      website: item.website || '',
-      producer: item.producerName || item.producer || '',
-      bpm: item.bpm || '',
-      audioUrl: url,
-      deck: deck,
-      loadedAt: Date.now()
-    });
-  }
+  // Push now playing directly to Firestore so Talk Studio hosts see it
+  pushNowPlayingToFirestore({
+    trackTitle: item.title || name,
+    artistName: item.artistName || item.name || '',
+    genre: item.genre || item.type || '',
+    bio: item.bio || item.description || '',
+    instagram: item.instagram || item.social || '',
+    email: item.email || '',
+    website: item.website || '',
+    producer: item.producerName || item.producer || '',
+    bpm: item.bpm || '',
+    deck: deck,
+    loadedAt: Date.now()
+  });
 }
 
 async function loadQueue(){
@@ -1064,6 +1061,21 @@ function handlePitchWheel(lsb, msb){
 
 // Hook loadTo to also load scratch buffer without redeclaring the function.
 // Scratch buffer loading handled inside loadTo directly
+
+// ── Push now playing to Firestore for Talk Studio hosts ──
+async function pushNowPlayingToFirestore(trackData) {
+  try {
+    const fb = window.UB_FIREBASE;
+    if (!fb || !fb.db) return;
+    // Find active talk session
+    const { getDocs, collection, query, where, doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const snap = await getDocs(query(collection(fb.db, 'talk_sessions'), where('live', '==', true)));
+    if (snap.empty) return; // No active talk session
+    snap.forEach(async d => {
+      await setDoc(doc(fb.db, 'talk_sessions', d.id), { nowPlaying: trackData, updatedAt: Date.now() }, { merge: true });
+    });
+  } catch(e) { console.warn('[deck] nowPlaying push failed:', e.message); }
+}
 
 // ── Boot ──
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
