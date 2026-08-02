@@ -549,9 +549,24 @@ function runDeckAction(action, value=null){
   // Volume faders
   if(action==='volumeA') { deckA.volume=v/127; const g=document.getElementById('gainA'); if(g) g.value=Math.round((v/127)*100); }
   if(action==='volumeB') { deckB.volume=v/127; const g=document.getElementById('gainB'); if(g) g.value=Math.round((v/127)*100); }
-  // Crossfader
+  // Crossfader — MK3 sends 0-127, center=88 (not 64)
   if(action==='crossfader') {
-    const cf=document.getElementById('crossfader'); if(cf) cf.value=Math.round((v/127)*100);
+    // MK3 crossfader: 0=full left, 88=center, 127=full right
+    const normalized = Math.round((v / 127) * 100);
+    const cf=document.getElementById('crossfader'); if(cf) cf.value=normalized;
+    setVolumes();
+  }
+  // Load track to deck from controller load button
+  if(action==='loadA' || action==='loadB') {
+    const deck = action === 'loadA' ? 'A' : 'B';
+    // Load the first staged track if available
+    const stage = deck === 'A' ? stageA : stageB;
+    if(stage && stage.length > 0) { loadTo(deck, stage[0]); }
+    else if(queue && queue.length > 0) { loadTo(deck, queue[0]); }
+  }
+  // Master vol
+  if(action==='masterVol') {
+    const el = document.getElementById('masterVol'); if(el) el.value = Math.round((v/127)*100);
     setVolumes();
   }
   // Jog wheel (relative: 1-63=fwd, 65-127=back)
