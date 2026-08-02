@@ -8,13 +8,22 @@ import {
 
 const TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
 
+async function waitForDb(tries = 20) {
+  for (let i = 0; i < tries; i++) {
+    if (window.UB_FIREBASE && window.UB_FIREBASE.db) return window.UB_FIREBASE.db;
+    await new Promise(r => setTimeout(r, 150));
+  }
+  throw new Error('Firebase not ready after waiting. Reload the page.');
+}
+
 function db() {
   if (window.UB_FIREBASE && window.UB_FIREBASE.db) return window.UB_FIREBASE.db;
   throw new Error('Firebase not initialized. Reload the page and try again.');
 }
 
 export async function createSession(sessionId, djName) {
-  await setDoc(doc(db(), 'talk_sessions', sessionId), {
+  const _db = await waitForDb();
+  await setDoc(doc(_db, 'talk_sessions', sessionId), {
     sessionId,
     djName,
     hosts: [],
@@ -25,28 +34,32 @@ export async function createSession(sessionId, djName) {
 }
 
 export async function endSession(sessionId) {
-  await setDoc(doc(db(), 'talk_sessions', sessionId), {
+  const _db = await waitForDb();
+  await setDoc(doc(_db, 'talk_sessions', sessionId), {
     live: false,
     endedAt: serverTimestamp()
   }, { merge: true });
 }
 
-export function watchSession(sessionId, cb) {
-  return onSnapshot(doc(db(), 'talk_sessions', sessionId), snap => {
+export async function watchSession(sessionId, cb) {
+  const _db = await waitForDb();
+  return onSnapshot(doc(_db, 'talk_sessions', sessionId), snap => {
     cb(snap.exists() ? snap.data() : null);
   });
 }
 
 export async function sendMessage(sessionId, msg) {
-  await addDoc(collection(db(), 'talk_sessions', sessionId, 'chat'), {
+  const _db = await waitForDb();
+  await addDoc(collection(_db, 'talk_sessions', sessionId, 'chat'), {
     ...msg,
     timestamp: serverTimestamp()
   });
 }
 
-export function watchChat(sessionId, cb) {
+export async function watchChat(sessionId, cb) {
+  const _db = await waitForDb();
   const q = query(
-    collection(db(), 'talk_sessions', sessionId, 'chat'),
+    collection(_db, 'talk_sessions', sessionId, 'chat'),
     orderBy('timestamp', 'asc')
   );
   return onSnapshot(q, snap => {
