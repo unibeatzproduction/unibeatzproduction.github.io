@@ -1,0 +1,2596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="UniFreestyle"/>
+<meta name="theme-color" content="#030305"/>
+<meta name="ub-platform" content="battle">  
+<link rel="manifest" href="/unifreestyle-manifest.json"/>
+<link rel="apple-touch-icon" href="/icons/unifreestyle-192.png"/>  
+<title>UniFreestyle Battle App</title>
+
+<meta property="og:title" content="UniFreestyle Battle App">
+<meta property="og:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
+<meta property="og:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
+<meta property="og:image:secure_url" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta property="og:url" content="https://battle.unibeatzproduction.com">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UniFreestyle Battle App">
+<meta name="twitter:description" content="Face to Face Live Rap Battles · Real Rankings · UniBeatz Production">
+<meta name="twitter:image" content="https://battle.unibeatzproduction.com/icons/unifreestyle-512.png">  
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+<!-- ══ FIREBASE INTEGRATION ══ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    onAuthStateChanged,
+    signOut,
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    increment,
+    onSnapshot,
+    serverTimestamp,
+    query,
+    where,
+    orderBy,
+  } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"; 
+  
+  // ═════ FIREBASE CONFIG ═════
+  const firebaseConfig = {
+    apiKey: "AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4",
+    authDomain: "unibeatzproduction-7ae31.firebaseapp.com",
+    projectId: "unibeatzproduction-7ae31",
+    storageBucket: "unibeatzproduction-7ae31.firebasestorage.app",
+    messagingSenderId: "70667820609",
+    appId: "1:70667820609:web:57762df5510e6b4000b0c0",
+    measurementId: "G-QR5J3KW8T1"
+  };
+
+  // Initialize
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  auth.languageCode = "en";
+
+  // Make Firebase available globally for the rest of the script
+ window.UB_FIREBASE = {
+  app,
+  auth,
+  db,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  increment,
+  onSnapshot,
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  onAuthStateChanged,
+  signOut,
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+
+  ready: true,
+};
+
+  // Notify any listener
+  window.dispatchEvent(new Event("ub-firebase-ready"));
+  console.log("🔥 Firebase initialized — UniBeatz Production");
+</script>
+
+<link rel="stylesheet" href="unifreestyle.css"/>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.umd.min.js"></script>
+</head>
+<body>
+
+<!-- LOCKED PLATFORM SPLITS — judgment and support are separate systems -->
+<div id="ubPlatformSplitInfo" style="display:none" aria-hidden="true"
+     data-judgment-dj="45" data-judgment-viewers="40" data-judgment-ai="15"
+     data-support-artist="70" data-support-platform="30"></div>
+
+
+<!-- ══════════ SPLASH ══════════ -->
+<div class="page active" id="page-splash">
+  <div class="splash-content">
+    <img src="logo.png" class="splash-logo" alt="UniFreestyle" onerror="this.style.display='none'"/>
+    <div class="splash-title"><span class="g">UNI</span><span class="b">FREESTYLE</span></div>
+    <div class="splash-title" style="font-size:1.4rem;letter-spacing:6px;color:var(--gold);">BATTLE APP</div>
+    <p class="splash-tag">Face to Face · Live Battles · Real Rankings</p>
+    <div class="splash-btns">
+      <button class="btn btn-gold" onclick="goToPage('signup')">Create Account</button>
+      <button class="btn btn-blue" onclick="goToPage('login')">Log In</button>
+      <div class="divider">or continue with</div>
+      <button class="social-btn" onclick="socialAuth('Google')">🔵 Continue with Google</button>
+      <button class="social-btn" onclick="socialAuth('Apple')">⬛ Continue with Apple</button>
+      <p class="legal-text">By continuing you agree to UniBeatz Production's <a href="legal.html">Terms of Service</a> and <a href="legal.html#disclaimer">Privacy Policy</a>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SIGN UP ══════════ -->
+<div class="page" id="page-signup">
+  <button class="back-btn" onclick="goToPage('splash')">←</button>
+  <div class="page-body no-nav">
+    <div class="auth-page">
+      <div class="auth-header">
+        <img src="logo.png" class="auth-logo" alt="UniBeatz" onerror="this.style.display='none'"/>
+        <div class="auth-title">Create Account</div>
+        <p class="auth-sub">Join the UniFreestyle Battle community</p>
+      </div>
+
+      <div class="section-label">Choose Your Role</div>
+      <div class="role-grid" id="signupRoles">
+        <div class="role-card selected" data-role="artist" onclick="selectSignupRole(this)">
+          <span class="role-icon">🎤</span>
+          <div class="role-name">Artist</div>
+          <div class="role-desc">Battle face-to-face, earn ranks</div>
+        </div>
+        <div class="role-card" data-role="viewer" onclick="selectSignupRole(this)">
+          <span class="role-icon">👀</span>
+          <div class="role-name">Viewer / Judge</div>
+          <div class="role-desc">Watch, vote, build judge rep</div>
+        </div>
+        <div class="role-card" data-role="dj" onclick="selectSignupRole(this)">
+          <span class="role-icon">🎧</span>
+          <div class="role-name">DJ Judge</div>
+          <div class="role-desc">Control sessions, score battles</div>
+        </div>
+        <div class="role-card" data-role="fan" onclick="selectSignupRole(this)">
+          <span class="role-icon">❤️</span>
+          <div class="role-name">Fan</div>
+          <div class="role-desc">Watch and support artists</div>
+        </div>
+      </div>
+
+      <div class="section-label">Pick Your Avatar</div>
+      <div class="avatar-grid" id="signupAvatars">
+        <div class="avatar-option selected" data-avatar="🎤" onclick="selectSignupAvatar(this)">🎤</div>
+        <div class="avatar-option" data-avatar="👑" onclick="selectSignupAvatar(this)">👑</div>
+        <div class="avatar-option" data-avatar="⚡" onclick="selectSignupAvatar(this)">⚡</div>
+        <div class="avatar-option" data-avatar="🔥" onclick="selectSignupAvatar(this)">🔥</div>
+        <div class="avatar-option" data-avatar="🎧" onclick="selectSignupAvatar(this)">🎧</div>
+        <div class="avatar-option" data-avatar="💎" onclick="selectSignupAvatar(this)">💎</div>
+        <div class="avatar-option" data-avatar="🦁" onclick="selectSignupAvatar(this)">🦁</div>
+        <div class="avatar-option" data-avatar="🐉" onclick="selectSignupAvatar(this)">🐉</div>
+      </div>
+
+      <div class="field"><label>Full Name *</label><input type="text" id="suName" placeholder="Your real name" autocomplete="name"/></div>
+      <div class="field">
+        <label>Username *</label>
+        <input type="text" id="suUsername" placeholder="yourbattlename" autocomplete="username" oninput="checkUsername(this)"/>
+        <div class="field-hint" id="usernameHint">Letters, numbers, underscores only</div>
+      </div>
+      <div class="field"><label>Email *</label><input type="email" id="suEmail" placeholder="your@email.com" autocomplete="email"/></div>
+      <div class="field">
+        <label>Password *</label>
+        <input type="password" class="has-icon" id="suPassword" placeholder="At least 6 characters" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"/>
+        <span class="pw-toggle" onclick="togglePassword('suPassword',this)">👁</span>
+        <div class="pw-strength"><div class="pw-bar" id="pwb1"></div><div class="pw-bar" id="pwb2"></div><div class="pw-bar" id="pwb3"></div><div class="pw-bar" id="pwb4"></div></div>
+        <div class="field-hint" id="pwHint">Enter a password</div>
+      </div>
+      <div class="field"><label>City / Location</label><input type="text" id="suCity" placeholder="e.g. Houston, TX"/></div>
+
+      <p class="legal-text" style="margin-bottom:14px;">By creating an account you agree to our <a href="legal.html">Terms of Service</a> and <a href="legal.html#disclaimer">Privacy Policy</a>.</p>
+      <button class="btn btn-gold" onclick="handleSignup()">Create My Account</button>
+      <div class="switch-link">Already have an account? <a onclick="goToPage('login')">Log In</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ OTP ══════════ -->
+<div class="page" id="page-otp">
+  <button class="back-btn" onclick="goToPage('signup')">←</button>
+  <div class="page-body no-nav">
+    <div class="otp-page">
+      <div class="otp-icon">📧</div>
+      <div class="otp-title">Verify Email</div>
+      <p class="otp-sub">We sent a 6-digit code to your email. Enter it below.</p>
+      <div class="otp-email" id="otpEmailDisplay">your@email.com</div>
+      <div class="otp-inputs">
+        <input class="otp-digit" type="tel" maxlength="1" id="otp0" oninput="otpInput(this,0)" onkeydown="otpKeydown(event,0)"/>
+        <input class="otp-digit" type="tel" maxlength="1" id="otp1" oninput="otpInput(this,1)" onkeydown="otpKeydown(event,1)"/>
+        <input class="otp-digit" type="tel" maxlength="1" id="otp2" oninput="otpInput(this,2)" onkeydown="otpKeydown(event,2)"/>
+        <input class="otp-digit" type="tel" maxlength="1" id="otp3" oninput="otpInput(this,3)" onkeydown="otpKeydown(event,3)"/>
+        <input class="otp-digit" type="tel" maxlength="1" id="otp4" oninput="otpInput(this,4)" onkeydown="otpKeydown(event,4)"/>
+        <input class="otp-digit" type="tel" maxlength="1" id="otp5" oninput="otpInput(this,5)" onkeydown="otpKeydown(event,5)"/>
+      </div>
+      <div class="otp-resend">Didn't receive it? <a onclick="resendOTP()">Resend Code</a></div>
+      <button class="btn btn-gold" onclick="verifyOTP()">Verify & Continue</button>
+      <p style="font-size:0.72rem;color:var(--gray);margin-top:14px;line-height:1.6;">Demo Mode: Your code is shown in the message at the bottom. In production this would be sent via email.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div class="page" id="page-login">
+  <button class="back-btn" onclick="goToPage('splash')">←</button>
+  <div class="page-body no-nav">
+    <div class="auth-page">
+      <div class="auth-header">
+        <img src="logo.png" class="auth-logo" alt="UniBeatz" onerror="this.style.display='none'"/>
+        <div class="auth-title">Welcome Back</div>
+        <p class="auth-sub">Log in to your UniFreestyle account</p>
+      </div>
+
+      <button class="social-btn" style="margin-bottom:8px;" onclick="socialAuth('Google')">🔵 Continue with Google</button>
+      <button class="social-btn" style="margin-bottom:14px;" onclick="socialAuth('Apple')">⬛ Continue with Apple</button>
+      <div class="divider" style="margin-bottom:14px;">or</div>
+
+      <div class="field"><label>Email or Username</label><input type="text" id="liEmail" placeholder="your@email.com or username" autocomplete="username"/></div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" class="has-icon" id="liPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()"/>
+        <span class="pw-toggle" onclick="togglePassword('liPassword',this)">👁</span>
+      </div>
+      <div style="text-align:right;margin-bottom:16px;">
+        <a style="font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:2px;color:var(--gold);cursor:pointer;" onclick="showToast('Password reset: email unibeatzproduction@gmail.com')">Forgot Password?</a>
+      </div>
+      <button class="btn btn-gold" onclick="handleLogin()">Log In</button>
+      <div class="switch-link">Don't have an account? <a onclick="goToPage('signup')">Sign Up</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ HOME ══════════ -->
+<div class="page" id="page-home">
+  <div class="top-bar">
+    <img src="logo.png" class="top-logo" onerror="this.style.display='none'"/>
+    <h1>UNIFREESTYLE</h1>
+    <div class="btn-row">
+      <div class="icon-btn" id="ubNotificationsBtn">
+  🔔<span id="ubNotifBadge" class="notif-dot" style="display:none"></span> 
+</div>  
+      <div class="icon-btn" onclick="goToPage('profile')">👤</div>
+    </div>
+  </div>
+  <div class="page-body">
+    <div class="home-hero">
+      <div class="home-eyebrow">⚡ UniBeatz Production · Face to Face ⚡</div>
+      <div class="home-title"><span class="g">UNI</span><span class="b">FREESTYLE</span></div>
+      <div class="home-title" style="font-size:1.4rem;letter-spacing:6px;color:var(--gold);">BATTLE</div>
+      <p class="home-welcome">Welcome back, <strong id="homeWelcomeName">Artist</strong>!</p>
+    </div>
+
+    <div class="home-action-row">
+      <button class="btn btn-gold" onclick="openLiveBattleRoom()">🎤 JOIN BATTLE</button>
+      <button class="btn btn-red" onclick="openLiveBattleRoom()">⚡ INSTANT</button>
+      <button class="btn btn-blue" onclick="goToPage('leaderboard')">🏆 RANKS</button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell"><div class="stat-num">47</div><div class="stat-lbl">Live Now</div></div>
+      <div class="stat-cell"><div class="stat-num">312</div><div class="stat-lbl">MCs Online</div></div>
+      <div class="stat-cell"><div class="stat-num">8</div><div class="stat-lbl">DJs Active</div></div>
+      <div class="stat-cell"><div class="stat-num">1.2K</div><div class="stat-lbl">Watching</div></div>
+    </div>
+
+    <div class="section-head"><h3>📅 Scheduled Sessions</h3><div class="line"></div><div id="ubSessionStatus" style="font-family:Orbitron,sans-serif;font-size:.42rem;color:#40D0FF;"></div></div>
+
+    <!-- Opponent Waiting Banner -->
+    <div id="ubOpponentWaitingBanner" style="display:none;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,51,51,.5);background:rgba(255,51,51,.1);animation:pulse 1.5s infinite;">
+      <span style="width:8px;height:8px;background:#ff3333;border-radius:50%;flex-shrink:0;"></span>
+      <span id="ubOpponentWaitingLabel" style="font-family:Orbitron,sans-serif;font-size:.48rem;color:#ff6b6b;flex:1;">⚡ Opponent waiting to battle!</span>
+      <button class="btn btn-red" style="width:auto;padding:6px 12px;font-size:.44rem;" onclick="ubBattle&&ubBattle.joinQueue&&ubBattle.joinQueue('open_freestyle')">BATTLE NOW</button>
+    </div>
+
+    <!-- Session 1: 8 PM EST -->
+    <div id="ubSession1Card" class="session-card">
+      <div class="session-top">
+        <div class="session-time">8:00 PM EST</div>
+        <div id="ubSession1Badge" class="session-badge sb-live"><span class="live-dot"></span>LOADING</div>
+      </div>
+      <div class="session-title">Open Freestyle Battle</div>
+      <div class="session-dj">🎧 Trap + Drill Rotation · All Styles Welcome</div>
+      <div class="session-bottom">
+        <div class="session-lobby">👁️ <span id="ubHomeViewerCount">0</span> watching</div>
+        <div id="ubSession1Actions">
+          <button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" id="ubSession1JoinBtn" onclick="ubBattle&&ubBattle.joinQueue('open_freestyle')">FIND OPPONENT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session 2: 10 PM EST -->
+    <div id="ubSession2Card" class="session-card upcoming">
+      <div class="session-top">
+        <div class="session-time">10:00 PM EST</div>
+        <div id="ubSession2Badge" class="session-badge sb-up">⏱ LOADING</div>
+      </div>
+      <div class="session-title">Beat Kill Session</div>
+      <div class="session-dj">🎧 R&B + Afrobeats · Producer Beats Only</div>
+      <div class="session-bottom">
+        <div class="session-lobby">⚡ Opens at 10 PM EST</div>
+        <div id="ubSession2Actions">
+          <button class="btn btn-gold btn-sm" style="width:auto;padding:7px 14px;" id="ubSession2JoinBtn" onclick="ubBattle&&ubBattle.joinQueue('beat_kill')">FIND OPPONENT</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:6px;"><h3>⚡ Instant Mode</h3><div class="line"></div></div>
+    <div class="instant-card" onclick="startInstantBattle()">
+      <div class="instant-title">⚡ Start Instant Battle</div>
+      <div class="instant-desc">Get matched immediately. AI DJ auto-assigned. 24/7.</div>
+      <div class="instant-bottom">
+        <div class="instant-stats">312 MCs Online · ~30 sec match time</div>
+        <button class="btn btn-red btn-sm" style="width:auto;padding:7px 14px;" onclick="event.stopPropagation();openLiveBattleRoom()">BATTLE NOW</button>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ══════════ PROFILE ══════════ -->
+<div class="page" id="page-profile">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <h1 id="pfTopTitle">Profile</h1>
+    <div class="icon-btn" onclick="goToPage('settings')">⚙️</div>
+  </div>
+  <div class="page-body">
+    <div class="pf-banner"></div>
+    <div class="pf-main">
+      <div class="pf-avatar-wrap">
+        <div class="pf-avatar" id="pfAvatar" onclick="openPhotoModal()">
+          🎤
+          <div class="pf-avatar-edit">📷</div>
+        </div>
+        <input type="file" id="photoCameraInput" accept="image/*" capture="user" style="display:none;" onchange="handlePhotoUpload(this)"/>
+        <input type="file" id="photoGalleryInput" accept="image/*" style="display:none;" onchange="handlePhotoUpload(this)"/>
+      </div>
+      <div class="pf-info">
+        <h1 class="pf-display-name" id="pfDisplayName">Your Name</h1>
+        <p class="pf-username" id="pfUsername">@username</p>
+        <div class="pf-badges" id="pfBadges"></div>
+        <p class="pf-location" id="pfLocation">📍 UniBeatz World</p>
+        <a href="https://unibeatzproduction.com" class="pf-website" target="_blank">🌐 unibeatzproduction.com</a>
+
+        <!-- ABOUT ME SECTION -->
+        <div class="pf-about-section">
+          <div class="pf-about-title">📖 About Me</div>
+          <div class="pf-about-text" id="pfAboutText"></div>
+          <span class="pf-about-edit-link" onclick="goToPage('editprofile')">Edit your story →</span>
+        </div>
+
+        <div class="pf-stats-grid" id="pfStatsGrid"></div>
+        <div class="pf-uid">User ID: <strong id="pfUid">UB-000000</strong> · Joined <strong id="pfJoined">2025</strong></div>
+        <div class="pf-actions">
+          <button class="pf-act pf-act-follow" id="pfFollowBtn" onclick="toggleFollow(this)">+ Follow</button>
+          <button class="pf-act pf-act-msg" onclick="showToast('💬 Messages coming soon')">💬 Message</button>
+          <button class="pf-act pf-act-challenge" onclick="goToPage('queue')">⚔️ Challenge</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item active" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ══════════ EDIT PROFILE ══════════ -->
+<div class="page" id="page-editprofile">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('profile')">←</button>
+    <h1>Edit Profile</h1>
+    <div></div>
+  </div>
+  <div class="page-body no-nav">
+    <div class="edit-page">
+      <div class="edit-section">
+        <div class="section-label">📷 Profile Photo</div>
+        <div style="text-align:center;margin-bottom:14px;">
+          <div id="epPhotoPreview" style="width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:3px solid var(--gold);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:3rem;overflow:hidden;cursor:pointer;" onclick="openPhotoModal()">🎤</div>
+          <button class="btn btn-blue" style="width:auto;padding:8px 18px;font-size:0.5rem;" onclick="openPhotoModal()">📷 Upload Photo</button>
+        </div>
+        <div class="section-label" style="margin-top:18px;">Or Choose Avatar Emoji</div>
+        <div class="avatar-grid">
+          <div class="avatar-option" data-avatar="🎤" onclick="selectEditAvatar(this)">🎤</div>
+          <div class="avatar-option" data-avatar="👑" onclick="selectEditAvatar(this)">👑</div>
+          <div class="avatar-option" data-avatar="⚡" onclick="selectEditAvatar(this)">⚡</div>
+          <div class="avatar-option" data-avatar="🔥" onclick="selectEditAvatar(this)">🔥</div>
+          <div class="avatar-option" data-avatar="🎧" onclick="selectEditAvatar(this)">🎧</div>
+          <div class="avatar-option" data-avatar="💎" onclick="selectEditAvatar(this)">💎</div>
+          <div class="avatar-option" data-avatar="🦁" onclick="selectEditAvatar(this)">🦁</div>
+          <div class="avatar-option" data-avatar="🐉" onclick="selectEditAvatar(this)">🐉</div>
+        </div>
+      </div>
+      <div class="field"><label>Full Name</label><input type="text" id="epName"/></div>
+      <div class="field"><label>Username</label><input type="text" id="epUsername"/></div>
+      <div class="field">
+        <label>📖 About Me — Your Story</label>
+        <textarea id="epBio" rows="6" placeholder="Tell your story... Who are you? What is your music about? Where are you from? What drives you?"></textarea>
+        <div class="field-hint">This is your story. Share who you are with the community.</div>
+      </div>
+      <div class="field"><label>City / Location</label><input type="text" id="epCity"/></div>
+      <button class="btn btn-gold" onclick="saveProfileEdits()">Save Changes</button>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="goToPage('profile')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SETTINGS ══════════ -->
+<div class="page" id="page-settings">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('profile')">←</button>
+    <h1>⚙️ Settings</h1>
+    <div></div>
+  </div>
+  <div class="page-body no-nav">
+    <div style="padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(201,168,76,0.1);">
+      <div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,rgba(0,170,255,0.2),rgba(201,168,76,0.2));border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.6rem;" id="settingsAvatar">🎤</div>
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;" id="settingsName">My Name</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--blue-bright);" id="settingsUsername">@username</div>
+      </div>
+    </div>
+
+    <div class="section-title-sm">Account</div>
+    <div class="settings-list">
+      <div class="settings-item" onclick="goToPage('editprofile')">
+        <div class="settings-icon">👤</div>
+        <div class="settings-info"><div class="settings-label">Edit Profile</div><div class="settings-sub">Name, username, avatar, bio</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="goToPage('changepw')">
+        <div class="settings-icon">🔒</div>
+        <div class="settings-info"><div class="settings-label">Change Password</div><div class="settings-sub">Update your password</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="showToast('Email: ' + (currentUser?.email || 'Not set'))">
+        <div class="settings-icon">📧</div>
+        <div class="settings-info"><div class="settings-label">Email</div><div class="settings-sub" id="settingsEmail">your@email.com</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+    
+    <div class="section-title-sm">Admin</div>
+    <div class="settings-list">
+      <div class="settings-item" onclick="goToPage('beatadmin')">
+        <div class="settings-icon">🎛️</div>
+        <div class="settings-info"><div class="settings-label">Beat Admin</div><div class="settings-sub">Upload platform beats for DJs to select</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+
+<div class="section-title-sm">Support</div>
+    <div class="settings-list">
+      <div class="settings-item" onclick="window.location.href='legal.html'">
+        <div class="settings-icon">⚖️</div>
+        <div class="settings-info"><div class="settings-label">Terms & Legal</div><div class="settings-sub">License agreements & policies</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" onclick="window.location.href='mailto:unibeatzproduction@gmail.com'">
+        <div class="settings-icon">📧</div>
+        <div class="settings-info"><div class="settings-label">Contact Support</div><div class="settings-sub">unibeatzproduction@gmail.com</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item danger" onclick="confirmLogout()">
+        <div class="settings-icon">🚪</div>
+        <div class="settings-info"><div class="settings-label">Log Out</div><div class="settings-sub">Sign out of your account</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item danger" onclick="confirmDeleteAccount()">
+        <div class="settings-icon">🗑️</div>
+        <div class="settings-info"><div class="settings-label">Delete Account</div><div class="settings-sub">Permanently remove your account</div></div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ CHANGE PASSWORD ══════════ -->
+<div class="page" id="page-changepw">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('settings')">←</button>
+    <h1>Change Password</h1>
+    <div></div>
+  </div>
+  <div class="page-body no-nav">
+    <div class="edit-page">
+      <p style="font-size:0.85rem;color:var(--gray);margin-bottom:18px;line-height:1.5;">Choose a strong new password for your account.</p>
+      <div class="field"><label>Current Password</label><input type="password" id="cpOld" placeholder="Your current password"/></div>
+      <div class="field"><label>New Password</label><input type="password" id="cpNew" placeholder="At least 6 characters"/></div>
+      <div class="field"><label>Confirm New Password</label><input type="password" id="cpConfirm" placeholder="Re-enter new password"/></div>
+      <button class="btn btn-gold" onclick="changePassword()">Update Password</button>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="goToPage('settings')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ══════════ ADMIN BEAT VAULT ══════════ -->
+<div class="page" id="page-beatadmin">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <h1>🎛️ Beat Admin</h1>
+    <button class="icon-btn" onclick="loadPlatformBeats()">↻</button>
+  </div>
+  <div class="page-body no-nav">
+    <div class="beat-vault-card">
+      <div class="beat-vault-title">Admin Beat Vault</div>
+      <div class="beat-vault-sub">Upload beats to the platform here. DJs can select these beats during live battles, but they cannot upload new beats.</div>
+
+      <div class="beat-admin-lock" id="beatAdminLockBox">
+        <input type="password" id="beatAdminPass" placeholder="Admin passcode"/>
+        <button class="btn btn-gold" style="width:auto;clip-path:none;border-radius:7px;" onclick="unlockBeatAdmin()">Unlock</button>
+      </div>
+
+      <div id="beatAdminContent" style="display:none;">
+        <div id="ubNotificationAdmin"></div>
+        <div class="beat-form-grid">
+          <input id="adminBeatName" placeholder="Beat name"/>
+          <input id="adminBeatBpm" placeholder="BPM"/>
+          <input id="adminBeatKey" placeholder="Key"/>
+          <input id="adminBeatGenre" placeholder="Genre"/>
+          <input id="adminBeatFile" type="file" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/>
+        </div>
+        <button class="btn btn-gold" style="margin-top:12px;" onclick="uploadPlatformBeat()">⬆️ Upload Beat To Platform</button>
+      </div>
+    </div>
+
+    <div class="beat-vault-card">
+      <div class="beat-vault-title">Platform Beats</div>
+      <div class="beat-vault-sub">These are the beats DJs can choose from inside the battle room.</div>
+      <div id="adminBeatList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LIVE BATTLE ROOM ══════════ -->
+<div class="page" id="page-livebattle">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="leaveBattleRoom();goToPage('queue')">←</button>
+    <h1>🔴 Live Battle</h1>
+    <button class="icon-btn" onclick="leaveBattleRoom()">⏹</button>
+  </div>
+  <div class="page-body no-nav">
+    <div class="live-room-shell">
+      <div class="live-status-card">
+        <div class="live-room-title"><span class="live-red-dot"></span>Face-To-Face Battle Room</div>
+        <div class="live-room-sub">Artist cameras, mics, DJ/judge control, and viewer watching powered by LiveKit + Firebase.</div>
+        <div class="live-room-meta">
+          <span class="live-pill">Room: <strong id="liveRoomName">battle-room</strong></span>
+          <span class="live-pill">You: <strong id="liveUsername">guest</strong></span>
+          <span class="live-pill">Status: <strong id="liveStatus">Not connected</strong></span>
+        </div>
+        <div class="live-error" id="liveError"></div>
+      </div>
+
+      <div class="beat-vault-card" id="djBeatSelectorCard">
+        <div class="beat-vault-title">🎧 DJ Beat Selector</div>
+        <div class="beat-vault-sub">DJs choose the platform beat for this battle. Artists and viewers see/hear the selected beat.</div>
+        <div class="current-beat-box">
+          <div>
+            <div class="current-beat-name" id="currentBattleBeatName">No beat selected</div>
+            <div class="current-beat-meta" id="currentBattleBeatMeta">Waiting for DJ selection</div>
+          </div>
+          <button class="btn btn-blue" style="width:auto;clip-path:none;border-radius:7px;" onclick="playSelectedBattleBeat()">▶ Play</button>
+        </div>
+        <audio id="battleBeatAudio" controls style="width:100%;margin-top:10px;display:none;"></audio>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
+          <button class="btn btn-gold" onclick="goToPage('beatadmin')">Admin Upload</button>
+        </div>
+        <div id="djBeatList" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="live-grid" id="liveVideoGrid">
+        <div class="live-video-card local" id="localVideoBox"><div class="live-label">YOU</div><div class="live-placeholder">Camera preview will appear here</div></div>
+        <div class="live-video-card" id="remoteVideoBox"><div class="live-label">OPPONENT / DJ / VIEWERS</div><div class="live-placeholder">Waiting for another participant...</div></div>
+      </div>
+      <div class="live-controls">
+        <button class="btn btn-gold" onclick="joinLiveBattleAs('artist')">🎤 Join Artist</button>
+        <button class="btn btn-blue" onclick="joinLiveBattleAs('dj')">🎧 Join DJ</button>
+        <button class="btn btn-blue" onclick="joinLiveBattleAs('viewer')">👀 Watch</button>
+        <button class="btn btn-blue" onclick="toggleLiveMic()">🎙️ Mic</button>
+        <button class="btn btn-blue" onclick="toggleLiveCamera()">📷 Camera</button>
+        <button class="btn btn-red" onclick="leaveBattleRoom()">Leave</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ════════════════════════════════════════════
+     CYPHER ROOM — Phase 2 Stage 1
+     Multi-person freestyle circle · 60-sec turns
+     ════════════════════════════════════════════ -->
+<div class="page" id="page-cypher">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')" title="Leave cypher">←</button>
+    <h1>CYPHER ROOM</h1>
+    <div class="btn-row">
+      <button class="icon-btn" id="cyMicBtn" onclick="toggleCypherMic()" title="Toggle mic">🎤</button>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- Status strip -->
+    <div class="cy-status">
+      <span class="cy-live-badge"><span class="cy-live-dot"></span>LIVE</span>
+      <span class="cy-session-name" id="cySessionName">Cypher Session</span>
+      <input type="text" class="cy-rename-input" id="cyRenameInput" style="display:none;" maxlength="40" onkeydown="if(event.key==='Enter')cyCommitRename();if(event.key==='Escape')cyCancelRename();"/>
+      <button class="cy-rename-btn" id="cyRenameBtn" onclick="cyStartRename()" title="Rename session">✏️</button>
+      <span class="cy-meta" id="cyMeta">— participants</span>
+    </div>
+
+    <!-- The circle -->
+    <div class="cy-stage">
+      <div class="cy-circle-wrap" id="cyCircleWrap">
+        <div class="cy-rings">
+          <div class="cy-ring r1"></div>
+          <div class="cy-ring r2"></div>
+          <div class="cy-ring r3"></div>
+        </div>
+        <div class="cy-floor"></div>
+        <div class="cy-spotlight" id="cySpotlight"></div>
+
+        <!-- Center display -->
+        <div class="cy-center">
+          <div class="cy-center-label" id="cyCenterLabel">ON THE MIC</div>
+          <div class="cy-center-name" id="cyCenterName">—</div>
+          <div class="cy-center-time" id="cyCenterTime">--</div>
+        </div>
+
+        <!-- Participant tiles get inserted here dynamically -->
+        <!-- (positioned around the circle by JS) -->
+      </div>
+    </div>
+
+    <!-- Turn queue -->
+    <div class="cy-queue">
+      <div class="cy-queue-title">🎤 TURN ORDER</div>
+      <div class="cy-queue-list" id="cyQueueList">
+        <span class="cy-queue-empty">Waiting for artists to join…</span>
+      </div>
+    </div>
+
+    <!-- Join / role buttons -->
+    <div class="cy-join-row" id="cyJoinRow">
+      <button class="btn btn-blue" onclick="joinCypher('artist')">🎤 Join as Artist</button>
+      <button class="btn btn-blue" onclick="joinCypher('dj')">🎧 Join as DJ</button>
+      <button class="btn btn-blue full" onclick="joinCypher('viewer')">👁️ Watch Only</button>
+    </div>
+
+    <!-- DJ-only control panel -->
+    <div class="cy-dj-panel" id="cyDjPanel">
+      <div class="cy-dj-head">
+        <div class="cy-dj-title">🎧 DJ CONTROLS</div>
+        <span class="cy-dj-badge">YOU ARE THE DJ</span>
+      </div>
+      <div class="cy-dj-row">
+        <button class="cy-dj-btn primary" onclick="cyStartSession()">▶ Start Cypher</button>
+        <button class="cy-dj-btn" onclick="cyAdvanceTurn()">⏭ Next Artist</button>
+        <button class="cy-dj-btn" onclick="cyToggleAutoRotate()" id="cyAutoBtn">🔁 Auto-Rotate: ON</button>
+        <button class="cy-dj-btn danger" onclick="cyEndSession()">⏹ End Cypher</button>
+      </div>
+    </div>
+
+    <!-- Info tip -->
+    <div class="cy-tip" id="cyTip">
+      <strong>How it works:</strong> Each artist gets <strong>60 seconds</strong> on the mic, then it rotates clockwise. Only the active artist's cam is live. DJ controls the music and can skip turns.
+    </div>
+
+  </div>
+</div>
+<!-- ══════════ QUEUE / BATTLE SETUP ══════════ -->
+<div class="page" id="page-queue">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <h1>⚔️ Join Battle</h1>
+    <div></div>
+  </div>
+  <div class="page-body">
+    <!-- ═══ LIVE BATTLES COMING SOON BANNER ═══ -->
+    <div style="margin:14px 14px 18px;padding:14px 16px;background:linear-gradient(135deg,rgba(0,170,255,0.12),rgba(201,168,76,0.08));border:1px solid rgba(0,170,255,0.4);border-radius:10px;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+        <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(255,51,51,0.15);border:1px solid var(--red);border-radius:12px;font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--red);font-weight:700;">
+          <span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1.5s infinite;"></span>
+          LIVE TEST READY
+        </span>
+        <span style="font-family:'Orbitron',sans-serif;font-size:0.44rem;letter-spacing:2px;color:var(--gold-light);">⚡ <span id="hypeCount">847</span> on waitlist</span>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--white);line-height:1.1;margin-bottom:4px;">Live Face-To-Face Battles</div>
+      <div style="font-size:0.84rem;color:rgba(240,237,232,0.65);line-height:1.5;margin-bottom:12px;">Real-time video battles between artists, DJs, and judges. Live battle testing is connected now. Use two devices or two browsers to test face-to-face video.</div>
+      <button onclick="joinHypeList()" style="display:block;width:100%;padding:10px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;font-weight:700;border:none;border-radius:6px;cursor:pointer;">
+        🏆 JOIN AS FOUNDING ARTIST · NOTIFY ME
+      </button>
+    </div>
+
+    <!-- ═══ PRACTICE MODE CTA ═══ -->
+    <div style="margin:0 14px 18px;padding:16px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;cursor:pointer;transition:all 0.2s;" onclick="goToPage('practice')">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="font-size:2.2rem;flex-shrink:0;">🎤</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap;">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold-light);">PRACTICE MODE</span>
+            <span style="padding:2px 7px;background:linear-gradient(135deg,var(--green),#00aa44);color:#fff;font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;border-radius:3px;font-weight:700;">LIVE NOW</span>
+          </div>
+          <div style="font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.4;">Solo freestyle drills · Royalty-free beats · 60-sec timer</div>
+        </div>
+        <div style="font-size:1.4rem;color:var(--gold);">→</div>
+      </div>
+    </div>
+
+    <div style="padding:18px 16px 8px;text-align:center;">
+      <div style="font-size:2.5rem;margin-bottom:8px;">🎤</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--gold-light);">Setup Your Battle</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-top:3px;">Choose your style</div>
+    </div>
+
+    <div style="padding:14px 16px 0;" class="section-label">Battle Type</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:14px;">
+      <div class="role-card selected" data-bt="beat" onclick="selectBattleType(this)" style="padding:13px 6px;">
+        <div style="font-size:1.7rem;margin-bottom:5px;">🎵</div>
+        <div class="role-name">Beat</div>
+        <div class="role-desc">On beat</div>
+      </div>
+      <div class="role-card" data-bt="acap" onclick="selectBattleType(this)" style="padding:13px 6px;">
+        <div style="font-size:1.7rem;margin-bottom:5px;">🎤</div>
+        <div class="role-name">A Cappella</div>
+        <div class="role-desc">Pure bars</div>
+      </div>
+      <div class="role-card" data-bt="mix" onclick="selectBattleType(this)" style="padding:13px 6px;">
+        <div style="font-size:1.7rem;margin-bottom:5px;">🔥</div>
+        <div class="role-name">Mixed</div>
+        <div class="role-desc">Both</div>
+      </div>
+    </div>
+
+    <div style="padding:0 16px;" class="section-label">Round Format</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px;margin-bottom:14px;">
+      <div class="role-card" data-rs="1" onclick="selectRoundFormat(this)" style="padding:9px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">1</div>
+        <div class="role-desc">Quick</div>
+      </div>
+      <div class="role-card selected" data-rs="3" onclick="selectRoundFormat(this)" style="padding:9px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">3</div>
+        <div class="role-desc">Standard</div>
+      </div>
+      <div class="role-card" data-rs="5" onclick="selectRoundFormat(this)" style="padding:9px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:900;color:var(--blue-bright);">5</div>
+        <div class="role-desc">Extended</div>
+      </div>
+    </div>
+
+    <div style="margin:0 16px 14px;background:rgba(0,170,255,0.04);border:1px solid rgba(0,170,255,0.16);padding:12px;border-radius:6px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.48rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:7px;">Round Breakdown</div>
+      <div style="font-size:0.82rem;color:rgba(240,237,232,0.65);line-height:1.7;">
+        <div>🎵 <strong style="color:var(--white);">R1:</strong> Beat — 45–60 sec each</div>
+        <div>🎤 <strong style="color:var(--white);">R2:</strong> A Cappella — 30–45 sec each</div>
+        <div>🔥 <strong style="color:var(--white);">R3:</strong> Choice — crowd votes</div>
+      </div>
+    </div>
+
+    <div style="padding:0 16px 16px;">
+      <button class="btn btn-gold" onclick="findOpponent()">⚡ Find Opponent</button>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-item active" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ══════════ PRACTICE MODE ══════════ -->
+<div class="page" id="page-practice">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="exitPractice()">←</button>
+    <h1>🎤 Practice Mode</h1>
+    <div></div>
+  </div>
+  <div class="page-body" style="padding-bottom:40px;">
+
+    <!-- Setup Screen -->
+    <div id="practiceSetup">
+      <div style="padding:18px 16px 8px;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:8px;">🎤</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:3px;color:var(--gold-light);">Solo Freestyle Drill</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--blue-bright);margin-top:3px;">Pick a beat · Train your bars</div>
+      </div>
+
+      <!-- Stats Card -->
+      <div style="margin:18px 14px;padding:14px 16px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">📊 YOUR PRACTICE STATS</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+          <div style="text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--gold-light);" id="statSessions">0</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Sessions</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--blue-bright);" id="statMinutes">0</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Minutes</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:var(--green);" id="statStreak">0</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);">Day Streak</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Beat Selection -->
+      <div style="padding:0 16px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);margin-bottom:10px;">🎵 PICK A BEAT</div>
+      <div id="beatList" style="padding:0 14px;">
+        <!-- Beat cards inserted by JS -->
+      </div>
+
+      <!-- Duration Selection -->
+      <div style="padding:18px 16px 10px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:var(--gold);">⏱️ DURATION</div>
+      <div style="padding:0 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+        <button class="dur-btn" data-dur="30" onclick="selectDuration(30)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">30s</button>
+        <button class="dur-btn active" data-dur="60" onclick="selectDuration(60)" style="padding:14px 8px;background:linear-gradient(135deg,var(--gold-dark),var(--gold));border:1px solid var(--gold);color:var(--black);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;font-weight:700;">60s</button>
+        <button class="dur-btn" data-dur="90" onclick="selectDuration(90)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">90s</button>
+        <button class="dur-btn" data-dur="120" onclick="selectDuration(120)" style="padding:14px 8px;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);color:var(--white);font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:1px;border-radius:6px;cursor:pointer;">2m</button>
+      </div>
+
+      <!-- Start Button -->
+      <div style="padding:24px 14px;">
+        <button class="btn btn-gold" onclick="startPractice()">🎤 START FREESTYLE</button>
+      </div>
+    </div>
+
+    <!-- Active Practice Screen -->
+    <div id="practiceActive" style="display:none;">
+      <!-- Camera View -->
+      <div style="margin:14px;border:1px solid rgba(201,168,76,0.3);border-radius:10px;overflow:hidden;background:#000;position:relative;aspect-ratio:9/16;max-height:60vh;">
+        <video id="practiceCamera" autoplay muted playsinline style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
+
+        <!-- Timer Overlay -->
+        <div style="position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:10;">
+          <div style="padding:5px 12px;background:rgba(0,0,0,0.7);border:1px solid var(--red);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--red);font-weight:700;display:flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1s infinite;"></span>
+            REC
+          </div>
+          <div style="padding:5px 12px;background:rgba(0,0,0,0.8);border:1px solid var(--gold);border-radius:14px;font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;color:var(--gold-light);font-weight:700;" id="practiceTimer">0:60</div>
+        </div>
+
+        <!-- Beat Info -->
+        <div style="position:absolute;bottom:10px;left:10px;right:10px;padding:8px 12px;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);border-radius:8px;display:flex;align-items:center;gap:10px;z-index:10;">
+          <div style="font-size:1.4rem;">🎵</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:0.95rem;letter-spacing:1.5px;color:var(--gold-light);" id="activeBeatName">Beat Name</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);" id="activeBeatBpm">140 BPM · Cmin</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div style="padding:14px;display:flex;gap:10px;">
+        <button class="btn btn-red" style="flex:1;" onclick="stopPractice()">⏹ END SESSION</button>
+      </div>
+
+      <!-- Bar Counter / Tips -->
+      <div style="padding:10px 16px;text-align:center;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gray);" id="practiceTip">💡 Drop your hottest bars · Don't stop · Keep flow</div>
+      </div>
+    </div>
+
+    <!-- Complete Screen -->
+    <div id="practiceComplete" style="display:none;text-align:center;padding:40px 20px;">
+      <div style="font-size:4rem;margin-bottom:14px;">🔥</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:8px;">SESSION COMPLETE</div>
+      <div style="font-size:0.95rem;color:var(--gray);margin-bottom:24px;">Bars dropped. Practice makes legends.</div>
+      <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:18px;margin:0 14px 24px;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.46rem;letter-spacing:2px;color:var(--gold);margin-bottom:10px;">SESSION STATS</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold-light);" id="completeDuration">60s</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Duration</div>
+          </div>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--blue-bright);" id="completeBeatName">Beat</div>
+            <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:1.5px;color:var(--gray);">Beat Used</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 14px;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-gold" onclick="resetPractice()">🎤 ANOTHER SESSION</button>
+        <button class="btn btn-blue" onclick="exitPractice()">← Back to Battle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ LEADERBOARD ══════════ -->
+<div class="page" id="page-leaderboard">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <h1>🏆 Rankings</h1>
+    <div class="icon-btn" onclick="showToast('Updates every hour')">ℹ️</div>
+  </div>
+  <div class="page-body">
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="filterLB('all',this)">Global</button>
+      <button class="lb-tab" onclick="filterLB('artist',this)">Artists</button>
+      <button class="lb-tab" onclick="filterLB('viewer',this)">Viewers</button>
+      <button class="lb-tab" onclick="filterLB('dj',this)">DJ Judges</button>
+    </div>
+    <div class="lb-list" id="lbList"></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item active" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+<!-- ══════════ AI DJ ══════════ -->
+<div class="page" id="page-aidj">
+  <div class="top-bar">
+    <button class="icon-btn" onclick="goToPage('home')">←</button>
+    <h1>🤖 Uni AI DJ</h1>
+    <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:2px;color:var(--green);padding:0 8px;">● LIVE</div>
+  </div>
+  <div class="page-body">
+    <div class="dj-hero">
+      <div class="dj-avatar-big">🤖</div>
+      <div class="dj-big-name">UNI AI DJ</div>
+      <div class="dj-big-title">Powered by UniBeatz Production</div>
+      <div class="dj-online"><span class="dj-online-dot"></span>Online · Judging 47 battles right now</div>
+    </div>
+    <div class="dj-ask-box">
+      <div class="dj-ask-title">💬 Ask the AI DJ</div>
+      <div class="dj-ask-row">
+        <input class="dj-ask-input" id="djAskInput" placeholder="Who's winning? Best bar?" onkeydown="if(event.key==='Enter')askAIDJ()"/>
+        <button class="dj-ask-btn" onclick="askAIDJ()">Ask</button>
+      </div>
+    </div>
+    <div class="dj-feed">
+      <div class="dj-feed-title">Live Commentary Feed</div>
+      <div id="djFeedList"></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="goToPage('home')"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+    <button class="nav-item" onclick="goToPage('queue')"><span class="nav-icon">🎤</span><span class="nav-label">Battle</span></button>
+    <button class="nav-item" onclick="goToPage('leaderboard')"><span class="nav-icon">🏆</span><span class="nav-label">Ranks</span></button>
+    <button class="nav-item active" onclick="goToPage('aidj')"><span class="nav-icon">🤖</span><span class="nav-label">AI DJ</span></button>
+    <button class="nav-item" onclick="goToPage('profile')"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
+  </div>
+</div>
+
+
+<!-- ══════════ PHOTO UPLOAD MODAL ══════════ -->
+<div class="photo-modal-overlay" id="photoModal" onclick="if(event.target===this)closePhotoModal()">
+  <div class="photo-modal">
+    <div class="photo-preview" id="photoPreviewBig">🎤</div>
+    <div class="photo-modal-title">Profile Photo</div>
+    <div class="photo-modal-sub">Upload your real picture or keep your avatar emoji</div>
+    <div class="photo-options">
+      <button class="photo-opt-btn" onclick="document.getElementById('photoCameraInput').click()">
+        <div class="photo-opt-icon">📷</div>
+        <div class="photo-opt-info">
+          <div class="photo-opt-label">Take Photo</div>
+          <div class="photo-opt-sub">Use your camera</div>
+        </div>
+      </button>
+      <button class="photo-opt-btn" onclick="document.getElementById('photoGalleryInput').click()">
+        <div class="photo-opt-icon">🖼️</div>
+        <div class="photo-opt-info">
+          <div class="photo-opt-label">Choose from Gallery</div>
+          <div class="photo-opt-sub">Pick existing photo</div>
+        </div>
+      </button>
+      <button class="photo-opt-btn" onclick="removePhoto()">
+        <div class="photo-opt-icon">🎭</div>
+        <div class="photo-opt-info">
+          <div class="photo-opt-label">Use Avatar Emoji Instead</div>
+          <div class="photo-opt-sub">Remove photo, keep emoji</div>
+        </div>
+      </button>
+    </div>
+    <button class="btn btn-ghost" onclick="closePhotoModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE & STORAGE
+// ════════════════════════════════════════
+let currentUser = null;
+let signupData = {};
+let pendingOTP = '';
+let selectedRole = 'artist';
+let selectedAvatar = '🎤';
+let selectedEditAvatar = '🎤';
+let followStates = {};
+
+// LocalStorage helpers
+const STORAGE = {
+  USERS: 'ub_users',
+  CURRENT: 'ub_current_user',
+};
+
+function getUsers() {
+  try { return JSON.parse(localStorage.getItem(STORAGE.USERS) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveUsers(users) {
+  localStorage.setItem(STORAGE.USERS, JSON.stringify(users));
+}
+function setCurrentUser(user) {
+  currentUser = user;
+  if(user) localStorage.setItem(STORAGE.CURRENT, JSON.stringify(user));
+  else localStorage.removeItem(STORAGE.CURRENT);
+}
+function loadCurrentUser() {
+  try {
+    const data = localStorage.getItem(STORAGE.CURRENT);
+    if(data) {
+      currentUser = JSON.parse(data);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// ════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════
+function goToPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if(page) {
+    page.classList.add('active');
+    page.scrollTop = 0;
+    if(page.querySelector('.page-body')) page.querySelector('.page-body').scrollTop = 0;
+  }
+  // Refresh data when entering certain pages
+  if(name === 'home') refreshHome();
+  if(name === 'profile') refreshProfile();
+  if(name === 'editprofile') loadEditProfileForm();
+  if(name === 'settings') refreshSettings();
+  if(name === 'leaderboard') renderLeaderboard('all');
+  if(name === 'aidj') renderAIDJFeed();
+}
+
+// ════════════════════════════════════════
+// SIGN UP FLOW
+// ════════════════════════════════════════
+function selectSignupRole(el) {
+  document.querySelectorAll('#signupRoles .role-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedRole = el.dataset.role;
+}
+
+function selectSignupAvatar(el) {
+  document.querySelectorAll('#signupAvatars .avatar-option').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedAvatar = el.dataset.avatar;
+}
+
+function selectEditAvatar(el) {
+  document.querySelectorAll('#page-editprofile .avatar-option').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEditAvatar = el.dataset.avatar;
+}
+
+function checkUsername(input) {
+  const cleaned = input.value.replace(/[^a-zA-Z0-9_]/g, '');
+  input.value = cleaned;
+  const hint = document.getElementById('usernameHint');
+  if(cleaned.length < 3) {
+    hint.textContent = 'Username must be 3+ characters';
+    hint.className = 'field-hint error';
+    return false;
+  }
+  // Check if taken
+  const users = getUsers();
+  if(users[cleaned.toLowerCase()]) {
+    hint.textContent = '⚠️ Username already taken';
+    hint.className = 'field-hint error';
+    return false;
+  }
+  hint.textContent = '✓ Username available';
+  hint.className = 'field-hint success';
+  return true;
+}
+
+function checkPasswordStrength(pw) {
+  const bars = [document.getElementById('pwb1'),document.getElementById('pwb2'),document.getElementById('pwb3'),document.getElementById('pwb4')];
+  const hint = document.getElementById('pwHint');
+  bars.forEach(b => b.className = 'pw-bar');
+  if(!pw){hint.textContent='Enter a password';hint.className='field-hint';return;}
+  let score = 0;
+  if(pw.length >= 6) score++;
+  if(pw.length >= 10) score++;
+  if(/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+  if(/[0-9]/.test(pw) || /[^A-Za-z0-9]/.test(pw)) score++;
+  const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+  const labels = ['','Weak — needs more chars','Medium — add numbers/caps','Strong','Very Strong 🔥'];
+  for(let i = 0; i < score; i++) bars[i].classList.add(cls);
+  hint.textContent = labels[score] || '';
+  hint.className = 'field-hint ' + (cls === 'weak' ? 'error' : cls === 'strong' ? 'success' : '');
+}
+
+function togglePassword(id, icon) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  icon.textContent = inp.type === 'password' ? '👁' : '🙈';
+}
+
+function handleSignup() {
+  const name = document.getElementById('suName').value.trim();
+  const username = document.getElementById('suUsername').value.trim().toLowerCase();
+  const email = document.getElementById('suEmail').value.trim().toLowerCase();
+  const password = document.getElementById('suPassword').value;
+  const city = document.getElementById('suCity').value.trim();
+
+  // Validate
+  if(!name) { showToast('Please enter your full name'); return; }
+  if(!username || username.length < 3) { showToast('Username must be 3+ characters'); return; }
+  if(!/^[a-z0-9_]+$/.test(username)) { showToast('Username: letters, numbers, underscores only'); return; }
+  if(!email || !email.includes('@') || !email.includes('.')) { showToast('Please enter a valid email'); return; }
+  if(!password || password.length < 6) { showToast('Password must be 6+ characters'); return; }
+
+  // Check if username/email exists
+  const users = getUsers();
+  if(users[username]) { showToast('Username already taken'); return; }
+  for(const k in users) {
+    if(users[k].email === email) { showToast('Email already registered'); return; }
+  }
+
+  // Save signup data temporarily
+  signupData = {
+    uid: 'UB-' + Math.floor(100000 + Math.random() * 900000),
+    name, username, email, password, city,
+    role: selectedRole,
+    avatar: selectedAvatar,
+    bio: '',
+    points: 0, wins: 0, losses: 0, battles: 0, votes: 0, accuracy: 0, followers: 0, following: 0,
+    joined: new Date().toLocaleDateString('en-US', {month:'short', year:'numeric'}),
+    verified: false,
+  };
+
+  // Generate OTP
+  pendingOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  document.getElementById('otpEmailDisplay').textContent = email;
+
+  // Clear OTP inputs
+  for(let i = 0; i < 6; i++) {
+    const el = document.getElementById('otp' + i);
+    if(el) { el.value = ''; el.classList.remove('filled'); }
+  }
+
+  goToPage('otp');
+  showToast(`📧 Demo Code: ${pendingOTP}`);
+  setTimeout(() => document.getElementById('otp0').focus(), 400);
+}
+
+function otpInput(input, idx) {
+  const v = input.value.replace(/\D/g, '').slice(-1);
+  input.value = v;
+  if(v) {
+    input.classList.add('filled');
+    if(idx < 5) document.getElementById('otp' + (idx + 1)).focus();
+  } else {
+    input.classList.remove('filled');
+  }
+  // Auto-submit when complete
+  const code = Array.from({length:6}, (_, i) => document.getElementById('otp' + i).value).join('');
+  if(code.length === 6) setTimeout(verifyOTP, 200);
+}
+
+function otpKeydown(e, idx) {
+  if(e.key === 'Backspace' && !e.target.value && idx > 0) {
+    document.getElementById('otp' + (idx - 1)).focus();
+  }
+}
+
+function verifyOTP() {
+  const code = Array.from({length:6}, (_, i) => document.getElementById('otp' + i).value).join('');
+  if(code.length < 6) { showToast('Enter all 6 digits'); return; }
+  if(code === pendingOTP) {
+    // Save user
+    const users = getUsers();
+    users[signupData.username] = signupData;
+    saveUsers(users);
+    setCurrentUser(signupData);
+    showToast('✅ Account created! Welcome to UniFreestyle!');
+    goToPage('home');
+  } else {
+    showToast('❌ Incorrect code. Try again.');
+    for(let i = 0; i < 6; i++) {
+      const el = document.getElementById('otp' + i);
+      el.value = ''; el.classList.remove('filled');
+    }
+    document.getElementById('otp0').focus();
+  }
+}
+
+function resendOTP() {
+  pendingOTP = Math.floor(100000 + Math.random() * 900000).toString();
+  showToast(`📧 New Demo Code: ${pendingOTP}`);
+}
+
+// ════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════
+function handleLogin() {
+  const emailOrUser = document.getElementById('liEmail').value.trim().toLowerCase();
+  const password = document.getElementById('liPassword').value;
+
+  if(!emailOrUser) { showToast('Enter your email or username'); return; }
+  if(!password) { showToast('Enter your password'); return; }
+
+  const users = getUsers();
+  let foundUser = null;
+
+  // Search by username
+  if(users[emailOrUser]) foundUser = users[emailOrUser];
+  else {
+    // Search by email
+    for(const k in users) {
+      if(users[k].email === emailOrUser) { foundUser = users[k]; break; }
+    }
+  }
+
+  if(!foundUser) {
+    showToast('❌ No account found. Sign up first.');
+    return;
+  }
+  if(foundUser.password !== password) {
+    showToast('❌ Wrong password');
+    return;
+  }
+
+  setCurrentUser(foundUser);
+  showToast(`✅ Welcome back, ${foundUser.name.split(' ')[0]}!`);
+  goToPage('home');
+}
+
+async function socialAuth(provider) {
+  if (provider !== 'Google') {
+    showToast(`${provider} login coming soon. Use Google or email for now.`);
+    return;
+  }
+
+  if (!window.UB_FIREBASE || !window.UB_FIREBASE.ready) {
+    showToast('⚠️ Firebase not loaded. Refresh the page and try again.');
+    return;
+  }
+
+  try {
+    showToast('🔵 Opening Google sign-in...');
+    const fb = window.UB_FIREBASE;
+    const googleProvider = new fb.GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.addScope('profile');
+
+    let result = null;
+
+    try {
+      result = await fb.signInWithPopup(fb.auth, googleProvider);
+    } catch (popupErr) {
+      console.warn('Google popup failed, using redirect:', popupErr);
+      showToast('Redirecting to Google...');
+      await fb.signInWithRedirect(fb.auth, googleProvider);
+      return;
+    }
+
+    if (result && result.user) {
+      await finishGoogleLogin(result.user);
+    }
+  } catch (err) {
+    console.error('Google sign-in error:', err);
+    if (err.code === 'auth/unauthorized-domain') {
+      showToast('⚠️ This domain is not authorized in Firebase.');
+    } else {
+      showToast('⚠️ ' + (err.message || 'Google sign-in failed'));
+    }
+  }
+}
+
+async function finishGoogleLogin(fbUser) {
+  if (!fbUser || !fbUser.email) {
+    showToast('⚠️ Google account did not return an email.');
+    return;
+  }
+
+  const users = getUsers();
+  const email = fbUser.email.toLowerCase();
+  let userData = null;
+
+  for (const k in users) {
+    if (users[k].email === email) {
+      userData = users[k];
+      break;
+    }
+  }
+
+  if (!userData) {
+    let username = email.split('@')[0].replace(/[^a-z0-9_]/g, '') || 'artist';
+    let baseUsername = username;
+    let n = 1;
+
+    while (users[username]) {
+      username = baseUsername + n;
+      n++;
+    }
+
+    userData = {
+      uid: fbUser.uid,
+      name: fbUser.displayName || email.split('@')[0],
+      username: username,
+      email: email,
+      password: '',
+      photo: fbUser.photoURL || '',
+      avatar: '🎤',
+      bio: '',
+      role: 'artist',
+      city: '',
+      points: 0,
+      wins: 0,
+      losses: 0,
+      battles: 0,
+      votes: 0,
+      accuracy: 0,
+      followers: 0,
+      following: 0,
+      joined: new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+      verified: true,
+      unipackTier: 'free',
+      signInProvider: 'google'
+    };
+
+    users[username] = userData;
+    saveUsers(users);
+  }
+
+  if (!userData.photo && fbUser.photoURL) {
+    userData.photo = fbUser.photoURL;
+    const allUsers = getUsers();
+    allUsers[userData.username] = userData;
+    saveUsers(allUsers);
+  }
+
+  setCurrentUser(userData);
+  showToast(`✅ Welcome, ${userData.name.split(' ')[0]}!`);
+  goToPage('home');
+}
+
+window.addEventListener('load', async function () {
+  if (!window.UB_FIREBASE || !window.UB_FIREBASE.ready) return;
+
+  try {
+    const fb = window.UB_FIREBASE;
+    const result = await fb.getRedirectResult(fb.auth);
+
+    if (result && result.user) {
+      await finishGoogleLogin(result.user);
+    }
+  } catch (err) {
+    console.warn('Google redirect result failed:', err);
+  }
+});
+
+
+// ════════════════════════════════════════
+// PASSWORD RESET (Firebase)
+// ════════════════════════════════════════
+async function handlePasswordReset() {
+  const email = prompt('Enter your email to receive a password reset link:');
+  if(!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
+  if(!window.UB_FIREBASE || !window.UB_FIREBASE.ready) {
+    showToast('Email service unavailable. Email unibeatzproduction@gmail.com for help.');
+    return;
+  }
+  try {
+    showToast('Sending reset email...');
+    const fb = window.UB_FIREBASE;
+    await fb.sendPasswordResetEmail(fb.auth, email.trim().toLowerCase());
+    showToast('📧 Password reset email sent to ' + email);
+  } catch(err) {
+    console.error('Password reset error:', err);
+    if(err.code === 'auth/user-not-found') {
+      showToast('❌ No account found with that email');
+    } else {
+      showToast('⚠️ ' + (err.message || 'Could not send reset email'));
+    }
+  }
+}
+
+// ════════════════════════════════════════
+// LOGOUT / DELETE
+// ════════════════════════════════════════
+function confirmLogout() {
+  if(confirm('Log out of your account?')) {
+    setCurrentUser(null);
+    showToast('Logged out');
+    setTimeout(() => goToPage('splash'), 600);
+  }
+}
+
+function confirmDeleteAccount() {
+  if(!currentUser) return;
+  if(!confirm('⚠️ Permanently delete your account? This cannot be undone.')) return;
+  if(!confirm('Are you ABSOLUTELY sure? All your data will be lost.')) return;
+  const users = getUsers();
+  delete users[currentUser.username];
+  saveUsers(users);
+  setCurrentUser(null);
+  showToast('Account deleted');
+  setTimeout(() => goToPage('splash'), 600);
+}
+
+// ════════════════════════════════════════
+// PROFILE
+// ════════════════════════════════════════
+const ROLE_BADGES = {
+  artist: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-artist',txt:'🎤 Artist'},{cls:'bg-battle',txt:'⚔️ Battle Rapper'}],
+  viewer: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-judge',txt:'👀 Judge'}],
+  dj: [{cls:'bg-verified',txt:'✔ Verified'},{cls:'bg-dj',txt:'🎧 DJ Judge'},{cls:'bg-producer',txt:'🎹 Producer'}],
+  fan: [{cls:'bg-fan',txt:'❤️ Fan'},{cls:'bg-judge',txt:'👀 Supporter'}],
+};
+const ROLE_TAGS = {
+  artist:'🎤 Battle Artist', viewer:'👀 Viewer & Judge', dj:'🎧 Official DJ Judge', fan:'❤️ Fan'
+};
+const DEFAULT_BIOS = {
+  artist:'Built From Pressure ⚡<br/>Battle Artist · UniFreestyle MC<br/>Sound from another dimension.',
+  viewer:'Watching every battle 👀<br/>Voting with accuracy<br/>Supporting the culture.',
+  dj:'Verified DJ Judge 🎧<br/>Setting the tone · Calling the rounds',
+  fan:'Real fan of the culture ❤️<br/>Here for every battle',
+};
+const ROLE_STATS = {
+  artist: [{k:'battles',l:'Battles'},{k:'wins',l:'Wins'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
+  viewer: [{k:'votes',l:'Votes'},{k:'accuracy',l:'% Acc'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
+  dj: [{k:'battles',l:'Sessions'},{k:'followers',l:'Followers'},{k:'wins',l:'Rating'},{k:'points',l:'Points'}],
+  fan: [{k:'battles',l:'Watched'},{k:'votes',l:'Votes'},{k:'followers',l:'Followers'},{k:'points',l:'Points'}],
+};
+
+function refreshProfile() {
+  if (window.ubProfile && typeof window.ubProfile.render === 'function') {
+    window.ubProfile.render();
+    return;
+  }
+
+  if (!currentUser) {
+    goToPage('splash');
+    return;
+  }
+
+  const u = currentUser;
+
+  const topTitle = document.getElementById('pfTopTitle');
+  if (topTitle) topTitle.textContent = '@' + (u.username || 'username');
+
+  const avatarEl = document.getElementById('pfAvatar');
+  if (avatarEl) {
+    if (u.photo) {
+      avatarEl.classList.add('has-photo');
+      avatarEl.innerHTML = '<img src="' + u.photo + '" alt="profile"/><div class="pf-avatar-edit">📷</div>';
+    } else {
+      avatarEl.classList.remove('has-photo');
+      avatarEl.innerHTML = (u.avatar || '🎤') + '<div class="pf-avatar-edit">📷</div>';
+    }
+  }
+
+  const displayName = document.getElementById('pfDisplayName');
+  if (displayName) displayName.textContent = u.name || 'Your Name';
+
+  const username = document.getElementById('pfUsername');
+  if (username) username.textContent = '@' + (u.username || 'username');
+
+  const badges = ROLE_BADGES[u.role] || ROLE_BADGES.artist;
+  const badgesEl = document.getElementById('pfBadges');
+  if (badgesEl) {
+    badgesEl.innerHTML = badges.map(b => `<span class="pf-badge ${b.cls}">${b.txt}</span>`).join('');
+  }
+
+  const aboutEl = document.getElementById('pfAboutText');
+  if (aboutEl) {
+    if (u.bio && u.bio.trim()) {
+      aboutEl.textContent = u.bio;
+      aboutEl.classList.remove('pf-about-empty');
+    } else {
+      aboutEl.textContent = "You haven't added your story yet. Tap 'Edit your story' below to tell people who you are, what your music is about, and where you're from.";
+      aboutEl.classList.add('pf-about-empty');
+    }
+  }
+
+  const locationEl = document.getElementById('pfLocation');
+  if (locationEl) locationEl.textContent = '📍 ' + (u.city || 'UniBeatz World');
+
+  const stats = ROLE_STATS[u.role] || ROLE_STATS.artist;
+  const statsGrid = document.getElementById('pfStatsGrid');
+  if (statsGrid) {
+    statsGrid.innerHTML = stats.map(s => {
+      let val = u[s.k] || 0;
+      if (typeof val === 'number' && val >= 1000) val = (val / 1000).toFixed(1) + 'K';
+      return `<div class="pf-stat-box"><div class="pf-stat-num">${val}</div><div class="pf-stat-lbl">${s.l}</div></div>`;
+    }).join('');
+  }
+
+  const uidEl = document.getElementById('pfUid');
+  if (uidEl) uidEl.textContent = u.uid || 'UB-000000';
+
+  const joinedEl = document.getElementById('pfJoined');
+  if (joinedEl) joinedEl.textContent = u.joined || '2025';
+}
+
+function toggleFollow(btn) {
+  if(btn.classList.contains('followed')) {
+    btn.classList.remove('followed');
+    btn.textContent = '+ Follow';
+    showToast('Unfollowed');
+  } else {
+    btn.classList.add('followed');
+    btn.textContent = '✓ Following';
+    showToast('✅ Now following!');
+  }
+}
+
+// ════════════════════════════════════════
+// EDIT PROFILE
+// ════════════════════════════════════════
+function loadEditProfileForm() {
+  if(!currentUser) return;
+  document.getElementById('epName').value = currentUser.name || '';
+  document.getElementById('epUsername').value = currentUser.username || '';
+  document.getElementById('epBio').value = currentUser.bio || '';
+  document.getElementById('epCity').value = currentUser.city || '';
+  selectedEditAvatar = currentUser.avatar;
+
+  // Photo preview in edit page
+  const epPreview = document.getElementById('epPhotoPreview');
+  if(epPreview) {
+    if(currentUser.photo) {
+      epPreview.innerHTML = '<img src="' + currentUser.photo + '" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+    } else {
+      epPreview.textContent = currentUser.avatar;
+    }
+  }
+
+  document.querySelectorAll('#page-editprofile .avatar-option').forEach(a => {
+    a.classList.toggle('selected', a.dataset.avatar === currentUser.avatar);
+  });
+}
+
+function saveProfileEdits() {
+  if(!currentUser) return;
+  const name = document.getElementById('epName').value.trim();
+  const username = document.getElementById('epUsername').value.trim().toLowerCase();
+  const bio = document.getElementById('epBio').value.trim();
+  const city = document.getElementById('epCity').value.trim();
+
+  if(!name) { showToast('Name required'); return; }
+  if(!username || username.length < 3) { showToast('Username must be 3+ chars'); return; }
+  if(!/^[a-z0-9_]+$/.test(username)) { showToast('Username: letters, numbers, _ only'); return; }
+
+  const users = getUsers();
+  // Check username uniqueness if changed
+  if(username !== currentUser.username && users[username]) {
+    showToast('Username already taken');
+    return;
+  }
+
+  // Update user
+  const oldUsername = currentUser.username;
+  currentUser.name = name;
+  currentUser.username = username;
+  currentUser.bio = bio;
+  currentUser.city = city;
+  currentUser.avatar = selectedEditAvatar;
+
+  // Update in storage
+  if(oldUsername !== username) {
+    delete users[oldUsername];
+  }
+  users[username] = currentUser;
+  saveUsers(users);
+  setCurrentUser(currentUser);
+
+  showToast('✅ Profile updated!');
+  setTimeout(() => goToPage('profile'), 400);
+}
+
+// ════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════
+function refreshSettings() {
+  if(!currentUser) return;
+  document.getElementById('settingsAvatar').textContent = currentUser.avatar;
+  document.getElementById('settingsName').textContent = currentUser.name;
+  document.getElementById('settingsUsername').textContent = '@' + currentUser.username;
+  document.getElementById('settingsEmail').textContent = currentUser.email;
+}
+
+function changePassword() {
+  if(!currentUser) return;
+  const oldPw = document.getElementById('cpOld').value;
+  const newPw = document.getElementById('cpNew').value;
+  const confirm = document.getElementById('cpConfirm').value;
+
+  if(oldPw !== currentUser.password) { showToast('❌ Current password wrong'); return; }
+  if(!newPw || newPw.length < 6) { showToast('New password must be 6+ chars'); return; }
+  if(newPw !== confirm) { showToast('❌ Passwords don\'t match'); return; }
+
+  currentUser.password = newPw;
+  const users = getUsers();
+  users[currentUser.username] = currentUser;
+  saveUsers(users);
+  setCurrentUser(currentUser);
+
+  document.getElementById('cpOld').value = '';
+  document.getElementById('cpNew').value = '';
+  document.getElementById('cpConfirm').value = '';
+
+  showToast('✅ Password updated!');
+  setTimeout(() => goToPage('settings'), 400);
+}
+
+// ════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════
+function refreshHome() {
+  if(!currentUser) { goToPage('splash'); return; }
+  document.getElementById('homeWelcomeName').textContent = currentUser.name.split(' ')[0];
+  updateSessionCards();
+}
+
+function updateSessionCards() {
+  if(!window.ubBattle || !window.ubBattle.getSessionWindow) return;
+  var win = window.ubBattle.getSessionWindow();
+
+  var s1Badge = document.getElementById('ubSession1Badge');
+  var s1Btn   = document.getElementById('ubSession1JoinBtn');
+  var s1Card  = document.getElementById('ubSession1Card');
+  var s2Badge = document.getElementById('ubSession2Badge');
+  var s2Btn   = document.getElementById('ubSession2JoinBtn');
+  var s2Card  = document.getElementById('ubSession2Card');
+  var status  = document.getElementById('ubSessionStatus');
+
+  if(!s1Badge) return;
+
+  if(win.open) {
+    // Sessions are live
+    if(status) status.textContent = '🔴 LIVE NOW · EST';
+
+    // Session 1 (8 PM) — always open during window
+    s1Card.className = 'session-card live';
+    s1Badge.className = 'session-badge sb-live';
+    s1Badge.innerHTML = '<span class="live-dot"></span>LIVE NOW';
+    s1Btn.disabled = false;
+    s1Btn.style.opacity = '1';
+    s1Btn.textContent = 'FIND OPPONENT';
+
+    // Session 2 (10 PM) — only open after 10 PM
+    var ny = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    var h = ny.getHours();
+    if(h >= 22) {
+      s2Card.className = 'session-card live';
+      s2Badge.className = 'session-badge sb-live';
+      s2Badge.innerHTML = '<span class="live-dot"></span>LIVE NOW';
+      s2Btn.disabled = false;
+      s2Btn.style.opacity = '1';
+      s2Btn.textContent = 'FIND OPPONENT';
+    } else {
+      s2Card.className = 'session-card upcoming';
+      s2Badge.className = 'session-badge sb-up';
+      s2Badge.textContent = '⏱ STARTS 10 PM';
+      s2Btn.disabled = true;
+      s2Btn.style.opacity = '0.4';
+      s2Btn.textContent = 'NOT YET';
+    }
+
+  } else {
+    // Sessions closed
+    var msg = win.minsUntil ? ('Opens in ' + (win.minsUntil > 60 ? Math.floor(win.minsUntil/60)+'h '+win.minsUntil%60+'m' : win.minsUntil+'m')) : 'Opens 8 PM EST';
+    if(status) status.textContent = msg;
+
+    s1Card.className = 'session-card upcoming';
+    s1Badge.className = 'session-badge sb-up';
+    s1Badge.textContent = '⏱ ' + msg;
+    s1Btn.disabled = true;
+    s1Btn.style.opacity = '0.4';
+    s1Btn.textContent = 'LOCKED';
+
+    s2Card.className = 'session-card upcoming';
+    s2Badge.className = 'session-badge sb-up';
+    s2Badge.textContent = '⏱ Opens 10 PM EST';
+    s2Btn.disabled = true;
+    s2Btn.style.opacity = '0.4';
+    s2Btn.textContent = 'LOCKED';
+  }
+}
+
+// Update every 30 seconds
+setInterval(updateSessionCards, 30000);
+
+// Session countdown handled by updateSessionCards()
+
+// ════════════════════════════════════════
+// BATTLE QUEUE
+// ════════════════════════════════════════
+function selectBattleType(el) {
+  document.querySelectorAll('[data-bt]').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectRoundFormat(el) {
+  document.querySelectorAll('[data-rs]').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function findOpponent() {
+  showToast('🔍 Finding opponent...');
+  setTimeout(() => showToast('⚔️ Match found! Battle starting soon...'), 1500);
+  setTimeout(() => showToast('💡 Real-time battles need backend integration'), 3500);
+}
+function startInstantBattle() {
+  showToast('⚡ Searching for instant match...');
+  setTimeout(() => showToast('⚔️ Match found! Get ready!'), 1500);
+}
+
+// ════════════════════════════════════════
+// LIVE BATTLES HYPE LIST (Founding Artists)
+// ════════════════════════════════════════
+function getHypeCount() {
+  return parseInt(localStorage.getItem('ub_hype_count') || '847');
+}
+
+function refreshHypeCount() {
+  const el = document.getElementById('hypeCount');
+  if(el) el.textContent = getHypeCount();
+}
+
+async function joinHypeList() {
+  if(!currentUser) {
+    showToast('Sign up first to join the founding list');
+    setTimeout(() => goToPage('signup'), 800);
+    return;
+  }
+  const hypeList = JSON.parse(localStorage.getItem('ub_hype_list') || '[]');
+  if(hypeList.includes(currentUser.email)) {
+    const myNum = currentUser.foundingNumber || '?';
+    showToast('🏆 Founding Artist #' + myNum + ' — Already locked in!');
+    return;
+  }
+  hypeList.push(currentUser.email);
+  localStorage.setItem('ub_hype_list', JSON.stringify(hypeList));
+  const count = getHypeCount() + 1;
+  localStorage.setItem('ub_hype_count', count);
+  refreshHypeCount();
+  if(!currentUser.badges) currentUser.badges = [];
+  if(!currentUser.badges.includes('founding-artist')) {
+    currentUser.badges.push('founding-artist');
+    currentUser.foundingNumber = count;
+    const users = getUsers();
+    users[currentUser.username] = currentUser;
+    saveUsers(users);
+    localStorage.setItem('ub_user', JSON.stringify(currentUser));
+  }
+  showToast('🏆 Founding Artist #' + count + '! You\'re locked in.');
+}
+
+// ════════════════════════════════════════
+// PRACTICE MODE
+// ════════════════════════════════════════
+const PRACTICE_BEATS = [
+  { id:'trap1', name:'Midnight Drip', bpm:140, key:'Cmin', genre:'Trap', emoji:'🌙' },
+  { id:'drill1', name:'Block Anthem', bpm:148, key:'Fmin', genre:'Drill', emoji:'🔫' },
+  { id:'rnb1', name:'Velvet Hours', bpm:90, key:'Bbmaj', genre:'R&B', emoji:'💜' },
+  { id:'hiphop1', name:'90s Boom', bpm:92, key:'Amin', genre:'Boom Bap', emoji:'📻' },
+  { id:'trap2', name:'Gold Dust', bpm:135, key:'Gmin', genre:'Trap', emoji:'✨' },
+];
+
+let practiceState = {
+  selectedBeat: null,
+  selectedDuration: 60,
+  timeLeft: 60,
+  timerInterval: null,
+  cameraStream: null,
+  beatAudio: null,
+};
+
+function getPracticeStats() {
+  try { return JSON.parse(localStorage.getItem('ub_practice_stats') || '{}'); }
+  catch(e) { return {}; }
+}
+
+function savePracticeStats(stats) {
+  localStorage.setItem('ub_practice_stats', JSON.stringify(stats));
+}
+
+function refreshPracticeStats() {
+  const stats = getPracticeStats();
+  document.getElementById('statSessions').textContent = stats.sessions || 0;
+  document.getElementById('statMinutes').textContent = Math.floor((stats.totalSeconds || 0) / 60);
+  document.getElementById('statStreak').textContent = stats.dayStreak || 0;
+}
+
+function renderBeatList() {
+  const list = document.getElementById('beatList');
+  if(!list) return;
+  list.innerHTML = PRACTICE_BEATS.map((b, i) => `
+    <div class="beat-card ${i === 0 ? 'active' : ''}" data-beat="${b.id}" onclick="selectBeat('${b.id}')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;background:rgba(255,255,255,0.03);border:1px solid ${i === 0 ? 'var(--gold)' : 'rgba(201,168,76,0.15)'};border-radius:8px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;">
+      <div style="font-size:1.6rem;flex-shrink:0;">${b.emoji}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1.5px;color:var(--white);">${b.name}</div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.4rem;letter-spacing:1.5px;color:var(--gray);margin-top:1px;">${b.bpm} BPM · ${b.key} · ${b.genre}</div>
+      </div>
+      <div class="beat-check" style="width:18px;height:18px;border-radius:50%;border:1.5px solid ${i === 0 ? 'var(--gold)' : 'rgba(201,168,76,0.25)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${i === 0 ? '<span style="color:var(--gold);font-size:0.7rem;">✓</span>' : ''}</div>
+    </div>
+  `).join('');
+  practiceState.selectedBeat = PRACTICE_BEATS[0];
+}
+
+function selectBeat(beatId) {
+  const beat = PRACTICE_BEATS.find(b => b.id === beatId);
+  if(!beat) return;
+  practiceState.selectedBeat = beat;
+  document.querySelectorAll('.beat-card').forEach(c => {
+    const isActive = c.dataset.beat === beatId;
+    c.style.borderColor = isActive ? 'var(--gold)' : 'rgba(201,168,76,0.15)';
+    const check = c.querySelector('.beat-check');
+    if(check) {
+      check.style.borderColor = isActive ? 'var(--gold)' : 'rgba(201,168,76,0.25)';
+      check.innerHTML = isActive ? '<span style="color:var(--gold);font-size:0.7rem;">✓</span>' : '';
+    }
+  });
+}
+
+function selectDuration(seconds) {
+  practiceState.selectedDuration = seconds;
+  document.querySelectorAll('.dur-btn').forEach(btn => {
+    const isActive = parseInt(btn.dataset.dur) === seconds;
+    if(isActive) {
+      btn.classList.add('active');
+      btn.style.background = 'linear-gradient(135deg, var(--gold-dark), var(--gold))';
+      btn.style.borderColor = 'var(--gold)';
+      btn.style.color = 'var(--black)';
+      btn.style.fontWeight = '700';
+    } else {
+      btn.classList.remove('active');
+      btn.style.background = 'rgba(255,255,255,0.04)';
+      btn.style.borderColor = 'rgba(201,168,76,0.2)';
+      btn.style.color = 'var(--white)';
+      btn.style.fontWeight = '400';
+    }
+  });
+}
+
+async function startPractice() {
+  if(!practiceState.selectedBeat) {
+    showToast('Pick a beat first');
+    return;
+  }
+  try {
+    showToast('🎤 Starting camera...');
+    practiceState.cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user' },
+      audio: false
+    });
+    document.getElementById('practiceSetup').style.display = 'none';
+    document.getElementById('practiceComplete').style.display = 'none';
+    document.getElementById('practiceActive').style.display = 'block';
+    const video = document.getElementById('practiceCamera');
+    video.srcObject = practiceState.cameraStream;
+    document.getElementById('activeBeatName').textContent = practiceState.selectedBeat.name;
+    document.getElementById('activeBeatBpm').textContent = practiceState.selectedBeat.bpm + ' BPM · ' + practiceState.selectedBeat.key;
+    practiceState.timeLeft = practiceState.selectedDuration;
+    updatePracticeTimer();
+    practiceState.timerInterval = setInterval(() => {
+      practiceState.timeLeft--;
+      updatePracticeTimer();
+      if(practiceState.timeLeft <= 0) {
+        completePractice();
+      } else if(practiceState.timeLeft === 10) {
+        document.getElementById('practiceTip').innerHTML = '⚡ Final 10 seconds — go off!';
+      } else if(practiceState.timeLeft === Math.floor(practiceState.selectedDuration / 2)) {
+        document.getElementById('practiceTip').innerHTML = '🔥 Halfway! Stay in the pocket';
+      }
+    }, 1000);
+    showToast('🔥 GO! Drop your bars!');
+  } catch(err) {
+    console.error('Camera error:', err);
+    showToast('⚠️ Camera permission needed for practice mode');
+  }
+}
+
+function updatePracticeTimer() {
+  const t = practiceState.timeLeft;
+  const m = Math.floor(t / 60);
+  const s = t % 60;
+  document.getElementById('practiceTimer').textContent = m + ':' + (s < 10 ? '0' + s : s);
+}
+
+function completePractice() {
+  if(practiceState.timerInterval) clearInterval(practiceState.timerInterval);
+  if(practiceState.cameraStream) {
+    practiceState.cameraStream.getTracks().forEach(t => t.stop());
+    practiceState.cameraStream = null;
+  }
+  // Save stats
+  const stats = getPracticeStats();
+  stats.sessions = (stats.sessions || 0) + 1;
+  stats.totalSeconds = (stats.totalSeconds || 0) + practiceState.selectedDuration;
+  const today = new Date().toDateString();
+  if(stats.lastDay !== today) {
+    if(stats.lastDay === new Date(Date.now() - 86400000).toDateString()) {
+      stats.dayStreak = (stats.dayStreak || 0) + 1;
+    } else {
+      stats.dayStreak = 1;
+    }
+    stats.lastDay = today;
+  }
+  savePracticeStats(stats);
+  // Show complete screen
+  document.getElementById('practiceActive').style.display = 'none';
+  document.getElementById('practiceComplete').style.display = 'block';
+  document.getElementById('completeDuration').textContent = practiceState.selectedDuration + 's';
+  document.getElementById('completeBeatName').textContent = practiceState.selectedBeat.name;
+  showToast('🔥 Session complete! Bars dropped!');
+}
+
+function stopPractice() {
+  if(!confirm('End this session early?')) return;
+  completePractice();
+}
+
+function resetPractice() {
+  document.getElementById('practiceComplete').style.display = 'none';
+  document.getElementById('practiceSetup').style.display = 'block';
+  refreshPracticeStats();
+}
+
+function exitPractice() {
+  if(practiceState.timerInterval) clearInterval(practiceState.timerInterval);
+  if(practiceState.cameraStream) {
+    practiceState.cameraStream.getTracks().forEach(t => t.stop());
+    practiceState.cameraStream = null;
+  }
+  goToPage('queue');
+}
+
+// Init practice page when shown
+const _origGoToPage = window.goToPage;
+window.goToPage = function(name) {
+  _origGoToPage(name);
+  if(name === 'queue') {
+    refreshHypeCount();
+  }
+  if(name === 'practice') {
+    refreshPracticeStats();
+    renderBeatList();
+    selectDuration(practiceState.selectedDuration);
+  }
+};
+
+
+// ════════════════════════════════════════
+// LEADERBOARD
+// ════════════════════════════════════════
+const lbData = [
+  {rank:1,ava:'👑',name:'KD WAVEZ',det:'Houston TX · 47W/3L',score:'9,640',type:'artist'},
+  {rank:2,ava:'👀',name:'VIBE JUDGE',det:'LA · 89% accuracy',score:'8,100',type:'viewer'},
+  {rank:3,ava:'🎤',name:'PHANTOM BLAZE',det:'Atlanta · 38W/7L',score:'7,820',type:'artist'},
+  {rank:4,ava:'🎧',name:'DJ BLAZE',det:'NYC · 89 sessions',score:'7,210',type:'dj'},
+  {rank:5,ava:'⚡',name:'LAYAH MONROE',det:'Chicago · 31W/9L',score:'6,510',type:'artist'},
+  {rank:6,ava:'👁️',name:'NOVA FAN',det:'Chicago · 91% accuracy',score:'5,990',type:'viewer'},
+  {rank:7,ava:'🔥',name:'STORM MC',det:'Miami · 28W/12L',score:'4,980',type:'artist'},
+  {rank:8,ava:'⭐',name:'DJ PHANTOM',det:'Atlanta · 76 sessions',score:'3,410',type:'dj'},
+];
+function renderLeaderboard(filter='all') {
+  const data = filter === 'all' ? lbData : lbData.filter(d => d.type === filter);
+  const list = document.getElementById('lbList');
+  if(!list) return;
+  if(currentUser) {
+    // Add current user to top if they have any points
+    list.innerHTML = `<div class="lb-row" style="border-color:rgba(0,170,255,0.3);background:rgba(0,170,255,0.04);" onclick="goToPage('profile')">
+      <div class="lb-rank rn">YOU</div>
+      <div class="lb-ava">${currentUser.avatar}</div>
+      <div class="lb-info"><div class="lb-name">${currentUser.name}</div><div class="lb-det">${currentUser.city || 'UniBeatz World'} · ${currentUser.battles||0} battles</div></div>
+      <div class="lb-score">${currentUser.points||0}<div class="lb-pts">pts</div></div>
+    </div>` + data.map(d => `
+      <div class="lb-row" onclick="showToast('${d.name} profile coming soon')">
+        <div class="lb-rank ${d.rank <= 3 ? 'r' + d.rank : 'rn'}">${d.rank <= 3 ? ['🥇','🥈','🥉'][d.rank-1] : d.rank}</div>
+        <div class="lb-ava">${d.ava}</div>
+        <div class="lb-info"><div class="lb-name">${d.name}</div><div class="lb-det">${d.det}</div></div>
+        <div class="lb-score">${d.score}<div class="lb-pts">pts</div></div>
+      </div>
+    `).join('');
+  } else {
+    list.innerHTML = data.map(d => `
+      <div class="lb-row" onclick="showToast('Profile coming soon')">
+        <div class="lb-rank ${d.rank <= 3 ? 'r' + d.rank : 'rn'}">${d.rank <= 3 ? ['🥇','🥈','🥉'][d.rank-1] : d.rank}</div>
+        <div class="lb-ava">${d.ava}</div>
+        <div class="lb-info"><div class="lb-name">${d.name}</div><div class="lb-det">${d.det}</div></div>
+        <div class="lb-score">${d.score}<div class="lb-pts">pts</div></div>
+      </div>
+    `).join('');
+  }
+}
+function filterLB(filter, btn) {
+  document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderLeaderboard(filter);
+}
+
+// ════════════════════════════════════════
+// AI DJ
+// ════════════════════════════════════════
+const djFeedItems = [
+  {battle:'KD vs Phantom · Showdown', time:'Just now', text:'"KD is murdering this drill beat — flow switch at bar 12 was ELITE."'},
+  {battle:'Layah vs Storm · Cypher', time:'4 min ago', text:'"Layah came in with completely different energy. Smooth delivery, every pocket hit."'},
+  {battle:'Grand Slam Finals', time:'12 min ago', text:'"KD took the title with a flawless closing round. Not a single wasted bar."'},
+];
+const aiResponses = [
+  "That flow was COLD — 9.2/10. Internal rhymes were 🔥",
+  "KD winning by 16 points. Phantom needs a miracle bar right now.",
+  "UniBeatz beat selection PERFECT. 150 BPM drill hits exactly right.",
+  "Flow: 8.9 · Bars: 8.4 · Delivery: 8.7 · Overall: 8.8 🎤",
+  "I've judged 47 battles tonight. This is top 5 energy.",
+  "Crowd vote split 55-45. Anyone's battle right now.",
+  "Bar of the night contender — that wordplay was insane.",
+];
+function renderAIDJFeed() {
+  const list = document.getElementById('djFeedList');
+  if(!list) return;
+  list.innerHTML = djFeedItems.map(c => `
+    <div class="dj-card">
+      <div class="dj-card-head"><div class="dj-card-battle">📹 ${c.battle}</div><div class="dj-card-time">${c.time}</div></div>
+      <div class="dj-card-text">${c.text}</div>
+    </div>
+  `).join('');
+}
+function askAIDJ() {
+  const inp = document.getElementById('djAskInput');
+  const q = inp.value.trim();
+  if(!q) { showToast('Type a question first'); return; }
+  const resp = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+  djFeedItems.unshift({battle:`💬 You asked: "${q}"`, time:'Just now', text: resp});
+  renderAIDJFeed();
+  inp.value = '';
+  showToast('🤖 AI DJ answered!');
+}
+
+
+// ════════════════════════════════════════
+// PHOTO UPLOAD
+// ════════════════════════════════════════
+function openPhotoModal() {
+  const preview = document.getElementById('photoPreviewBig');
+  if(currentUser && currentUser.photo) {
+    preview.innerHTML = '<img src="' + currentUser.photo + '" alt="profile"/>';
+  } else {
+    preview.textContent = (currentUser && currentUser.avatar) || '🎤';
+  }
+  document.getElementById('photoModal').classList.add('active');
+}
+
+function closePhotoModal() {
+  document.getElementById('photoModal').classList.remove('active');
+}
+
+function handlePhotoUpload(input) {
+  if(!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if(file.size > 5 * 1024 * 1024) {
+    showToast('⚠️ Photo must be under 5MB');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    if(!currentUser) return;
+    currentUser.photo = e.target.result;
+    const users = getUsers();
+    users[currentUser.username] = currentUser;
+    saveUsers(users);
+    setCurrentUser(currentUser);
+    const preview = document.getElementById('photoPreviewBig');
+    if(preview) preview.innerHTML = '<img src="' + currentUser.photo + '" alt="profile"/>';
+    const epPreview = document.getElementById('epPhotoPreview');
+    if(epPreview) epPreview.innerHTML = '<img src="' + currentUser.photo + '" alt="photo" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+    showToast('📷 Photo uploaded!');
+    setTimeout(function() {
+      closePhotoModal();
+      refreshProfile();
+    }, 600);
+  };
+  reader.onerror = function() {
+    showToast('⚠️ Could not read photo');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function removePhoto() {
+  if(!currentUser) return;
+  if(!confirm('Remove your photo and use avatar emoji instead?')) return;
+  currentUser.photo = null;
+  const users = getUsers();
+  users[currentUser.username] = currentUser;
+  saveUsers(users);
+  setCurrentUser(currentUser);
+  showToast('Photo removed');
+  closePhotoModal();
+  refreshProfile();
+}
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════
+// AUTO-LOGIN ON LOAD
+// ════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  if(loadCurrentUser()) {
+    goToPage('home');
+  } else {
+    goToPage('splash');
+  }
+});
+</script>
+
+<script>
+/* LIVEKIT FACE-TO-FACE BATTLE SYSTEM */
+let ubLiveRoom = null;
+let ubLiveMicEnabled = true;
+let ubLiveCameraEnabled = true;
+const UB_LIVEKIT_TOKEN_FUNCTION = "https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken";
+
+function getBattleUsername(role) {
+  const profileName =
+    (document.getElementById("pfUsername") && document.getElementById("pfUsername").textContent) ||
+    (document.getElementById("homeWelcomeName") && document.getElementById("homeWelcomeName").textContent) ||
+    "UniMC";
+  const clean = String(profileName).replace("@", "").replace(/[^a-zA-Z0-9_-]/g, "") || "UniMC";
+  return `${role || "artist"}_${clean}_${Math.floor(Math.random() * 9999)}`;
+}
+function openLiveBattleRoom() {
+  if (typeof goToPage === "function") goToPage("livebattle");
+  const userEl = document.getElementById("liveUsername");
+  if (userEl) userEl.textContent = getBattleUsername("artist");
+}
+function setLiveStatus(message) {
+  const el = document.getElementById("liveStatus");
+  if (el) el.textContent = message;
+}
+function showLiveError(message) {
+  const el = document.getElementById("liveError");
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add("show");
+}
+function clearLiveError() {
+  const el = document.getElementById("liveError");
+  if (!el) return;
+  el.textContent = "";
+  el.classList.remove("show");
+}
+function resetLiveBox(id, text) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  const label = box.querySelector(".live-label")?.outerHTML || "";
+  box.innerHTML = label + `<div class="live-placeholder">${text}</div>`;
+}
+function clearLiveVideos() {
+  resetLiveBox("localVideoBox", "Camera preview will appear here");
+  resetLiveBox("remoteVideoBox", "Waiting for another participant...");
+}
+function attachLiveTrack(track, isLocal = false) {
+  const box = document.getElementById(isLocal ? "localVideoBox" : "remoteVideoBox");
+  if (!track || typeof track.attach !== "function") return;
+  const element = track.attach();
+  element.setAttribute("playsinline", "true");
+  element.autoplay = true;
+  if (track.kind === "audio") { document.body.appendChild(element); return; }
+  if (!box) return;
+  const ph = box.querySelector(".live-placeholder");
+  if (ph) ph.remove();
+  const oldVideo = box.querySelector("video");
+  if (oldVideo) oldVideo.remove();
+  box.appendChild(element);
+}
+async function joinLiveBattleAs(role = "artist") {
+  clearLiveError();
+  // Wait up to 5 seconds for LiveKit UMD to finish loading before giving up
+  if (!window.LivekitClient) {
+    setLiveStatus("Loading LiveKit...");
+    for (let i = 0; i < 50; i++) {
+      await new Promise(r => setTimeout(r, 100));
+      if (window.LivekitClient) break;
+    }
+  }
+  if (!window.LivekitClient) { showLiveError("LiveKit client did not load. Check your internet, then refresh."); return; }
+  try {
+    if (ubLiveRoom) await leaveBattleRoom(false);
+    const roomName = "battle-room";
+    const username = getBattleUsername(role);
+    document.getElementById("liveRoomName").textContent = roomName;
+    document.getElementById("liveUsername").textContent = username;
+    setLiveStatus("Requesting token...");
+    const tokenRes = await fetch(`${UB_LIVEKIT_TOKEN_FUNCTION}?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(username)}`);
+    const data = await tokenRes.json();
+    if (!tokenRes.ok || !data.token || !data.url) throw new Error(data.error || "Token function did not return a LiveKit token.");
+    const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+    ubLiveRoom = room;
+    room.on("trackSubscribed", (track) => attachLiveTrack(track, false));
+    room.on("participantConnected", (p) => setLiveStatus(`${p.identity} joined`));
+    room.on("participantDisconnected", () => setLiveStatus("Participant left"));
+    room.on("disconnected", () => { setLiveStatus("Disconnected"); clearLiveVideos(); });
+    setLiveStatus("Connecting...");
+    await room.connect(data.url, data.token);
+    if (role === "viewer") { setLiveStatus("Watching live"); if (typeof showToast === "function") showToast("👀 Joined as viewer"); return; }
+    setLiveStatus("Starting camera...");
+    await room.localParticipant.enableCameraAndMicrophone();
+    room.localParticipant.trackPublications.forEach((pub) => { if (pub.track) attachLiveTrack(pub.track, true); });
+    setLiveStatus("Live");
+    if (typeof showToast === "function") showToast("🔴 Live battle room connected");
+  } catch (err) {
+    console.error(err);
+    setLiveStatus("Error");
+    showLiveError(err.message || "Unable to join LiveKit room.");
+  }
+}
+async function toggleLiveMic() {
+  if (!ubLiveRoom) { showLiveError("Join a battle room first."); return; }
+  ubLiveMicEnabled = !ubLiveMicEnabled;
+  await ubLiveRoom.localParticipant.setMicrophoneEnabled(ubLiveMicEnabled);
+  if (typeof showToast === "function") showToast(ubLiveMicEnabled ? "🎙️ Mic on" : "🔇 Mic off");
+}
+async function toggleLiveCamera() {
+  if (!ubLiveRoom) { showLiveError("Join a battle room first."); return; }
+  ubLiveCameraEnabled = !ubLiveCameraEnabled;
+  await ubLiveRoom.localParticipant.setCameraEnabled(ubLiveCameraEnabled);
+  if (typeof showToast === "function") showToast(ubLiveCameraEnabled ? "📷 Camera on" : "📷 Camera off");
+}
+async function leaveBattleRoom(showMessage = true) {
+  if (ubLiveRoom) { ubLiveRoom.disconnect(); ubLiveRoom = null; }
+  clearLiveVideos();
+  setLiveStatus("Not connected");
+  if (showMessage && typeof showToast === "function") showToast("⏹ Left battle room");
+}
+window.openLiveBattleRoom = openLiveBattleRoom;
+window.joinLiveBattleAs = joinLiveBattleAs;
+window.toggleLiveMic = toggleLiveMic;
+window.toggleLiveCamera = toggleLiveCamera;
+window.leaveBattleRoom = leaveBattleRoom;
+window.startInstantBattle = openLiveBattleRoom;
+</script>
+
+
+<script type="module">
+/* ══════════ FIREBASE PLATFORM BEAT VAULT + DJ SELECTOR ══════════ */
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+const UB_BEAT_ADMIN_PASS = "empire2026";
+const UB_BEAT_ADMIN_EMAIL = "unibeatzproduction@gmail.com";
+let ubBeatDb = null;
+let ubBeatStorage = null;
+let ubSelectedBattleBeat = null;
+let ubAdminAuthed = false;
+
+function initBeatFirebase() {
+  if (!window.UB_FIREBASE || !window.UB_FIREBASE.app) return false;
+  if (!ubBeatDb) ubBeatDb = getFirestore(window.UB_FIREBASE.app);
+  if (!ubBeatStorage) ubBeatStorage = getStorage(window.UB_FIREBASE.app);
+  return true;
+}
+
+window.unlockBeatAdmin = async function() {
+  const pass = (document.getElementById("beatAdminPass")?.value || "").trim();
+  if (pass !== UB_BEAT_ADMIN_PASS) {
+    if (typeof showToast === "function") showToast("❌ Wrong admin passcode");
+    return;
+  }
+  // Sign into Firebase Auth with admin credentials
+  try {
+    if (typeof showToast === "function") showToast("🔐 Authenticating...");
+    const { signInWithEmailAndPassword: fbSignIn } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js");
+    await fbSignIn(window.UB_FIREBASE.auth, UB_BEAT_ADMIN_EMAIL, pass);
+    ubAdminAuthed = true;
+  } catch(authErr) {
+    // Auth failed but passcode was correct — still allow UI unlock
+    // Storage rules will use the auth token if available
+    console.warn("Firebase Auth sign-in failed:", authErr.message);
+    ubAdminAuthed = false;
+  }
+  document.getElementById("beatAdminLockBox").style.display = "none";
+  document.getElementById("beatAdminContent").style.display = "block";
+  if (typeof showToast === "function") showToast("🔓 Beat admin unlocked");
+};
+
+window.uploadPlatformBeat = async function() {
+  try {
+    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
+
+    const name = document.getElementById("adminBeatName").value.trim();
+    const bpm = document.getElementById("adminBeatBpm").value.trim();
+    const key = document.getElementById("adminBeatKey").value.trim();
+    const genre = document.getElementById("adminBeatGenre").value.trim();
+    const fileInput = document.getElementById("adminBeatFile");
+    const file = fileInput && fileInput.files && fileInput.files[0];
+
+    if (!name || !file) {
+      if (typeof showToast === "function") showToast("Beat name and audio file required");
+      return;
+    }
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storagePath = `platform-beats/${Date.now()}_${safeName}`;
+    const storageRef = ref(ubBeatStorage, storagePath);
+
+    if (typeof showToast === "function") showToast("⬆️ Uploading beat...");
+    await uploadBytes(storageRef, file);
+    const audioUrl = await getDownloadURL(storageRef);
+
+    await addDoc(collection(ubBeatDb, "platform_beats"), {
+      name,
+      bpm,
+      key,
+      genre,
+      audioUrl,
+      storagePath,
+      active: true,
+      createdAt: serverTimestamp()
+    });
+
+    ["adminBeatName","adminBeatBpm","adminBeatKey","adminBeatGenre"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
+    if (fileInput) fileInput.value = "";
+
+    if (typeof showToast === "function") showToast("✅ Beat uploaded to platform");
+    await window.loadPlatformBeats();
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Beat upload failed: " + err.message);
+  }
+};
+
+function beatRowHtml(id, beat, mode) {
+  const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ") || "Platform beat";
+  const safeName = String(beat.name || "Untitled Beat").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `
+    <div class="beat-row">
+      <div class="beat-row-main">
+        <div class="beat-row-name">${safeName}</div>
+        <div class="beat-row-meta">${meta}</div>
+      </div>
+      <div class="beat-row-actions">
+        <button class="btn btn-blue" onclick="previewPlatformBeat('${id}')">▶</button>
+        ${mode === "dj" ? `<button class="btn btn-gold" onclick="selectBattleBeat('${id}')">Select</button>` : ""}
+        ${mode === "admin" ? `<button class="btn btn-red" onclick="deletePlatformBeat('${id}')">Delete</button>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+window.loadPlatformBeats = async function() {
+  if (!initBeatFirebase()) return;
+  try {
+    const q = query(collection(ubBeatDb, "platform_beats"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    const beats = [];
+    snap.forEach(d => beats.push({ id: d.id, ...d.data() }));
+
+    const adminList = document.getElementById("adminBeatList");
+    const djList = document.getElementById("djBeatList");
+
+    if (adminList) adminList.innerHTML = beats.length ? beats.map(b => beatRowHtml(b.id, b, "admin")).join("") : `<div class="beat-vault-sub">No beats uploaded yet.</div>`;
+    if (djList) djList.innerHTML = beats.length ? beats.map(b => beatRowHtml(b.id, b, "dj")).join("") : `<div class="beat-vault-sub">No platform beats available yet.</div>`;
+
+    window.__platformBeatsCache = beats;
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Could not load beats");
+  }
+};
+
+window.previewPlatformBeat = function(id) {
+  const beat = (window.__platformBeatsCache || []).find(b => b.id === id);
+  if (!beat || !beat.audioUrl) return;
+  const audio = document.getElementById("battleBeatAudio") || new Audio();
+  audio.src = beat.audioUrl;
+  audio.style.display = "block";
+  audio.play().catch(() => {});
+};
+
+window.selectBattleBeat = async function(id) {
+  try {
+    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
+    const beat = (window.__platformBeatsCache || []).find(b => b.id === id);
+    if (!beat) throw new Error("Beat not found. Reload beats.");
+
+    const selectedBeat = {
+      beatId: id,
+      name: beat.name || "Untitled Beat",
+      bpm: beat.bpm || "",
+      key: beat.key || "",
+      genre: beat.genre || "",
+      audioUrl: beat.audioUrl,
+      selectedBy: (document.getElementById("liveUsername")?.textContent || "dj"),
+      selectedAt: new Date().toISOString()
+    };
+
+    await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), {
+      selectedBeat,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+
+    if (typeof showToast === "function") showToast("🎧 Beat selected for battle");
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Beat select failed: " + err.message);
+  }
+};
+
+window.deletePlatformBeat = async function(id) {
+  if (!confirm("Delete this platform beat listing?")) return;
+  try {
+    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
+    await deleteDoc(doc(ubBeatDb, "platform_beats", id));
+    if (typeof showToast === "function") showToast("🗑️ Beat deleted");
+    await window.loadPlatformBeats();
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Delete failed");
+  }
+};
+
+window.playSelectedBattleBeat = function() {
+  if (!ubSelectedBattleBeat || !ubSelectedBattleBeat.audioUrl) {
+    if (typeof showToast === "function") showToast("No beat selected yet");
+    return;
+  }
+  const audio = document.getElementById("battleBeatAudio");
+  if (!audio) return;
+  audio.src = ubSelectedBattleBeat.audioUrl;
+  audio.style.display = "block";
+  audio.play().catch(() => {
+    if (typeof showToast === "function") showToast("Press play on the audio bar");
+  });
+};
+
+function updateCurrentBeatUI(beat) {
+  ubSelectedBattleBeat = beat || null;
+  const nameEl = document.getElementById("currentBattleBeatName");
+  const metaEl = document.getElementById("currentBattleBeatMeta");
+  const audio = document.getElementById("battleBeatAudio");
+
+  if (!beat) {
+    if (nameEl) nameEl.textContent = "No beat selected";
+    if (metaEl) metaEl.textContent = "Waiting for DJ selection";
+    if (audio) {
+      audio.removeAttribute("src");
+      audio.style.display = "none";
+    }
+    return;
+  }
+
+  const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ");
+  if (nameEl) nameEl.textContent = beat.name || "Selected Beat";
+  if (metaEl) metaEl.textContent = meta || "Selected by DJ";
+  if (audio && beat.audioUrl) {
+    audio.src = beat.audioUrl;
+    audio.style.display = "block";
+  }
+}
+
+function startBattleBeatListener() {
+  if (!initBeatFirebase()) return;
+  onSnapshot(doc(ubBeatDb, "battle_rooms", "battle-room"), (snap) => {
+    const data = snap.exists() ? snap.data() : null;
+    updateCurrentBeatUI(data && data.selectedBeat ? data.selectedBeat : null);
+  });
+}
+
+window.addEventListener("ub-firebase-ready", () => {
+  if (initBeatFirebase()) {
+    window.loadPlatformBeats();
+    startBattleBeatListener();
+  }
+});
+
+setTimeout(() => {
+  if (initBeatFirebase()) {
+    window.loadPlatformBeats();
+    startBattleBeatListener();
+  }
+}, 1500);
+</script>
+
+<!-- NOTIFICATIONS PANEL -->
+<div id="ubNotificationsPanel" class="ub-notifications-panel" style="display:none">
+  <div class="ub-notifications-head">
+    <strong>Notifications</strong>
+    <button type="button" onclick="document.getElementById('ubNotificationsPanel').style.display='none'">✕</button>
+  </div>
+  <div id="ubNotificationsList"></div>
+</div>
+
+<script type="module" src="/unibeatz-notifications.js"></script>
+<script src="unifreestyle-core.js"></script>
+<script src="unifreestyle-profile.js"></script>
+<script src="unifreestyle-battle.js"></script>
+<script src="unifreestyle-cypher.js"></script>
+<script src="unifreestyle-ui.js"></script>
+<script src="/js/dj-midi-controller.js"></script>
+<script src="/unibeatz-dj-os-v3.js"></script>
+<script src="unifreestyle-recorder.js"></script> 
+<script src="unifreestyle-superchat.js"></script>
+<script src="unifreestyle-pwa.js"></script>
+<script type="module" src="/unibeatz-auth.js"></script>  
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/unifreestyle-sw.js', { scope: '/' })
+      .then(function (reg) {
+        console.log('[UniFreestyle PWA] Service worker registered:', reg.scope);
+      })
+      .catch(function (err) {
+        console.warn('[UniFreestyle PWA] Service worker failed:', err);
+      });
+  });
+}
+</script>
+  
+</body>
+</html>
