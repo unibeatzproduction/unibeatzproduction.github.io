@@ -107,11 +107,21 @@ window.tsEndSession = async function(){
   _djMicEnabled = false;
 
   document.getElementById('tsLiveBadge').style.display = 'none';
+  document.getElementById('broadcastLiveBadge') && (document.getElementById('broadcastLiveBadge').style.display = 'none');
   document.getElementById('tsOfflineLabel').style.display = 'inline';
   document.getElementById('tsStartBtn').style.display = 'inline-flex';
   document.getElementById('tsEndBtn').style.display = 'none';
   document.getElementById('tsInviteSection').style.display = 'none';
   document.getElementById('tsHostGrid').innerHTML = '<div class="ts-empty-hosts">No hosts connected yet.</div>';
+  document.getElementById('broadcastStatus') && (document.getElementById('broadcastStatus').textContent = 'OFFLINE');
+
+  // Also clear radio_broadcast so radio homepage banner goes away
+  try {
+    const { doc: _doc, setDoc: _setDoc, getFirestore: _gfs } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { getApp: _ga } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js');
+    await _setDoc(_doc(_gfs(_ga()), 'radio_broadcast', 'main'), { live: false }, { merge: true });
+  } catch(e) { console.warn('Could not clear radio_broadcast:', e.message); }
+
   updateMicUI();
   note('Session ended');
 };
