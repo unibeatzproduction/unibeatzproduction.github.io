@@ -1,0 +1,139 @@
+/* radio-talk-host.css */
+/* UniBeatz Talk Studio — Host Join View */
+
+:root{
+  --bg0:#070709;
+  --bg1:#0f0f14;
+  --bg2:#161620;
+  --bg3:#1c1c28;
+  --border:rgba(255,255,255,.07);
+  --border-gold:rgba(201,168,76,.35);
+  --gold:#C9A84C;
+  --gold-light:#F0C040;
+  --cyan:#40D0FF;
+  --green:#00e676;
+  --red:#ff3c3c;
+  --white:#f0ede8;
+  --gray:#6b7280;
+  --gray2:#9aa3b8;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-ui:'Orbitron',sans-serif;
+  --font-body:'Rajdhani',sans-serif;
+  --font-mono:'Share Tech Mono',monospace;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  background:var(--bg0);
+  color:var(--white);
+  font-family:var(--font-body);
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:20px;
+}
+
+.th-card{
+  width:100%; max-width:420px;
+  background:var(--bg1);
+  border:1px solid var(--border-gold);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+.th-header{
+  padding:24px 24px 16px;
+  background:var(--bg2);
+  border-bottom:1px solid var(--border);
+  text-align:center;
+}
+.th-logo{ font-family:var(--font-display); font-size:2rem; letter-spacing:4px; color:var(--gold-light); }
+.th-logo span{ color:var(--cyan); }
+.th-subtitle{ font-family:var(--font-ui); font-size:.38rem; letter-spacing:2px; color:var(--gray2); margin-top:4px; }
+
+.th-body{ padding:24px; display:flex; flex-direction:column; gap:16px; }
+
+.th-join-info{
+  padding:12px 14px;
+  background:var(--bg0);
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-family:var(--font-mono);
+  font-size:.7rem; color:var(--gray2); line-height:1.6;
+}
+.th-join-info strong{ color:var(--cyan); }
+
+.th-input{
+  width:100%; padding:12px 14px;
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:8px; color:var(--white);
+  font-family:var(--font-body); font-size:.95rem; outline:none;
+}
+.th-input:focus{ border-color:var(--border-gold); }
+.th-input::placeholder{ color:var(--gray); }
+
+.th-btn{
+  width:100%; padding:13px;
+  border:0; border-radius:8px; cursor:pointer;
+  font-family:var(--font-ui); font-size:.52rem;
+  letter-spacing:2px; font-weight:900;
+  transition:all .15s;
+}
+.th-btn-gold{
+  background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));
+  color:#030305;
+}
+.th-btn-gold:hover{ opacity:.9; }
+.th-btn-gold:disabled{ opacity:.4; cursor:not-allowed; }
+
+/* ── Live Controls (shown after join) ── */
+.th-controls{ display:none; flex-direction:column; gap:16px; }
+.th-controls.visible{ display:flex; }
+
+.th-mic-display{
+  display:flex; align-items:center; gap:14px;
+  padding:16px; background:var(--bg2); border-radius:10px;
+  border:1px solid var(--border);
+}
+.th-mic-icon{
+  width:60px; height:60px; border-radius:50%;
+  background:var(--bg3); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.8rem; cursor:pointer; transition:all .2s; flex-shrink:0;
+}
+.th-mic-icon.active{ background:rgba(0,230,118,.12); border-color:var(--green); box-shadow:0 0 24px rgba(0,230,118,.2); }
+.th-mic-icon.muted{ background:rgba(255,60,60,.08); border-color:rgba(255,60,60,.3); }
+.th-mic-label{ font-family:var(--font-ui); font-size:.52rem; letter-spacing:1px; }
+.th-mic-label.on{ color:var(--green); }
+.th-mic-label.off{ color:#ff7474; }
+.th-mic-sub{ font-size:.75rem; color:var(--gray2); margin-top:3px; }
+
+.th-leave-btn{
+  width:100%; padding:13px; border:0; border-radius:8px;
+  background:rgba(255,60,60,.1); border:1px solid rgba(255,60,60,.3);
+  color:#ff7474; font-family:var(--font-ui); font-size:.52rem;
+  letter-spacing:2px; font-weight:900; cursor:pointer;
+}
+.th-leave-btn:hover{ background:rgba(255,60,60,.2); }
+
+.th-status{
+  text-align:center; font-family:var(--font-mono);
+  font-size:.7rem; color:var(--gray2); padding:8px 0;
+}
+
+/* ── Participants ── */
+.th-participants{ display:flex; flex-direction:column; gap:6px; }
+.th-participant{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px; background:var(--bg2); border-radius:7px;
+  border:1px solid var(--border);
+}
+.th-part-dot{ width:8px; height:8px; border-radius:50%; background:var(--gray); flex-shrink:0; }
+.th-part-dot.speaking{ background:var(--green); box-shadow:0 0 6px rgba(0,230,118,.5); }
+.th-part-name{ flex:1; font-size:.82rem; color:var(--gray2); }
+.th-part-role{ font-family:var(--font-ui); font-size:.32rem; letter-spacing:1px; color:var(--gold); }
+
+@media(max-width:480px){
+  body{ padding:12px; justify-content:flex-start; padding-top:40px; }
+}

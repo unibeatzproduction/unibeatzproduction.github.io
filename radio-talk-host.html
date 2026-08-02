@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>UniBeatz Radio — Talk Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="radio-talk-host.css"/>
+</head>
+<body>
+
+<div class="th-card">
+  <div class="th-header">
+    <div class="th-logo">UNIBEATZ <span>RADIO</span></div>
+    <div class="th-subtitle">TALK STUDIO · HOST</div>
+  </div>
+
+  <div class="th-body">
+    <!-- Join form -->
+    <div id="thJoinForm">
+      <div class="th-join-info" id="thSessionInfo">
+        <strong>Loading session...</strong>
+      </div>
+      <input class="th-input" id="thNameInput" type="text" placeholder="Your name" maxlength="40"/>
+      <button class="th-btn th-btn-gold" id="thJoinBtn">JOIN SESSION</button>
+      <div class="th-status" id="thJoinStatus"></div>
+    </div>
+
+    <!-- Live controls (shown after join) -->
+    <div class="th-controls" id="thControls">
+
+      <div class="th-mic-display">
+        <div class="th-mic-icon muted" id="thMicIcon" onclick="toggleMic()">🎙️</div>
+        <div>
+          <div class="th-mic-label off" id="thMicLabel">MIC OFF</div>
+          <div class="th-mic-sub">Tap to go live</div>
+        </div>
+      </div>
+
+      <div class="th-status" id="thLiveStatus">Connected · You are live</div>
+
+      <!-- Participants -->
+      <div class="th-participants" id="thParticipants"></div>
+
+      <button class="th-leave-btn" onclick="leaveSession()">LEAVE SESSION</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { Room, RoomEvent, Track, createLocalAudioTrack } from 'https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.esm.mjs';
+
+const LIVEKIT_URL = 'wss://uni-freestyle-battle-i951nakn.livekit.cloud';
+const TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
+
+let _room = null;
+let _micTrack = null;
+let _micEnabled = false;
+let _sessionId = null;
+let _myName = '';
+
+// Get session ID from URL
+const params = new URLSearchParams(window.location.search);
+_sessionId = params.get('session');
+
+if(!_sessionId){
+  document.getElementById('thSessionInfo').innerHTML = '<strong style="color:#ff7474;">No session ID in URL.</strong><br>Ask your DJ for the invite link.';
+  document.getElementById('thJoinBtn').disabled = true;
+} else {
+  document.getElementById('thSessionInfo').innerHTML =
+    'Session: <strong>' + _sessionId + '</strong><br>Enter your name and join.';
+}
+
+document.getElementById('thJoinBtn').onclick = joinSession;
+document.getElementById('thNameInput').addEventListener('keydown', e => {
+  if(e.key === 'Enter') joinSession();
+});
+
+async function joinSession(){
+  const name = document.getElementById('thNameInput').value.trim();
+  if(!name){ document.getElementById('thJoinStatus').textContent = 'Enter your name first.'; return; }
+  if(!_sessionId){ return; }
+
+  _myName = name;
+  const btn = document.getElementById('thJoinBtn');
+  btn.disabled = true;
+  btn.textContent = 'CONNECTING...';
+  document.getElementById('thJoinStatus').textContent = 'Getting access...';
+
+  try{
+    const identity = 'host-' + name.replace(/\s+/g,'-').toLowerCase() + '-' + Date.now();
+    const resp = await fetch(TOKEN_FN, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room: _sessionId, identity, metadata: JSON.stringify({ role: 'host', name }) })
+    });
+    if(!resp.ok) throw new Error('Token failed: ' + resp.status);
+    const { token } = await resp.json();
+
+    _room = new Room({
+      audioCaptureDefaults: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
+
+    _room.on(RoomEvent.ParticipantConnected, updateParticipants);
+    _room.on(RoomEvent.ParticipantDisconnected, updateParticipants);
+    _room.on(RoomEvent.TrackSubscribed, (track, pub, participant) => {
+      if(track.kind === Track.Kind.Audio){
+        const el = track.attach();
+        el.autoplay = true;
+        document.body.appendChild(el);
+      }
+      updateParticipants();
+    });
+    _room.on(RoomEvent.TrackUnsubscribed, () => updateParticipants());
+    _room.on(RoomEvent.Disconnected, () => {
+      document.getElementById('thLiveStatus').textContent = 'Disconnected from session.';
+      document.getElementById('thControls').classList.remove('visible');
+      document.getElementById('thJoinForm').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'JOIN SESSION';
+    });
+
+    await _room.connect(LIVEKIT_URL, token);
+
+    // Show controls
+    document.getElementById('thJoinForm').style.display = 'none';
+    document.getElementById('thControls').classList.add('visible');
+    document.getElementById('thLiveStatus').textContent = 'Connected as ' + name;
+
+    updateParticipants();
+
+  } catch(err){
+    btn.disabled = false;
+    btn.textContent = 'JOIN SESSION';
+    document.getElementById('thJoinStatus').textContent = 'Error: ' + err.message;
+  }
+}
+
+window.toggleMic = async function(){
+  if(!_room) return;
+  if(!_micEnabled){
+    // Enable mic
+    try{
+      _micTrack = await createLocalAudioTrack({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      });
+      await _room.localParticipant.publishTrack(_micTrack);
+      _micEnabled = true;
+      document.getElementById('thMicIcon').className = 'th-mic-icon active';
+      document.getElementById('thMicLabel').textContent = 'MIC ON';
+      document.getElementById('thMicLabel').className = 'th-mic-label on';
+    } catch(err){
+      document.getElementById('thLiveStatus').textContent = 'Mic error: ' + err.message;
+    }
+  } else {
+    // Mute/unmute toggle
+    if(_micTrack){
+      const muted = !_micTrack.isMuted;
+      muted ? await _micTrack.mute() : await _micTrack.unmute();
+      document.getElementById('thMicIcon').className = 'th-mic-icon ' + (muted ? 'muted' : 'active');
+      document.getElementById('thMicLabel').textContent = muted ? 'MUTED' : 'MIC ON';
+      document.getElementById('thMicLabel').className = 'th-mic-label ' + (muted ? 'off' : 'on');
+    }
+  }
+};
+
+window.leaveSession = async function(){
+  if(_room){ await _room.disconnect(); _room = null; }
+  if(_micTrack){ _micTrack.stop(); _micTrack = null; }
+  _micEnabled = false;
+  document.getElementById('thMicIcon').className = 'th-mic-icon muted';
+  document.getElementById('thMicLabel').textContent = 'MIC OFF';
+  document.getElementById('thMicLabel').className = 'th-mic-label off';
+  document.getElementById('thControls').classList.remove('visible');
+  document.getElementById('thJoinForm').style.display = 'block';
+  document.getElementById('thJoinBtn').disabled = false;
+  document.getElementById('thJoinBtn').textContent = 'JOIN SESSION';
+};
+
+function updateParticipants(){
+  if(!_room) return;
+  const el = document.getElementById('thParticipants');
+  const parts = [];
+  _room.remoteParticipants.forEach(p => {
+    let meta = {};
+    try{ meta = JSON.parse(p.metadata || '{}'); }catch(e){}
+    parts.push({ name: meta.name || p.identity, role: meta.role || 'host', speaking: false });
+  });
+  if(!parts.length){ el.innerHTML = '<div style="color:var(--gray);font-size:.75rem;padding:8px;">Waiting for others...</div>'; return; }
+  el.innerHTML = parts.map(p => `
+    <div class="th-participant">
+      <div class="th-part-dot"></div>
+      <div class="th-part-name">${p.name}</div>
+      <div class="th-part-role">${p.role === 'dj' ? '🎧 DJ' : '🎙️ HOST'}</div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

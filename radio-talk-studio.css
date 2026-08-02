@@ -1,0 +1,276 @@
+/* radio-talk-studio.css */
+/* UniBeatz Talk Studio — DJ Control View */
+
+:root{
+  --bg0:#070709;
+  --bg1:#0f0f14;
+  --bg2:#161620;
+  --bg3:#1c1c28;
+  --surface:#222232;
+  --border:rgba(255,255,255,.07);
+  --border-gold:rgba(201,168,76,.35);
+  --gold:#C9A84C;
+  --gold-light:#F0C040;
+  --blue:#00AAFF;
+  --cyan:#40D0FF;
+  --green:#00e676;
+  --red:#ff3c3c;
+  --white:#f0ede8;
+  --gray:#6b7280;
+  --gray2:#9aa3b8;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-ui:'Orbitron',sans-serif;
+  --font-body:'Rajdhani',sans-serif;
+  --font-mono:'Share Tech Mono',monospace;
+}
+
+*{ box-sizing:border-box; margin:0; padding:0; }
+
+body{
+  background:var(--bg0);
+  color:var(--white);
+  font-family:var(--font-body);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── Top Bar ── */
+.ts-topbar{
+  height:50px;
+  background:rgba(7,7,9,.97);
+  border-bottom:1px solid var(--border-gold);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 20px;
+  position:sticky; top:0; z-index:100;
+}
+.ts-brand{ font-family:var(--font-display); font-size:1.3rem; letter-spacing:3px; color:var(--gold-light); }
+.ts-brand span{ color:var(--cyan); }
+.ts-status{ display:flex; align-items:center; gap:12px; }
+.ts-live-badge{
+  display:flex; align-items:center; gap:6px;
+  padding:4px 12px; border-radius:999px;
+  background:rgba(255,60,60,.12); border:1px solid rgba(255,60,60,.4);
+  font-family:var(--font-ui); font-size:.38rem; letter-spacing:2px; color:#ff7474;
+}
+.ts-live-dot{ width:7px; height:7px; background:#ff3c3c; border-radius:50%; animation:tsBlink 1s infinite; }
+@keyframes tsBlink{ 0%,100%{opacity:1} 50%{opacity:.2} }
+.ts-offline{ font-family:var(--font-ui); font-size:.38rem; letter-spacing:2px; color:var(--gray); }
+
+/* ── Main Grid ── */
+.ts-grid{
+  display:grid;
+  grid-template-columns:1fr 320px;
+  gap:0;
+  min-height:calc(100vh - 50px);
+}
+
+/* ── Left Panel (main) ── */
+.ts-main{ padding:16px; display:flex; flex-direction:column; gap:14px; }
+
+/* ── Section Cards ── */
+.ts-card{
+  background:var(--bg1);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.ts-card-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg2);
+  cursor:pointer;
+  user-select:none;
+}
+.ts-card-title{
+  font-family:var(--font-ui); font-size:.48rem; letter-spacing:2px;
+  color:var(--gold); display:flex; align-items:center; gap:8px;
+}
+.ts-card-chevron{ color:var(--gray); transition:transform .2s; font-size:.8rem; }
+.ts-card-chevron.open{ transform:rotate(180deg); }
+.ts-card-body{ padding:14px 16px; }
+.ts-card-body.collapsed{ display:none; }
+
+/* ── Session Control ── */
+.ts-session-row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.ts-btn{
+  padding:9px 16px; border:0; border-radius:8px;
+  font-family:var(--font-ui); font-size:.42rem; letter-spacing:1.5px;
+  font-weight:900; cursor:pointer; transition:all .12s;
+  white-space:nowrap;
+}
+.ts-btn-gold{ background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light)); color:#030305; }
+.ts-btn-gold:hover{ opacity:.9; }
+.ts-btn-blue{ background:rgba(64,208,255,.1); border:1px solid rgba(64,208,255,.4); color:var(--cyan); }
+.ts-btn-blue:hover{ background:rgba(64,208,255,.18); }
+.ts-btn-red{ background:rgba(255,60,60,.1); border:1px solid rgba(255,60,60,.4); color:#ff7474; }
+.ts-btn-red:hover{ background:rgba(255,60,60,.2); }
+.ts-btn-green{ background:rgba(0,230,118,.1); border:1px solid rgba(0,230,118,.4); color:var(--green); }
+.ts-btn-gray{ background:var(--bg3); border:1px solid var(--border); color:var(--gray2); }
+.ts-btn:disabled{ opacity:.35; cursor:not-allowed; }
+
+.ts-session-id{
+  font-family:var(--font-mono); font-size:.75rem; color:var(--cyan);
+  padding:8px 12px; background:var(--bg3); border-radius:6px;
+  border:1px solid var(--border);
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+
+/* ── Host List ── */
+.ts-host-grid{ display:flex; flex-direction:column; gap:8px; }
+.ts-host-row{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  background:var(--bg2); border-radius:8px;
+  border:1px solid var(--border);
+  transition:border-color .2s;
+}
+.ts-host-row.speaking{ border-color:var(--green); }
+.ts-host-avatar{
+  width:36px; height:36px; border-radius:50%;
+  background:var(--bg3); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem; flex-shrink:0;
+}
+.ts-host-avatar.speaking-ring{ border-color:var(--green); box-shadow:0 0 10px rgba(0,230,118,.3); }
+.ts-host-info{ flex:1; min-width:0; }
+.ts-host-name{
+  font-family:var(--font-ui); font-size:.44rem; letter-spacing:1px;
+  color:var(--white); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ts-host-role{ font-size:.7rem; color:var(--gray2); margin-top:1px; }
+.ts-host-controls{ display:flex; gap:6px; align-items:center; flex-shrink:0; }
+.ts-vol-slider{
+  -webkit-appearance:none; appearance:none;
+  width:60px; height:4px; border-radius:2px;
+  background:var(--bg3); outline:none; cursor:pointer;
+}
+.ts-vol-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:12px; height:12px; border-radius:50%;
+  background:var(--cyan); cursor:pointer;
+}
+.ts-host-btn{
+  width:28px; height:28px; border-radius:6px; border:0;
+  background:var(--bg3); color:var(--gray2);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:.75rem; transition:all .1s;
+}
+.ts-host-btn:hover{ background:var(--surface); color:var(--white); }
+.ts-host-btn.danger:hover{ background:rgba(255,60,60,.2); color:#ff7474; }
+.ts-speaking-indicator{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--gray); flex-shrink:0; transition:background .1s;
+}
+.ts-speaking-indicator.on{ background:var(--green); box-shadow:0 0 6px rgba(0,230,118,.6); }
+
+.ts-empty-hosts{
+  padding:24px; text-align:center;
+  font-family:var(--font-mono); font-size:.7rem; color:var(--gray);
+}
+
+/* ── Invite ── */
+.ts-invite-wrap{ display:flex; flex-direction:column; gap:10px; }
+.ts-invite-link{
+  padding:10px 12px; background:var(--bg0);
+  border:1px solid var(--border-gold); border-radius:8px;
+  font-family:var(--font-mono); font-size:.68rem; color:var(--cyan);
+  word-break:break-all;
+}
+.ts-invite-row{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ── DJ Mic ── */
+.ts-mic-section{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.ts-mic-big{
+  width:56px; height:56px; border-radius:50%;
+  background:var(--bg3); border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.6rem; cursor:pointer; transition:all .2s; flex-shrink:0;
+}
+.ts-mic-big.active{ background:rgba(0,230,118,.12); border-color:var(--green); box-shadow:0 0 20px rgba(0,230,118,.2); }
+.ts-mic-big.muted{ background:rgba(255,60,60,.08); border-color:rgba(255,60,60,.3); }
+.ts-mic-info{ flex:1; }
+.ts-mic-status{ font-family:var(--font-ui); font-size:.44rem; letter-spacing:1px; color:var(--gray2); }
+.ts-mic-status.on{ color:var(--green); }
+.ts-mic-status.muted-label{ color:#ff7474; }
+
+/* ── Recording ── */
+.ts-rec-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.ts-rec-timer{
+  font-family:var(--font-display); font-size:2.2rem; letter-spacing:4px;
+  color:#ff3c3c; display:none;
+  animation:tsRecPulse 1s infinite;
+}
+@keyframes tsRecPulse{ 0%,100%{opacity:1} 50%{opacity:.5} }
+.ts-rec-downloads{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+.ts-dl-item{
+  display:flex; align-items:center; gap:10px;
+  padding:8px 12px; background:var(--bg0);
+  border:1px solid rgba(255,60,60,.2); border-radius:8px;
+}
+.ts-dl-name{ flex:1; font-size:.8rem; color:var(--gold-light); overflow:hidden; text-overflow:ellipsis; }
+.ts-dl-link{
+  padding:5px 10px; border-radius:6px;
+  background:linear-gradient(135deg,#8B6914,var(--gold));
+  color:#030305; font-family:var(--font-ui); font-size:.34rem;
+  font-weight:900; text-decoration:none; white-space:nowrap;
+}
+
+/* ── Chat ── */
+.ts-chat-wrap{ display:flex; flex-direction:column; gap:8px; }
+.ts-chat-msgs{
+  height:200px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;
+  padding:8px; background:var(--bg0); border-radius:8px;
+  border:1px solid var(--border);
+}
+.ts-chat-msgs::-webkit-scrollbar{ width:3px; }
+.ts-chat-msgs::-webkit-scrollbar-thumb{ background:var(--border-gold); border-radius:3px; }
+.ts-chat-msg{ display:flex; flex-direction:column; gap:2px; }
+.ts-chat-who{ font-family:var(--font-ui); font-size:.34rem; letter-spacing:1px; color:var(--gold); }
+.ts-chat-who.dj-label{ color:var(--cyan); }
+.ts-chat-text{ font-size:.8rem; color:var(--gray2); line-height:1.4; }
+.ts-chat-input-row{ display:flex; gap:8px; }
+.ts-chat-input{
+  flex:1; padding:9px 12px; background:var(--bg2);
+  border:1px solid var(--border); border-radius:8px;
+  color:var(--white); font-family:var(--font-body); font-size:.85rem; outline:none;
+}
+.ts-chat-input:focus{ border-color:var(--border-gold); }
+
+/* ── Right Sidebar ── */
+.ts-sidebar{
+  background:var(--bg1);
+  border-left:1px solid var(--border);
+  display:flex; flex-direction:column;
+}
+.ts-sidebar-section{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+}
+.ts-sidebar-title{
+  font-family:var(--font-ui); font-size:.4rem; letter-spacing:2px;
+  color:var(--gray); margin-bottom:10px;
+}
+.ts-notice{
+  font-family:var(--font-mono); font-size:.65rem; color:var(--gray2);
+  padding:8px 12px; background:var(--bg0);
+  border-radius:6px; border-left:3px solid var(--gold);
+  line-height:1.5;
+}
+
+/* ── Collapsible mobile sections ── */
+@media(max-width:768px){
+  .ts-grid{
+    grid-template-columns:1fr;
+  }
+  .ts-sidebar{
+    border-left:0;
+    border-top:1px solid var(--border);
+  }
+  .ts-card-body{ padding:12px; }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{ width:4px; height:4px; }
+::-webkit-scrollbar-track{ background:var(--bg0); }
+::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.08); border-radius:4px; }
