@@ -92,6 +92,23 @@ function loadTo(deck, item){
   note('Loaded ' + name + ' to Deck ' + deck, '#5dff9e');
   // Try scratch buffer in background — won't block playback if it fails
   try { loadScratchBuffer(deck, url); } catch(e) {}
+  // Push now playing to Talk Studio hosts
+  if (window.ubTalkNowPlaying) {
+    window.ubTalkNowPlaying({
+      trackTitle: item.title || name,
+      artistName: item.artistName || item.name || '',
+      genre: item.genre || item.type || '',
+      bio: item.bio || item.description || '',
+      instagram: item.instagram || item.social || '',
+      email: item.email || '',
+      website: item.website || '',
+      producer: item.producerName || item.producer || '',
+      bpm: item.bpm || '',
+      audioUrl: url,
+      deck: deck,
+      loadedAt: Date.now()
+    });
+  }
 }
 
 async function loadQueue(){
