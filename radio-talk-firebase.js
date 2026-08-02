@@ -9,18 +9,22 @@ import { getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.
 
 const TOKEN_FN = 'https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/getLiveKitToken';
 
-function db() {
-  // Always use the existing app's Firestore — never create a new one
-  try {
-    return getFirestore(getApp());
-  } catch(e) {
+async function waitForDb(retries = 30) {
+  for (let i = 0; i < retries; i++) {
     if (window.UB_FIREBASE && window.UB_FIREBASE.db) return window.UB_FIREBASE.db;
-    throw new Error('Firebase not ready');
+    await new Promise(r => setTimeout(r, 100));
   }
+  throw new Error('Firebase not ready after 3s');
+}
+
+function db() {
+  if (window.UB_FIREBASE && window.UB_FIREBASE.db) return window.UB_FIREBASE.db;
+  return getFirestore(getApp());
 }
 
 export async function createSession(sessionId, djName) {
-  await setDoc(doc(db(), 'talk_sessions', sessionId), {
+  const _db = await waitForDb();
+  await setDoc(doc(_db, 'talk_sessions', sessionId), {
     sessionId, djName, hosts: [], live: true,
     createdAt: serverTimestamp(), updatedAt: serverTimestamp()
   }, { merge: true });
