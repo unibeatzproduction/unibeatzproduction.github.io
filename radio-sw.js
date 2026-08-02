@@ -1,29 +1,46 @@
-// radio-sw.js — UniBeatz Radio PWA Service Worker
-// Caches shell for offline, keeps audio streaming live
+// radio-sw.js — UniBeatz Radio PWA Service Worker v3
+const CACHE = 'unibeatz-radio-v3';
 
-const CACHE = 'unibeatz-radio-v2';
 const SHELL = [
-  '/',
   '/radio.css',
   '/radio.js',
-  '/radio-live365.js',
-  '/radio-media-session.js',
-  '/radio-live-features.js',
   '/radio-premium-popup.js',
-  '/radio-background.js',
   '/unibeatz-radio-cover-v2.svg',
   'https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;700&family=Orbitron:wght@400;700;900&display=swap'
 ];
 
-// Install — cache shell
+// Never cache or intercept these
+const PASSTHROUGH = [
+  'streaming.live365.com',
+  'live365.com',
+  'firestore.googleapis.com',
+  'firebase',
+  'googleapis.com',
+  'firebasestorage',
+  'livekit.cloud',
+  'cloudfunctions.net',
+  'stripe.com',
+  'gstatic.com'
+];
+
+// Never cache these paths — always fresh from network
+const NETWORK_ONLY_PATHS = [
+  '/radio.html',
+  '/index.html',
+  '/radio-dj-deck.html',
+  '/admin-radio.html',
+  '/radio-talk-studio.html',
+  '/radio-talk-host.html'
+];
+
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(SHELL.map(url => c.add(url).catch(() => {}))))
   );
   self.skipWaiting();
 });
 
-// Activate — clean old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -33,53 +50,46 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// Fetch — network first for streams, cache first for shell
 self.addEventListener('fetch', e => {
   const url = e.request.url;
+  const { pathname } = new URL(url);
 
-  // Never intercept Live365 streams or Firebase — always hit network
-  if(
-    url.includes('streaming.live365.com') ||
-    url.includes('live365.com') ||
-    url.includes('firestore.googleapis.com') ||
-    url.includes('firebase') ||
-    url.includes('googleapis.com') ||
-    url.includes('firebasestorage')
-  ){
-    e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
-    return;
-  }
+  // Always pass through to network — no interception
+  if (PASSTHROUGH.some(d => url.includes(d))) return;
 
-  // For font/cdn resources — cache first
-  if(url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')){
+  // HTML pages — ALWAYS network first, never cache
+  // This is critical for back button to work correctly
+  if (
+    e.request.mode === 'navigate' ||
+    NETWORK_ONLY_PATHS.some(p => pathname === p) ||
+    pathname === '/' ||
+    pathname.endsWith('.html')
+  ) {
     e.respondWith(
-      caches.match(e.request).then(cached => cached || fetch(e.request).then(r => {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
-        return r;
-      }))
+      fetch(e.request).catch(() => {
+        // Only fall back to cache if truly offline — don't serve stale on navigation
+        return caches.match('/radio.html');
+      })
     );
     return;
   }
 
-  // Shell files — network first, fall back to cache
-  if(e.request.method === 'GET'){
+  // Static assets — network first, update cache in background
+  if (e.request.method === 'GET') {
     e.respondWith(
       fetch(e.request).then(r => {
-        if(r && r.status === 200 && r.type !== 'opaque'){
+        if (r && r.status === 200 && r.type !== 'opaque') {
           const clone = r.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
         return r;
-      }).catch(() => caches.match(e.request).then(cached => cached || caches.match('/')))
+      }).catch(() => caches.match(e.request))
     );
   }
 });
 
-// Background sync — keep audio alive hint
 self.addEventListener('message', e => {
-  if(e.data?.type === 'KEEP_ALIVE'){
-    // Acknowledge — client uses this to detect SW is still running
+  if (e.data?.type === 'KEEP_ALIVE') {
     e.ports[0]?.postMessage({ type: 'ALIVE' });
   }
 });
