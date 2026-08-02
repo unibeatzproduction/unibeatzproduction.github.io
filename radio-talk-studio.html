@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>UniBeatz Radio — Talk Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="radio-talk-studio.css"/>
+</head>
+<body>
+
+<!-- Top Bar -->
+<header class="ts-topbar">
+  <div class="ts-brand">UNIBEATZ <span style="color:var(--cyan);">RADIO</span> · <span style="font-size:.9rem;letter-spacing:2px;">TALK STUDIO</span></div>
+  <div class="ts-status">
+    <div class="ts-live-badge" id="tsLiveBadge" style="display:none;">
+      <span class="ts-live-dot"></span>ON AIR
+    </div>
+    <span class="ts-offline" id="tsOfflineLabel">OFFLINE</span>
+    <a href="radio.html" style="font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:6px;">← RADIO</a>
+    <a href="radio-dj-deck.html" style="font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:6px;">DJ DECK</a>
+  </div>
+</header>
+
+<div class="ts-grid">
+
+  <!-- LEFT: DJ Controls -->
+  <div class="ts-main">
+
+    <!-- Status -->
+    <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--gray2);padding:2px 0;" id="tsStatusMsg">Ready to start a session.</div>
+
+    <!-- Session Control -->
+    <div class="ts-card">
+      <div class="ts-card-header" onclick="tsToggleSection('tsSessionBody')">
+        <div class="ts-card-title">📡 SESSION CONTROL</div>
+        <div class="ts-card-chevron open" id="tsSessionBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body" id="tsSessionBody">
+        <div class="ts-session-row">
+          <button class="ts-btn ts-btn-gold" id="tsStartBtn" onclick="tsStartSession()">▶ START SESSION</button>
+          <button class="ts-btn ts-btn-red" id="tsEndBtn" style="display:none;" onclick="tsEndSession()">⏹ END SESSION</button>
+          <div class="ts-session-id" id="tsSessionIdDisplay">No active session</div>
+        </div>
+        <div style="margin-top:10px;font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);">
+          Up to 3 hosts · All audio routes through LiveKit · Record the full mix
+        </div>
+      </div>
+    </div>
+
+    <!-- DJ Mic -->
+    <div class="ts-card">
+      <div class="ts-card-header" onclick="tsToggleSection('tsMicBody')">
+        <div class="ts-card-title">🎙️ DJ MICROPHONE</div>
+        <div class="ts-card-chevron open" id="tsMicBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body" id="tsMicBody">
+        <div class="ts-mic-section">
+          <div class="ts-mic-big" id="tsMicIcon" onclick="tsToggleMic()">🎙️</div>
+          <div class="ts-mic-info">
+            <div class="ts-mic-status" id="tsMicStatus">MIC OFF</div>
+            <div style="font-size:.75rem;color:var(--gray2);margin-top:4px;">Tap to toggle · Echo cancel · Noise suppress</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hosts -->
+    <div class="ts-card">
+      <div class="ts-card-header" onclick="tsToggleSection('tsHostsBody')">
+        <div class="ts-card-title">🎧 HOSTS (MAX 3)</div>
+        <div class="ts-card-chevron open" id="tsHostsBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body" id="tsHostsBody">
+        <div class="ts-host-grid" id="tsHostGrid">
+          <div class="ts-empty-hosts">Start a session, then share invite link.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite -->
+    <div class="ts-card" id="tsInviteSection" style="display:none;">
+      <div class="ts-card-header" onclick="tsToggleSection('tsInviteBody')">
+        <div class="ts-card-title">🔗 INVITE HOSTS</div>
+        <div class="ts-card-chevron open" id="tsInviteBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body" id="tsInviteBody">
+        <div class="ts-invite-wrap">
+          <div class="ts-notice">Share this link with your guests. They open it on any device — phone, tablet, or desktop. No account needed.</div>
+          <div class="ts-invite-link" id="tsInviteLink">—</div>
+          <div class="ts-invite-row">
+            <button class="ts-btn ts-btn-blue" onclick="tsCopyInvite()">📋 COPY LINK</button>
+            <button class="ts-btn ts-btn-gold" onclick="tsShareInvite()">↗ SHARE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recording -->
+    <div class="ts-card">
+      <div class="ts-card-header" onclick="tsToggleSection('tsRecBody')">
+        <div class="ts-card-title">⏺ RECORDING</div>
+        <div class="ts-card-chevron open" id="tsRecBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body" id="tsRecBody">
+        <div class="ts-rec-row">
+          <button class="ts-btn ts-btn-red" id="tsRecStartBtn" onclick="tsStartRec()">⏺ START REC</button>
+          <button class="ts-btn ts-btn-gray" id="tsRecStopBtn" onclick="tsStopRec()" disabled>⏹ STOP & SAVE</button>
+          <div class="ts-rec-timer" id="tsRecTimer">0:00</div>
+        </div>
+        <div style="margin-top:8px;font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);">
+          Records: DJ music · DJ mic · All hosts · One master file
+        </div>
+        <div class="ts-rec-downloads" id="tsRecDownloads"></div>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="ts-card">
+      <div class="ts-card-header" onclick="tsToggleSection('tsChatBody')">
+        <div class="ts-card-title">💬 INTERNAL CHAT</div>
+        <div class="ts-card-chevron" id="tsChatBody-chevron">▼</div>
+      </div>
+      <div class="ts-card-body collapsed" id="tsChatBody">
+        <div class="ts-chat-wrap">
+          <div class="ts-chat-msgs" id="tsChatMsgs">
+            <div style="color:var(--gray);font-size:.75rem;text-align:center;padding:20px;">Chat messages appear here</div>
+          </div>
+          <div class="ts-chat-input-row">
+            <input class="ts-chat-input" id="tsChatInput" type="text" placeholder="Message hosts..." maxlength="200"
+              onkeydown="if(event.key==='Enter') tsSendChat()"/>
+            <button class="ts-btn ts-btn-blue" onclick="tsSendChat()" style="white-space:nowrap;">SEND</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /ts-main -->
+
+  <!-- RIGHT: Sidebar -->
+  <div class="ts-sidebar">
+
+    <div class="ts-sidebar-section">
+      <div class="ts-sidebar-title">HOW IT WORKS</div>
+      <div class="ts-notice">
+        1. Click <strong>Start Session</strong><br>
+        2. Copy invite link → send to guests<br>
+        3. Guests open link on any device<br>
+        4. Toggle DJ mic between songs<br>
+        5. Control host volumes individually<br>
+        6. Record the full mix<br>
+        7. Download and upload to Live365
+      </div>
+    </div>
+
+    <div class="ts-sidebar-section">
+      <div class="ts-sidebar-title">AUDIO FLOW</div>
+      <div class="ts-notice">
+        Everyone hears:<br>
+        · DJ music (from DJ deck)<br>
+        · DJ microphone<br>
+        · All host mics<br><br>
+        Echo cancel + noise suppress on all mics.
+      </div>
+    </div>
+
+    <div class="ts-sidebar-section">
+      <div class="ts-sidebar-title">HOST LIMIT</div>
+      <div class="ts-notice">
+        Maximum 3 hosts + DJ = 4 people total. Additional guests will be muted automatically.
+      </div>
+    </div>
+
+    <div class="ts-sidebar-section">
+      <div class="ts-sidebar-title">DEVICES</div>
+      <div class="ts-notice">
+        Hosts can join on:<br>
+        iPhone · Android · iPad · Tablet · PC · Mac<br><br>
+        Hosts only see: Join · Mic · Mute · Leave
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /ts-grid -->
+
+<script type="module" src="radio-talk-studio.js"></script>
+</body>
+</html>
