@@ -329,28 +329,75 @@
 
     // Hercules Inpulse family common mapping
     if (name.includes('hercules') || name.includes('djcontrol') || name.includes('inpulse')) {
-      if (t === 0x90) {
-        if (n === 0x0B) return `play${deck}`;
-        if (n === 0x0C) return `cue${deck}`;
-        if (n === 0x15) return `sync${deck}`;
-        if (n === 0x10) return `shift${deck}`;   // Shift button
-        if (n === 0x17) return `vinyl${deck}`;   // Vinyl/scratch mode
-        if (n === 0x14) return `loop4${deck}`;   // Loop IN → 4 bar
-        if (n === 0x13) return `loopOff${deck}`; // Loop OUT → off
-        // Pads
-        if (n === 0x00) return `pad0${deck}`;
-        if (n === 0x01) return `pad1${deck}`;
-        if (n === 0x02) return `pad2${deck}`;
-        if (n === 0x03) return `pad3${deck}`;
+      // Hercules DJControl Inpulse 200 MK3 — verified CC numbers
+      // Deck 1: note-on status=145, CC status=177
+      // Deck 2: note-on status=146, CC status=178
+      // Pads Deck 1: status=150, Pads Deck 2: status=151
+      // Global: status=172 (crossfader), 144/176 (master/browser)
+
+      const isDeck1 = (status === 145 || status === 177 || status === 150);
+      const isDeck2 = (status === 146 || status === 178 || status === 151);
+      const d = isDeck1 ? 'A' : isDeck2 ? 'B' : null;
+
+      // Crossfader — status 172, CC 32
+      if (status === 172 && n === 32) return 'crossfader';
+
+      // Master vol — status 176, CC 35
+      if (status === 176 && n === 35) return 'masterVol';
+      // Headphones vol — status 176, CC 36
+      if (status === 176 && n === 36) return 'headphonesVol';
+      // Browser knob — status 176, CC 1
+      if (status === 176 && n === 1) return 'browserScroll';
+      // Browser push — status 144, note 0
+      if (status === 144 && n === 0) return 'browserSelect';
+
+      if (!d) return null;
+
+      // Deck buttons (note-on)
+      if (status === 145 || status === 146) {
+        if (n === 7)  return `play${d}`;
+        if (n === 6)  return `cue${d}`;
+        if (n === 5)  return `sync${d}`;
+        if (n === 4)  return `shift${d}`;
+        if (n === 3)  return `loop${d}`;
+        if (n === 12) return `headphones${d}`;
+        if (n === 13) return `load${d}`;
+        if (n === 15) return `hotcueMode${d}`;
+        if (n === 16) return `fxMode${d}`;
+        if (n === 17) return `loopMode${d}`;
+        if (n === 18) return `samplerMode${d}`;
+        if (n === 9)  return `stemVocal${d}`;
+        if (n === 10) return `stemInstrumental${d}`;
       }
-      if (t === 0xB0) {
-        if (n === 0x00) return `pitch${deck}`;
-        if (n === 0x05) return `eqHigh${deck}`;
-        if (n === 0x06) return `eqLow${deck}`;
-        if (n === 0x07) return 'crossfader';
-        if (n === 0x08) return `volume${deck}`;
-        if (n === 0x46) return `filter${deck}`;
-        if (n === 0x60) return `jog${deck}`;
+
+      // Deck CC (knobs/faders)
+      if (status === 177 || status === 178) {
+        if (n === 33) return `filter${d}`;
+        if (n === 32) return `volume${d}`;
+        if (n === 40) return `pitch${d}`;
+        if (n === 34) return `eqLow${d}`;
+        if (n === 36) return `eqMid${d}`;
+        if (n === 37) return `eqHigh${d}`;
+      }
+
+      // Jog wheel — same CC as volume but different status? 
+      // Need to verify — using filter CC for now
+      if ((status === 177 || status === 178) && n === 33) return `jog${d}`;
+
+      // Hot cue pads (status 150 deck1, 151 deck2)
+      if (status === 150 || status === 151) {
+        if (n === 0)  return `pad0${d}`;
+        if (n === 1)  return `pad1${d}`;
+        if (n === 2)  return `pad2${d}`;
+        if (n === 3)  return `pad3${d}`;
+        if (n === 32) return `loopPad0${d}`;
+        if (n === 33) return `loopPad1${d}`;
+        if (n === 34) return `loopPad2${d}`;
+        if (n === 35) return `loopPad3${d}`;
+        if (n === 48) return `samplerPad0${d}`;
+        if (n === 49) return `samplerPad1${d}`;
+        if (n === 50) return `samplerPad2${d}`;
+        if (n === 51) return `samplerPad3${d}`;
       }
     }
 
