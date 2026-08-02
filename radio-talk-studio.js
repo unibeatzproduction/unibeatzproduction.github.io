@@ -1,213 +1,375 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>UniBeatz Radio — Talk Studio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="radio-talk-studio.css"/>
-</head>
-<body>
+// radio-talk-studio.js
+// DJ Control — Talk Studio main logic
 
-<!-- Top Bar -->
-<header class="ts-topbar">
-  <div class="ts-brand">UNIBEATZ <span style="color:var(--cyan);">RADIO</span> · <span style="font-size:.9rem;letter-spacing:2px;">TALK STUDIO</span></div>
-  <div class="ts-status">
-    <div class="ts-live-badge" id="tsLiveBadge" style="display:none;">
-      <span class="ts-live-dot"></span>ON AIR
-    </div>
-    <span class="ts-offline" id="tsOfflineLabel">OFFLINE</span>
-    <a href="radio.html" style="font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:6px;">← RADIO</a>
-    <a href="radio-dj-deck.html" style="font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);text-decoration:none;padding:5px 10px;border:1px solid var(--border);border-radius:6px;">DJ DECK</a>
-  </div>
-</header>
+import { Room, RoomEvent, Track, createLocalAudioTrack, LocalAudioTrack } from 'https://cdn.jsdelivr.net/npm/livekit-client@2.5.7/dist/livekit-client.esm.mjs';
+import { attachTrack, detachTrack, setHostVolume, muteHost } from './radio-talk-audio.js';
+import { initRecordingBus, startRecording, stopRecording, isRecording, connectToRecording } from './radio-talk-recording.js';
+import { createSession, endSession, watchSession, sendMessage, watchChat, getLiveKitToken } from './radio-talk-firebase.js';
 
-<div class="ts-grid">
+const LIVEKIT_URL = 'wss://uni-freestyle-battle-i951nakn.livekit.cloud';
+const MAX_HOSTS = 3;
 
-  <!-- LEFT: DJ Controls -->
-  <div class="ts-main">
+let _room = null;
+let _sessionId = null;
+let _djMicTrack = null;
+let _djMicEnabled = false;
+let _hosts = {}; // identity -> { name, muted, vol, speaking, participant }
+let _audioCtx = null;
+let _recBus = null;
+let _unsubSession = null;
+let _unsubChat = null;
+let _chatMsgs = [];
 
-    <!-- Status -->
-    <div style="font-family:var(--font-mono);font-size:.7rem;color:var(--gray2);padding:2px 0;" id="tsStatusMsg">Ready to start a session.</div>
+// ── Helpers ──
+function gen(len){ return Math.random().toString(36).slice(2, 2+len).toUpperCase(); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function status(msg, color='#9aa3b8'){
+  const el = document.getElementById('tsStatusMsg');
+  if(el){ el.textContent = msg; el.style.color = color; }
+}
+function note(msg){ status(msg, '#40D0FF'); }
 
-    <!-- Session Control -->
-    <div class="ts-card">
-      <div class="ts-card-header" onclick="tsToggleSection('tsSessionBody')">
-        <div class="ts-card-title">📡 SESSION CONTROL</div>
-        <div class="ts-card-chevron open" id="tsSessionBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body" id="tsSessionBody">
-        <div class="ts-session-row">
-          <button class="ts-btn ts-btn-gold" id="tsStartBtn" onclick="tsStartSession()">▶ START SESSION</button>
-          <button class="ts-btn ts-btn-red" id="tsEndBtn" style="display:none;" onclick="tsEndSession()">⏹ END SESSION</button>
-          <div class="ts-session-id" id="tsSessionIdDisplay">No active session</div>
-        </div>
-        <div style="margin-top:10px;font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);">
-          Up to 3 hosts · All audio routes through LiveKit · Record the full mix
-        </div>
-      </div>
-    </div>
+function getCtx(){
+  if(!_audioCtx || _audioCtx.state === 'closed'){
+    _audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+  }
+  if(_audioCtx.state === 'suspended') _audioCtx.resume();
+  return _audioCtx;
+}
 
-    <!-- DJ Mic -->
-    <div class="ts-card">
-      <div class="ts-card-header" onclick="tsToggleSection('tsMicBody')">
-        <div class="ts-card-title">🎙️ DJ MICROPHONE</div>
-        <div class="ts-card-chevron open" id="tsMicBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body" id="tsMicBody">
-        <div class="ts-mic-section">
-          <div class="ts-mic-big" id="tsMicIcon" onclick="tsToggleMic()">🎙️</div>
-          <div class="ts-mic-info">
-            <div class="ts-mic-status" id="tsMicStatus">MIC OFF</div>
-            <div style="font-size:.75rem;color:var(--gray2);margin-top:4px;">Tap to toggle · Echo cancel · Noise suppress</div>
-          </div>
-        </div>
-      </div>
-    </div>
+// ── Session ──
+window.tsStartSession = async function(){
+  const btn = document.getElementById('tsStartBtn');
+  btn.disabled = true;
+  btn.textContent = 'STARTING...';
 
-    <!-- Hosts -->
-    <div class="ts-card">
-      <div class="ts-card-header" onclick="tsToggleSection('tsHostsBody')">
-        <div class="ts-card-title">🎧 HOSTS (MAX 3)</div>
-        <div class="ts-card-chevron open" id="tsHostsBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body" id="tsHostsBody">
-        <div class="ts-host-grid" id="tsHostGrid">
-          <div class="ts-empty-hosts">Start a session, then share invite link.</div>
-        </div>
-      </div>
-    </div>
+  // Auth enforced by Firestore rules — proceed
 
-    <!-- Invite -->
-    <div class="ts-card" id="tsInviteSection" style="display:none;">
-      <div class="ts-card-header" onclick="tsToggleSection('tsInviteBody')">
-        <div class="ts-card-title">🔗 INVITE HOSTS</div>
-        <div class="ts-card-chevron open" id="tsInviteBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body" id="tsInviteBody">
-        <div class="ts-invite-wrap">
-          <div class="ts-notice">Share this link with your guests. They open it on any device — phone, tablet, or desktop. No account needed.</div>
-          <div class="ts-invite-link" id="tsInviteLink">—</div>
-          <div class="ts-invite-row">
-            <button class="ts-btn ts-btn-blue" onclick="tsCopyInvite()">📋 COPY LINK</button>
-            <button class="ts-btn ts-btn-gold" onclick="tsShareInvite()">↗ SHARE</button>
-          </div>
-        </div>
-      </div>
-    </div>
+  _sessionId = 'talk-' + gen(4) + '-' + gen(4);
+  const djName = (window.currentUser && window.currentUser.name) ? window.currentUser.name : 'DJ UniBeatz';
+  const identity = 'dj-' + _sessionId;
 
-    <!-- Recording -->
-    <div class="ts-card">
-      <div class="ts-card-header" onclick="tsToggleSection('tsRecBody')">
-        <div class="ts-card-title">⏺ RECORDING</div>
-        <div class="ts-card-chevron open" id="tsRecBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body" id="tsRecBody">
-        <div class="ts-rec-row">
-          <button class="ts-btn ts-btn-red" id="tsRecStartBtn" onclick="tsStartRec()">⏺ START REC</button>
-          <button class="ts-btn ts-btn-gray" id="tsRecStopBtn" onclick="tsStopRec()" disabled>⏹ STOP & SAVE</button>
-          <div class="ts-rec-timer" id="tsRecTimer">0:00</div>
-        </div>
-        <div style="margin-top:8px;font-family:var(--font-mono);font-size:.65rem;color:var(--gray2);">
-          Records: DJ music · DJ mic · All hosts · One master file
-        </div>
-        <div class="ts-rec-downloads" id="tsRecDownloads"></div>
-      </div>
-    </div>
+  try{
+    await createSession(_sessionId, djName);
+    const token = await getLiveKitToken(_sessionId, identity, true);
 
-    <!-- Chat -->
-    <div class="ts-card">
-      <div class="ts-card-header" onclick="tsToggleSection('tsChatBody')">
-        <div class="ts-card-title">💬 INTERNAL CHAT</div>
-        <div class="ts-card-chevron" id="tsChatBody-chevron">▼</div>
-      </div>
-      <div class="ts-card-body collapsed" id="tsChatBody">
-        <div class="ts-chat-wrap">
-          <div class="ts-chat-msgs" id="tsChatMsgs">
-            <div style="color:var(--gray);font-size:.75rem;text-align:center;padding:20px;">Chat messages appear here</div>
-          </div>
-          <div class="ts-chat-input-row">
-            <input class="ts-chat-input" id="tsChatInput" type="text" placeholder="Message hosts..." maxlength="200"
-              onkeydown="if(event.key==='Enter') tsSendChat()"/>
-            <button class="ts-btn ts-btn-blue" onclick="tsSendChat()" style="white-space:nowrap;">SEND</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    _room = new Room({
+      audioCaptureDefaults: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      }
+    });
 
-  </div><!-- /ts-main -->
+    _room.on(RoomEvent.ParticipantConnected, onParticipantJoined);
+    _room.on(RoomEvent.ParticipantDisconnected, onParticipantLeft);
+    _room.on(RoomEvent.TrackSubscribed, onTrackSubscribed);
+    _room.on(RoomEvent.TrackUnsubscribed, onTrackUnsubscribed);
+    _room.on(RoomEvent.ActiveSpeakersChanged, onSpeakersChanged);
+    _room.on(RoomEvent.Disconnected, onDisconnected);
 
-  <!-- RIGHT: Sidebar -->
-  <div class="ts-sidebar">
+    await _room.connect(LIVEKIT_URL, token);
 
-    <div class="ts-sidebar-section">
-      <div class="ts-sidebar-title">HOW IT WORKS</div>
-      <div class="ts-notice">
-        1. Click <strong>Start Session</strong><br>
-        2. Copy invite link → send to guests<br>
-        3. Guests open link on any device<br>
-        4. Toggle DJ mic between songs<br>
-        5. Control host volumes individually<br>
-        6. Record the full mix<br>
-        7. Download and upload to Live365
-      </div>
-    </div>
+    // Init audio context and recording bus
+    const ctx = getCtx();
+    _recBus = initRecordingBus(ctx);
 
-    <div class="ts-sidebar-section">
-      <div class="ts-sidebar-title">AUDIO FLOW</div>
-      <div class="ts-notice">
-        Everyone hears:<br>
-        · DJ music (from DJ deck)<br>
-        · DJ microphone<br>
-        · All host mics<br><br>
-        Echo cancel + noise suppress on all mics.
-      </div>
-    </div>
+    // Show live state
+    document.getElementById('tsLiveBadge').style.display = 'flex';
+    document.getElementById('tsOfflineLabel').style.display = 'none';
+    document.getElementById('tsStartBtn').style.display = 'none';
+    document.getElementById('tsEndBtn').style.display = 'inline-flex';
+    document.getElementById('tsSessionIdDisplay').textContent = _sessionId;
+    document.getElementById('tsInviteLink').textContent = window.location.origin + '/radio-talk-host.html?session=' + _sessionId;
+    document.getElementById('tsInviteSection').style.display = 'block';
 
-    <div class="ts-sidebar-section">
-      <div class="ts-sidebar-title">HOST LIMIT</div>
-      <div class="ts-notice">
-        Maximum 3 hosts + DJ = 4 people total. Additional guests will be muted automatically.
-      </div>
-    </div>
+    // Watch chat
+    _unsubChat = watchChat(_sessionId, msgs => { _chatMsgs = msgs; renderChat(); });
 
-    <div class="ts-sidebar-section">
-      <div class="ts-sidebar-title">DEVICES</div>
-      <div class="ts-notice">
-        Hosts can join on:<br>
-        iPhone · Android · iPad · Tablet · PC · Mac<br><br>
-        Hosts only see: Join · Mic · Mute · Leave
-      </div>
-    </div>
+    note('Session live — share invite link to add hosts');
 
-  </div>
-
-</div><!-- /ts-grid -->
-
-<script type="module">
-// Initialize Firebase for Talk Studio
-import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
-
-const FIREBASE_CONFIG = {
-  apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
-  authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
-  projectId: 'unibeatzproduction-7ae31',
-  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
-  messagingSenderId: '70667820609',
-  appId: '1:70667820609:web:57762df5510e6b4000b0c'
+  } catch(err){
+    status('Start failed: ' + err.message, '#ff7474');
+    btn.disabled = false;
+    btn.textContent = 'START SESSION';
+  }
 };
 
-const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
-const auth = getAuth(app);
-const db = getFirestore(app);
+window.tsEndSession = async function(){
+  if(!confirm('End the session for everyone?')) return;
+  if(_room){ await _room.disconnect(); _room = null; }
+  if(_djMicTrack){ _djMicTrack.stop(); _djMicTrack = null; }
+  if(_sessionId) await endSession(_sessionId);
+  if(_unsubChat) _unsubChat();
+  if(_unsubSession) _unsubSession();
+  _hosts = {};
+  _sessionId = null;
+  _djMicEnabled = false;
 
-window.UB_FIREBASE = { app, auth, db, onAuthStateChanged, ready: true };
-</script>
-<script type="module" src="radio-talk-studio.js"></script>
-</body>
-</html>
+  document.getElementById('tsLiveBadge').style.display = 'none';
+  document.getElementById('tsOfflineLabel').style.display = 'inline';
+  document.getElementById('tsStartBtn').style.display = 'inline-flex';
+  document.getElementById('tsEndBtn').style.display = 'none';
+  document.getElementById('tsInviteSection').style.display = 'none';
+  document.getElementById('tsHostGrid').innerHTML = '<div class="ts-empty-hosts">No hosts connected yet.</div>';
+  updateMicUI();
+  note('Session ended');
+};
+
+// ── DJ Mic ──
+window.tsToggleMic = async function(){
+  if(!_room){ status('Start session first', '#ff7474'); return; }
+  const ctx = getCtx();
+
+  if(!_djMicEnabled){
+    try{
+      _djMicTrack = await createLocalAudioTrack({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      });
+      await _room.localParticipant.publishTrack(_djMicTrack);
+
+      // Route DJ mic into recording bus
+      const stream = new MediaStream([_djMicTrack.mediaStreamTrack]);
+      const src = ctx.createMediaStreamSource(stream);
+      connectToRecording(src);
+
+      _djMicEnabled = true;
+      note('DJ mic ON');
+    } catch(err){
+      status('Mic error: ' + err.message, '#ff7474');
+      return;
+    }
+  } else {
+    if(_djMicTrack){
+      const muting = !_djMicTrack.isMuted;
+      muting ? await _djMicTrack.mute() : await _djMicTrack.unmute();
+      _djMicEnabled = !muting;
+    }
+  }
+  updateMicUI();
+};
+
+function updateMicUI(){
+  const icon  = document.getElementById('tsMicIcon');
+  const label = document.getElementById('tsMicStatus');
+  if(!icon || !label) return;
+  if(_djMicEnabled && _djMicTrack && !_djMicTrack.isMuted){
+    icon.className = 'ts-mic-big active';
+    label.textContent = 'MIC LIVE';
+    label.className = 'ts-mic-status on';
+  } else if(_djMicEnabled && _djMicTrack && _djMicTrack.isMuted){
+    icon.className = 'ts-mic-big muted';
+    label.textContent = 'MUTED';
+    label.className = 'ts-mic-status muted-label';
+  } else {
+    icon.className = 'ts-mic-big';
+    label.textContent = 'MIC OFF';
+    label.className = 'ts-mic-status';
+  }
+}
+
+// ── Participants ──
+function onParticipantJoined(participant){
+  let meta = {};
+  try{ meta = JSON.parse(participant.metadata || '{}'); }catch(e){}
+  const name = meta.name || participant.identity;
+  const role = meta.role || 'host';
+  if(role === 'dj') return;
+  if(Object.keys(_hosts).length >= MAX_HOSTS){ participant.setVolume(0); return; }
+  _hosts[participant.identity] = { name, muted:false, vol:1, speaking:false, participant };
+  renderHosts();
+  note(name + ' joined');
+}
+
+function onParticipantLeft(participant){
+  if(_hosts[participant.identity]){
+    detachTrack(participant.identity);
+    delete _hosts[participant.identity];
+    renderHosts();
+    note(_hosts[participant.identity]?.name || 'A host' + ' left');
+  }
+}
+
+function onTrackSubscribed(track, pub, participant){
+  if(track.kind !== Track.Kind.Audio) return;
+  const ctx = getCtx();
+  attachTrack(participant.identity, track.mediaStreamTrack, onSpeakingChange);
+
+  // Also route host audio into recording bus
+  const stream = new MediaStream([track.mediaStreamTrack]);
+  const src = ctx.createMediaStreamSource(stream);
+  connectToRecording(src);
+}
+
+function onTrackUnsubscribed(track, pub, participant){
+  if(track.kind === Track.Kind.Audio) detachTrack(participant.identity);
+}
+
+function onSpeakersChanged(speakers){
+  Object.keys(_hosts).forEach(id => {
+    _hosts[id].speaking = speakers.some(s => s.identity === id);
+  });
+  renderHosts();
+}
+
+function onSpeakingChange(identity, speaking){
+  if(_hosts[identity]){
+    _hosts[identity].speaking = speaking;
+    const row = document.getElementById('tsHostRow-' + identity.replace(/[^a-z0-9]/gi,'_'));
+    if(row){
+      row.classList.toggle('speaking', speaking);
+      const dot = row.querySelector('.ts-speaking-indicator');
+      if(dot) dot.classList.toggle('on', speaking);
+    }
+  }
+}
+
+function onDisconnected(){
+  status('Disconnected', '#ff7474');
+}
+
+// ── Host Controls ──
+window.tsMuteHost = function(identity){
+  if(!_hosts[identity]) return;
+  const h = _hosts[identity];
+  h.muted = !h.muted;
+  muteHost(identity, h.muted);
+  renderHosts();
+};
+
+window.tsRemoveHost = function(identity){
+  const h = _hosts[identity];
+  if(!h) return;
+  if(!confirm('Remove ' + h.name + '?')) return;
+  try{ h.participant.setVolume(0); }catch(e){}
+  detachTrack(identity);
+  delete _hosts[identity];
+  renderHosts();
+  note(h.name + ' removed');
+};
+
+window.tsSetHostVol = function(identity, val){
+  if(!_hosts[identity]) return;
+  _hosts[identity].vol = val / 100;
+  setHostVolume(identity, _hosts[identity].vol);
+};
+
+function renderHosts(){
+  const grid = document.getElementById('tsHostGrid');
+  if(!grid) return;
+  const keys = Object.keys(_hosts);
+  if(!keys.length){
+    grid.innerHTML = '<div class="ts-empty-hosts">No hosts connected yet.</div>';
+    return;
+  }
+  grid.innerHTML = keys.map(id => {
+    const h = _hosts[id];
+    const safeId = id.replace(/[^a-z0-9]/gi,'_');
+    return `
+    <div class="ts-host-row${h.speaking?' speaking':''}" id="tsHostRow-${safeId}">
+      <div class="ts-host-avatar${h.speaking?' speaking-ring':''}">🎙️</div>
+      <div class="ts-host-info">
+        <div class="ts-host-name">${esc(h.name)}</div>
+        <div class="ts-host-role">HOST ${keys.indexOf(id)+2}</div>
+      </div>
+      <div class="ts-host-controls">
+        <div class="ts-speaking-indicator${h.speaking?' on':''}"></div>
+        <input type="range" class="ts-vol-slider" min="0" max="100" value="${Math.round(h.vol*100)}"
+          onchange="tsSetHostVol('${id}', this.value)" title="Volume"/>
+        <button class="ts-host-btn" onclick="tsMuteHost('${id}')" title="${h.muted?'Unmute':'Mute'}">
+          ${h.muted ? '🔇' : '🎙️'}
+        </button>
+        <button class="ts-host-btn danger" onclick="tsRemoveHost('${id}')" title="Remove">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Invite ──
+window.tsCopyInvite = function(){
+  const link = document.getElementById('tsInviteLink').textContent;
+  navigator.clipboard.writeText(link).then(() => note('Link copied!')).catch(() => {
+    const el = document.getElementById('tsInviteLink');
+    el.select && el.select();
+    document.execCommand('copy');
+    note('Link copied!');
+  });
+};
+
+window.tsShareInvite = function(){
+  const link = document.getElementById('tsInviteLink').textContent;
+  if(navigator.share){
+    navigator.share({ title:'UniBeatz Radio Talk Studio', url: link });
+  } else {
+    tsCopyInvite();
+  }
+};
+
+// ── Recording ──
+window.tsStartRec = async function(){
+  if(!_recBus){ status('Start session first', '#ff7474'); return; }
+  const ctx = getCtx();
+  if(!_recBus) return;
+  startRecording(t => {
+    const el = document.getElementById('tsRecTimer');
+    if(el){ el.style.display='block'; el.textContent=t; }
+  });
+  document.getElementById('tsRecStartBtn').disabled = true;
+  document.getElementById('tsRecStopBtn').disabled = false;
+  note('Recording started');
+};
+
+window.tsStopRec = async function(){
+  const result = await stopRecording();
+  document.getElementById('tsRecTimer').style.display = 'none';
+  document.getElementById('tsRecStartBtn').disabled = false;
+  document.getElementById('tsRecStopBtn').disabled = true;
+  if(!result){ status('No recording to save', '#ff7474'); return; }
+
+  const list = document.getElementById('tsRecDownloads');
+  const item = document.createElement('div');
+  item.className = 'ts-dl-item';
+  item.innerHTML = `
+    <div class="ts-dl-name">${esc(result.name)}</div>
+    <a class="ts-dl-link" href="${result.url}" download="${result.name}">⬇ Download</a>`;
+  list.prepend(item);
+  note('Recording saved — download above');
+};
+
+// ── Chat ──
+window.tsSendChat = async function(){
+  const input = document.getElementById('tsChatInput');
+  const text = (input?.value||'').trim();
+  if(!text || !_sessionId) return;
+  input.value = '';
+  const djName = (window.currentUser && window.currentUser.name) ? window.currentUser.name : 'DJ';
+  await sendMessage(_sessionId, { sender: djName, role: 'dj', text });
+};
+
+function renderChat(){
+  const el = document.getElementById('tsChatMsgs');
+  if(!el) return;
+  el.innerHTML = _chatMsgs.slice(-50).map(m => `
+    <div class="ts-chat-msg">
+      <div class="ts-chat-who${m.role==='dj'?' dj-label':''}">${esc(m.sender||'?')}${m.role==='dj'?' · DJ':''}</div>
+      <div class="ts-chat-text">${esc(m.text)}</div>
+    </div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Collapsible sections ──
+window.tsToggleSection = function(id){
+  const body = document.getElementById(id);
+  const chevron = document.getElementById(id + '-chevron');
+  if(!body) return;
+  const collapsed = body.classList.toggle('collapsed');
+  if(chevron) chevron.classList.toggle('open', !collapsed);
+};
+
+// ── Boot ──
+document.addEventListener('DOMContentLoaded', () => {
+  // All sections open by default except chat on desktop
+  document.getElementById('tsChatBody')?.classList.add('collapsed');
+});
