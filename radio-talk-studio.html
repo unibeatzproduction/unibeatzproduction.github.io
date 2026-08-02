@@ -187,6 +187,27 @@
 
 </div><!-- /ts-grid -->
 
+<script type="module">
+// Initialize Firebase for Talk Studio
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+const FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+  authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
+  projectId: 'unibeatzproduction-7ae31',
+  storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+  messagingSenderId: '70667820609',
+  appId: '1:70667820609:web:57762df5510e6b4000b0c'
+};
+
+const app = getApps().length ? getApp() : initializeApp(FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.UB_FIREBASE = { app, auth, db, onAuthStateChanged, ready: true };
+</script>
 <script type="module" src="radio-talk-studio.js"></script>
 </body>
 </html>
