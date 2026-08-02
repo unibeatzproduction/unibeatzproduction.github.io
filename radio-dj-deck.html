@@ -493,7 +493,6 @@ body{
   <div class="topbar-links">
     <div id="broadcastLiveBadge" class="live-badge"><span class="live-dot"></span>ON AIR</div>
     <a href="radio.html">Radio</a>
-    <a href="radio-talk-studio.html">Talk Studio</a>
     <a href="admin-radio.html">Admin</a>
     <a href="#" onclick="document.getElementById('lockOverlay').style.display='flex';document.getElementById('lockInput').value='';return false;" style="color:#ff7474;border-color:rgba(255,60,60,.3);">Lock</a>
   </div>
@@ -956,6 +955,22 @@ function initDeckUI(){
 }
 </script>
 
+<script src="unibeatz-midi-engine.js"></script>
+<script type="module">
+import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+if (!getApps().length) {
+  initializeApp({
+    apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
+    authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
+    projectId: 'unibeatzproduction-7ae31',
+    storageBucket: 'unibeatzproduction-7ae31.firebasestorage.app',
+    messagingSenderId: '70667820609',
+    appId: '1:70667820609:web:57762df5510e6b4000b0c'
+  });
+}
+window.UB_FIREBASE = { app: getApp(), db: getFirestore(getApp()), ready: true };
+</script>
 <script type="module" src="radio-dj-deck.js"></script>
 </body>
 </html>
