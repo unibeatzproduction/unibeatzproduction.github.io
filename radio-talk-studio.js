@@ -43,15 +43,6 @@ window.tsStartSession = async function(){
   btn.disabled = true;
   btn.textContent = 'STARTING...';
 
-  // Wait for Firebase auth to fully resolve
-  const fb = window.UB_FIREBASE;
-  if (!fb || !fb.auth) {
-    status('Firebase not ready. Reload and try again.', '#ff7474');
-    btn.disabled = false;
-    btn.textContent = 'START SESSION';
-    return;
-  }
-
   // Auth enforced by Firestore rules — proceed
 
   _sessionId = 'talk-' + gen(4) + '-' + gen(4);
