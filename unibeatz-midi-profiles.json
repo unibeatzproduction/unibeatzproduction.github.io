@@ -3,190 +3,950 @@
   "profiles": [
     {
       "device_name": "Hercules DJControl Inpulse 200 MK3",
-      "aliases": ["inpulse 200", "djcontrol inpulse 200", "hercules inpulse"],
+      "aliases": [
+        "inpulse 200",
+        "djcontrol inpulse 200",
+        "hercules inpulse"
+      ],
       "manufacturer": "Hercules",
       "mappings": {
-        "deck1_play":     { "status": 144, "note": 11,  "channel": 0, "type": "button" },
-        "deck1_cue":      { "status": 144, "note": 12,  "channel": 0, "type": "button" },
-        "deck1_sync":     { "status": 144, "note": 21,  "channel": 0, "type": "button" },
-        "deck1_loop_in":  { "status": 144, "note": 20,  "channel": 0, "type": "button" },
-        "deck1_loop_out": { "status": 144, "note": 19,  "channel": 0, "type": "button" },
-        "deck1_shift":    { "status": 144, "note": 16,  "channel": 0, "type": "button" },
-        "deck1_vinyl":    { "status": 144, "note": 23,  "channel": 0, "type": "button" },
-        "deck1_pad0":     { "status": 144, "note": 0,   "channel": 0, "type": "pad" },
-        "deck1_pad1":     { "status": 144, "note": 1,   "channel": 0, "type": "pad" },
-        "deck1_pad2":     { "status": 144, "note": 2,   "channel": 0, "type": "pad" },
-        "deck1_pad3":     { "status": 144, "note": 3,   "channel": 0, "type": "pad" },
-        "deck1_pitch":    { "status": 176, "control": 0,  "channel": 0, "type": "fader" },
-        "deck1_eq_high":  { "status": 176, "control": 5,  "channel": 0, "type": "knob" },
-        "deck1_eq_low":   { "status": 176, "control": 6,  "channel": 0, "type": "knob" },
-        "deck1_volume":   { "status": 176, "control": 8,  "channel": 0, "type": "fader" },
-        "deck1_filter":   { "status": 176, "control": 70, "channel": 0, "type": "knob" },
-        "deck1_jog":      { "status": 176, "control": 96, "channel": 0, "type": "jog" },
-        "deck2_play":     { "status": 145, "note": 11,  "channel": 1, "type": "button" },
-        "deck2_cue":      { "status": 145, "note": 12,  "channel": 1, "type": "button" },
-        "deck2_sync":     { "status": 145, "note": 21,  "channel": 1, "type": "button" },
-        "deck2_loop_in":  { "status": 145, "note": 20,  "channel": 1, "type": "button" },
-        "deck2_loop_out": { "status": 145, "note": 19,  "channel": 1, "type": "button" },
-        "deck2_shift":    { "status": 145, "note": 16,  "channel": 1, "type": "button" },
-        "deck2_vinyl":    { "status": 145, "note": 23,  "channel": 1, "type": "button" },
-        "deck2_pad0":     { "status": 145, "note": 0,   "channel": 1, "type": "pad" },
-        "deck2_pad1":     { "status": 145, "note": 1,   "channel": 1, "type": "pad" },
-        "deck2_pad2":     { "status": 145, "note": 2,   "channel": 1, "type": "pad" },
-        "deck2_pad3":     { "status": 145, "note": 3,   "channel": 1, "type": "pad" },
-        "deck2_pitch":    { "status": 177, "control": 0,  "channel": 1, "type": "fader" },
-        "deck2_eq_high":  { "status": 177, "control": 5,  "channel": 1, "type": "knob" },
-        "deck2_eq_low":   { "status": 177, "control": 6,  "channel": 1, "type": "knob" },
-        "deck2_volume":   { "status": 177, "control": 8,  "channel": 1, "type": "fader" },
-        "deck2_filter":   { "status": 177, "control": 70, "channel": 1, "type": "knob" },
-        "deck2_jog":      { "status": 177, "control": 96, "channel": 1, "type": "jog" },
-        "crossfader":     { "status": 176, "control": 7,  "channel": 0, "type": "fader" }
+        "deck1_play": {
+          "status": 145,
+          "note": 7,
+          "type": "button"
+        },
+        "deck1_cue": {
+          "status": 145,
+          "note": 6,
+          "type": "button"
+        },
+        "deck1_sync": {
+          "status": 145,
+          "note": 5,
+          "type": "button"
+        },
+        "deck1_shift": {
+          "status": 145,
+          "note": 4,
+          "type": "button"
+        },
+        "deck1_loop": {
+          "status": 145,
+          "note": 3,
+          "type": "button"
+        },
+        "deck1_load": {
+          "status": 145,
+          "note": 13,
+          "type": "button"
+        },
+        "deck1_hotcue_mode": {
+          "status": 145,
+          "note": 15,
+          "type": "button"
+        },
+        "deck1_fx_mode": {
+          "status": 145,
+          "note": 16,
+          "type": "button"
+        },
+        "deck1_loop_mode": {
+          "status": 145,
+          "note": 17,
+          "type": "button"
+        },
+        "deck1_sampler_mode": {
+          "status": 145,
+          "note": 18,
+          "type": "button"
+        },
+        "deck1_filter": {
+          "status": 177,
+          "control": 33,
+          "type": "knob"
+        },
+        "deck1_volume": {
+          "status": 177,
+          "control": 32,
+          "type": "fader"
+        },
+        "deck1_pitch": {
+          "status": 177,
+          "control": 40,
+          "type": "fader"
+        },
+        "deck1_eq_low": {
+          "status": 177,
+          "control": 34,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 177,
+          "control": 36,
+          "type": "knob"
+        },
+        "deck1_eq_high": {
+          "status": 177,
+          "control": 37,
+          "type": "knob"
+        },
+        "deck1_pad0": {
+          "status": 150,
+          "note": 0,
+          "type": "pad"
+        },
+        "deck1_pad1": {
+          "status": 150,
+          "note": 1,
+          "type": "pad"
+        },
+        "deck1_pad2": {
+          "status": 150,
+          "note": 2,
+          "type": "pad"
+        },
+        "deck1_pad3": {
+          "status": 150,
+          "note": 3,
+          "type": "pad"
+        },
+        "deck1_loop_pad0": {
+          "status": 150,
+          "note": 32,
+          "type": "pad"
+        },
+        "deck1_loop_pad1": {
+          "status": 150,
+          "note": 33,
+          "type": "pad"
+        },
+        "deck1_loop_pad2": {
+          "status": 150,
+          "note": 34,
+          "type": "pad"
+        },
+        "deck1_loop_pad3": {
+          "status": 150,
+          "note": 35,
+          "type": "pad"
+        },
+        "deck2_play": {
+          "status": 146,
+          "note": 7,
+          "type": "button"
+        },
+        "deck2_cue": {
+          "status": 146,
+          "note": 6,
+          "type": "button"
+        },
+        "deck2_sync": {
+          "status": 146,
+          "note": 5,
+          "type": "button"
+        },
+        "deck2_shift": {
+          "status": 146,
+          "note": 4,
+          "type": "button"
+        },
+        "deck2_loop": {
+          "status": 146,
+          "note": 3,
+          "type": "button"
+        },
+        "deck2_load": {
+          "status": 146,
+          "note": 13,
+          "type": "button"
+        },
+        "deck2_filter": {
+          "status": 178,
+          "control": 33,
+          "type": "knob"
+        },
+        "deck2_volume": {
+          "status": 178,
+          "control": 32,
+          "type": "fader"
+        },
+        "deck2_pitch": {
+          "status": 178,
+          "control": 40,
+          "type": "fader"
+        },
+        "deck2_eq_low": {
+          "status": 178,
+          "control": 34,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 178,
+          "control": 36,
+          "type": "knob"
+        },
+        "deck2_eq_high": {
+          "status": 178,
+          "control": 37,
+          "type": "knob"
+        },
+        "deck2_pad0": {
+          "status": 151,
+          "note": 0,
+          "type": "pad"
+        },
+        "deck2_pad1": {
+          "status": 151,
+          "note": 1,
+          "type": "pad"
+        },
+        "deck2_pad2": {
+          "status": 151,
+          "note": 2,
+          "type": "pad"
+        },
+        "deck2_pad3": {
+          "status": 151,
+          "note": 3,
+          "type": "pad"
+        },
+        "crossfader": {
+          "status": 172,
+          "control": 32,
+          "type": "fader"
+        },
+        "master_volume": {
+          "status": 176,
+          "control": 35,
+          "type": "knob"
+        },
+        "headphones_vol": {
+          "status": 176,
+          "control": 36,
+          "type": "knob"
+        }
       }
     },
     {
       "device_name": "Pioneer DJ DDJ-REV1",
-      "aliases": ["ddj-rev1", "ddj rev1", "pioneer rev1"],
+      "aliases": [
+        "ddj-rev1",
+        "ddj rev1",
+        "pioneer rev1"
+      ],
       "manufacturer": "Pioneer DJ",
       "mappings": {
-        "deck1_play":     { "status": 144, "note": 11,  "channel": 0, "type": "button" },
-        "deck1_cue":      { "status": 144, "note": 12,  "channel": 0, "type": "button" },
-        "deck1_sync":     { "status": 144, "note": 88,  "channel": 0, "type": "button" },
-        "deck1_jog":      { "status": 176, "control": 33, "channel": 0, "type": "jog" },
-        "deck1_volume":   { "status": 176, "control": 19, "channel": 0, "type": "fader" },
-        "deck1_pitch":    { "status": 176, "control": 0,  "channel": 0, "type": "fader" },
-        "deck1_eq_high":  { "status": 176, "control": 70, "channel": 0, "type": "knob" },
-        "deck1_eq_mid":   { "status": 176, "control": 71, "channel": 0, "type": "knob" },
-        "deck1_eq_low":   { "status": 176, "control": 72, "channel": 0, "type": "knob" },
-        "deck1_filter":   { "status": 176, "control": 23, "channel": 0, "type": "knob" },
-        "deck1_pad0":     { "status": 153, "note": 0,  "channel": 9, "type": "pad" },
-        "deck1_pad1":     { "status": 153, "note": 1,  "channel": 9, "type": "pad" },
-        "deck1_pad2":     { "status": 153, "note": 2,  "channel": 9, "type": "pad" },
-        "deck1_pad3":     { "status": 153, "note": 3,  "channel": 9, "type": "pad" },
-        "deck2_play":     { "status": 145, "note": 11,  "channel": 1, "type": "button" },
-        "deck2_cue":      { "status": 145, "note": 12,  "channel": 1, "type": "button" },
-        "deck2_sync":     { "status": 145, "note": 88,  "channel": 1, "type": "button" },
-        "deck2_jog":      { "status": 177, "control": 33, "channel": 1, "type": "jog" },
-        "deck2_volume":   { "status": 177, "control": 19, "channel": 1, "type": "fader" },
-        "deck2_pitch":    { "status": 177, "control": 0,  "channel": 1, "type": "fader" },
-        "deck2_eq_high":  { "status": 177, "control": 70, "channel": 1, "type": "knob" },
-        "deck2_eq_mid":   { "status": 177, "control": 71, "channel": 1, "type": "knob" },
-        "deck2_eq_low":   { "status": 177, "control": 72, "channel": 1, "type": "knob" },
-        "deck2_filter":   { "status": 177, "control": 23, "channel": 1, "type": "knob" },
-        "deck2_pad0":     { "status": 154, "note": 0,  "channel": 10, "type": "pad" },
-        "deck2_pad1":     { "status": 154, "note": 1,  "channel": 10, "type": "pad" },
-        "deck2_pad2":     { "status": 154, "note": 2,  "channel": 10, "type": "pad" },
-        "deck2_pad3":     { "status": 154, "note": 3,  "channel": 10, "type": "pad" },
-        "crossfader":     { "status": 176, "control": 64, "channel": 0, "type": "fader" }
+        "deck1_play": {
+          "status": 144,
+          "note": 11,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_cue": {
+          "status": 144,
+          "note": 12,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_sync": {
+          "status": 144,
+          "note": 88,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_jog": {
+          "status": 176,
+          "control": 33,
+          "channel": 0,
+          "type": "jog"
+        },
+        "deck1_volume": {
+          "status": 176,
+          "control": 19,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_pitch": {
+          "status": 176,
+          "control": 0,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_eq_high": {
+          "status": 176,
+          "control": 70,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 176,
+          "control": 71,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_low": {
+          "status": 176,
+          "control": 72,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_filter": {
+          "status": 176,
+          "control": 23,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_pad0": {
+          "status": 153,
+          "note": 0,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad1": {
+          "status": 153,
+          "note": 1,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad2": {
+          "status": 153,
+          "note": 2,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad3": {
+          "status": 153,
+          "note": 3,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_play": {
+          "status": 145,
+          "note": 11,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_cue": {
+          "status": 145,
+          "note": 12,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_sync": {
+          "status": 145,
+          "note": 88,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_jog": {
+          "status": 177,
+          "control": 33,
+          "channel": 1,
+          "type": "jog"
+        },
+        "deck2_volume": {
+          "status": 177,
+          "control": 19,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_pitch": {
+          "status": 177,
+          "control": 0,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_eq_high": {
+          "status": 177,
+          "control": 70,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 177,
+          "control": 71,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_low": {
+          "status": 177,
+          "control": 72,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_filter": {
+          "status": 177,
+          "control": 23,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_pad0": {
+          "status": 154,
+          "note": 0,
+          "channel": 10,
+          "type": "pad"
+        },
+        "deck2_pad1": {
+          "status": 154,
+          "note": 1,
+          "channel": 10,
+          "type": "pad"
+        },
+        "deck2_pad2": {
+          "status": 154,
+          "note": 2,
+          "channel": 10,
+          "type": "pad"
+        },
+        "deck2_pad3": {
+          "status": 154,
+          "note": 3,
+          "channel": 10,
+          "type": "pad"
+        },
+        "crossfader": {
+          "status": 176,
+          "control": 64,
+          "channel": 0,
+          "type": "fader"
+        }
       }
     },
     {
       "device_name": "Pioneer DJ DDJ-400",
-      "aliases": ["ddj-400", "ddj400", "pioneer ddj 400"],
+      "aliases": [
+        "ddj-400",
+        "ddj400",
+        "pioneer ddj 400"
+      ],
       "manufacturer": "Pioneer DJ",
       "mappings": {
-        "deck1_play":    { "status": 144, "note": 11, "channel": 0, "type": "button" },
-        "deck1_cue":     { "status": 144, "note": 12, "channel": 0, "type": "button" },
-        "deck1_sync":    { "status": 144, "note": 88, "channel": 0, "type": "button" },
-        "deck1_jog":     { "status": 176, "control": 33, "channel": 0, "type": "jog" },
-        "deck1_volume":  { "status": 176, "control": 19, "channel": 0, "type": "fader" },
-        "deck1_pitch":   { "status": 176, "control": 0,  "channel": 0, "type": "fader" },
-        "deck1_eq_high": { "status": 176, "control": 7,  "channel": 0, "type": "knob" },
-        "deck1_eq_mid":  { "status": 176, "control": 11, "channel": 0, "type": "knob" },
-        "deck1_eq_low":  { "status": 176, "control": 8,  "channel": 0, "type": "knob" },
-        "deck2_play":    { "status": 145, "note": 11, "channel": 1, "type": "button" },
-        "deck2_cue":     { "status": 145, "note": 12, "channel": 1, "type": "button" },
-        "deck2_sync":    { "status": 145, "note": 88, "channel": 1, "type": "button" },
-        "deck2_jog":     { "status": 177, "control": 33, "channel": 1, "type": "jog" },
-        "deck2_volume":  { "status": 177, "control": 19, "channel": 1, "type": "fader" },
-        "deck2_pitch":   { "status": 177, "control": 0,  "channel": 1, "type": "fader" },
-        "deck2_eq_high": { "status": 177, "control": 7,  "channel": 1, "type": "knob" },
-        "deck2_eq_mid":  { "status": 177, "control": 11, "channel": 1, "type": "knob" },
-        "deck2_eq_low":  { "status": 177, "control": 8,  "channel": 1, "type": "knob" },
-        "crossfader":    { "status": 176, "control": 23, "channel": 0, "type": "fader" }
+        "deck1_play": {
+          "status": 144,
+          "note": 11,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_cue": {
+          "status": 144,
+          "note": 12,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_sync": {
+          "status": 144,
+          "note": 88,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_jog": {
+          "status": 176,
+          "control": 33,
+          "channel": 0,
+          "type": "jog"
+        },
+        "deck1_volume": {
+          "status": 176,
+          "control": 19,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_pitch": {
+          "status": 176,
+          "control": 0,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_eq_high": {
+          "status": 176,
+          "control": 7,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 176,
+          "control": 11,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_low": {
+          "status": 176,
+          "control": 8,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_play": {
+          "status": 145,
+          "note": 11,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_cue": {
+          "status": 145,
+          "note": 12,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_sync": {
+          "status": 145,
+          "note": 88,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_jog": {
+          "status": 177,
+          "control": 33,
+          "channel": 1,
+          "type": "jog"
+        },
+        "deck2_volume": {
+          "status": 177,
+          "control": 19,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_pitch": {
+          "status": 177,
+          "control": 0,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_eq_high": {
+          "status": 177,
+          "control": 7,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 177,
+          "control": 11,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_low": {
+          "status": 177,
+          "control": 8,
+          "channel": 1,
+          "type": "knob"
+        },
+        "crossfader": {
+          "status": 176,
+          "control": 23,
+          "channel": 0,
+          "type": "fader"
+        }
       }
     },
     {
       "device_name": "Numark Mixtrack Pro FX",
-      "aliases": ["mixtrack pro fx", "numark mixtrack", "mixtrack fx"],
+      "aliases": [
+        "mixtrack pro fx",
+        "numark mixtrack",
+        "mixtrack fx"
+      ],
       "manufacturer": "Numark",
       "mappings": {
-        "deck1_play":    { "status": 144, "note": 0,  "channel": 0, "type": "button" },
-        "deck1_cue":     { "status": 144, "note": 1,  "channel": 0, "type": "button" },
-        "deck1_sync":    { "status": 144, "note": 2,  "channel": 0, "type": "button" },
-        "deck1_jog":     { "status": 176, "control": 33, "channel": 0, "type": "jog" },
-        "deck1_volume":  { "status": 176, "control": 2,  "channel": 0, "type": "fader" },
-        "deck1_pitch":   { "status": 176, "control": 3,  "channel": 0, "type": "fader" },
-        "deck1_eq_high": { "status": 176, "control": 7,  "channel": 0, "type": "knob" },
-        "deck1_eq_mid":  { "status": 176, "control": 11, "channel": 0, "type": "knob" },
-        "deck1_eq_low":  { "status": 176, "control": 8,  "channel": 0, "type": "knob" },
-        "deck2_play":    { "status": 145, "note": 0,  "channel": 1, "type": "button" },
-        "deck2_cue":     { "status": 145, "note": 1,  "channel": 1, "type": "button" },
-        "deck2_sync":    { "status": 145, "note": 2,  "channel": 1, "type": "button" },
-        "deck2_jog":     { "status": 177, "control": 33, "channel": 1, "type": "jog" },
-        "deck2_volume":  { "status": 177, "control": 2,  "channel": 1, "type": "fader" },
-        "deck2_pitch":   { "status": 177, "control": 3,  "channel": 1, "type": "fader" },
-        "deck2_eq_high": { "status": 177, "control": 7,  "channel": 1, "type": "knob" },
-        "deck2_eq_mid":  { "status": 177, "control": 11, "channel": 1, "type": "knob" },
-        "deck2_eq_low":  { "status": 177, "control": 8,  "channel": 1, "type": "knob" },
-        "crossfader":    { "status": 176, "control": 23, "channel": 0, "type": "fader" }
+        "deck1_play": {
+          "status": 144,
+          "note": 0,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_cue": {
+          "status": 144,
+          "note": 1,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_sync": {
+          "status": 144,
+          "note": 2,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_jog": {
+          "status": 176,
+          "control": 33,
+          "channel": 0,
+          "type": "jog"
+        },
+        "deck1_volume": {
+          "status": 176,
+          "control": 2,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_pitch": {
+          "status": 176,
+          "control": 3,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_eq_high": {
+          "status": 176,
+          "control": 7,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 176,
+          "control": 11,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_low": {
+          "status": 176,
+          "control": 8,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_play": {
+          "status": 145,
+          "note": 0,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_cue": {
+          "status": 145,
+          "note": 1,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_sync": {
+          "status": 145,
+          "note": 2,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_jog": {
+          "status": 177,
+          "control": 33,
+          "channel": 1,
+          "type": "jog"
+        },
+        "deck2_volume": {
+          "status": 177,
+          "control": 2,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_pitch": {
+          "status": 177,
+          "control": 3,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_eq_high": {
+          "status": 177,
+          "control": 7,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 177,
+          "control": 11,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_low": {
+          "status": 177,
+          "control": 8,
+          "channel": 1,
+          "type": "knob"
+        },
+        "crossfader": {
+          "status": 176,
+          "control": 23,
+          "channel": 0,
+          "type": "fader"
+        }
       }
     },
     {
       "device_name": "Native Instruments Traktor Kontrol S2",
-      "aliases": ["traktor s2", "kontrol s2", "ni s2"],
+      "aliases": [
+        "traktor s2",
+        "kontrol s2",
+        "ni s2"
+      ],
       "manufacturer": "Native Instruments",
       "mappings": {
-        "deck1_play":    { "status": 144, "note": 90, "channel": 0, "type": "button" },
-        "deck1_cue":     { "status": 144, "note": 92, "channel": 0, "type": "button" },
-        "deck1_sync":    { "status": 144, "note": 86, "channel": 0, "type": "button" },
-        "deck1_jog":     { "status": 176, "control": 60, "channel": 0, "type": "jog" },
-        "deck1_volume":  { "status": 176, "control": 2,  "channel": 0, "type": "fader" },
-        "deck1_pitch":   { "status": 224, "control": 0,  "channel": 0, "type": "pitch" },
-        "deck1_eq_high": { "status": 176, "control": 7,  "channel": 0, "type": "knob" },
-        "deck1_eq_mid":  { "status": 176, "control": 11, "channel": 0, "type": "knob" },
-        "deck1_eq_low":  { "status": 176, "control": 8,  "channel": 0, "type": "knob" },
-        "deck2_play":    { "status": 145, "note": 90, "channel": 1, "type": "button" },
-        "deck2_cue":     { "status": 145, "note": 92, "channel": 1, "type": "button" },
-        "deck2_sync":    { "status": 145, "note": 86, "channel": 1, "type": "button" },
-        "deck2_jog":     { "status": 177, "control": 60, "channel": 1, "type": "jog" },
-        "deck2_volume":  { "status": 177, "control": 2,  "channel": 1, "type": "fader" },
-        "deck2_pitch":   { "status": 225, "control": 0,  "channel": 1, "type": "pitch" },
-        "deck2_eq_high": { "status": 177, "control": 7,  "channel": 1, "type": "knob" },
-        "deck2_eq_mid":  { "status": 177, "control": 11, "channel": 1, "type": "knob" },
-        "deck2_eq_low":  { "status": 177, "control": 8,  "channel": 1, "type": "knob" },
-        "crossfader":    { "status": 176, "control": 23, "channel": 0, "type": "fader" }
+        "deck1_play": {
+          "status": 144,
+          "note": 90,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_cue": {
+          "status": 144,
+          "note": 92,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_sync": {
+          "status": 144,
+          "note": 86,
+          "channel": 0,
+          "type": "button"
+        },
+        "deck1_jog": {
+          "status": 176,
+          "control": 60,
+          "channel": 0,
+          "type": "jog"
+        },
+        "deck1_volume": {
+          "status": 176,
+          "control": 2,
+          "channel": 0,
+          "type": "fader"
+        },
+        "deck1_pitch": {
+          "status": 224,
+          "control": 0,
+          "channel": 0,
+          "type": "pitch"
+        },
+        "deck1_eq_high": {
+          "status": 176,
+          "control": 7,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 176,
+          "control": 11,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_low": {
+          "status": 176,
+          "control": 8,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_play": {
+          "status": 145,
+          "note": 90,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_cue": {
+          "status": 145,
+          "note": 92,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_sync": {
+          "status": 145,
+          "note": 86,
+          "channel": 1,
+          "type": "button"
+        },
+        "deck2_jog": {
+          "status": 177,
+          "control": 60,
+          "channel": 1,
+          "type": "jog"
+        },
+        "deck2_volume": {
+          "status": 177,
+          "control": 2,
+          "channel": 1,
+          "type": "fader"
+        },
+        "deck2_pitch": {
+          "status": 225,
+          "control": 0,
+          "channel": 1,
+          "type": "pitch"
+        },
+        "deck2_eq_high": {
+          "status": 177,
+          "control": 7,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 177,
+          "control": 11,
+          "channel": 1,
+          "type": "knob"
+        },
+        "deck2_eq_low": {
+          "status": 177,
+          "control": 8,
+          "channel": 1,
+          "type": "knob"
+        },
+        "crossfader": {
+          "status": 176,
+          "control": 23,
+          "channel": 0,
+          "type": "fader"
+        }
       }
     },
     {
       "device_name": "Akai Professional MPK Mini MK4",
-      "aliases": ["mpk mini", "akai mpk", "mpk mini 4", "akai mini"],
+      "aliases": [
+        "mpk mini",
+        "akai mpk",
+        "mpk mini 4",
+        "akai mini"
+      ],
       "manufacturer": "Akai Professional",
       "mappings": {
-        "deck1_pad0":  { "status": 137, "note": 36, "channel": 9,  "type": "pad" },
-        "deck1_pad1":  { "status": 137, "note": 37, "channel": 9,  "type": "pad" },
-        "deck1_pad2":  { "status": 137, "note": 38, "channel": 9,  "type": "pad" },
-        "deck1_pad3":  { "status": 137, "note": 39, "channel": 9,  "type": "pad" },
-        "deck1_pad4":  { "status": 137, "note": 40, "channel": 9,  "type": "pad" },
-        "deck1_pad5":  { "status": 137, "note": 41, "channel": 9,  "type": "pad" },
-        "deck1_pad6":  { "status": 137, "note": 42, "channel": 9,  "type": "pad" },
-        "deck1_pad7":  { "status": 137, "note": 43, "channel": 9,  "type": "pad" },
-        "deck2_pad0":  { "status": 137, "note": 44, "channel": 9,  "type": "pad" },
-        "deck2_pad1":  { "status": 137, "note": 45, "channel": 9,  "type": "pad" },
-        "deck2_pad2":  { "status": 137, "note": 46, "channel": 9,  "type": "pad" },
-        "deck2_pad3":  { "status": 137, "note": 47, "channel": 9,  "type": "pad" },
-        "deck2_pad4":  { "status": 137, "note": 48, "channel": 9,  "type": "pad" },
-        "deck2_pad5":  { "status": 137, "note": 49, "channel": 9,  "type": "pad" },
-        "deck2_pad6":  { "status": 137, "note": 50, "channel": 9,  "type": "pad" },
-        "deck2_pad7":  { "status": 137, "note": 51, "channel": 9,  "type": "pad" },
-        "deck1_eq_low":    { "status": 176, "control": 24, "channel": 0, "type": "knob" },
-        "deck1_eq_mid":    { "status": 176, "control": 25, "channel": 0, "type": "knob" },
-        "deck1_eq_high":   { "status": 176, "control": 26, "channel": 0, "type": "knob" },
-        "deck1_filter":    { "status": 176, "control": 27, "channel": 0, "type": "knob" },
-        "deck2_eq_low":    { "status": 176, "control": 28, "channel": 0, "type": "knob" },
-        "deck2_eq_mid":    { "status": 176, "control": 29, "channel": 0, "type": "knob" },
-        "deck2_eq_high":   { "status": 176, "control": 30, "channel": 0, "type": "knob" },
-        "deck2_filter":    { "status": 176, "control": 31, "channel": 0, "type": "knob" },
-        "pitch_wheel":     { "status": 224, "control": 0,  "channel": 0, "type": "pitch" }
+        "deck1_pad0": {
+          "status": 137,
+          "note": 36,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad1": {
+          "status": 137,
+          "note": 37,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad2": {
+          "status": 137,
+          "note": 38,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad3": {
+          "status": 137,
+          "note": 39,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad4": {
+          "status": 137,
+          "note": 40,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad5": {
+          "status": 137,
+          "note": 41,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad6": {
+          "status": 137,
+          "note": 42,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_pad7": {
+          "status": 137,
+          "note": 43,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad0": {
+          "status": 137,
+          "note": 44,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad1": {
+          "status": 137,
+          "note": 45,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad2": {
+          "status": 137,
+          "note": 46,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad3": {
+          "status": 137,
+          "note": 47,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad4": {
+          "status": 137,
+          "note": 48,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad5": {
+          "status": 137,
+          "note": 49,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad6": {
+          "status": 137,
+          "note": 50,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck2_pad7": {
+          "status": 137,
+          "note": 51,
+          "channel": 9,
+          "type": "pad"
+        },
+        "deck1_eq_low": {
+          "status": 176,
+          "control": 24,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_mid": {
+          "status": 176,
+          "control": 25,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_eq_high": {
+          "status": 176,
+          "control": 26,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck1_filter": {
+          "status": 176,
+          "control": 27,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_eq_low": {
+          "status": 176,
+          "control": 28,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_eq_mid": {
+          "status": 176,
+          "control": 29,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_eq_high": {
+          "status": 176,
+          "control": 30,
+          "channel": 0,
+          "type": "knob"
+        },
+        "deck2_filter": {
+          "status": 176,
+          "control": 31,
+          "channel": 0,
+          "type": "knob"
+        },
+        "pitch_wheel": {
+          "status": 224,
+          "control": 0,
+          "channel": 0,
+          "type": "pitch"
+        }
       }
     }
   ]
