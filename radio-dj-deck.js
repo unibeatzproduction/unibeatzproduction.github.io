@@ -553,9 +553,8 @@ function runDeckAction(action, value=null){
   // Volume faders
   if(action==='volumeA') { deckA.volume=v/127; const g=document.getElementById('gainA'); if(g) g.value=Math.round((v/127)*100); }
   if(action==='volumeB') { deckB.volume=v/127; const g=document.getElementById('gainB'); if(g) g.value=Math.round((v/127)*100); }
-  // Crossfader — MK3 sends 0-127, center=88 (not 64)
+  // Crossfader — 0=full left, 64=center, 127=full right
   if(action==='crossfader') {
-    // MK3 crossfader: 0=full left, 88=center, 127=full right
     const normalized = Math.round((v / 127) * 100);
     const cf=document.getElementById('crossfader'); if(cf) cf.value=normalized;
     setVolumes();
@@ -1107,6 +1106,7 @@ async function pushNowPlayingToFirestore(trackData) {
 }
 
 // ── Boot ──
+let mappings = {};
 try{ mappings=JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings')||'{}')||{}; }catch(e){ mappings={}; }
 setVolumes(); renderMappings(); renderDeckQueue('A'); renderDeckQueue('B'); loadQueue();
 
