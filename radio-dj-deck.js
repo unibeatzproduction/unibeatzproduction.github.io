@@ -90,8 +90,8 @@ function loadTo(deck, item){
     renderDeckQueue('B');
   }
   note('Loaded ' + name + ' to Deck ' + deck, '#5dff9e');
-  // Try scratch buffer in background — won't block playback if it fails
-  try { loadScratchBuffer(deck, url); } catch(e) {}
+  // Scratch buffer disabled — was causing loop artifacts
+  // try { loadScratchBuffer(deck, url); } catch(e) {}
   // Push now playing directly to Firestore so Talk Studio hosts see it
   pushNowPlayingToFirestore({
     trackTitle: item.title || name,
@@ -535,16 +535,20 @@ function runDeckAction(action, value=null){
   if(action==='syncB')  { if(!deckA.paused) deckB.playbackRate=deckA.playbackRate; }
   // Pitch fader — center=64, range -8% to +8%
   if(action==='pitchA') {
-    const pct = ((v-64)/64)*8;
-    deckA.playbackRate = 1.0+(pct/100);
-    const el=document.getElementById('pitchAVal'); if(el) el.textContent=(pct>0?'+':'')+pct.toFixed(1)+'%';
-    const sl=document.getElementById('pitchA'); if(sl) sl.value=pct;
+    // Tempo nudge ring around jog wheel — temporary speed adjust for beatmatching
+    // Center=64, values above=speed up, below=slow down, springs back when released
+    if(Math.abs(v - 64) < 3) { deckA.playbackRate = 1.0; return; } // center = normal
+    const nudge = ((v - 64) / 64) * 0.04; // max ±4% nudge
+    deckA.playbackRate = Math.max(0.9, Math.min(1.1, 1.0 + nudge));
+    clearTimeout(runDeckAction._nudgeTimerA);
+    runDeckAction._nudgeTimerA = setTimeout(() => { deckA.playbackRate = 1.0; }, 300);
   }
   if(action==='pitchB') {
-    const pct = ((v-64)/64)*8;
-    deckB.playbackRate = 1.0+(pct/100);
-    const el=document.getElementById('pitchBVal'); if(el) el.textContent=(pct>0?'+':'')+pct.toFixed(1)+'%';
-    const sl=document.getElementById('pitchB'); if(sl) sl.value=pct;
+    if(Math.abs(v - 64) < 3) { deckB.playbackRate = 1.0; return; }
+    const nudge = ((v - 64) / 64) * 0.04;
+    deckB.playbackRate = Math.max(0.9, Math.min(1.1, 1.0 + nudge));
+    clearTimeout(runDeckAction._nudgeTimerB);
+    runDeckAction._nudgeTimerB = setTimeout(() => { deckB.playbackRate = 1.0; }, 300);
   }
   // Volume faders
   if(action==='volumeA') { deckA.volume=v/127; const g=document.getElementById('gainA'); if(g) g.value=Math.round((v/127)*100); }
@@ -631,6 +635,8 @@ function runDeckAction(action, value=null){
   if(action==='stopRecording')  stopRecording();
 }
 runDeckAction._jogTimer = null;
+runDeckAction._nudgeTimerA = null;
+runDeckAction._nudgeTimerB = null;
 
 // Bridge: dj-midi-controller.js dispatches 'ub-dj-action' custom events
 window.ubDeckAction = runDeckAction;
@@ -738,9 +744,6 @@ function getEqCtx(){
 }
 
 function buildEQ(deck){
-  // EQ routing disabled — prevents audio kill
-  // Will be re-enabled once routing is confirmed
-  return;
   const ctx = getEqCtx();
   const audio = deck === 'A' ? deckA : deckB;
   if(_eq[deck].built) return;
@@ -1004,8 +1007,19 @@ function getCurrentScratchPos(deck){
   return s.startOffset + (ctx.currentTime - s.startTime) * s.rate;
 }
 
-// ── Updated pitch wheel scratch using buffer ──
+// ── Pitch wheel — simple playback rate (scratch engine disabled) ──
 function handlePitchWheel(lsb, msb){
+  const raw = ((msb & 0x7F) << 7) | (lsb & 0x7F);
+  const centered = raw - 8192;
+  const normalized = centered / 8192;
+  const audio = (!deckA.paused) ? deckA : (!deckB.paused) ? deckB : deckA;
+  if(Math.abs(normalized) < 0.04){ audio.playbackRate = 1.0; return; }
+  audio.playbackRate = Math.max(0.1, Math.min(3.0, 1.0 + normalized * 1.5));
+  clearTimeout(handlePitchWheel._t);
+  handlePitchWheel._t = setTimeout(() => { audio.playbackRate = 1.0; }, 200);
+}
+handlePitchWheel._t = null;
+function _handlePitchWheelScratch_DISABLED(lsb, msb){
   const raw = ((msb & 0x7F) << 7) | (lsb & 0x7F);
   const centered = raw - 8192;
   const normalized = centered / 8192; // -1.0 to +1.0
