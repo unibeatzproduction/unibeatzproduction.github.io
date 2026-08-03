@@ -339,8 +339,16 @@
       const isDeck2 = (status === 146 || status === 178 || status === 151);
       const d = isDeck1 ? 'A' : isDeck2 ? 'B' : null;
 
-      // Crossfader — status 172, CC 32
-      if (status === 172 && n === 32) return 'crossfader';
+      // Crossfader — status 176, CC 0 (MSB)
+      if (status === 176 && n === 0)  return 'crossfader';
+      // Master vol — status 176, CC 3 (MSB)
+      if (status === 176 && n === 3)  return 'masterVol';
+      // Headphones vol — status 176, CC 4 (MSB)
+      if (status === 176 && n === 4)  return 'headphonesVol';
+      // Browser knob — status 176, CC 1
+      if (status === 176 && n === 1)  return 'browserScroll';
+      // Ignore LSB CCs for global controls
+      if (status === 176 && (n === 32 || n === 35 || n === 36)) return null;
 
       // Master vol — status 176, CC 35
       if (status === 176 && n === 35) return 'masterVol';
@@ -370,19 +378,20 @@
         if (n === 10) return `stemInstrumental${d}`;
       }
 
-      // Deck CC (knobs/faders)
+      // Deck CC — Hercules MK3 uses 14-bit (MSB+LSB pairs)
+      // MSB CCs: 2=tempo ring, 4=EQ Low, 8=volume, 10=jog
+      // LSB CCs: 34=tempo, 36=EQ Low LSB, 40=volume LSB
       if (status === 177 || status === 178) {
-        if (n === 33) return `filter${d}`;
-        if (n === 32) return `volume${d}`;
-        if (n === 40) return `pitch${d}`;
-        if (n === 34) return `eqLow${d}`;
-        if (n === 36) return `eqMid${d}`;
-        if (n === 37) return `eqHigh${d}`;
+        if (n === 10) return `jog${d}`;       // Jog wheel scratch
+        if (n === 2)  return `pitch${d}`;     // Tempo ring MSB
+        if (n === 8)  return `volume${d}`;    // Volume fader MSB
+        if (n === 4)  return `eqLow${d}`;     // EQ Low MSB
+        if (n === 33) return `filter${d}`;    // Filter knob
+        if (n === 36) return `eqMid${d}`;     // EQ Mid
+        if (n === 37) return `eqHigh${d}`;    // EQ High
+        // LSB CCs — ignore, MSB is enough for control
+        if (n === 34 || n === 36 || n === 40) return null;
       }
-
-      // Jog wheel — same CC as volume but different status? 
-      // Need to verify — using filter CC for now
-      if ((status === 177 || status === 178) && n === 33) return `jog${d}`;
 
       // Hot cue pads (status 150 deck1, 151 deck2)
       if (status === 150 || status === 151) {
