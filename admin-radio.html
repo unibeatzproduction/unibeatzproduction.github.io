@@ -10,12 +10,71 @@
 </style>
 </head>
 <body>
-<nav class="nav"><div class="nav-inner"><a class="brand" href="/radio.html">⚡ UNI RADIO ADMIN</a><div class="links"><a href="/radio.html">Radio</a><a href="/radio-dj-program.html">DJ Program</a><a href="/index.html">Empire</a><button id="lockBtn" type="button">Lock</button></div></div></nav>
+<nav class="nav"><div class="nav-inner"><a class="brand" href="radio.html">⚡ UNI RADIO ADMIN</a><div class="links"><a href="radio.html">Radio</a><a href="radio-dj-program.html">DJ Program</a><a href="index.html">Empire</a><button id="lockBtn" type="button">Lock</button></div></div></nav>
 <div id="lockScreen" class="locked"><div class="eyebrow">Admin Access</div><h1>Radio Admin</h1><p class="sub" style="margin:auto">Enter your radio admin code to moderate submissions and control the station.</p><div style="margin-top:14px"><input id="adminCode" class="input" type="password" placeholder="Admin code"/></div><button id="unlockBtn" class="btn btn-gold" style="margin-top:12px">Unlock Admin</button><div id="lockNotice" class="notice"></div></div>
 <main id="adminApp" class="wrap hidden">
 <section class="hero"><div class="eyebrow">Radio Moderation · UniBeatzProduction</div><h1 class="h1">Radio <span>Administration</span></h1><p class="sub">Approve tracks, feature records, reject unsafe submissions, and control the public radio station rotation.</p><div class="stats"><div class="stat"><b id="statTotal">0</b><span>Total</span></div><div class="stat"><b id="statPending">0</b><span>Pending</span></div><div class="stat"><b id="statApproved">0</b><span>Approved</span></div><div class="stat"><b id="statFeatured">0</b><span>Featured</span></div><div class="stat"><b id="statRejected">0</b><span>Rejected</span></div></div></section>
-<div class="grid"><section class="panel"><h2>Submission Queue</h2><div class="tabs"><button class="btn btn-gold" data-filter="pending">Pending</button><button class="btn btn-blue" data-filter="approved">Approved</button><button class="btn btn-blue" data-filter="featured">Featured</button><button class="btn btn-red" data-filter="rejected">Rejected</button><button class="btn btn-blue" data-filter="all">All</button><button id="reloadBtn" class="btn btn-blue">Reload</button></div><div id="adminList" class="track-list"><div class="empty">Loading submissions...</div></div></section><aside class="panel"><h2>Station Controls</h2><div class="form"><label class="small">Station Title</label><input id="stationTitle" class="input" placeholder="Empire Rotation"/><label class="small">Station Message / Announcement</label><textarea id="stationMessage" placeholder="Now live on UniBeatz Radio..."></textarea><label class="small">Current DJ / Host</label><input id="stationDj" class="input" placeholder="UniBeatz Radio"/><div class="two"><button id="saveStationBtn" class="btn btn-gold">Save Station</button><button id="clearNowBtn" class="btn btn-blue">Clear Now Playing</button></div><div id="stationNotice" class="notice"></div></div><hr style="border-color:rgba(255,255,255,.08);margin:16px 0"><h2>Admin Notes</h2><p class="small">Approved records appear on radio.html. Featured records rise to the top of the public rotation. Rejected records stay archived but hidden from listeners.</p></aside></div>
+<div class="grid"><section class="panel"><h2>Submission Queue</h2><div class="tabs"><button class="btn btn-gold" data-filter="pending">Pending</button><button class="btn btn-blue" data-filter="approved">Approved</button><button class="btn btn-blue" data-filter="featured">Featured</button><button class="btn btn-red" data-filter="rejected">Rejected</button><button class="btn btn-blue" data-filter="all">All</button><button id="reloadBtn" class="btn btn-blue">Reload</button></div><div id="adminList" class="track-list"><div class="empty">Loading submissions...</div></div></section><aside class="panel"><h2>Station Controls</h2><div class="form"><label class="small">Station Title</label><input id="stationTitle" class="input" placeholder="Empire Rotation"/><label class="small">Station Message / Announcement</label><textarea id="stationMessage" placeholder="Now live on UniBeatz Radio..."></textarea><label class="small">Current DJ / Host</label><input id="stationDj" class="input" placeholder="UniBeatz Radio"/><div class="two"><button id="saveStationBtn" class="btn btn-gold">Save Station</button><button id="clearNowBtn" class="btn btn-blue">Clear Now Playing</button></div><div id="stationNotice" class="notice"></div></div><hr style="border-color:rgba(255,255,255,.08);margin:16px 0"><h2>Admin Notes</h2><p class="small">Approved records appear on radio.html. Featured records rise to the top of the public rotation. Rejected records stay archived but hidden from listeners.</p></aside>
+
+  <!-- Ad Approval Panel -->
+  <aside class="panel" style="margin-top:16px;">
+    <h2>📢 Ad Submissions</h2>
+    <button id="ubAdAprovalBtn" onclick="loadPendingAds()" 
+      style="padding:8px 16px;border:1px solid rgba(201,168,76,.4);border-radius:7px;background:rgba(201,168,76,.08);color:#F0C040;font-family:Orbitron,sans-serif;font-size:.4rem;cursor:pointer;margin-bottom:12px;">
+      ↻ LOAD PENDING ADS
+    </button>
+    <div id="ubAdminAds"><p style="color:#6b7280;font-size:.8rem;">Click Load to view pending ad submissions.</p></div>
+  </aside>
+
+</div>
 </main>
+<script>
+async function loadPendingAds() {
+  const container = document.getElementById('ubAdminAds');
+  if (!container) return;
+  container.innerHTML = '<p style="color:#9aa3b8;font-size:.8rem;">Loading...</p>';
+  try {
+    const { collection, query, where, getDocs, doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const db = window.UB_FIREBASE && window.UB_FIREBASE.db;
+    if (!db) { container.innerHTML = '<p style="color:#ff7474">Firebase not ready. Reload page.</p>'; return; }
+    const snap = await getDocs(query(collection(db, 'radio_ads'), where('status', '==', 'pending')));
+    if (snap.empty) { container.innerHTML = '<p style="color:#6b7280;font-size:.8rem;">No pending ads.</p>'; return; }
+    const playsMap = { basic:64, standard:160, premium:400 };
+    let html = '';
+    snap.forEach(d => {
+      const ad = d.data();
+      html += '<div style="padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:10px;background:#0f0f14;margin-bottom:10px;">' +
+        '<div style="font-family:Orbitron,sans-serif;font-size:.5rem;color:#F0C040;margin-bottom:6px;">' + ad.brandName + ' · ' + ad.packageName + ' · $' + ad.price + '</div>' +
+        '<div style="font-size:.8rem;color:#9aa3b8;margin-bottom:4px;">Contact: ' + ad.contactName + ' · ' + ad.email + '</div>' +
+        '<div style="font-size:.75rem;color:#6b7280;margin-bottom:8px;">' + (ad.description||'No description') + '</div>' +
+        '<audio controls src="' + ad.audioUrl + '" style="width:100%;margin-bottom:8px;"></audio>' +
+        '<div style="display:flex;gap:8px;">' +
+        '<button onclick="approveAd('' + d.id + '',' + (playsMap[ad.package]||64) + ')" style="padding:7px 14px;border-radius:6px;background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.4);color:#00e676;font-family:Orbitron,sans-serif;font-size:.38rem;cursor:pointer;">✓ APPROVE</button>' +
+        '<button onclick="rejectAd('' + d.id + '')" style="padding:7px 14px;border-radius:6px;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.3);color:#ff7474;font-family:Orbitron,sans-serif;font-size:.38rem;cursor:pointer;">✕ REJECT</button>' +
+        '</div></div>';
+    });
+    container.innerHTML = html;
+  } catch(e) { container.innerHTML = '<p style="color:#ff7474">Error: ' + e.message + '</p>'; }
+}
+
+async function approveAd(id, totalPlays) {
+  const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+  const db = window.UB_FIREBASE && window.UB_FIREBASE.db;
+  if (!db) return;
+  await updateDoc(doc(db, 'radio_ads', id), { status:'approved', playsRemaining:totalPlays, approvedAt:new Date() });
+  alert('Ad approved!');
+  loadPendingAds();
+}
+
+async function rejectAd(id) {
+  const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+  const db = window.UB_FIREBASE && window.UB_FIREBASE.db;
+  if (!db) return;
+  await updateDoc(doc(db, 'radio_ads', id), { status:'rejected', rejectedAt:new Date() });
+  alert('Ad rejected.');
+  loadPendingAds();
+}
+</script>
 <script type="module" src="/unibeatz-notifications.js"></script>
 <script type="module" src="admin-radio.js"></script>
 <script type="module" src="admin-radio-panels.js"></script>

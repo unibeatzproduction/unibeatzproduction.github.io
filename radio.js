@@ -19,6 +19,66 @@ const auth    = getAuth(app);
 
 window.UB_FIREBASE = { app, auth, db, storage, onAuthStateChanged, ready: true };
 
+// ── Radio Ad Scheduler ──
+// Plays approved ads between tracks based on package play counts
+async function initAdScheduler() {
+  try {
+    const { collection, query, where, getDocs, doc, updateDoc, increment } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const db = window.UB_FIREBASE && window.UB_FIREBASE.db;
+    if (!db) return;
+
+    // Load approved active ads
+    const snap = await getDocs(query(
+      collection(db, 'radio_ads'),
+      where('status', '==', 'approved'),
+      where('playsRemaining', '>', 0)
+    ));
+
+    if (snap.empty) return;
+
+    const ads = [];
+    snap.forEach(d => ads.push({ id: d.id, ...d.data() }));
+
+    // Play an ad every N songs (based on package — basic=every 15, standard=every 6, premium=every 2.5)
+    let songCount = 0;
+    let adIndex = 0;
+
+    // Hook into main station audio ended event
+    const mainAudio = document.getElementById('ubBgAudio');
+    if (!mainAudio) return;
+
+    mainAudio.addEventListener('ended', async () => {
+      songCount++;
+      // Rotate through ads based on their weekly play frequency
+      const ad = ads[adIndex % ads.length];
+      if (!ad) return;
+
+      // Check if this ad should play this cycle
+      const shouldPlay = songCount % Math.max(1, Math.floor(168 / (ad.playsPerWeek || 4))) === 0;
+      if (!shouldPlay) return;
+
+      // Play the ad
+      const adAudio = new Audio(ad.audioUrl);
+      adAudio.play().catch(() => {});
+
+      // Decrement plays remaining in Firestore
+      try {
+        await updateDoc(doc(db, 'radio_ads', ad.id), {
+          playsRemaining: increment(-1),
+          lastPlayedAt: new Date()
+        });
+      } catch(e) {}
+
+      adIndex++;
+    });
+  } catch(e) {
+    console.warn('[ads] Scheduler init failed:', e.message);
+  }
+}
+
+// Start ad scheduler after page loads
+window.addEventListener('load', () => setTimeout(initAdScheduler, 3000));
+
 // Account button
 const accountBtn = document.getElementById('radioAccountBtn');
 accountBtn?.addEventListener('click', () => {
