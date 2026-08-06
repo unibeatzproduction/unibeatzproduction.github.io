@@ -8,10 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --bg0:#07070a;--bg1:#0f0f14;--bg2:#161620;--bg3:#1c1c28;
+  --bg0:#07070a;--bg1:#0f0f14;--bg2:#161620;
   --gold:#C9A84C;--gold-light:#F0C040;--cyan:#40D0FF;
   --green:#00e676;--red:#ff3c3c;--white:#f0ede8;--gray:#6b7280;--gray2:#9aa3b8;
-  --border:rgba(255,255,255,.07);--border-gold:rgba(201,168,76,.35);
+  --border:rgba(255,255,255,.08);--border-gold:rgba(201,168,76,.35);
   --font-display:'Bebas Neue',sans-serif;
   --font-ui:'Orbitron',sans-serif;
   --font-body:'Rajdhani',sans-serif;
@@ -19,225 +19,232 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg0);color:var(--white);font-family:var(--font-body);min-height:100vh;}
 
-/* Nav */
 nav{height:52px;background:rgba(7,7,10,.97);border-bottom:1px solid var(--border-gold);
   display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:10;}
 .nav-brand{font-family:var(--font-display);font-size:1.2rem;letter-spacing:3px;color:var(--gold-light);}
-.nav-links{display:flex;gap:12px;}
-.nav-links a{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);
-  text-decoration:none;padding:5px 10px;border-radius:6px;border:1px solid transparent;}
-.nav-links a:hover{border-color:var(--border-gold);color:var(--gold);}
+.nav-back{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);
+  text-decoration:none;padding:6px 12px;border-radius:6px;border:1px solid var(--border-gold);color:var(--gold);}
+
+.page{max-width:680px;margin:0 auto;padding:30px 20px 60px;}
 
 /* Hero */
-.hero{padding:60px 20px 40px;text-align:center;background:linear-gradient(180deg,rgba(201,168,76,.05) 0%,transparent 100%);}
-.hero-eyebrow{font-family:var(--font-ui);font-size:.44rem;letter-spacing:4px;color:var(--cyan);margin-bottom:12px;}
-.hero-title{font-family:var(--font-display);font-size:clamp(2.5rem,6vw,4.5rem);letter-spacing:4px;color:var(--gold-light);line-height:1.1;margin-bottom:16px;}
-.hero-sub{font-size:1.1rem;color:var(--gray2);max-width:560px;margin:0 auto;line-height:1.6;}
+.hero{text-align:center;padding:30px 0 36px;border-bottom:1px solid var(--border);margin-bottom:30px;}
+.hero-eyebrow{font-family:var(--font-ui);font-size:.42rem;letter-spacing:4px;color:var(--cyan);margin-bottom:10px;}
+.hero-title{font-family:var(--font-display);font-size:clamp(2.2rem,6vw,3.8rem);letter-spacing:3px;color:var(--gold-light);margin-bottom:12px;}
+.hero-sub{font-size:.95rem;color:var(--gray2);line-height:1.6;max-width:480px;margin:0 auto;}
 
-/* Packages */
-.packages{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;
-  max-width:1000px;margin:50px auto;padding:0 20px;}
-.pkg-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;
-  padding:28px 24px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
-.pkg-card:hover{border-color:var(--border-gold);transform:translateY(-2px);}
-.pkg-card.selected{border-color:var(--gold);background:rgba(201,168,76,.06);
-  box-shadow:0 0 30px rgba(201,168,76,.1);}
-.pkg-card.popular::before{content:'MOST POPULAR';position:absolute;top:14px;right:-24px;
-  background:var(--gold);color:#030305;font-family:var(--font-ui);font-size:.3rem;
-  letter-spacing:2px;font-weight:900;padding:4px 32px;transform:rotate(45deg);}
-.pkg-price{font-family:var(--font-display);font-size:3.5rem;color:var(--gold-light);letter-spacing:2px;}
-.pkg-period{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);margin-bottom:16px;}
-.pkg-name{font-family:var(--font-ui);font-size:.56rem;letter-spacing:3px;color:var(--white);margin-bottom:12px;}
-.pkg-features{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
-.pkg-features li{font-size:.85rem;color:var(--gray2);display:flex;align-items:center;gap:8px;}
-.pkg-features li::before{content:'✓';color:var(--green);font-weight:900;flex-shrink:0;}
-.pkg-select{width:100%;padding:11px;border:0;border-radius:8px;
-  background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));
-  color:#030305;font-family:var(--font-ui);font-size:.44rem;letter-spacing:2px;
-  font-weight:900;cursor:pointer;transition:opacity .12s;}
-.pkg-select:hover{opacity:.9;}
+/* Package Cards */
+.pkg-label{font-family:var(--font-ui);font-size:.42rem;letter-spacing:3px;color:var(--gold);margin-bottom:14px;}
+.pkg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+@media(max-width:540px){.pkg-grid{grid-template-columns:1fr;}}
+.pkg{border:2px solid var(--border);border-radius:12px;padding:18px 14px;cursor:pointer;transition:all .15s;text-align:center;position:relative;}
+.pkg:hover{border-color:var(--border-gold);}
+.pkg.active{border-color:var(--gold);background:rgba(201,168,76,.07);}
+.pkg-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:#030305;font-family:var(--font-ui);font-size:.28rem;
+  letter-spacing:1px;font-weight:900;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+.pkg-price{font-family:var(--font-display);font-size:2.4rem;color:var(--gold-light);letter-spacing:2px;}
+.pkg-mo{font-family:var(--font-ui);font-size:.32rem;color:var(--gray);letter-spacing:1px;margin-bottom:10px;}
+.pkg-name{font-family:var(--font-ui);font-size:.44rem;letter-spacing:2px;color:var(--white);margin-bottom:10px;}
+.pkg-feat{font-size:.78rem;color:var(--gray2);line-height:1.8;}
+.pkg-feat b{color:var(--cyan);}
 
 /* Form */
-.form-wrap{max-width:640px;margin:0 auto 60px;padding:0 20px;}
-.form-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:32px;}
-.form-title{font-family:var(--font-display);font-size:2rem;letter-spacing:3px;color:var(--gold-light);margin-bottom:6px;}
-.form-eyebrow{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);margin-bottom:24px;}
-.selected-pkg-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;
-  background:rgba(201,168,76,.1);border:1px solid var(--border-gold);border-radius:8px;
-  font-family:var(--font-ui);font-size:.42rem;letter-spacing:1px;color:var(--gold);
-  margin-bottom:20px;}
-.form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-.form-label{font-family:var(--font-ui);font-size:.38rem;letter-spacing:2px;color:var(--gray2);}
-.form-input,.form-select,.form-textarea{
-  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:8px;color:var(--white);font-family:var(--font-body);font-size:.9rem;
-  outline:none;width:100%;}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--border-gold);}
-.form-textarea{resize:vertical;min-height:80px;}
-.form-select option{background:var(--bg2);}
-.file-zone{border:2px dashed rgba(64,208,255,.3);border-radius:10px;padding:28px;
-  text-align:center;cursor:pointer;transition:all .15s;background:var(--bg0);}
-.file-zone:hover,.file-zone.drag{border-color:var(--cyan);background:rgba(64,208,255,.04);}
-.file-zone-icon{font-size:2rem;margin-bottom:8px;}
-.file-zone-text{font-family:var(--font-ui);font-size:.42rem;letter-spacing:1px;color:var(--gray2);}
-.file-zone-sub{font-size:.75rem;color:var(--gray);margin-top:4px;}
-.file-name{font-family:'Share Tech Mono',monospace;font-size:.75rem;color:var(--cyan);
-  margin-top:8px;display:none;}
-.form-notice{padding:12px 14px;background:rgba(64,208,255,.06);border:1px solid rgba(64,208,255,.2);
-  border-radius:8px;font-size:.8rem;color:var(--gray2);line-height:1.5;margin-bottom:16px;}
-.submit-btn{width:100%;padding:14px;border:0;border-radius:10px;
+.form-section{display:none;}
+.form-section.show{display:block;}
+.form-card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:28px;}
+.sel-pkg{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;
+  background:rgba(201,168,76,.08);border:1px solid var(--border-gold);border-radius:8px;
+  font-family:var(--font-ui);font-size:.42rem;color:var(--gold);margin-bottom:22px;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:480px){.row{grid-template-columns:1fr;}}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.field.full{grid-column:1/-1;}
+label{font-family:var(--font-ui);font-size:.36rem;letter-spacing:2px;color:var(--gray2);}
+input,select,textarea{padding:12px 14px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;color:var(--white);font-family:var(--font-body);font-size:.9rem;outline:none;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--border-gold);}
+select option{background:var(--bg2);}
+textarea{resize:vertical;min-height:70px;}
+
+/* Upload Zone */
+.upload-zone{border:2px dashed rgba(64,208,255,.35);border-radius:12px;padding:32px 20px;
+  text-align:center;cursor:pointer;transition:all .15s;background:var(--bg0);margin-bottom:6px;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--cyan);background:rgba(64,208,255,.04);}
+.upload-icon{font-size:2.4rem;margin-bottom:10px;}
+.upload-title{font-family:var(--font-ui);font-size:.48rem;letter-spacing:2px;color:var(--white);margin-bottom:6px;}
+.upload-sub{font-size:.8rem;color:var(--gray2);}
+.upload-progress{height:4px;background:var(--bg2);border-radius:2px;margin-top:10px;display:none;overflow:hidden;}
+.upload-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));width:0%;transition:width .3s;border-radius:2px;}
+.upload-filename{font-size:.8rem;color:var(--cyan);margin-top:8px;display:none;}
+
+/* Notice */
+.notice{padding:12px 14px;background:rgba(64,208,255,.06);border-left:3px solid var(--cyan);
+  border-radius:0 8px 8px 0;font-size:.82rem;color:var(--gray2);line-height:1.6;margin-bottom:20px;}
+
+/* Submit */
+.submit-btn{width:100%;padding:16px;border:0;border-radius:10px;
   background:linear-gradient(135deg,#8B6914,var(--gold),var(--gold-light));
-  color:#030305;font-family:var(--font-ui);font-size:.52rem;letter-spacing:2px;
-  font-weight:900;cursor:pointer;transition:all .12s;margin-top:8px;}
+  color:#030305;font-family:var(--font-ui);font-size:.54rem;letter-spacing:2px;
+  font-weight:900;cursor:pointer;transition:opacity .12s;}
 .submit-btn:hover{opacity:.9;}
 .submit-btn:disabled{opacity:.4;cursor:not-allowed;}
-.form-status{text-align:center;font-family:'Share Tech Mono',monospace;font-size:.75rem;
-  color:var(--gray2);margin-top:10px;min-height:20px;}
+.status{text-align:center;font-size:.8rem;color:var(--gray2);margin-top:10px;min-height:18px;}
 
 /* Success */
-.success-wrap{display:none;text-align:center;padding:40px 20px;}
+.success{display:none;text-align:center;padding:50px 20px;}
 .success-icon{font-size:4rem;margin-bottom:16px;}
-.success-title{font-family:var(--font-display);font-size:2.5rem;letter-spacing:3px;color:var(--green);margin-bottom:10px;}
-.success-sub{font-size:1rem;color:var(--gray2);line-height:1.6;max-width:480px;margin:0 auto;}
+.success-title{font-family:var(--font-display);font-size:2.8rem;letter-spacing:3px;color:var(--green);margin-bottom:12px;}
+.success-sub{font-size:.95rem;color:var(--gray2);line-height:1.7;max-width:440px;margin:0 auto 20px;}
+.success-back{padding:11px 24px;border:1px solid var(--border-gold);border-radius:8px;
+  background:transparent;color:var(--gold);font-family:var(--font-ui);font-size:.42rem;
+  letter-spacing:2px;cursor:pointer;text-decoration:none;display:inline-block;}
 </style>
 </head>
 <body>
 
 <nav>
   <div class="nav-brand">⚡ UNIBEATZ RADIO</div>
-  <div class="nav-links">
-    <a href="/radio.html">← Radio</a>
-    <a href="/radio-dj-apply.html">DJ Apply</a>
-  </div>
+  <a class="nav-back" href="/radio.html">← Back to Radio</a>
 </nav>
 
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-eyebrow">ADVERTISING · UNIBEATZ RADIO</div>
-  <h1 class="hero-title">REACH THE EMPIRE</h1>
-  <p class="hero-sub">Put your brand, music, or business in front of thousands of listeners on UniBeatz Radio. Choose your package and upload your audio ad.</p>
-</div>
+<div class="page">
 
-<!-- Packages -->
-<div class="packages" id="packagesSection">
-
-  <div class="pkg-card" data-pkg="basic" data-price="100" data-stripe="price_basic_ad" onclick="selectPkg(this)">
-    <div class="pkg-price">$100</div>
-    <div class="pkg-period">PER MONTH</div>
-    <div class="pkg-name">BASIC</div>
-    <ul class="pkg-features">
-      <li>4 plays per week</li>
-      <li>16 total plays</li>
-      <li>Audio ad up to 60 seconds</li>
-      <li>Manual approval within 24hrs</li>
-    </ul>
-    <button class="pkg-select">SELECT BASIC</button>
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">RADIO ADVERTISING</div>
+    <h1 class="hero-title">ADVERTISE WITH US</h1>
+    <p class="hero-sub">Get your brand, music, or business heard by thousands of UniBeatz Radio listeners every week. Upload your audio ad and go live.</p>
   </div>
 
-  <div class="pkg-card popular" data-pkg="standard" data-price="200" data-stripe="price_standard_ad" onclick="selectPkg(this)">
-    <div class="pkg-price">$200</div>
-    <div class="pkg-period">PER MONTH</div>
-    <div class="pkg-name">STANDARD</div>
-    <ul class="pkg-features">
-      <li>10 plays per week</li>
-      <li>40 total plays</li>
-      <li>Audio ad up to 60 seconds</li>
-      <li>Manual approval within 24hrs</li>
-    </ul>
-    <button class="pkg-select">SELECT STANDARD</button>
+  <!-- Success Screen -->
+  <div class="success" id="successScreen">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">YOU'RE IN!</div>
+    <p class="success-sub">Your ad has been submitted and payment processed. Our team reviews within 24 hours — then your ad starts playing on UniBeatz Radio.</p>
+    <a class="success-back" href="/radio.html">← Back to Radio</a>
   </div>
 
-  <div class="pkg-card" data-pkg="premium" data-price="500" data-stripe="price_premium_ad" onclick="selectPkg(this)">
-    <div class="pkg-price">$500</div>
-    <div class="pkg-period">PER MONTH</div>
-    <div class="pkg-name">PREMIUM</div>
-    <ul class="pkg-features">
-      <li>25 plays per week</li>
-      <li>100 total plays</li>
-      <li>Audio ad up to 90 seconds</li>
-      <li>1 live DJ shoutout per week</li>
-      <li>Priority approval</li>
-    </ul>
-    <button class="pkg-select">SELECT PREMIUM</button>
-  </div>
+  <!-- Main Content -->
+  <div id="mainContent">
 
-</div>
+    <!-- Step 1: Pick Package -->
+    <div class="pkg-label">STEP 1 — CHOOSE YOUR PACKAGE</div>
+    <div class="pkg-grid">
 
-<!-- Submission Form -->
-<div class="form-wrap" id="formSection" style="display:none;">
-  <div class="form-card">
-    <div class="form-eyebrow">STEP 2 · AD DETAILS</div>
-    <h2 class="form-title">SUBMIT YOUR AD</h2>
-
-    <div class="selected-pkg-badge" id="selectedPkgBadge">📦 No package selected</div>
-
-    <div class="form-group">
-      <label class="form-label">BUSINESS / BRAND NAME *</label>
-      <input class="form-input" id="adBrandName" type="text" placeholder="Your business or brand name" maxlength="80"/>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">CONTACT NAME *</label>
-      <input class="form-input" id="adContactName" type="text" placeholder="Your full name" maxlength="80"/>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">EMAIL ADDRESS *</label>
-      <input class="form-input" id="adEmail" type="email" placeholder="your@email.com"/>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">PHONE (OPTIONAL)</label>
-      <input class="form-input" id="adPhone" type="tel" placeholder="+1 (555) 000-0000"/>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">WEBSITE / SOCIAL LINK (OPTIONAL)</label>
-      <input class="form-input" id="adWebsite" type="url" placeholder="https://yourwebsite.com"/>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">AD DESCRIPTION</label>
-      <textarea class="form-textarea" id="adDescription" placeholder="Brief description of your ad and what you're promoting..."></textarea>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">UPLOAD YOUR AUDIO AD *</label>
-      <div class="file-zone" id="fileZone" onclick="document.getElementById('adAudioFile').click()"
-        ondragover="event.preventDefault();this.classList.add('drag')"
-        ondragleave="this.classList.remove('drag')"
-        ondrop="handleFileDrop(event)">
-        <div class="file-zone-icon">🎙️</div>
-        <div class="file-zone-text">TAP TO UPLOAD AUDIO AD</div>
-        <div class="file-zone-sub">MP3 or WAV · Max 50MB · Basic/Standard: 60 sec · Premium: 90 sec</div>
-        <div class="file-name" id="adFileName"></div>
+      <div class="pkg" data-pkg="basic" data-price="100" onclick="pickPkg(this)">
+        <div class="pkg-price">$100</div>
+        <div class="pkg-mo">/ MONTH</div>
+        <div class="pkg-name">BASIC</div>
+        <div class="pkg-feat">
+          <b>4 plays</b> per week<br>
+          16 total plays<br>
+          Up to 60 sec
+        </div>
       </div>
-      <input type="file" id="adAudioFile" accept=".mp3,.wav,audio/mp3,audio/wav" style="display:none;" onchange="handleFileSelect(this)"/>
+
+      <div class="pkg" data-pkg="standard" data-price="200" onclick="pickPkg(this)">
+        <div class="pkg-badge">POPULAR</div>
+        <div class="pkg-price">$200</div>
+        <div class="pkg-mo">/ MONTH</div>
+        <div class="pkg-name">STANDARD</div>
+        <div class="pkg-feat">
+          <b>10 plays</b> per week<br>
+          40 total plays<br>
+          Up to 60 sec
+        </div>
+      </div>
+
+      <div class="pkg" data-pkg="premium" data-price="500" onclick="pickPkg(this)">
+        <div class="pkg-price">$500</div>
+        <div class="pkg-mo">/ MONTH</div>
+        <div class="pkg-name">PREMIUM</div>
+        <div class="pkg-feat">
+          <b>25 plays</b> per week<br>
+          100 total plays<br>
+          Up to 90 sec<br>
+          <b>+ DJ Shoutout</b> weekly
+        </div>
+      </div>
+
     </div>
 
-    <div class="form-notice">
-      ⚡ After submitting your ad will be reviewed by our team within 24 hours (Premium: priority review). 
-      You'll receive a confirmation email once approved and your ad begins airing.
+    <!-- Step 2: Form -->
+    <div class="form-section" id="formSection">
+      <div class="pkg-label">STEP 2 — YOUR AD DETAILS</div>
+      <div class="form-card">
+
+        <div class="sel-pkg" id="selPkgBadge">📦 —</div>
+
+        <div class="row">
+          <div class="field">
+            <label>BUSINESS / BRAND NAME *</label>
+            <input id="fBrand" type="text" placeholder="Your brand name" maxlength="80"/>
+          </div>
+          <div class="field">
+            <label>YOUR NAME *</label>
+            <input id="fContact" type="text" placeholder="Your full name" maxlength="80"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>EMAIL ADDRESS *</label>
+            <input id="fEmail" type="email" placeholder="your@email.com"/>
+          </div>
+          <div class="field">
+            <label>PHONE (OPTIONAL)</label>
+            <input id="fPhone" type="tel" placeholder="+1 (555) 000-0000"/>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>WEBSITE / SOCIAL LINK (OPTIONAL)</label>
+          <input id="fWebsite" type="url" placeholder="https://yourwebsite.com or @handle"/>
+        </div>
+
+        <div class="field">
+          <label>WHAT ARE YOU PROMOTING? (OPTIONAL)</label>
+          <textarea id="fDesc" placeholder="Brief description of your ad..."></textarea>
+        </div>
+
+        <!-- Upload -->
+        <div class="field">
+          <label>UPLOAD YOUR AUDIO AD *</label>
+          <div class="upload-zone" id="uploadZone"
+            onclick="document.getElementById('audioFile').click()"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="onDrop(event)">
+            <div class="upload-icon">🎙️</div>
+            <div class="upload-title">TAP TO UPLOAD YOUR AD</div>
+            <div class="upload-sub">MP3 or WAV · Max 50MB</div>
+            <div class="upload-progress" id="uploadProgress"><div class="upload-bar" id="uploadBar"></div></div>
+            <div class="upload-filename" id="uploadFilename"></div>
+          </div>
+          <input type="file" id="audioFile" accept=".mp3,.wav,audio/mpeg,audio/wav" style="display:none" onchange="onFileSelect(this)"/>
+        </div>
+
+        <div class="notice">
+          After submitting, your ad will be reviewed within 24 hours. Once approved it starts airing on UniBeatz Radio. You'll get a confirmation email.
+        </div>
+
+        <button class="submit-btn" id="submitBtn" onclick="submitAd()">💳 PAY & SUBMIT AD</button>
+        <div class="status" id="adStatus"></div>
+
+      </div>
     </div>
 
-    <button class="submit-btn" id="adSubmitBtn" onclick="submitAd()">PAY & SUBMIT AD</button>
-    <div class="form-status" id="adStatus"></div>
-  </div>
-</div>
+  </div><!-- /mainContent -->
 
-<!-- Success -->
-<div class="success-wrap" id="successWrap">
-  <div class="success-icon">🎉</div>
-  <div class="success-title">AD SUBMITTED!</div>
-  <p class="success-sub">Your ad has been received and payment processed. Our team will review and approve within 24 hours. Check your email for confirmation.</p>
-</div>
+</div><!-- /page -->
 
 <script type="module">
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
 import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
 
-const FB_CONFIG = {
+const FB = {
   apiKey: 'AIzaSyDTStQ25aX1e-sgzOtmcKZPmdJM0NkEaH4',
   authDomain: 'unibeatzproduction-7ae31.firebaseapp.com',
   projectId: 'unibeatzproduction-7ae31',
@@ -245,130 +252,128 @@ const FB_CONFIG = {
   messagingSenderId: '70667820609',
   appId: '1:70667820609:web:57762df5510e6b4000b0c'
 };
-const app = getApps().length ? getApp() : initializeApp(FB_CONFIG);
-const db  = getFirestore(app);
+const app     = getApps().length ? getApp() : initializeApp(FB);
+const db      = getFirestore(app);
 const storage = getStorage(app);
 
-const PACKAGES = {
-  basic:    { name:'Basic',    price:100, playsPerWeek:4,  stripePrice:'price_basic_radio_ad' },
-  standard: { name:'Standard', price:200, playsPerWeek:10, stripePrice:'price_standard_radio_ad' },
-  premium:  { name:'Premium',  price:500, playsPerWeek:25, stripePrice:'price_premium_radio_ad', shoutout:true }
+const PKGS = {
+  basic:    { name:'Basic',    price:100, plays:4,  total:64  },
+  standard: { name:'Standard', price:200, plays:10, total:160 },
+  premium:  { name:'Premium',  price:500, plays:25, total:400, shoutout:true }
 };
 
-let _selectedPkg = null;
-let _selectedFile = null;
+let _pkg  = null;
+let _file = null;
 
-window.selectPkg = function(card) {
-  document.querySelectorAll('.pkg-card').forEach(c => c.classList.remove('selected'));
-  card.classList.add('selected');
-  _selectedPkg = card.dataset.pkg;
-  const pkg = PACKAGES[_selectedPkg];
-  document.getElementById('selectedPkgBadge').textContent = '📦 ' + pkg.name + ' — $' + pkg.price + '/month · ' + pkg.playsPerWeek + ' plays/week';
-  document.getElementById('formSection').style.display = 'block';
-  document.getElementById('formSection').scrollIntoView({ behavior:'smooth', block:'start' });
+// Check success param
+if (new URLSearchParams(location.search).get('success')) {
+  document.getElementById('mainContent').style.display = 'none';
+  document.getElementById('successScreen').style.display = 'block';
+}
+
+window.pickPkg = function(el) {
+  document.querySelectorAll('.pkg').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  _pkg = el.dataset.pkg;
+  const p = PKGS[_pkg];
+  document.getElementById('selPkgBadge').textContent = '📦 ' + p.name + ' · $' + p.price + '/month · ' + p.plays + ' plays/week' + (p.shoutout ? ' · DJ Shoutout' : '');
+  const fs = document.getElementById('formSection');
+  fs.classList.add('show');
+  fs.scrollIntoView({ behavior:'smooth', block:'start' });
 };
 
-window.handleFileSelect = function(input) {
+window.onFileSelect = function(input) {
   if (input.files[0]) setFile(input.files[0]);
 };
 
-window.handleFileDrop = function(e) {
+window.onDrop = function(e) {
   e.preventDefault();
-  document.getElementById('fileZone').classList.remove('drag');
-  const file = e.dataTransfer.files[0];
-  if (file) setFile(file);
+  document.getElementById('uploadZone').classList.remove('drag');
+  if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
 };
 
 function setFile(file) {
-  _selectedFile = file;
-  const nameEl = document.getElementById('adFileName');
-  nameEl.textContent = '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(2) + ' MB)';
-  nameEl.style.display = 'block';
+  _file = file;
+  const fn = document.getElementById('uploadFilename');
+  fn.textContent = '✅ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+  fn.style.display = 'block';
 }
 
-function status(msg, color) {
+function setStatus(msg, color) {
   const el = document.getElementById('adStatus');
   el.textContent = msg;
   el.style.color = color || '#9aa3b8';
 }
 
 window.submitAd = async function() {
-  if (!_selectedPkg) { status('Select a package first.', '#ff7474'); return; }
-  const brand   = document.getElementById('adBrandName').value.trim();
-  const contact = document.getElementById('adContactName').value.trim();
-  const email   = document.getElementById('adEmail').value.trim();
-  if (!brand)   { status('Enter your brand name.', '#ff7474'); return; }
-  if (!contact) { status('Enter your contact name.', '#ff7474'); return; }
-  if (!email)   { status('Enter your email.', '#ff7474'); return; }
-  if (!_selectedFile) { status('Upload your audio ad.', '#ff7474'); return; }
+  if (!_pkg)  { setStatus('Pick a package above.', '#ff7474'); return; }
+  const brand   = document.getElementById('fBrand').value.trim();
+  const contact = document.getElementById('fContact').value.trim();
+  const email   = document.getElementById('fEmail').value.trim();
+  if (!brand)   { setStatus('Enter your brand name.', '#ff7474'); return; }
+  if (!contact) { setStatus('Enter your name.', '#ff7474'); return; }
+  if (!email)   { setStatus('Enter your email.', '#ff7474'); return; }
+  if (!_file)   { setStatus('Upload your audio ad.', '#ff7474'); return; }
 
-  const btn = document.getElementById('adSubmitBtn');
+  const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  status('Uploading audio...');
+  setStatus('Uploading audio...');
+
+  const prog = document.getElementById('uploadProgress');
+  const bar  = document.getElementById('uploadBar');
+  prog.style.display = 'block';
 
   try {
-    // Upload audio to Firebase Storage
-    const ext = _selectedFile.name.split('.').pop();
+    const ext  = _file.name.split('.').pop();
     const path = 'radio-ads/' + Date.now() + '-' + brand.replace(/\s+/g,'-').toLowerCase() + '.' + ext;
-    const storageRef = ref(storage, path);
-    const uploadTask = uploadBytesResumable(storageRef, _selectedFile);
+    const task = uploadBytesResumable(ref(storage, path), _file);
 
-    await new Promise((resolve, reject) => {
-      uploadTask.on('state_changed',
-        snap => {
-          const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-          status('Uploading... ' + pct + '%');
-        },
-        reject,
-        resolve
+    await new Promise((res, rej) => {
+      task.on('state_changed',
+        s => { const p = Math.round((s.bytesTransferred/s.totalBytes)*100); bar.style.width=p+'%'; setStatus('Uploading... '+p+'%'); },
+        rej, res
       );
     });
 
-    const audioUrl = await getDownloadURL(storageRef);
-    status('Processing payment...');
+    const audioUrl = await getDownloadURL(ref(storage, path));
+    setStatus('Saving submission...');
 
-    const pkg = PACKAGES[_selectedPkg];
-
-    // Save ad submission to Firestore
+    const p = PKGS[_pkg];
     await addDoc(collection(db, 'radio_ads'), {
       brandName:    brand,
       contactName:  contact,
-      email:        email,
-      phone:        document.getElementById('adPhone').value.trim(),
-      website:      document.getElementById('adWebsite').value.trim(),
-      description:  document.getElementById('adDescription').value.trim(),
-      audioUrl:     audioUrl,
-      audioPath:    path,
-      package:      _selectedPkg,
-      packageName:  pkg.name,
-      price:        pkg.price,
-      playsPerWeek: pkg.playsPerWeek,
-      hasShoutout:  pkg.shoutout || false,
-      status:       'pending_payment',
+      email,
+      phone:        document.getElementById('fPhone').value.trim(),
+      website:      document.getElementById('fWebsite').value.trim(),
+      description:  document.getElementById('fDesc').value.trim(),
+      audioUrl, audioPath: path,
+      package:      _pkg,
+      packageName:  p.name,
+      price:        p.price,
+      playsPerWeek: p.plays,
       playsRemaining: 0,
+      hasShoutout:  p.shoutout || false,
+      status:       'pending_payment',
       submittedAt:  serverTimestamp()
     });
 
-    // Redirect to Stripe payment
-    status('Redirecting to payment...');
-    const resp = await fetch('https://us-central1-unibeatzproduction-7ae31.cloudfunctions.net/createRadioAdCheckout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        package:   _selectedPkg,
-        price:     pkg.price,
-        brandName: brand,
-        email:     email
-      })
-    });
+    setStatus('Redirecting to payment...');
 
-    if (!resp.ok) throw new Error('Payment setup failed');
-    const { url } = await resp.json();
-    window.location.href = url;
+    const stripeLinks = {
+      basic:    'https://buy.stripe.com/4gM6oAajo74WeCE2OW93y0x',
+      standard: 'https://buy.stripe.com/cNi8wIajogFw66889g93y0y',
+      premium:  'https://buy.stripe.com/6oU4gs2QWcpg2TW61893y0z'
+    };
+
+    // Add prefilled email to Stripe link
+    const baseUrl = stripeLinks[_pkg];
+    const payUrl  = baseUrl + '?prefilled_email=' + encodeURIComponent(email);
+    window.location.href = payUrl;
 
   } catch(e) {
-    status('Error: ' + e.message, '#ff7474');
+    setStatus('Error: ' + e.message, '#ff7474');
     btn.disabled = false;
+    prog.style.display = 'none';
   }
 };
 </script>
