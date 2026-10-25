@@ -576,6 +576,29 @@
         <span id="viewerNowPlayingMeta">Waiting for DJ selection</span>
       </div>
 
+      <div class="viewer-stage" id="viewerStage">
+        <div class="viewer-stage-frame">
+          <div class="viewer-artist-slot" id="viewerSlotArtistA">
+            <div class="viewer-slot-empty"><div class="live-label">ARTIST CAM</div><div class="live-placeholder">Waiting for artist…</div></div>
+          </div>
+          <div class="viewer-center-col" id="viewerCenterCol">
+            <div class="viewer-dj-slot" id="viewerSlotDj">
+              <div class="viewer-slot-empty"><div class="live-label">🎧 DJ CAMERA</div><div class="live-placeholder">Waiting for DJ…</div></div>
+            </div>
+            <div class="live-poll-panel" id="livePollPanel">
+              <div class="live-poll-title">🗳 Who's winning?</div>
+              <div class="live-poll-note" id="livePollNote">Waiting for the artists…</div>
+              <div class="live-poll-options" id="livePollOptions"></div>
+              <div class="live-poll-total" id="livePollTotal"></div>
+            </div>
+          </div>
+          <div class="viewer-artist-slot" id="viewerSlotArtistB">
+            <div class="viewer-slot-empty"><div class="live-label">ARTIST CAM</div><div class="live-placeholder">Waiting for artist…</div></div>
+          </div>
+        </div>
+        <div class="viewer-overflow-row" id="viewerOverflowRow" style="display:none;"></div>
+      </div>
+
       <div class="live-grid" id="liveVideoGrid">
         <div class="live-video-card local" id="localVideoBox"><div class="live-label">YOU</div><div class="live-placeholder">Camera preview will appear here</div></div>
         <div id="remoteTiles" style="display:contents;"></div>
@@ -2229,6 +2252,59 @@ function applyLiveRoleLayout(role){
   refreshTilePauseButtons();
   const drawer = document.getElementById('beatVaultDrawer');
   if (drawer && ubLiveRole !== 'dj') drawer.classList.remove('open');
+  // Viewer stage: chat lives in the sketch's center column for viewers, back in place otherwise.
+  const chatPanel = document.getElementById('liveChatPanel');
+  const centerCol = document.getElementById('viewerCenterCol');
+  if (chatPanel && centerCol) {
+    if (ubLiveRole === 'viewer') {
+      if (chatPanel.parentElement !== centerCol) centerCol.appendChild(chatPanel);
+      refreshViewerStage();
+    } else {
+      const controls = document.querySelector('#page-livebattle .live-controls');
+      if (chatPanel.parentElement === centerCol && shell && controls) shell.insertBefore(chatPanel, controls);
+      restoreViewerTiles();
+      refreshTilePauseButtons();
+    }
+  }
+}
+function restoreViewerTiles(){
+  const grid = document.getElementById('remoteTiles');
+  if (!grid) return;
+  document.querySelectorAll('#page-livebattle .viewer-artist-slot .live-video-card, #page-livebattle .viewer-dj-slot .live-video-card, #page-livebattle .viewer-overflow-row .live-video-card').forEach(t => grid.appendChild(t));
+}
+function refreshViewerStage(){
+  if (ubLiveRole !== 'viewer') return;
+  const grid = document.getElementById('remoteTiles');
+  const slotA = document.getElementById('viewerSlotArtistA');
+  const slotB = document.getElementById('viewerSlotArtistB');
+  const slotDj = document.getElementById('viewerSlotDj');
+  const overflow = document.getElementById('viewerOverflowRow');
+  if (!grid || !slotA || !slotB || !slotDj) return;
+  const tiles = [];
+  document.querySelectorAll('#page-livebattle #remoteTiles .live-video-card, #page-livebattle .viewer-artist-slot .live-video-card, #page-livebattle .viewer-dj-slot .live-video-card, #page-livebattle .viewer-overflow-row .live-video-card').forEach(t => tiles.push(t));
+  const artists = [], djs = [], others = [];
+  tiles.forEach(t => {
+    const roleTitle = tileDisplayName(t.dataset.tileIdentity || '').roleTitle;
+    if (roleTitle === 'DJ') djs.push(t);
+    else if (roleTitle === 'ARTIST') artists.push(t);
+    else others.push(t);
+  });
+  if (djs[0]) slotDj.appendChild(djs[0]);
+  if (artists[0]) slotA.appendChild(artists[0]);
+  if (artists[1]) slotB.appendChild(artists[1]);
+  // Remember artists seen this session so the poll can show "left" rows for them,
+  // without resurrecting votes from earlier battles with different artists.
+  if (!window.ubPollSeenArtists) window.ubPollSeenArtists = [];
+  artists.forEach(t => { const id = t.dataset.tileIdentity; if (id && !window.ubPollSeenArtists.includes(id)) window.ubPollSeenArtists.push(id); });
+  const extra = [...djs.slice(1), ...artists.slice(2), ...others];
+  extra.forEach(t => { if (overflow) overflow.appendChild(t); });
+  [slotA, slotB, slotDj].forEach(slot => {
+    const empty = slot.querySelector('.viewer-slot-empty');
+    const filled = !!slot.querySelector('.live-video-card');
+    if (empty) empty.style.display = filled ? 'none' : '';
+  });
+  if (overflow) overflow.style.display = overflow.querySelector('.live-video-card') ? '' : 'none';
+  if (typeof window.renderLivePoll === 'function') window.renderLivePoll(window.ubBattleRoomVotes || null);
 }
 function toggleBeatVaultDrawer(force){
   const drawer = document.getElementById('beatVaultDrawer');
@@ -2253,6 +2329,7 @@ function ensureRemoteTile(identity){
     '<div class="tile-paused-msg">⏸ Camera paused</div>';
   grid.appendChild(tile);
   refreshTilePauseButtons();
+  if (ubLiveRole === 'viewer') refreshViewerStage();
   return tile;
 }
 function tileForIdentity(identity){
@@ -2303,6 +2380,10 @@ function clearLiveVideos() {
   }
   const remote = document.getElementById("remoteTiles");
   if (remote) remote.innerHTML = "";
+  // Viewer stage tiles are moved out of #remoteTiles, so clear them too (placeholders stay).
+  document.querySelectorAll('#page-livebattle .viewer-artist-slot .live-video-card, #page-livebattle .viewer-dj-slot .live-video-card, #page-livebattle .viewer-overflow-row .live-video-card').forEach(t => t.remove());
+  document.querySelectorAll('#page-livebattle .viewer-slot-empty').forEach(ph => { ph.style.display = ''; });
+  window.ubPollSeenArtists = [];
 }
 function attachLiveTrack(track, isLocal = false, participantIdentity = null) {
   if (!track || typeof track.attach !== "function") return;
@@ -2725,6 +2806,88 @@ window.sendLiveChat = async function() {
 const _chatInput = document.getElementById("liveChatInput");
 if (_chatInput) _chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") window.sendLiveChat(); });
 
+// ── LIVE VOTING POLL (viewer screen) ──
+// Votes live on the SAME battle_rooms/battle-room doc the working chat already
+// writes to (setDoc merge / updateDoc), as a pollVotes map: voterKey -> artistIdentity.
+// One vote per viewer: re-voting overwrites that voter's key. No new collection, no new rule.
+function ubPollVoterKey(){
+  try {
+    const auth = window.UB_FIREBASE && window.UB_FIREBASE.auth;
+    const uid = auth && auth.currentUser && auth.currentUser.uid;
+    if (uid) return 'u_' + String(uid).replace(/[^a-zA-Z0-9_-]/g, '_');
+  } catch (e) {}
+  try {
+    let id = localStorage.getItem('ubViewerPollId');
+    if (!id) { id = 'v_' + Date.now().toString(36) + '_' + Math.floor(Math.random() * 99999); localStorage.setItem('ubViewerPollId', id); }
+    return id;
+  } catch (e) { return 'v_session'; }
+}
+function ubPollArtistIdentities(){
+  const artists = [];
+  document.querySelectorAll('#page-livebattle .live-video-card[data-tile-identity]').forEach(t => {
+    const id = t.dataset.tileIdentity || '';
+    if (id && window.tileDisplayName && window.tileDisplayName(id).roleTitle === 'ARTIST' && !artists.includes(id)) artists.push(id);
+  });
+  return artists.slice(0, 2);
+}
+function renderLivePoll(votes){
+  const optsEl = document.getElementById('livePollOptions');
+  const noteEl = document.getElementById('livePollNote');
+  const totalEl = document.getElementById('livePollTotal');
+  if (!optsEl) return;
+  votes = (votes && typeof votes === 'object') ? votes : {};
+  const mine = votes[ubPollVoterKey()];
+  let artists = ubPollArtistIdentities();
+  // Keep rows for artists who already have votes and left DURING this session.
+  // Votes from earlier battles (artists never seen this session) stay hidden.
+  const seen = Array.isArray(window.ubPollSeenArtists) ? window.ubPollSeenArtists : [];
+  Object.values(votes).forEach(choice => { if (choice && !artists.includes(choice) && seen.includes(choice)) artists.push(choice); });
+  const counts = {};
+  artists.forEach(a => { counts[a] = 0; });
+  let total = 0;
+  Object.values(votes).forEach(choice => { if (counts.hasOwnProperty(choice)) { counts[choice]++; total++; } });
+  if (!artists.length) {
+    if (noteEl) noteEl.textContent = 'Waiting for the artists…';
+    optsEl.innerHTML = '';
+    if (totalEl) totalEl.textContent = '';
+    return;
+  }
+  const present = ubPollArtistIdentities();
+  if (noteEl) noteEl.textContent = mine ? 'Your vote is in — tap the other artist to change it.' : 'Tap an artist to vote. One vote per viewer.';
+  optsEl.innerHTML = artists.map(id => {
+    const info = window.tileDisplayName ? window.tileDisplayName(id) : { name: id, roleTitle: 'ARTIST' };
+    const left = !present.includes(id);
+    const c = counts[id] || 0;
+    const pct = total ? Math.round((c / total) * 100) : 0;
+    const voted = mine === id;
+    return '<button type="button" class="live-poll-option' + (voted ? ' voted' : '') + '" data-vote-choice="' + escChat(id) + '">' +
+      '<span class="live-poll-opt-name">' + escChat(info.name) + (left ? ' · left' : '') + (voted ? ' ✓ Your vote' : '') + '</span>' +
+      '<span class="live-poll-opt-count">' + c + ' · ' + pct + '%</span>' +
+      '<span class="live-poll-bar"><span style="width:' + pct + '%"></span></span>' +
+      '</button>';
+  }).join('');
+  optsEl.querySelectorAll('[data-vote-choice]').forEach(btn => {
+    btn.addEventListener('click', () => window.castLivePollVote(btn.getAttribute('data-vote-choice')));
+  });
+  if (totalEl) totalEl.textContent = total === 1 ? '1 vote' : total + ' votes';
+}
+window.renderLivePoll = renderLivePoll;
+window.castLivePollVote = async function(choice){
+  if (!choice) return;
+  if (!initBeatFirebase()) { if (typeof showToast === 'function') showToast('Poll is not ready yet.'); return; }
+  const key = ubPollVoterKey();
+  try {
+    const ref = doc(ubBeatDb, 'battle_rooms', 'battle-room');
+    const field = {};
+    field['pollVotes.' + key] = choice;
+    try { await updateDoc(ref, field); }
+    catch (e) { await setDoc(ref, { pollVotes: { [key]: choice }, updatedAt: serverTimestamp() }, { merge: true }); }
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === 'function') showToast('❌ Vote failed: ' + err.message);
+  }
+};
+
 function startBattleBeatListener() {
   if (!initBeatFirebase()) return;
   onSnapshot(doc(ubBeatDb, "battle_rooms", "battle-room"), (snap) => {
@@ -2734,6 +2897,8 @@ function startBattleBeatListener() {
     updateBeatPlayingStatus(data ? data.beatPlaying : null);
     applyCameraPausedMap(data ? data.cameraPaused : null);
     renderLiveChat(data ? data.chat : null);
+    window.ubBattleRoomVotes = data ? data.pollVotes : null;
+    renderLivePoll(window.ubBattleRoomVotes);
   });
 }
 

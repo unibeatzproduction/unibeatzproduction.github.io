@@ -343,6 +343,40 @@ body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-seri
 #page-livebattle .tile-paused-msg{display:none;text-align:center;color:rgba(240,237,232,.6);font-family:'Orbitron',sans-serif;font-size:.52rem;letter-spacing:2px;padding:20px;}
 #page-livebattle .live-video-card.tile-paused .tile-paused-msg{display:block;}
 #page-livebattle .tile-pause-btn{position:absolute;right:8px;top:8px;z-index:6;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'Orbitron',sans-serif;font-size:.42rem;letter-spacing:1px;padding:5px 8px;border-radius:20px;cursor:pointer;}
+/* ══════════ VIEWER SCREEN — OWNER'S SKETCH LAYOUT ══════════
+   Two large artist cams (left + right), small DJ cam centered between them,
+   poll + chat stacked in the center column, all inside a neon/gold frame. */
+#page-livebattle .viewer-stage{display:none;margin-bottom:12px;}
+#page-livebattle [data-live-role="viewer"] .viewer-stage{display:block;}
+#page-livebattle [data-live-role="viewer"] #liveVideoGrid{display:none;}
+#page-livebattle .viewer-stage-frame{display:grid;grid-template-columns:1.4fr 300px 1.4fr;gap:12px;align-items:stretch;border:2px solid rgba(201,168,76,.55);border-radius:16px;padding:14px;background:linear-gradient(135deg,#0a0a14,#050510);box-shadow:0 0 28px rgba(201,168,76,.18),0 0 40px rgba(0,170,255,.08);}
+#page-livebattle .viewer-artist-slot{display:flex;flex-direction:column;}
+#page-livebattle .viewer-artist-slot .live-video-card{flex:1;min-height:330px;}
+#page-livebattle .viewer-slot-empty{flex:1;display:flex;align-items:center;justify-content:center;min-height:330px;background:#050508;border:1px solid rgba(0,170,255,.22);border-radius:10px;position:relative;}
+#page-livebattle .viewer-dj-slot .viewer-slot-empty{min-height:170px;}
+#page-livebattle .viewer-center-col{display:flex;flex-direction:column;gap:12px;min-width:0;}
+#page-livebattle .viewer-dj-slot .live-video-card{min-height:170px;}
+#page-livebattle .viewer-dj-slot .live-video-card video{min-height:170px;}
+#page-livebattle .viewer-overflow-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+#page-livebattle .viewer-overflow-row .live-video-card{flex:1 1 200px;min-height:150px;}
+#page-livebattle .viewer-overflow-row .live-video-card video{min-height:150px;}
+#page-livebattle .live-poll-panel{display:none;border:1px solid rgba(201,168,76,.45);border-radius:10px;padding:12px;background:rgba(0,0,0,.35);}
+#page-livebattle [data-live-role="viewer"] .live-poll-panel{display:block;}
+#page-livebattle .live-poll-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:4px;}
+#page-livebattle .live-poll-note{font-size:.78rem;color:rgba(240,237,232,.6);margin-bottom:10px;line-height:1.4;}
+#page-livebattle .live-poll-options{display:flex;flex-direction:column;gap:8px;}
+#page-livebattle .live-poll-option{display:block;width:100%;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#fff;padding:10px 12px;cursor:pointer;font-family:'Rajdhani',sans-serif;}
+#page-livebattle .live-poll-option:hover{border-color:rgba(201,168,76,.5);}
+#page-livebattle .live-poll-option.voted{border-color:var(--gold);background:rgba(201,168,76,.12);}
+#page-livebattle .live-poll-opt-name{font-weight:700;font-size:.92rem;display:block;}
+#page-livebattle .live-poll-opt-count{font-size:.78rem;color:rgba(240,237,232,.65);}
+#page-livebattle .live-poll-bar{display:block;height:8px;background:rgba(255,255,255,.08);border-radius:4px;margin-top:6px;overflow:hidden;}
+#page-livebattle .live-poll-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--blue-bright));border-radius:4px;transition:width .3s;}
+#page-livebattle .live-poll-total{font-family:'Orbitron',sans-serif;font-size:.45rem;letter-spacing:2px;color:rgba(240,237,232,.6);margin-top:10px;}
+@media(max-width:759px){
+  #page-livebattle .viewer-stage-frame{grid-template-columns:1fr;}
+  #page-livebattle .viewer-artist-slot .live-video-card,#page-livebattle .viewer-slot-empty{min-height:240px;}
+}
 
 
 /* ══════════ UNIFREESTYLE DESKTOP VISUAL UPGRADE ══════════ */
