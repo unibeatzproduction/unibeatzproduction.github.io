@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="UniBeatz Radio"/>
 <meta name="theme-color" content="#C9A84C"/>
+<meta name="ub-platform" content="radio"/>
 <link rel="manifest" href="radio-manifest.json"/>
 <link rel="apple-touch-icon" href="icons/radio-192.png"/>
 <title>UniBeatz Radio Station · UniBeatz Production</title>
@@ -83,6 +84,7 @@
       <a href="radio-dj-apply.html">Apply To DJ</a>
       <a href="/radio-advertise.html">Advertise</a>
       <a href="admin-radio.html">Admin</a>
+      <button id="ubSearchBtn" type="button" title="Search the site" style="background:none;border:none;cursor:pointer;font-size:1.1rem;line-height:1;">🔍</button>
       <button id="radioAccountBtn" type="button">Sign In</button>
     </div>
   </div>
@@ -482,5 +484,6 @@ function ubSetupMediaSession() {
   });
 }
 </script>
+<script src="/unibeatz-search.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#C9A84C"/>
+<meta name="ub-platform" content="unipack"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-title" content="Pack Studio"/>
@@ -116,6 +117,8 @@
       </div>
     </a>
     <div class="nav-right" id="navRight">
+      <button id="ubSearchBtn" type="button" title="Search the site" style="background:none;border:none;cursor:pointer;font-size:1.2rem;line-height:1;">🔍</button>
+      <button id="ubNotificationsBtn" type="button" title="Notifications" style="position:relative;background:none;border:none;cursor:pointer;font-size:1.2rem;line-height:1;">🔔<span id="ubNotifBadge" style="display:none;position:absolute;top:-6px;right:-8px;min-width:16px;height:16px;font-size:.65rem;line-height:16px;text-align:center;border-radius:8px;background:#FF3333;color:#fff;padding:0 3px;"></span></button>
       <a href="index.html" class="nav-link">← Empire</a>
       <a href="#" class="nav-link" onclick="goPage('landing');return false;">Home</a>
       <a href="#" class="nav-link" onclick="showPlansPopup();return false;">Plans</a>
@@ -646,6 +649,11 @@
         <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:#ff3333;margin-top:4px;">FOUNDER ACCESS · USE WITH CAUTION</div>
       </div>
       <button class="tool-btn" onclick="goPage('studio')">← Back to Studio</button>
+    </div>
+    <!-- BROADCAST NOTIFICATIONS (real system — renders only for the admin) -->
+    <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:24px;margin-bottom:24px;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:16px;">📣 BROADCAST NOTIFICATION</div>
+      <div id="ubNotificationAdmin"></div>
     </div>
     <!-- STATS CARDS -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:32px;">
@@ -4257,7 +4265,16 @@ window.addEventListener('DOMContentLoaded', () => {
   setupTrimDragHandlers();
 });
 </script>
+<!-- NOTIFICATIONS PANEL (real system — unibeatz-notifications.js) -->
+<div id="ubNotificationsPanel" class="ub-notifications-panel" style="display:none">
+  <div class="ub-notifications-head">
+    <strong>Notifications</strong>
+    <button type="button" onclick="document.getElementById('ubNotificationsPanel').style.display='none'">✕</button>
+  </div>
+  <div id="ubNotificationsList"></div>
+</div>
 <script type="module" src="/unibeatz-notifications.js"></script>
+<script src="/unibeatz-search.js"></script>
 <script src="/unipack-producer-profiles.js"></script>
 <script src="/unipack-swing.js"></script>
 <script src="/unipack-piano-roll.js"></script>

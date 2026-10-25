@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="ub-platform" content="home"/>
 <title>UniBeatz Production | The Empire</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
@@ -311,8 +312,8 @@ loadFirestoreBeats();
       <li><a href="#" onclick="openAdmin();return false;" class="nav-cta">⚙️ Admin</a></li>
     </ul>
     <div class="nav-right">
-      <div class="nav-icon-btn" onclick="showToast('🔍 Search coming soon')">🔍</div>
-      <div class="nav-icon-btn" onclick="showToast('🔔 Notifications coming soon')">🔔<div class="nav-notif-dot"></div></div>
+      <div class="nav-icon-btn" id="ubSearchBtn" title="Search the site">🔍</div>
+      <div class="nav-icon-btn" id="ubNotificationsBtn" title="Notifications">🔔<span id="ubNotifBadge" class="nav-notif-dot" style="display:none;min-width:16px;height:16px;font-size:.65rem;align-items:center;justify-content:center;padding:0 3px;line-height:1;"></span></div>
       <div class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
         <span></span><span></span><span></span>
       </div>
@@ -663,6 +664,10 @@ loadFirestoreBeats();
         <div class="form-group"><label>TikTok</label><input type="text" id="sTkInput"/></div>
         <button class="btn-gold btn-full" onclick="saveSocials()">Save</button>
       </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📣 Broadcast Notification</div>
+        <div id="ubNotificationAdmin"></div>
+      </div>
       <button class="btn-blue btn-full" onclick="lockAdmin()" style="margin-top:8px;">🔒 Lock Panel</button>
     </div>
   </div>
@@ -839,5 +844,15 @@ function flash(){cx.clearRect(0,0,cv.width,cv.height);for(let i=0;i<3;i++){cx.be
 document.getElementById('beatsTrack').innerHTML='<div style="color:var(--gray);padding:30px;text-align:center;width:100%;font-family:Orbitron,sans-serif;font-size:0.7rem;letter-spacing:3px;">Loading beats...</div>';
 renderVideos();
 </script>
+<!-- NOTIFICATIONS PANEL (real system — unibeatz-notifications.js) -->
+<div id="ubNotificationsPanel" class="ub-notifications-panel" style="display:none">
+  <div class="ub-notifications-head">
+    <strong>Notifications</strong>
+    <button type="button" onclick="document.getElementById('ubNotificationsPanel').style.display='none'">✕</button>
+  </div>
+  <div id="ubNotificationsList"></div>
+</div>
+<script type="module" src="/unibeatz-notifications.js"></script>
+<script src="/unibeatz-search.js"></script>
 </body>
 </html>

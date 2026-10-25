@@ -1,3 +1,12 @@
+// ⚠️ STALE FILE — DO NOT DEPLOY — DO NOT PUBLISH FROM THIS REPO ⚠️
+// This file only covers the `radio_submissions` collection. The LIVE
+// Firestore rules in the Firebase console (published Aug 6, 2026) are much
+// wider and are the AUTHORITATIVE rules — they are what actually protects
+// the site today (including public reads used by Browse Producers and the
+// notification broadcasts). Deploying this file would OVERWRITE the live
+// rules and break those features. The console rules are authoritative;
+// this file must not be published as-is. Kept in the repo for reference
+// only. Any rule change must be made in the Firebase console, not here.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {

@@ -18,6 +18,63 @@
 
   function getUsers(){ return get('ub_users','{}'); }
   function saveUsers(v){ set('ub_users',v); }
+
+  // ── Firestore producers (Browse Producers cloud source) ──────────
+  // Renders from the Firestore `profiles` collection (public read) keyed
+  // by document id. NEVER writes into localStorage `ub_users` — the old
+  // duplicate-profile bug came from creating local users from the cloud,
+  // so cloud rows live only in this in-memory cache.
+  var fsProducers = null;   // null = not loaded yet, [] = loaded (maybe empty)
+  var fsLoading = false;
+  var fsLoadedAt = 0;
+
+  function fbHandle(){
+    var fb = window.UB_FIREBASE || {};
+    if(fb.db && fb.collection && fb.getDocs) return fb;
+    return null;
+  }
+
+  function loadFirestoreProducers(){
+    if(fsProducers !== null && Date.now() - fsLoadedAt < 120000) return;
+    if(fsLoading) return;
+    var fb = fbHandle();
+    if(!fb){
+      // Firebase handle arrives via the ub-firebase-ready event (same as
+      // unifreestyle-core.js). Retry once when it fires.
+      window.addEventListener('ub-firebase-ready', function(){
+        fsLoading = false;
+        loadFirestoreProducers();
+      }, { once: true });
+      return;
+    }
+    fsLoading = true;
+    fb.getDocs(fb.collection(fb.db, 'profiles')).then(function(snap){
+      var rows = [];
+      snap.forEach(function(doc){
+        var d = doc.data() || {};
+        var name = clean(doc.id || d.username || '');
+        if(!name) return;
+        rows.push({
+          username: name,
+          name: d.displayName || d.name || niceName(name),
+          role: d.role || 'artist',
+          avatar: d.avatar || '🎤',
+          photo: d.photo || d.photoUrl || d.photoURL || '',
+          bio: d.bio || ''
+        });
+      });
+      fsProducers = rows;
+      fsLoadedAt = Date.now();
+      fsLoading = false;
+      if(document.querySelector('#page-browseproducer.active')) renderProducers();
+    }).catch(function(e){
+      console.warn('[ubUI] Firestore producers load failed:', e.message);
+      fsLoading = false;
+      // Leave fsProducers null so the local list still renders; retry on
+      // next browse visit instead of hammering a denied read.
+      setTimeout(function(){ if(fsProducers === null) loadFirestoreProducers(); }, 30000);
+    });
+  }
   function getCurrent(){ return get('ub_current_user','null')||get('ub_user','null')||{}; }
   function getFollows(){ return get(FOLLOWS,'{}'); }
   function saveFollows(f){ set(FOLLOWS,f); }
@@ -97,23 +154,30 @@
     );
   }
 
+  // In-memory only: followed producers without a local record get a
+  // display row, but it is NEVER written back to `ub_users`. Persisting
+  // cloud/follow-derived users locally caused the duplicate-profile bug.
   function hydrateMissing(){
-    var all=getUsers(), f=getFollows(), changed=false;
+    var all=getUsers(), f=getFollows();
     Object.keys(f||{}).forEach(function(k){
       var rec=f[k]||{};
       var target=uname({username:rec.following})||String(k).split('__')[1]||'';
       target=clean(target);
       if(target&&target!=='djblaze'&&target!=='phantombeats'&&!all[target]){
         all[target]={ username:target, name:niceName(target), role:'artist', avatar:'🎤', bio:'Producer on Uni Freestyle.' };
-        changed=true;
       }
     });
-    if(changed) saveUsers(all);
     return all;
   }
 
   function producerData(){
     var out=[], all=hydrateMissing(), cur=getCurrent(), cn=uname(cur), seen={};
+    // Cloud first: every account in Firestore `profiles` shows up, even
+    // if this device never saw that user before. Local rows only fill gaps.
+    (fsProducers || []).forEach(function(x){
+      var r=norm(x&&x.role||'artist');
+      if(x&&uname(x)&&['artist','dj','producer','fan','viewer','admin'].indexOf(r)>-1) out.push(x);
+    });
     Object.keys(all||{}).forEach(function(k){
       var x=all[k], r=norm(x&&x.role||'artist');
       if(x&&uname(x)&&['artist','dj','producer','fan','viewer','admin'].indexOf(r)>-1) out.push(x);
@@ -153,12 +217,18 @@
 
   function renderProducers(){
     ensureBrowsePage();
+    loadFirestoreProducers();
     var list=document.getElementById('ubProducerList'); if(!list) return;
     var q=norm((document.getElementById('ubProducerSearchInput')||{}).value||'');
     var data=producerData().filter(function(x){
       return !q||norm((x.name||'')+' '+(x.username||'')+' '+(x.bio||'')+' '+(x.role||'')).indexOf(q)>-1;
     });
-    if(!data.length){ list.innerHTML='<div style="padding:14px;color:rgba(240,237,232,.65);">No producers found yet. Loading...</div>'; return; }
+    if(!data.length){
+      list.innerHTML = fsProducers === null
+        ? '<div style="padding:14px;color:rgba(240,237,232,.65);">No producers found yet. Loading producers from the cloud…</div>'
+        : '<div style="padding:14px;color:rgba(240,237,232,.65);">No producers found yet.</div>';
+      return;
+    }
     list.innerHTML=data.map(function(x){
       var name=uname(x), live=isLive(name), fol=isFollowing(name), followers=countFollowers(name);
       var av=x.photo?'<img src="'+esc(x.photo)+'">':esc(x.avatar||'🎤');
@@ -176,6 +246,11 @@
         '</div>'+
       '</div>';
     }).join('');
+    // Cloud data still loading: local rows render now, cloud rows join on
+    // arrival (loadFirestoreProducers re-renders when the fetch lands).
+    if(fsProducers === null){
+      list.innerHTML += '<div style="padding:10px 14px;color:rgba(240,237,232,.5);font-size:.78rem;">Syncing producers from the cloud…</div>';
+    }
   }
 
   // ═══════════════════════════════════════════════════
