@@ -689,11 +689,14 @@ loadFirestoreBeats();
         <div class="form-group"><label>Cover File (optional)</label><input type="file" id="bf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/></div>
         <div class="form-group"><label>…or Cover URL</label><input type="text" id="bf_cover" placeholder="Optional fallback cover URL"/></div>
         <div class="form-row">
-          <div class="form-group"><label>Basic $</label><input type="number" id="bf_basic" placeholder="25" value="25"/></div>
-          <div class="form-group"><label>Premium $</label><input type="number" id="bf_premium" placeholder="75" value="75"/></div>
-          <div class="form-group"><label>Exclusive $</label><input type="number" id="bf_exclusive" placeholder="300" value="300"/></div>
+          <div class="form-group"><label>MP3 License $ (50–75)</label><input type="number" id="bf_mp3" placeholder="50–75" value="50" min="50" max="75"/></div>
+          <div class="form-group"><label>Exclusive Rights $ (300–400)</label><input type="number" id="bf_exclusive" placeholder="300–400" value="300" min="300" max="400"/></div>
         </div>
-        <div class="form-group"><label>Stripe Payment Link (Basic license) — optional</label><input type="text" id="bf_stripeBasic" placeholder="https://buy.stripe.com/..."/></div>
+        <div class="form-group"><label>WAV License</label><div style="padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;">$150 fixed — official UBP LABEL release</div></div>
+        <div class="form-group"><label>Stripe Payment Link — MP3 License</label><input type="text" id="bf_stripeMp3" placeholder="https://buy.stripe.com/..."/></div>
+        <div class="form-group"><label>Stripe Payment Link — WAV License</label><input type="text" id="bf_stripeWav" placeholder="https://buy.stripe.com/..."/></div>
+        <div class="form-group"><label>Stripe Payment Link — Exclusive Rights</label><input type="text" id="bf_stripeExclusive" placeholder="https://buy.stripe.com/..."/></div>
+        <div style="font-size:0.8rem;color:rgba(240,237,232,0.55);margin-bottom:10px;">A tier with no Stripe link shows as unavailable to buyers — it never renders as a live BUY button.</div>
         <button class="btn-gold btn-full" onclick="ubAdminSaveStoreBeat()">💾 Save Beat to Marketplace</button>
       </div>
       <div class="admin-section">
@@ -795,8 +798,13 @@ window.renderBeatsFromFirestore = function() {
       tag: b.tag || b.genre || 'Hip-Hop',
       bpm: b.bpm || '?',
       key: b.key || '?',
-      price: b.basicPrice || b.price || 0,
-      stripe: b.stripeBasic || b.stripe || '',
+      price: b.mp3Price ?? 0,
+      mp3Price: b.mp3Price ?? null,
+      wavPrice: b.wavPrice ?? 150,
+      exclusivePrice: b.exclusivePrice ?? null,
+      stripeMp3: b.stripeMp3 || '',
+      stripeWav: b.stripeWav || '',
+      stripeExclusive: b.stripeExclusive || '',
       stream: b.audioUrl || b.stream || '',
       cover: b.coverUrl || ''
     }));
@@ -823,8 +831,8 @@ function renderBeats(filter){
       <div class="waveform">${waveform()}</div>
       ${b.stream?`<button id="prev-${b.id}" class="btn-gold" style="width:100%;padding:7px;font-size:0.5rem;margin-bottom:8px;" onclick="togglePreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}
       <div class="beat-footer">
-        <div class="beat-price">$${b.price}</div>
-        <button class="btn-gold" style="padding:7px 14px;font-size:0.5rem;" onclick="openModal('${b.name.replace(/'/g,"\\'")}','$${b.price}','${b.stripe}')">BUY</button>
+        <div class="beat-price">${b.mp3Price!=null?('$'+b.mp3Price):'—'}</div>
+        <button class="btn-gold" style="padding:7px 14px;font-size:0.5rem;" onclick="openBeatLicenseModal('${b.id}')">LICENSES</button>
       </div>`;
     track.appendChild(card);
   });
@@ -874,7 +882,7 @@ function renderCatalogBeats(){
   const grid=document.getElementById('catalogBeatsGrid');if(!grid)return;
   const list=catalogFilter==='all'?beats:beats.filter(b=>b.tag===catalogFilter);
   if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;color:var(--gray);padding:40px;text-align:center;font-family:Orbitron,sans-serif;font-size:.7rem;letter-spacing:3px;">No beats in this category yet.</div>';return;}
-  grid.innerHTML=list.map(b=>`<article class="catalog-card"><div class="beat-tag">${b.tag}</div><div class="beat-name">${b.name}</div><div class="beat-meta">${b.bpm} BPM · Key: ${b.key}</div><div class="waveform">${waveform()}</div>${b.stream?`<button id="cat-prev-${b.id}" class="btn-gold" style="width:100%;padding:8px;font-size:.5rem;margin-bottom:9px;" onclick="toggleCatalogPreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}<div class="beat-footer"><div class="beat-price">$${b.price}</div><button class="btn-gold" style="padding:7px 14px;font-size:.5rem;" onclick="openModal('${b.name.replace(/'/g,"\'")}','$${b.price}','${b.stripe}')">BUY</button></div></article>`).join('');
+  grid.innerHTML=list.map(b=>`<article class="catalog-card"><div class="beat-tag">${b.tag}</div><div class="beat-name">${b.name}</div><div class="beat-meta">${b.bpm} BPM · Key: ${b.key}</div><div class="waveform">${waveform()}</div>${b.stream?`<button id="cat-prev-${b.id}" class="btn-gold" style="width:100%;padding:8px;font-size:.5rem;margin-bottom:9px;" onclick="toggleCatalogPreview('${b.id}','${b.stream}')">▶ Preview</button>`:''}<div class="beat-footer"><div class="beat-price">${b.mp3Price!=null?('$'+b.mp3Price):'—'}</div><button class="btn-gold" style="padding:7px 14px;font-size:.5rem;" onclick="openBeatLicenseModal('${b.id}')">LICENSES</button></div></article>`).join('');
 }
 function toggleCatalogPreview(beatId,audioUrl){const btn=document.getElementById('cat-prev-'+beatId);if(_catalogBeatId===beatId&&_catalogAudio){_catalogAudio.pause();if(btn)btn.textContent='▶ Preview';_catalogAudio=null;_catalogBeatId=null;return;}if(_catalogAudio){_catalogAudio.pause();const old=document.getElementById('cat-prev-'+_catalogBeatId);if(old)old.textContent='▶ Preview';}_catalogAudio=new Audio(audioUrl);_catalogBeatId=beatId;_catalogAudio.play().catch(()=>showToast('Preview failed'));if(btn)btn.textContent='⏸ Pause';_catalogAudio.addEventListener('ended',()=>{if(btn)btn.textContent='▶ Preview';_catalogAudio=null;_catalogBeatId=null;},{once:true});}
 document.getElementById('beatCatalogModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeBeatCatalog();});
@@ -895,7 +903,33 @@ function slideVideo(dir){const t=document.getElementById('videosTrack');t.scroll
 
 // MODALS
 let _stripe='';
-function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent=`Price: ${price}`;document.getElementById('modal').classList.add('active');}
+function openModal(name,price,stripe=''){
+  // If a beat-license modal replaced the shared modal body, restore it first.
+  const modalBox=document.querySelector('#modal .modal');
+  if(modalBox && !document.getElementById('modal-title') && modalBox.dataset.origHtml){modalBox.innerHTML=modalBox.dataset.origHtml;}
+  _stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent=`Price: ${price}`;document.getElementById('modal').classList.add('active');}
+function beatTierRow(title,price,desc,link){
+  if(link){return `<a href="${link}" target="_blank" rel="noopener" style="display:block;padding:14px;background:linear-gradient(135deg,#0a1c2e,#0a0a14);border:1px solid var(--blue);color:#fff;text-decoration:none;border-radius:6px;text-align:left;"><div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:var(--blue-bright);">${title}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${price}</div><div style="font-size:0.78rem;color:var(--gray);">${desc}</div></a>`;}
+  return `<div style="display:block;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.12);color:var(--gray);border-radius:6px;text-align:left;opacity:0.6;"><div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;">${title}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${price}</div><div style="font-size:0.78rem;">${desc}</div><div style="font-size:0.72rem;margin-top:6px;">Stripe link needed — this tier is not on sale yet.</div></div>`;
+}
+function openBeatLicenseModal(beatId){
+  const b=beats.find(x=>x.id===beatId);if(!b)return;
+  const modalBox=document.querySelector('#modal .modal');
+  if(modalBox && !modalBox.dataset.origHtml){modalBox.dataset.origHtml=modalBox.innerHTML;}
+  const escS=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const html=`<button class="modal-close" onclick="closeBeatLicenseModal()">✕</button><h2>${escS(b.name)}</h2><p class="modal-sub" style="text-align:center;">${escS(b.tag)} · ${b.bpm} BPM · Key: ${escS(b.key)}</p><p style="color:var(--gray);font-size:0.86rem;text-align:center;">Choose your license tier</p><div style="display:grid;gap:10px;margin:14px 0;">
+    ${beatTierRow('MP3 LICENSE',b.mp3Price!=null?b.mp3Price:'—','Instant MP3 download · Non-exclusive use license · Must credit Prod. UniBeatz',b.stripeMp3)}
+    ${beatTierRow('WAV LICENSE',b.wavPrice!=null?b.wavPrice:150,'Official UBP LABEL release · Instant WAV download with commercial use license · Beat removed from ALL platforms after purchase · Must credit Prod. UniBeatz',b.stripeWav)}
+    ${beatTierRow('EXCLUSIVE RIGHTS',b.exclusivePrice!=null?b.exclusivePrice:'—','Exclusive rights license · Beat removed from store after purchase · Includes WAV file + premium usage rights · Must credit Prod. UniBeatz',b.stripeExclusive)}
+  </div><p style="font-size:0.7rem;color:var(--gray);text-align:center;margin-top:14px;">All licenses include the "Prod. UniBeatz" credit requirement · <a href="legal.html#beat-licenses" style="color:var(--gold-light);">View full terms</a></p>`;
+  modalBox.innerHTML=html;
+  document.getElementById('modal').classList.add('active');
+}
+function closeBeatLicenseModal(){
+  const modalBox=document.querySelector('#modal .modal');
+  if(modalBox && modalBox.dataset.origHtml){modalBox.innerHTML=modalBox.dataset.origHtml;}
+  closeModal();
+}
 function closeModal(){document.getElementById('modal').classList.remove('active');}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
 function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Stripe link not set yet.');}}

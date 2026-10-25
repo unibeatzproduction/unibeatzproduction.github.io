@@ -126,20 +126,27 @@ async function saveStoreBeat() {
     return;
   }
   if (!name || !tag || !audioUrl) { toast("Name, Tag, and Beat Audio required"); return; }
+  // Owner's three-tier structure: MP3 $50-75 (uploader picks within range),
+  // WAV $150 fixed, Exclusive $300-400 (uploader picks within range).
+  const clamp = (v, lo, hi, dflt) => { const n = parseInt(v); if (isNaN(n)) return dflt; return Math.min(hi, Math.max(lo, n)); };
+  const mp3Price = clamp($("bf_mp3")?.value, 50, 75, 50);
+  const exclusivePrice = clamp($("bf_exclusive")?.value, 300, 400, 300);
   try {
     await addDoc(collection(db, "marketplace_beats"), {
       name, tag,
       bpm: $("bf_bpm")?.value || "",
       key: $("bf_key")?.value.trim() || "",
       audioUrl, coverUrl,
-      basicPrice: parseInt($("bf_basic")?.value) || 25,
-      premiumPrice: parseInt($("bf_premium")?.value) || 75,
-      exclusivePrice: parseInt($("bf_exclusive")?.value) || 300,
-      stripeBasic: $("bf_stripeBasic")?.value.trim() || "",
+      mp3Price,
+      wavPrice: 150,
+      exclusivePrice,
+      stripeMp3: $("bf_stripeMp3")?.value.trim() || "",
+      stripeWav: $("bf_stripeWav")?.value.trim() || "",
+      stripeExclusive: $("bf_stripeExclusive")?.value.trim() || "",
       createdAt: serverTimestamp()
     });
     toast("Beat uploaded to the Beat Store!");
-    clearFields(["bf_name", "bf_tag", "bf_bpm", "bf_key", "bf_audio", "bf_cover", "bf_stripeBasic", "bf_audioFile", "bf_coverFile"]);
+    clearFields(["bf_name", "bf_tag", "bf_bpm", "bf_key", "bf_audio", "bf_cover", "bf_stripeMp3", "bf_stripeWav", "bf_stripeExclusive", "bf_audioFile", "bf_coverFile"]);
     refreshStoreLists();
   } catch (e) { toast("Save failed: " + e.message); }
 }
@@ -186,7 +193,7 @@ async function refreshStoreLists() {
     if (beatsDiv) {
       beatsDiv.innerHTML = beats.length ? beats.map((b) => `
         <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(201,168,76,0.15);margin-bottom:5px;">
-          <div style="flex:1;"><b>${esc(b.name)}</b> · ${esc(b.tag || "")} · ${esc(b.bpm || "?")} BPM<small style="display:block;color:rgba(240,237,232,0.5);">$${b.basicPrice || 25} / $${b.premiumPrice || 75} / $${b.exclusivePrice || 300}</small></div>
+          <div style="flex:1;"><b>${esc(b.name)}</b> · ${esc(b.tag || "")} · ${esc(b.bpm || "?")} BPM<small style="display:block;color:rgba(240,237,232,0.5);">MP3 $${b.mp3Price ?? "–"} / WAV $${b.wavPrice ?? 150} / Exclusive $${b.exclusivePrice ?? "–"}</small></div>
           <button class="btn-blue" onclick="ubAdminDeleteStoreBeat('${escAttr(b.id)}','${escAttr(b.name)}')">🗑️</button>
         </div>`).join("") : "<div>No beats yet.</div>";
     }

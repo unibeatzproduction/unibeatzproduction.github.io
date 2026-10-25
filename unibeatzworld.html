@@ -722,7 +722,7 @@ function renderWorldBeats(){
           <button class="preview-btn" id="preview-${b.id}" onclick="togglePreview('${b.id}','${escapeAttr(b.audioUrl)}')">▶ Preview</button>
         </div>` : ''}
         <div class="product-footer" style="margin-top:10px;">
-          <div class="product-price">$${b.basicPrice || 25}</div>
+          <div class="product-price">${b.mp3Price != null ? ('$' + b.mp3Price) : 'See licenses'}</div>
           <button class="btn-buy" onclick="openBeatModal('${b.id}')">LICENSE</button>
         </div>
       </div>`;
@@ -822,6 +822,24 @@ function togglePreview(beatId, audioUrl) {
 // ═════════════════════════════════════════
 // BUY BEAT MODAL
 // ═════════════════════════════════════════
+// Renders one license tier: a live link when a Stripe link exists, otherwise a
+// disabled block that never pretends to be purchasable (no '#' dead links).
+function licenseTierHtml(title, price, desc, link, borderColor, labelColor) {
+  const priceText = price != null ? ('$' + price) : '—';
+  if (link) {
+    return `<a href="${escapeAttr(link)}" target="_blank" rel="noopener" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#0a1c2e,#0a0a14);border:1px solid ${borderColor};color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
+      <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:${labelColor};">${title}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">${priceText}</div>
+      <div style="font-size:0.78rem;color:var(--gray);">${desc}</div>
+    </a>`;
+  }
+  return `<div class="license-btn license-btn-disabled" style="display:block;padding:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.12);color:var(--gray);border-radius:6px;text-align:left;opacity:0.6;">
+    <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;">${title}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">${priceText}</div>
+    <div style="font-size:0.78rem;">${desc}</div>
+    <div style="font-size:0.72rem;margin-top:6px;">Stripe link needed — this tier is not on sale yet.</div>
+  </div>`;
+}
 function openBeatModal(beatId) {
   const b = beats.find(x => x.id === beatId);
   if(!b) return;
@@ -833,21 +851,9 @@ function openBeatModal(beatId) {
       <p style="color:var(--gray);font-size:0.86rem;">Choose your license tier</p>
     </div>
     <div style="display:grid;gap:10px;margin:14px 0;">
-      <a href="${b.stripeBasic || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#0a1c2e,#0a0a14);border:1px solid var(--blue);color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:var(--blue-bright);">🥉 BASIC LICENSE</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.basicPrice || 25}</div>
-        <div style="font-size:0.78rem;color:var(--gray);">MP3 · 10K streams · 1 video · Non-exclusive</div>
-      </a>
-      <a href="${b.stripePremium || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#1a1308,#0a0a14);border:1px solid var(--gold);color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:var(--gold);">🥈 PREMIUM LICENSE</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.premiumPrice || 75}</div>
-        <div style="font-size:0.78rem;color:var(--gray);">WAV + Stems · 100K streams · 2 videos · Non-exclusive</div>
-      </a>
-      <a href="${b.stripeExclusive || '#'}" class="license-btn" style="display:block;padding:14px;background:linear-gradient(135deg,#1a0822,#0a0a14);border:1.5px solid #9B30FF;color:#fff;text-decoration:none;border-radius:6px;text-align:left;">
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:2.5px;color:#9B30FF;">🥇 EXCLUSIVE LICENSE</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);margin:4px 0;">$${b.exclusivePrice || 300}</div>
-        <div style="font-size:0.78rem;color:var(--gray);">WAV + Stems · UNLIMITED · Exclusive ownership</div>
-      </a>
+      ${licenseTierHtml('MP3 LICENSE', b.mp3Price, 'Instant MP3 download · Non-exclusive use license · Must credit Prod. UniBeatz', b.stripeMp3, 'var(--blue)', 'var(--blue-bright)')}
+      ${licenseTierHtml('WAV LICENSE', b.wavPrice != null ? b.wavPrice : 150, 'Official UBP LABEL release · Instant WAV download with commercial use license · Beat removed from ALL platforms after purchase · Must credit Prod. UniBeatz', b.stripeWav, 'var(--gold)', 'var(--gold)')}
+      ${licenseTierHtml('EXCLUSIVE RIGHTS', b.exclusivePrice, 'Exclusive rights license · Beat removed from store after purchase · Includes WAV file + premium usage rights · Must credit Prod. UniBeatz', b.stripeExclusive, '#9B30FF', '#9B30FF')}
     </div>
     <p style="font-size:0.7rem;color:var(--gray);text-align:center;margin-top:14px;">All licenses include "Prod. UniBeatz" credit requirement · <a href="legal.html#beat-licenses" style="color:var(--gold-light);">View full terms</a></p>
   `;
@@ -857,17 +863,7 @@ function openBeatModal(beatId) {
   // Replace modal contents
   modalEl.innerHTML = `<button class="modal-close" onclick="closeModal()">✕</button><h2>${escapeHtml(title)}</h2>${html}`;
   document.getElementById('modal').classList.add('active');
-  // Add click handlers to license buttons to warn if not configured
-  setTimeout(() => {
-    document.querySelectorAll('.license-btn').forEach(el => {
-      if(el.getAttribute('href') === '#' || !el.getAttribute('href')) {
-        el.addEventListener('click', (e) => {
-          e.preventDefault();
-          showToast('💳 Stripe link not set up for this tier yet. Contact unibeatzproduction@gmail.com');
-        });
-      }
-    });
-  }, 50);
+  // No dead-link fallback needed: tiers without a Stripe link render disabled above.
 }
 
 function closeModal() {
