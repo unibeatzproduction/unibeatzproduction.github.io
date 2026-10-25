@@ -536,7 +536,7 @@ By completing this purchase you agree to all terms of this license agreement.`;
       if (!packs.length) { packsGrid.innerHTML = '<div style="color:rgba(240,237,232,.4);font-family:Rajdhani,sans-serif;padding:20px;">No packs published yet.</div>'; return; }
       packsGrid.innerHTML = packs.map(function (pack) {
         var coverHtml = pack.coverUrl ? '<img src="' + pack.coverUrl + '" style="width:100%;height:100%;object-fit:cover;"/>' : '<div style="font-size:3rem;display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,rgba(0,170,255,.1),rgba(201,168,76,.1));">📦</div>';
-        return `<div class="pack-listing-card"><div class="pack-listing-cover">${coverHtml}</div><div class="pack-listing-info"><div class="pack-listing-name">${pack.name || 'Untitled Pack'}</div><div class="pack-listing-meta">${pack.genre || ''}${pack.bpm ? ' · ' + pack.bpm + ' BPM' : ''}${pack.key ? ' · ' + pack.key : ''}</div><div class="pack-listing-btns"><button class="pack-price-btn pack-price-btn-std" onclick="window.ubOpenLicense('${pack.id}','standard','${(pack.name||'').replace(/'/g,'')}')">$15.99<br/><span style="font-size:.36rem;opacity:.8;">Standard</span></button><button class="pack-price-btn pack-price-btn-prem" onclick="window.ubOpenLicense('${pack.id}','premium','${(pack.name||'').replace(/'/g,'')}')">$29.99<br/><span style="font-size:.36rem;opacity:.8;">Premium</span></button></div><div class="pack-license-note">🔒 License included</div></div></div>`;
+        return `<div class="pack-listing-card"><div class="pack-listing-cover">${coverHtml}</div><div class="pack-listing-info"><div class="pack-listing-name">${pack.name || 'Untitled Pack'}</div><div class="pack-listing-meta">${pack.genre || ''}${pack.bpm ? ' · ' + pack.bpm + ' BPM' : ''}${pack.key ? ' · ' + pack.key : ''}</div><div class="pack-listing-btns"><button class="pack-price-btn pack-price-btn-std" onclick="window.ubOpenLicense('${pack.id}','standard','${(pack.name||'').replace(/'/g,'')}')">$15.99<br/><span style="font-size:.36rem;opacity:.8;">Standard</span></button><button class="pack-price-btn pack-price-btn-prem" onclick="window.ubOpenLicense('${pack.id}','premium','${(pack.name||'').replace(/'/g,'')}')">$29.99<br/><span style="font-size:.36rem;opacity:.8;">Premium</span></button></div><div class="pack-license-note">🔒 License included — Standard $15.99 or Premium $29.99 license for this pack</div></div></div>`;
       }).join('');
     } catch (e) { hero.innerHTML = '<div style="color:rgba(240,237,232,.4);padding:40px;">Error loading profile.</div>'; }
   };
@@ -555,7 +555,11 @@ By completing this purchase you agree to all terms of this license agreement.`;
     if (cb) { cb.classList.remove('checked'); cb.textContent = ''; }
     if (btn) { btn.classList.remove('enabled'); btn.textContent = tier === 'premium' ? 'PROCEED — $29.99 PREMIUM' : 'PROCEED — $15.99 STANDARD'; }
     var modal = document.getElementById('licenseModal');
-    if (modal) modal.classList.add('active');
+    if (modal) {
+      var titleEl = modal.querySelector('.license-modal-title');
+      if (titleEl) { titleEl.textContent = tier === 'premium' ? '📋 Premium License — $29.99 for this pack' : '📋 Standard License — $15.99 for this pack'; }
+      modal.classList.add('active');
+    }
   };
   window.ubToggleLicenseCheck = function () {
     _licenseChecked = !_licenseChecked;

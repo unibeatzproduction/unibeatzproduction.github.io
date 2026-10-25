@@ -427,8 +427,8 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
     </p>
   </div>
 
-  <!-- Mini product previews -->
-  <div class="merch-grid">
+  <!-- UniBeatzWorld merch teaser cards HIDDEN until that Shopify store works again — cards return when the store is live. Do NOT relink to the Donny store (different brand). -->
+  <div class="merch-grid" style="display:none;">
     <div class="merch-card reveal" onclick="window.open('https://unibeatzproduction.myshopify.com','_blank')" style="cursor:pointer;">
       <div class="merch-img" style="font-size:3rem;"><div class="merch-img-glow"></div>🌑</div>
       <div class="merch-body">
@@ -475,7 +475,7 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
     </div>
   </div>
 
-  <div style="text-align:center;margin-top:40px;" class="reveal">
+  <div style="text-align:center;margin-top:40px;display:none;" class="reveal">
     <a href="https://unibeatzproduction.myshopify.com" target="_blank" rel="noopener" style="display:inline-block;padding:14px 32px;background:transparent;border:1px solid var(--gold);color:var(--gold-light);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;font-weight:700;text-decoration:none;border-radius:6px;text-transform:uppercase;transition:all 0.3s;">
       VIEW FULL STORE →
     </a>
@@ -496,7 +496,7 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
   </div>
   <div class="plans-grid">
     <div class="plan-card reveal">
-      <div class="plan-name">Starter</div>
+      <div class="plan-name">Membership Starter</div>
       <div class="plan-price">$29</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -506,11 +506,11 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
         <li>1 Sound Pack / Month</li>
         <li>Email Support</li>
       </ul>
-      <button class="btn-plan" onclick="openModal('Starter Membership','$29/month')">Get Started</button>
+      <button class="btn-plan" onclick="openModal('Membership Starter','$29/month',UB_MEMBERSHIP_LINKS.starter)">Get Started</button>
     </div>
     <div class="plan-card featured reveal">
       <div class="plan-badge">Most Popular</div>
-      <div class="plan-name">Pro</div>
+      <div class="plan-name">Membership Pro</div>
       <div class="plan-price">$79</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -522,10 +522,10 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
         <li>Early Beat Access</li>
         <li>10% Off Merch</li>
       </ul>
-      <button class="btn-plan" onclick="openModal('Pro Membership','$79/month')">Go Pro</button>
+      <button class="btn-plan" onclick="openModal('Membership Pro','$79/month',UB_MEMBERSHIP_LINKS.pro)">Go Pro</button>
     </div>
     <div class="plan-card reveal">
-      <div class="plan-name">Elite</div>
+      <div class="plan-name">Membership Elite</div>
       <div class="plan-price">$149</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -538,7 +538,7 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
         <li>20% Off Merch</li>
         <li>Custom Beat Discounts</li>
       </ul>
-      <button class="btn-plan" onclick="openModal('Elite Membership','$149/month')">Go Elite</button>
+      <button class="btn-plan" onclick="openModal('Membership Elite','$149/month',UB_MEMBERSHIP_LINKS.elite)">Go Elite</button>
     </div>
   </div>
 </section>
@@ -574,7 +574,7 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
     <div class="form-group"><label>Email</label><input type="email" id="mEmail" placeholder="your@email.com"/></div>
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,168,76,0.2);padding:14px;margin-bottom:12px;text-align:center;">
       <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--blue-bright);margin-bottom:5px;">STRIPE PAYMENT</div>
-      <p style="font-size:0.76rem;color:var(--gray);">Add your Stripe recurring payment link to activate memberships.</p>
+      <p style="font-size:0.76rem;color:var(--gray);">Secure checkout via Stripe · Cancel anytime</p>
     </div>
     <button class="submit-btn" onclick="processPayment()">Start Membership</button>
     <div class="stripe-note"><span class="lock">🔒</span>Secured by Stripe · Cancel anytime</div>
@@ -947,10 +947,16 @@ function notifyMe(inputId,platform){
   showToast(`✅ You'll be notified when ${platform} launches!`);
   document.getElementById(inputId).value='';
 }
+// MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
+// Until a link is set, checkout shows an honest "coming soon" state, never a fake payment.
+let _stripe='';
+const UB_MEMBERSHIP_LINKS = { starter: '', pro: '', elite: '' };
+function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent='Price: '+price;document.getElementById('modal').classList.add('active');}
 function processPayment(){
   const n=document.getElementById('mName')?.value,e=document.getElementById('mEmail')?.value;
   if(!n||!e){showToast('Please fill in name and email');return;}
-  showToast('Stripe link not configured yet.');
+  if(_stripe){window.location.href=_stripe;return;}
+  showToast('Membership payment link coming soon — check back shortly.');
 }
 function showToast(msg){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 function toggleNav(){document.getElementById('navLinks').classList.toggle('open');}
@@ -999,6 +1005,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Expose globals for inline onclick handlers
 window.togglePreview = togglePreview;
+window.openModal = openModal;
 window.openBeatModal = openBeatModal;
 window.closeModal = closeModal;
 window.getPack = getPack;

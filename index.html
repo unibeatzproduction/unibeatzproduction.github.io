@@ -448,7 +448,7 @@ loadFirestoreBeats();
   </div>
   <div class="plans-grid">
     <div class="plan-card">
-      <div class="plan-name">Starter</div>
+      <div class="plan-name">Membership Starter</div>
       <div class="plan-price">$29</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -457,11 +457,11 @@ loadFirestoreBeats();
         <li>Non-Exclusive License</li>
         <li>Basic Support</li>
       </ul>
-      <button class="btn-gold btn-full" onclick="openModal('Starter Membership','$29/month')">Get Started</button>
+      <button class="btn-gold btn-full" onclick="openModal('Membership Starter','$29/month',UB_MEMBERSHIP_LINKS.starter)">Get Started</button>
     </div>
     <div class="plan-card featured">
       <div class="plan-badge">Most Popular</div>
-      <div class="plan-name">Pro</div>
+      <div class="plan-name">Membership Pro</div>
       <div class="plan-price">$79</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -471,10 +471,10 @@ loadFirestoreBeats();
         <li>Early Beat Access</li>
         <li>10% Off Studio Bookings</li>
       </ul>
-      <button class="btn-gold btn-full" onclick="openModal('Pro Membership','$79/month')">Go Pro</button>
+      <button class="btn-gold btn-full" onclick="openModal('Membership Pro','$79/month',UB_MEMBERSHIP_LINKS.pro)">Go Pro</button>
     </div>
     <div class="plan-card">
-      <div class="plan-name">Elite</div>
+      <div class="plan-name">Membership Elite</div>
       <div class="plan-price">$149</div>
       <div class="plan-period">/ month</div>
       <ul class="plan-features">
@@ -484,7 +484,7 @@ loadFirestoreBeats();
         <li>VIP Direct Access</li>
         <li>Free Monthly Studio Hour</li>
       </ul>
-      <button class="btn-gold btn-full" onclick="openModal('Elite Membership','$149/month')">Go Elite</button>
+      <button class="btn-gold btn-full" onclick="openModal('Membership Elite','$149/month',UB_MEMBERSHIP_LINKS.elite)">Go Elite</button>
     </div>
   </div>
 </section>
@@ -626,7 +626,7 @@ loadFirestoreBeats();
     </div>
     <div class="form-group"><label>Notes</label><textarea id="bNotes" placeholder="Tell us about your project..."></textarea></div>
     <button class="btn-gold btn-full" onclick="bookSession()">Book & Pay Deposit</button>
-    <div class="stripe-note"><span class="lock">🔒</span>50% deposit via Stripe</div>
+    <div class="stripe-note"><span class="lock">🔒</span>50% deposit secures your session</div>
   </div>
 </div>
 
@@ -902,6 +902,9 @@ function renderVideos(){
 function slideVideo(dir){const t=document.getElementById('videosTrack');t.scrollBy({left:dir*300,behavior:'smooth'});}
 
 // MODALS
+// MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
+// Until a link is set, its checkout shows an honest "coming soon" state, never a fake payment.
+const UB_MEMBERSHIP_LINKS = { starter: '', pro: '', elite: '' };
 let _stripe='';
 function openModal(name,price,stripe=''){
   // If a beat-license modal replaced the shared modal body, restore it first.
@@ -932,13 +935,17 @@ function closeBeatLicenseModal(){
 }
 function closeModal(){document.getElementById('modal').classList.remove('active');}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target===document.getElementById('modal'))closeModal();});
-function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Stripe link not set yet.');}}
+function processPayment(){const n=document.getElementById('mName').value,e=document.getElementById('mEmail').value;if(!n||!e){showToast('Fill in name and email');return;}if(_stripe){window.location.href=_stripe;}else{showToast('Membership payment link coming soon — check back shortly.');}}
 
 // STUDIO MODAL
 function openStudioModal(){document.getElementById('studioModal').classList.add('active');}
 function closeStudioModal(){document.getElementById('studioModal').classList.remove('active');}
 document.getElementById('studioModal').addEventListener('click',e=>{if(e.target===document.getElementById('studioModal'))closeStudioModal();});
-function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}showToast('💳 Processing deposit via Stripe...');}
+// STUDIO DEPOSIT LINKS — paste real Stripe Payment Links here when created (one per session type).
+// Deposits are 50% of the session price: Recording $75/hr → $37.50, Mixing $100/hr → $50, Full Day $500 → $250.
+// Until a link is set, booking shows an honest "coming soon" state instead of a fake Stripe charge.
+const UB_STUDIO_DEPOSIT_LINKS = { recording: '', mixing: '', fullday: '' };
+function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}const t=document.getElementById('bType').value||'';const key=t.indexOf('Mixing')===0?'mixing':(t.indexOf('Full Day')===0?'fullday':'recording');const deposit=key==='mixing'?50:(key==='fullday'?250:37.50);const link=UB_STUDIO_DEPOSIT_LINKS[key];if(!link){showToast('50% deposit ($'+deposit.toFixed(2)+') — payment link coming soon. Please check back to complete your booking.');return;}window.location.href=link;}
 
 // ADMIN
 const ADMIN_PASSCODE='empire2026';

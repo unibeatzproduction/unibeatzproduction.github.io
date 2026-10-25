@@ -493,6 +493,20 @@
     </div>
 
     
+    <div class="section-title-sm">Membership</div>
+    <div class="settings-list">
+      <div class="settings-item">
+        <div class="settings-icon">🎟️</div>
+        <div class="settings-info"><div class="settings-label">Battle Pass — $4.99/mo</div><div class="settings-sub">Fan access + battle perks</div></div>
+        <button class="btn btn-blue" id="battlePassBtn" onclick="ubBuyBattleTier('pass')">Get Pass</button>
+      </div>
+      <div class="settings-item">
+        <div class="settings-icon">👑</div>
+        <div class="settings-info"><div class="settings-label">Battle Elite — $9.99/mo</div><div class="settings-sub">Everything in Pass + Elite perks</div></div>
+        <button class="btn btn-gold" id="battleEliteBtn" onclick="ubBuyBattleTier('elite')">Go Elite</button>
+      </div>
+    </div>
+
     <div class="section-title-sm">Admin</div>
     <div class="settings-list">
       <div class="settings-item" onclick="location.href='index.html'">
@@ -527,6 +541,25 @@
     </div>
   </div>
 </div>
+
+<script>
+// BATTLE MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
+// Until a link is set, its button stays disabled with an honest "coming soon" state, never a fake checkout.
+const UB_BATTLE_LINKS = { pass: '', elite: '' };
+function ubBuyBattleTier(tier){
+  const link = UB_BATTLE_LINKS[tier];
+  if(!link){ showToast('Battle ' + (tier === 'elite' ? 'Elite' : 'Pass') + ' payment link coming soon'); return; }
+  window.open(link, '_blank');
+}
+(function ubRenderBattleMembership(){
+  const labels = { pass: 'Get Pass', elite: 'Go Elite' };
+  Object.keys(labels).forEach(function(tier){
+    const btn = document.getElementById(tier === 'elite' ? 'battleEliteBtn' : 'battlePassBtn');
+    if(!btn) return;
+    if(!UB_BATTLE_LINKS[tier]){ btn.disabled = true; btn.style.opacity = '0.55'; btn.textContent = labels[tier] + ' · Coming soon'; }
+  });
+})();
+</script>
 
 <!-- ══════════ CHANGE PASSWORD ══════════ -->
 <div class="page" id="page-changepw">
