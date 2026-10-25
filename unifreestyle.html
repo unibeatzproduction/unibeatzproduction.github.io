@@ -570,34 +570,58 @@
         <div class="live-error" id="liveError"></div>
       </div>
 
-      <div class="beat-vault-card" id="djBeatSelectorCard">
-        <div class="beat-vault-title">🎧 DJ Beat Selector</div>
-        <div class="beat-vault-sub">DJs choose the platform beat for this battle. Artists and viewers see/hear the selected beat.</div>
-        <div class="current-beat-box">
-          <div>
-            <div class="current-beat-name" id="currentBattleBeatName">No beat selected</div>
-            <div class="current-beat-meta" id="currentBattleBeatMeta">Waiting for DJ selection</div>
-          </div>
-          <button class="btn btn-blue" style="width:auto;clip-path:none;border-radius:7px;" onclick="playSelectedBattleBeat()">▶ Play</button>
-        </div>
-        <audio id="battleBeatAudio" controls style="width:100%;margin-top:10px;display:none;"></audio>
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
-        </div>
-        <div id="djBeatList" style="margin-top:10px;"></div>
+      <div class="viewer-now-playing" id="viewerNowPlaying">
+        <span class="viewer-np-label">🎧 NOW PLAYING</span>
+        <strong id="viewerNowPlayingName">No beat selected</strong>
+        <span id="viewerNowPlayingMeta">Waiting for DJ selection</span>
       </div>
 
       <div class="live-grid" id="liveVideoGrid">
         <div class="live-video-card local" id="localVideoBox"><div class="live-label">YOU</div><div class="live-placeholder">Camera preview will appear here</div></div>
-        <div class="live-video-card" id="remoteVideoBox"><div class="live-label">OPPONENT / DJ / VIEWERS</div><div class="live-placeholder">Waiting for another participant...</div></div>
+        <div id="remoteTiles" style="display:contents;"></div>
       </div>
+
+      <div class="live-chat-panel" id="liveChatPanel">
+        <div class="live-chat-title">💬 Live Chat</div>
+        <div class="live-chat-list" id="liveChatList"><div class="live-chat-empty">Chat opens when the battle is live. Be kind.</div></div>
+        <div class="live-chat-form">
+          <input id="liveChatInput" maxlength="200" placeholder="Say something to the room…" autocomplete="off"/>
+          <button class="btn btn-gold" onclick="sendLiveChat()">Send</button>
+        </div>
+      </div>
+
       <div class="live-controls">
-        <button class="btn btn-gold" onclick="joinLiveBattleAs('artist')">🎤 Join Artist</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('dj')">🎧 Join DJ</button>
-        <button class="btn btn-blue" onclick="joinLiveBattleAs('viewer')">👀 Watch</button>
-        <button class="btn btn-blue" onclick="toggleLiveMic()">🎙️ Mic</button>
-        <button class="btn btn-blue" onclick="toggleLiveCamera()">📷 Camera</button>
+        <button class="btn btn-gold js-role-join" onclick="joinLiveBattleAs('artist')">🎤 Join Artist</button>
+        <button class="btn btn-blue js-role-join" onclick="joinLiveBattleAs('dj')">🎧 Join DJ</button>
+        <button class="btn btn-blue js-role-join" onclick="joinLiveBattleAs('viewer')">👀 Watch</button>
+        <button class="btn btn-blue js-participant-ctrl" onclick="toggleLiveMic()">🎙️ Mic</button>
+        <button class="btn btn-blue js-participant-ctrl" onclick="toggleLiveCamera()">📷 Camera</button>
         <button class="btn btn-red" onclick="leaveBattleRoom()">Leave</button>
+      </div>
+
+      <div class="dj-dock" id="djDock">
+        <div class="dj-dock-now">
+          <div class="dj-dock-name" id="currentBattleBeatName">No beat selected</div>
+          <div class="dj-dock-meta" id="currentBattleBeatMeta">Waiting for DJ selection</div>
+        </div>
+        <div class="dj-dock-status" id="djBeatStatus">⏹ Stopped</div>
+        <div class="dj-dock-actions">
+          <button class="btn btn-blue" onclick="toggleBeatVaultDrawer()">🎧 Pull</button>
+          <button class="btn btn-gold" onclick="playBattleBeat()">▶ Play</button>
+          <button class="btn btn-blue" onclick="pauseBattleBeat()">⏸ Pause</button>
+          <button class="btn btn-red" onclick="stopBattleBeat()">⏹ Stop</button>
+        </div>
+        <audio id="battleBeatAudio" controls crossorigin="anonymous" style="width:100%;display:none;"></audio>
+        <div class="dj-live-status" id="djLiveAudioStatus"></div>
+      </div>
+
+      <div class="beat-vault-drawer" id="beatVaultDrawer">
+        <div class="beat-vault-drawer-head">
+          <strong>🎧 Beat Vault</strong>
+          <button class="btn btn-ghost" onclick="toggleBeatVaultDrawer(false)">✕ Close</button>
+        </div>
+        <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
+        <div id="djBeatList" style="margin-top:10px;"></div>
       </div>
     </div>
   </div>
@@ -2185,6 +2209,84 @@ function clearLiveError() {
   el.textContent = "";
   el.classList.remove("show");
 }
+/* ── Live-room role layouts + camera tiles ── */
+let ubLiveRole = 'none';
+function liveRoomShell(){ return document.querySelector('#page-livebattle .live-room-shell'); }
+function safeLiveId(s){ return String(s||'').replace(/[^a-zA-Z0-9_-]/g,'_'); }
+function tileDisplayName(identity){
+  const raw = String(identity||'guest');
+  const parts = raw.split('_');
+  const role = (parts[0]||'').toLowerCase();
+  const name = parts.slice(1, -1).join(' ') || parts.slice(1).join(' ') || raw;
+  const roleTitle = role === 'dj' ? 'DJ' : role === 'viewer' ? 'VIEWER' : 'ARTIST';
+  return { name: name || raw, roleTitle };
+}
+function applyLiveRoleLayout(role){
+  ubLiveRole = role || 'none';
+  window.ubLiveRole = ubLiveRole;
+  const shell = liveRoomShell();
+  if (shell) shell.dataset.liveRole = ubLiveRole;
+  refreshTilePauseButtons();
+  const drawer = document.getElementById('beatVaultDrawer');
+  if (drawer && ubLiveRole !== 'dj') drawer.classList.remove('open');
+}
+function toggleBeatVaultDrawer(force){
+  const drawer = document.getElementById('beatVaultDrawer');
+  if (!drawer) return;
+  const open = typeof force === 'boolean' ? force : !drawer.classList.contains('open');
+  drawer.classList.toggle('open', open);
+  if (open && typeof window.loadPlatformBeats === 'function') window.loadPlatformBeats();
+}
+function ensureRemoteTile(identity){
+  const grid = document.getElementById('remoteTiles');
+  if (!grid) return null;
+  const id = 'liveTile-' + safeLiveId(identity);
+  let tile = document.getElementById(id);
+  if (tile) return tile;
+  const info = tileDisplayName(identity);
+  tile = document.createElement('div');
+  tile.className = 'live-video-card';
+  tile.id = id;
+  tile.dataset.tileIdentity = identity;
+  tile.innerHTML = '<div class="live-label">' + info.name + ' · ' + info.roleTitle + '</div>' +
+    '<div class="live-placeholder">Waiting for camera…</div>' +
+    '<div class="tile-paused-msg">⏸ Camera paused</div>';
+  grid.appendChild(tile);
+  refreshTilePauseButtons();
+  return tile;
+}
+function tileForIdentity(identity){
+  if (!identity) return null;
+  return document.getElementById('liveTile-' + safeLiveId(identity));
+}
+function setTilePaused(identity, paused){
+  let tile = null;
+  const room = window.ubLiveRoom;
+  if (room && room.localParticipant && room.localParticipant.identity === identity) tile = document.getElementById('localVideoBox');
+  if (!tile) tile = tileForIdentity(identity);
+  if (!tile) return;
+  tile.classList.toggle('tile-paused', !!paused);
+  if (paused) {
+    const v = tile.querySelector('video');
+    if (v) v.remove();
+    let ph = tile.querySelector('.live-placeholder');
+    if (!ph) { ph = document.createElement('div'); ph.className = 'live-placeholder'; tile.appendChild(ph); }
+    ph.textContent = '⏸ Camera paused';
+  }
+}
+function refreshTilePauseButtons(){
+  document.querySelectorAll('#page-livebattle .tile-pause-btn').forEach(b => b.remove());
+  if (ubLiveRole !== 'dj') return;
+  document.querySelectorAll('#page-livebattle #remoteTiles .live-video-card').forEach(tile => {
+    const identity = tile.dataset.tileIdentity;
+    if (!identity) return;
+    const btn = document.createElement('button');
+    btn.className = 'tile-pause-btn';
+    btn.textContent = tile.classList.contains('tile-paused') ? '▶ Resume cam' : '⏸ Pause cam';
+    btn.onclick = () => { if (typeof window.toggleBattleCameraPause === 'function') window.toggleBattleCameraPause(identity); };
+    tile.appendChild(btn);
+  });
+}
 function resetLiveBox(id, text) {
   const box = document.getElementById(id);
   if (!box) return;
@@ -2193,15 +2295,31 @@ function resetLiveBox(id, text) {
 }
 function clearLiveVideos() {
   resetLiveBox("localVideoBox", "Camera preview will appear here");
-  resetLiveBox("remoteVideoBox", "Waiting for another participant...");
+  const local = document.getElementById("localVideoBox");
+  if (local) {
+    const label = local.querySelector(".live-label");
+    if (label) label.textContent = "YOU";
+    local.classList.remove("tile-paused");
+  }
+  const remote = document.getElementById("remoteTiles");
+  if (remote) remote.innerHTML = "";
 }
-function attachLiveTrack(track, isLocal = false) {
-  const box = document.getElementById(isLocal ? "localVideoBox" : "remoteVideoBox");
+function attachLiveTrack(track, isLocal = false, participantIdentity = null) {
   if (!track || typeof track.attach !== "function") return;
   const element = track.attach();
   element.setAttribute("playsinline", "true");
   element.autoplay = true;
   if (track.kind === "audio") { document.body.appendChild(element); return; }
+  let box = null;
+  if (isLocal) {
+    box = document.getElementById("localVideoBox");
+    const label = box && box.querySelector(".live-label");
+    if (label) label.textContent = "YOU · " + (ubLiveRole === "dj" ? "DJ" : "ARTIST");
+  } else if (participantIdentity) {
+    box = ensureRemoteTile(participantIdentity);
+  } else {
+    box = document.getElementById("localVideoBox");
+  }
   if (!box) return;
   const ph = box.querySelector(".live-placeholder");
   if (ph) ph.remove();
@@ -2211,6 +2329,7 @@ function attachLiveTrack(track, isLocal = false) {
 }
 async function joinLiveBattleAs(role = "artist") {
   clearLiveError();
+  applyLiveRoleLayout(role);
   // Wait up to 5 seconds for LiveKit UMD to finish loading before giving up
   if (!window.LivekitClient) {
     setLiveStatus("Loading LiveKit...");
@@ -2232,16 +2351,37 @@ async function joinLiveBattleAs(role = "artist") {
     if (!tokenRes.ok || !data.token || !data.url) throw new Error(data.error || "Token function did not return a LiveKit token.");
     const room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
     ubLiveRoom = room;
-    room.on("trackSubscribed", (track) => attachLiveTrack(track, false));
-    room.on("participantConnected", (p) => setLiveStatus(`${p.identity} joined`));
-    room.on("participantDisconnected", () => setLiveStatus("Participant left"));
+    window.ubLiveRoom = room;
+    room.on("trackSubscribed", (track, pub, participant) => attachLiveTrack(track, false, participant ? participant.identity : null));
+    room.on("trackUnsubscribed", (track, pub, participant) => {
+      const tile = participant ? tileForIdentity(participant.identity) : null;
+      if (!tile) return;
+      const v = tile.querySelector("video");
+      if (v) v.remove();
+      if (!tile.classList.contains("tile-paused") && !tile.querySelector(".live-placeholder")) {
+        const ph = document.createElement("div");
+        ph.className = "live-placeholder";
+        ph.textContent = "Camera off";
+        tile.appendChild(ph);
+      }
+    });
+    room.on("participantConnected", (p) => { setLiveStatus(`${p.identity} joined`); ensureRemoteTile(p.identity); });
+    room.on("participantDisconnected", (p) => {
+      setLiveStatus("Participant left");
+      const tile = p ? tileForIdentity(p.identity) : null;
+      if (tile && !tile.querySelector("video") && !tile.classList.contains("tile-paused")) {
+        let ph = tile.querySelector(".live-placeholder");
+        if (!ph) { ph = document.createElement("div"); ph.className = "live-placeholder"; tile.appendChild(ph); }
+        ph.textContent = "Left the battle";
+      }
+    });
     room.on("disconnected", () => { setLiveStatus("Disconnected"); clearLiveVideos(); });
     setLiveStatus("Connecting...");
     await room.connect(data.url, data.token);
     if (role === "viewer") { setLiveStatus("Watching live"); if (typeof showToast === "function") showToast("👀 Joined as viewer"); return; }
     setLiveStatus("Starting camera...");
     await room.localParticipant.enableCameraAndMicrophone();
-    room.localParticipant.trackPublications.forEach((pub) => { if (pub.track) attachLiveTrack(pub.track, true); });
+    room.localParticipant.trackPublications.forEach((pub) => { if (pub.track) attachLiveTrack(pub.track, true, room.localParticipant.identity); });
     setLiveStatus("Live");
     if (typeof showToast === "function") showToast("🔴 Live battle room connected");
   } catch (err) {
@@ -2264,8 +2404,10 @@ async function toggleLiveCamera() {
 }
 async function leaveBattleRoom(showMessage = true) {
   if (ubLiveRoom) { ubLiveRoom.disconnect(); ubLiveRoom = null; }
+  window.ubLiveRoom = null;
   clearLiveVideos();
   setLiveStatus("Not connected");
+  applyLiveRoleLayout('none');
   if (showMessage && typeof showToast === "function") showToast("⏹ Left battle room");
 }
 window.openLiveBattleRoom = openLiveBattleRoom;
@@ -2279,7 +2421,7 @@ window.startInstantBattle = openLiveBattleRoom;
 
 <script type="module">
 /* ══════════ FIREBASE PLATFORM BEAT VAULT + DJ SELECTOR ══════════ */
-import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, getDoc, doc, setDoc, updateDoc, arrayUnion, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
 let ubBeatDb = null;
@@ -2364,6 +2506,7 @@ window.selectBattleBeat = async function(id) {
     }, { merge: true });
 
     if (typeof showToast === "function") showToast("🎧 Beat selected for battle");
+    if (typeof window.toggleBeatVaultDrawer === "function") window.toggleBeatVaultDrawer(false);
   } catch (err) {
     console.error(err);
     if (typeof showToast === "function") showToast("❌ Beat select failed: " + err.message);
@@ -2371,6 +2514,7 @@ window.selectBattleBeat = async function(id) {
 };
 
 window.playSelectedBattleBeat = function() {
+  if (typeof window.playBattleBeat === "function") return window.playBattleBeat();
   if (!ubSelectedBattleBeat || !ubSelectedBattleBeat.audioUrl) {
     if (typeof showToast === "function") showToast("No beat selected yet");
     return;
@@ -2388,11 +2532,15 @@ function updateCurrentBeatUI(beat) {
   ubSelectedBattleBeat = beat || null;
   const nameEl = document.getElementById("currentBattleBeatName");
   const metaEl = document.getElementById("currentBattleBeatMeta");
+  const vNameEl = document.getElementById("viewerNowPlayingName");
+  const vMetaEl = document.getElementById("viewerNowPlayingMeta");
   const audio = document.getElementById("battleBeatAudio");
 
   if (!beat) {
     if (nameEl) nameEl.textContent = "No beat selected";
     if (metaEl) metaEl.textContent = "Waiting for DJ selection";
+    if (vNameEl) vNameEl.textContent = "No beat selected";
+    if (vMetaEl) vMetaEl.textContent = "Waiting for DJ selection";
     if (audio) {
       audio.removeAttribute("src");
       audio.style.display = "none";
@@ -2403,17 +2551,189 @@ function updateCurrentBeatUI(beat) {
   const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ");
   if (nameEl) nameEl.textContent = beat.name || "Selected Beat";
   if (metaEl) metaEl.textContent = meta || "Selected by DJ";
+  if (vNameEl) vNameEl.textContent = beat.name || "Selected Beat";
+  if (vMetaEl) vMetaEl.textContent = meta || "Selected by DJ";
   if (audio && beat.audioUrl) {
     audio.src = beat.audioUrl;
     audio.style.display = "block";
   }
 }
 
+/* ── DJ transport + synced beat + camera pause + live chat ── */
+let ubBattleRoomData = null;
+let ubCameraPausedByDj = false;
+let ubBeatPublishTrack = null;
+
+function updateBeatPlayingStatus(status) {
+  const st = document.getElementById("djBeatStatus");
+  if (st) st.textContent = status === "playing" ? "▶ Playing" : status === "paused" ? "⏸ Paused" : status === "stopped" ? "⏹ Stopped" : "—";
+}
+
+function applyCameraPausedMap(map) {
+  const room = window.ubLiveRoom;
+  if (!room || !room.localParticipant) return;
+  const myId = room.localParticipant.identity;
+  const paused = !!(map && map[myId]);
+  if (paused && !ubCameraPausedByDj) {
+    ubCameraPausedByDj = true;
+    room.localParticipant.setCameraEnabled(false).catch(() => {});
+    if (typeof window.setTilePaused === "function") window.setTilePaused(myId, true);
+  } else if (!paused && ubCameraPausedByDj) {
+    ubCameraPausedByDj = false;
+    room.localParticipant.setCameraEnabled(true).catch(() => {});
+    if (typeof window.setTilePaused === "function") window.setTilePaused(myId, false);
+  }
+}
+
+window.toggleBattleCameraPause = async function(identity) {
+  if (window.ubLiveRole !== "dj") return;
+  try {
+    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
+    const current = (ubBattleRoomData && ubBattleRoomData.cameraPaused) || {};
+    const next = Object.assign({}, current);
+    next[identity] = !current[identity];
+    await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), { cameraPaused: next, updatedAt: serverTimestamp() }, { merge: true });
+    if (typeof window.setTilePaused === "function") window.setTilePaused(identity, next[identity]);
+    if (typeof window.refreshTilePauseButtons === "function") window.refreshTilePauseButtons();
+    if (typeof showToast === "function") showToast(next[identity] ? "⏸ Camera paused" : "▶ Camera resumed");
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Camera pause failed: " + err.message);
+  }
+};
+
+function setDjLiveAudioStatus(msg) {
+  const el = document.getElementById("djLiveAudioStatus");
+  if (el) el.textContent = msg || "";
+}
+
+async function writeBeatPlaying(status) {
+  try {
+    if (initBeatFirebase()) await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), { beatPlaying: status, updatedAt: serverTimestamp() }, { merge: true });
+  } catch (e) {}
+}
+
+async function publishBeatToRoom() {
+  const room = window.ubLiveRoom;
+  const audio = document.getElementById("battleBeatAudio");
+  if (!room || !room.localParticipant) {
+    setDjLiveAudioStatus("Live audio needs the server token — playing locally only.");
+    return false;
+  }
+  try {
+    if (ubBeatPublishTrack) return true;
+    if (!audio || typeof audio.captureStream !== "function") {
+      setDjLiveAudioStatus("Live audio is not supported in this browser — playing locally only.");
+      return false;
+    }
+    const stream = audio.captureStream();
+    const mt = stream.getAudioTracks()[0];
+    if (!mt) return false;
+    await room.localParticipant.publishTrack(mt);
+    ubBeatPublishTrack = mt;
+    setDjLiveAudioStatus("🔴 Beat live in the room — everyone hears the same beat.");
+    return true;
+  } catch (err) {
+    console.error(err);
+    setDjLiveAudioStatus("Live audio unavailable — playing locally only.");
+    return false;
+  }
+}
+
+async function unpublishBeatFromRoom() {
+  try {
+    const room = window.ubLiveRoom;
+    if (room && room.localParticipant && ubBeatPublishTrack) await room.localParticipant.unpublishTrack(ubBeatPublishTrack);
+  } catch (e) {}
+  ubBeatPublishTrack = null;
+}
+
+window.playBattleBeat = async function() {
+  const audio = document.getElementById("battleBeatAudio");
+  if (!ubSelectedBattleBeat || !ubSelectedBattleBeat.audioUrl) {
+    if (typeof showToast === "function") showToast("No beat selected yet — pull a beat first.");
+    return;
+  }
+  if (!audio) return;
+  if (audio.getAttribute("src") !== ubSelectedBattleBeat.audioUrl) audio.src = ubSelectedBattleBeat.audioUrl;
+  audio.style.display = "block";
+  try { await audio.play(); } catch (e) {
+    if (typeof showToast === "function") showToast("Press play on the audio bar");
+  }
+  writeBeatPlaying("playing");
+  publishBeatToRoom();
+  updateBeatPlayingStatus("playing");
+};
+
+window.pauseBattleBeat = function() {
+  const audio = document.getElementById("battleBeatAudio");
+  if (audio) audio.pause();
+  writeBeatPlaying("paused");
+  updateBeatPlayingStatus("paused");
+};
+
+window.stopBattleBeat = async function() {
+  const audio = document.getElementById("battleBeatAudio");
+  if (audio) { audio.pause(); audio.currentTime = 0; }
+  await unpublishBeatFromRoom();
+  writeBeatPlaying("stopped");
+  setDjLiveAudioStatus("");
+  updateBeatPlayingStatus("stopped");
+};
+
+function escChat(s) {
+  return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function renderLiveChat(messages) {
+  const list = document.getElementById("liveChatList");
+  if (!list) return;
+  const msgs = Array.isArray(messages) ? messages.slice(-30) : [];
+  if (!msgs.length) {
+    list.innerHTML = '<div class="live-chat-empty">Chat opens when the battle is live. Be kind.</div>';
+    return;
+  }
+  list.innerHTML = msgs.map(m => '<div class="live-chat-msg"><b>' + escChat(m.name || "Guest") + ':</b> ' + escChat(m.text || "") + "</div>").join("");
+}
+
+window.sendLiveChat = async function() {
+  const input = document.getElementById("liveChatInput");
+  if (!input) return;
+  const text = input.value.trim();
+  if (!text) return;
+  const name = (document.getElementById("liveUsername") ? document.getElementById("liveUsername").textContent : "Guest") || "Guest";
+  try {
+    if (!initBeatFirebase()) throw new Error("Chat is not ready yet.");
+    const cached = (ubBattleRoomData && ubBattleRoomData.chat) || [];
+    const msg = { name, text, at: Date.now() };
+    if (cached.length > 60) {
+      await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), { chat: cached.slice(-40).concat([msg]), updatedAt: serverTimestamp() }, { merge: true });
+    } else {
+      try {
+        await updateDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), { chat: arrayUnion(msg), updatedAt: serverTimestamp() });
+      } catch (e) {
+        await setDoc(doc(ubBeatDb, "battle_rooms", "battle-room"), { chat: [msg], updatedAt: serverTimestamp() }, { merge: true });
+      }
+    }
+    input.value = "";
+  } catch (err) {
+    console.error(err);
+    if (typeof showToast === "function") showToast("❌ Chat send failed: " + err.message);
+  }
+};
+
+const _chatInput = document.getElementById("liveChatInput");
+if (_chatInput) _chatInput.addEventListener("keydown", (e) => { if (e.key === "Enter") window.sendLiveChat(); });
+
 function startBattleBeatListener() {
   if (!initBeatFirebase()) return;
   onSnapshot(doc(ubBeatDb, "battle_rooms", "battle-room"), (snap) => {
     const data = snap.exists() ? snap.data() : null;
+    ubBattleRoomData = data;
     updateCurrentBeatUI(data && data.selectedBeat ? data.selectedBeat : null);
+    updateBeatPlayingStatus(data ? data.beatPlaying : null);
+    applyCameraPausedMap(data ? data.cameraPaused : null);
+    renderLiveChat(data ? data.chat : null);
   });
 }
 

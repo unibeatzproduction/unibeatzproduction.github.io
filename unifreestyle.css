@@ -311,6 +311,39 @@ body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-seri
 .live-error.show{display:block;}
 @media(min-width:760px){.live-grid{grid-template-columns:1fr 1fr}.live-video-card,.live-video-card video{min-height:330px}.live-controls{grid-template-columns:repeat(5,1fr)}}
 
+/* ══════════ LIVE BATTLE — DJ DOCK / VIEWER SCREEN / CAMERA TILES ══════════ */
+#page-livebattle .dj-dock{display:none;position:sticky;bottom:0;z-index:50;margin-top:12px;padding:12px;border:1px solid rgba(201,168,76,.45);border-radius:12px;background:linear-gradient(135deg,#0d0d1a,#070710);box-shadow:0 -6px 30px rgba(0,0,0,.55);flex-wrap:wrap;gap:10px;align-items:center;}
+#page-livebattle [data-live-role="dj"] .dj-dock{display:flex;}
+#page-livebattle .dj-dock-now{flex:1;min-width:180px;}
+#page-livebattle .dj-dock-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--gold-light);line-height:1;}
+#page-livebattle .dj-dock-meta{font-size:.78rem;color:rgba(240,237,232,.6);margin-top:2px;}
+#page-livebattle .dj-dock-status{font-family:'Orbitron',sans-serif;font-size:.5rem;letter-spacing:2px;color:var(--blue-bright);border:1px solid rgba(0,170,255,.35);padding:6px 10px;border-radius:20px;white-space:nowrap;}
+#page-livebattle .dj-dock-actions{display:flex;gap:8px;flex-wrap:wrap;}
+#page-livebattle .dj-dock-actions .btn{padding:10px 12px;font-size:.5rem;width:auto;}
+#page-livebattle .dj-live-status{width:100%;font-size:.78rem;color:rgba(240,237,232,.65);min-height:1em;}
+#page-livebattle .beat-vault-drawer{display:none;position:fixed;left:0;right:0;bottom:0;z-index:9000;max-height:72vh;overflow-y:auto;background:linear-gradient(135deg,#0d0d1a,#070710);border-top:1px solid rgba(201,168,76,.5);padding:16px;box-shadow:0 -10px 40px rgba(0,0,0,.7);}
+#page-livebattle .beat-vault-drawer.open{display:block;}
+#page-livebattle .beat-vault-drawer-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;color:var(--gold-light);}
+#page-livebattle .viewer-now-playing{display:none;align-items:center;gap:10px;flex-wrap:wrap;border:1px solid rgba(201,168,76,.3);background:rgba(0,0,0,.35);border-radius:10px;padding:10px 12px;margin-bottom:12px;}
+#page-livebattle [data-live-role="viewer"] .viewer-now-playing{display:flex;}
+#page-livebattle .viewer-np-label{font-family:'Orbitron',sans-serif;font-size:.45rem;letter-spacing:2px;color:var(--gold);}
+#page-livebattle .live-chat-panel{display:none;border:1px solid rgba(0,170,255,.25);border-radius:10px;padding:12px;margin-bottom:12px;background:rgba(0,0,0,.3);}
+#page-livebattle [data-live-role="viewer"] .live-chat-panel{display:block;}
+#page-livebattle .live-chat-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:2px;color:var(--gold-light);margin-bottom:8px;}
+#page-livebattle .live-chat-list{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+#page-livebattle .live-chat-msg{font-size:.85rem;line-height:1.4;color:rgba(240,237,232,.85);}
+#page-livebattle .live-chat-msg b{color:var(--gold-light);}
+#page-livebattle .live-chat-form{display:flex;gap:8px;}
+#page-livebattle .live-chat-form input{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:8px;color:#fff;padding:10px 12px;font-size:.9rem;}
+#page-livebattle .live-chat-form .btn{width:auto;padding:10px 16px;}
+#page-livebattle [data-live-role="viewer"] .js-role-join,
+#page-livebattle [data-live-role="viewer"] .js-participant-ctrl,
+#page-livebattle [data-live-role="viewer"] #localVideoBox{display:none;}
+#page-livebattle .live-video-card.tile-paused video{display:none;}
+#page-livebattle .tile-paused-msg{display:none;text-align:center;color:rgba(240,237,232,.6);font-family:'Orbitron',sans-serif;font-size:.52rem;letter-spacing:2px;padding:20px;}
+#page-livebattle .live-video-card.tile-paused .tile-paused-msg{display:block;}
+#page-livebattle .tile-pause-btn{position:absolute;right:8px;top:8px;z-index:6;background:rgba(0,0,0,.72);border:1px solid rgba(255,255,255,.25);color:#fff;font-family:'Orbitron',sans-serif;font-size:.42rem;letter-spacing:1px;padding:5px 8px;border-radius:20px;cursor:pointer;}
+
 
 /* ══════════ UNIFREESTYLE DESKTOP VISUAL UPGRADE ══════════ */
 :root {
