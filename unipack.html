@@ -245,7 +245,6 @@
     <button class="tool-btn" onclick="loadProject()">📂 Load</button>
     <div class="tool-divider"></div>
     <button class="tool-btn primary" onclick="exportPack()">📦 Export ZIP</button>
-    <button class="tool-btn" id="adminToolBtn" onclick="goPage('admin')" style="display:none;background:linear-gradient(135deg,#8B0000,#ff3333);color:#fff;font-weight:700;">👑 Admin</button>
   </div>
   <!-- LAYOUT -->
   <div class="studio-layout">
@@ -642,63 +641,10 @@
 </div>
 <!-- ════════ ADMIN PANEL (Eugene only) ════════ -->
 <div class="page" id="page-admin">
-  <div style="max-width:900px;margin:0 auto;padding:40px 20px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:3px;color:#fff;line-height:1;">👑 ADMIN PANEL</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.5rem;letter-spacing:3px;color:#ff3333;margin-top:4px;">FOUNDER ACCESS · USE WITH CAUTION</div>
-      </div>
-      <button class="tool-btn" onclick="goPage('studio')">← Back to Studio</button>
-    </div>
-    <!-- BROADCAST NOTIFICATIONS (real system — renders only for the admin) -->
-    <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:24px;margin-bottom:24px;">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:16px;">📣 BROADCAST NOTIFICATION</div>
-      <div id="ubNotificationAdmin"></div>
-    </div>
-    <!-- STATS CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:32px;">
-      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--gold-light);line-height:1;" id="admStatUsers">0</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">TOTAL USERS</div>
-      </div>
-      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(0,170,255,0.2);border-radius:10px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--blue-bright);line-height:1;" id="admStatPro">0</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">PRO USERS</div>
-      </div>
-      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(0,255,136,0.2);border-radius:10px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#00ff88;line-height:1;" id="admStatRev">$0</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">MRR (EST)</div>
-      </div>
-      <div style="padding:18px;background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(255,51,51,0.2);border-radius:10px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#ff6644;line-height:1;" id="admStatFree">0</div>
-        <div style="font-family:'Orbitron',sans-serif;font-size:0.42rem;letter-spacing:2px;color:var(--gray);margin-top:6px;">FREE USERS</div>
-      </div>
-    </div>
-    <!-- USER MANAGEMENT -->
-    <div style="background:linear-gradient(135deg,#0a0a14,#06060f);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:24px;margin-bottom:24px;">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:var(--gold);margin-bottom:16px;">👥 USER MANAGEMENT</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
-        <button class="tool-btn" onclick="adminForceProTier()" style="background:linear-gradient(135deg,#00aa44,#00ff88);color:#000;font-weight:700;">⬆️ Upgrade User to Pro</button>
-        <button class="tool-btn" onclick="adminDowngradeUser()" style="background:linear-gradient(135deg,#664400,#ff9944);color:#000;font-weight:700;">⬇️ Downgrade User</button>
-        <button class="tool-btn" onclick="adminRefreshUserList()">🔄 Refresh List</button>
-      </div>
-      <div id="admUserList" style="max-height:300px;overflow-y:auto;border:1px solid rgba(201,168,76,0.1);border-radius:6px;padding:10px;font-family:monospace;font-size:0.78rem;color:rgba(240,237,232,0.7);">
-        Tap "Refresh List" to load users...
-      </div>
-    </div>
-    <!-- DANGER ZONE -->
-    <div style="background:linear-gradient(135deg,#1a0606,#0a0303);border:1px solid rgba(255,51,51,0.3);border-radius:10px;padding:24px;">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:3px;color:#ff3333;margin-bottom:8px;">🚨 DANGER ZONE</div>
-      <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:16px;">These actions cannot be undone. Use only in emergencies.</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <button class="tool-btn" onclick="adminResetMyAccount()" style="background:rgba(255,51,51,0.15);border:1px solid #ff3333;color:#ff6644;">🔄 Reset My Admin Account</button>
-        <button class="tool-btn" onclick="adminMasterReset()" style="background:#ff3333;color:#fff;font-weight:700;">💥 MASTER RESET (Nuclear)</button>
-      </div>
-    </div>
-    <!-- ADMIN INFO -->
-    <div style="margin-top:32px;padding:16px;background:rgba(0,170,255,0.05);border:1px solid rgba(0,170,255,0.2);border-radius:8px;font-size:0.78rem;color:rgba(240,237,232,0.6);line-height:1.6;">
-      💡 <strong style="color:var(--blue-bright);">Emergency Login:</strong> If you ever lose access, use email <code style="background:#000;padding:2px 6px;border-radius:3px;">unibeatzproduction@gmail.com</code> with password <code style="background:#000;padding:2px 6px;border-radius:3px;">empire2026</code> to bypass any auth issue and get admin access.
-    </div>
+  <div style="max-width:900px;margin:0 auto;padding:40px 20px;text-align:center;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:3px;color:#fff;">👑 ADMIN MOVED</div>
+    <div style="margin-top:12px;color:rgba(240,237,232,0.7);">All admin controls now live on the main page only.</div>
+    <a href="index.html" class="tool-btn" style="display:inline-block;margin-top:20px;">Go to Main Page Admin →</a>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1147,17 +1093,6 @@ function goPage(p) {
   window.scrollTo(0, 0);
   if(p === 'studio') {
     refreshUsageMeter();
-    // Show/hide admin button based on admin status
-    const adminBtn = document.getElementById('adminToolBtn');
-    if(adminBtn) adminBtn.style.display = isAdmin() ? 'inline-flex' : 'none';
-  }
-  if(p === 'admin') {
-    if(!isAdmin()) {
-      showToast('Admin access required', 'error');
-      goPage('studio');
-      return;
-    }
-    adminRefreshUserList();
   }
 }
 function refreshNav() {
@@ -1393,119 +1328,6 @@ async function handleForgotPassword() {
   }
 }
 // ════════════════════════════════════════
-// ADMIN: MASTER RESET (Eugene's emergency tools)
-// ════════════════════════════════════════
-function adminMasterReset() {
-  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
-  const confirmed = confirm('🚨 MASTER RESET\n\nThis will wipe ALL UniBeatz Pack Studio data on this device:\n- All user accounts\n- All projects\n- All usage data\n- Your current session\n\nFirebase cloud users will NOT be deleted.\n\nContinue?');
-  if(!confirmed) return;
-  const reallyConfirmed = confirm('⚠️ FINAL WARNING\n\nThis cannot be undone. Type-confirm by tapping OK.');
-  if(!reallyConfirmed) return;
-  localStorage.removeItem(STORAGE.USERS);
-  localStorage.removeItem(STORAGE.CURRENT);
-  localStorage.removeItem(STORAGE.PROJECT);
-  localStorage.removeItem(STORAGE.USAGE);
-  currentUser = null;
-  showToast('🔄 Master reset complete. Reloading...', 'success');
-  setTimeout(() => location.reload(), 1500);
-}
-function adminResetMyAccount() {
-  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
-  if(!confirm('Reset YOUR admin account?\nYou can sign in again with master password.')) return;
-  const users = getUsers();
-  for(const k in users) {
-    if(isAdminEmail(users[k].email)) delete users[k];
-  }
-  saveUsers(users);
-  localStorage.removeItem(STORAGE.CURRENT);
-  currentUser = null;
-  showToast('Admin account reset. Sign in again.', 'success');
-  setTimeout(() => goPage('login'), 1500);
-}
-function adminForceProTier(targetEmail) {
-  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
-  const email = (targetEmail || prompt('Enter email to upgrade to Pro:'))?.trim().toLowerCase();
-  if(!email) return;
-  const users = getUsers();
-  let updated = false;
-  for(const k in users) {
-    if(users[k].email === email) {
-      users[k].unipackTier = 'pro';
-      users[k].proSince = new Date().toISOString();
-      updated = true;
-      break;
-    }
-  }
-  if(updated) {
-    saveUsers(users);
-    showToast('✅ Upgraded ' + email + ' to Pro', 'success');
-  } else {
-    showToast('User not found: ' + email, 'error');
-  }
-  if(currentPage === 'admin') adminRefreshStats();
-}
-function adminDowngradeUser() {
-  if(!isAdmin()) { showToast('Admin only', 'error'); return; }
-  const email = prompt('Enter email to downgrade to Free:')?.trim().toLowerCase();
-  if(!email) return;
-  if(isAdminEmail(email)) { showToast('Cannot downgrade admin', 'error'); return; }
-  const users = getUsers();
-  let updated = false;
-  for(const k in users) {
-    if(users[k].email === email) {
-      users[k].unipackTier = 'free';
-      delete users[k].proSince;
-      updated = true;
-      break;
-    }
-  }
-  if(updated) {
-    saveUsers(users);
-    showToast('⬇️ Downgraded ' + email + ' to Free', 'success');
-    if(currentPage === 'admin') adminRefreshStats();
-  } else {
-    showToast('User not found: ' + email, 'error');
-  }
-}
-function adminRefreshStats() {
-  if(!isAdmin()) return;
-  const users = getUsers();
-  const userList = Object.values(users);
-  const total = userList.length;
-  const pro = userList.filter(u => u.unipackTier === 'pro').length;
-  const free = total - pro;
-  // Estimated MRR: $9.99 per Pro user (excluding admin's free Pro)
-  const realPro = userList.filter(u => u.unipackTier === 'pro' && !isAdminEmail(u.email)).length;
-  const mrr = (realPro * 9.99).toFixed(2);
-  const elU = document.getElementById('admStatUsers');
-  const elP = document.getElementById('admStatPro');
-  const elF = document.getElementById('admStatFree');
-  const elR = document.getElementById('admStatRev');
-  if(elU) elU.textContent = total;
-  if(elP) elP.textContent = pro;
-  if(elF) elF.textContent = free;
-  if(elR) elR.textContent = '$' + mrr;
-}
-function adminRefreshUserList() {
-  if(!isAdmin()) return;
-  const users = getUsers();
-  const userList = Object.values(users);
-  const el = document.getElementById('admUserList');
-  if(!el) return;
-  if(userList.length === 0) {
-    el.innerHTML = '<div style="color:var(--gray);padding:10px;">No users yet</div>';
-    return;
-  }
-  el.innerHTML = userList.map(u => {
-    const tier = u.unipackTier === 'pro' ? '<span style="color:#00ff88;font-weight:700;">PRO</span>' : '<span style="color:#ff6644;">Free</span>';
-    const adminBadge = isAdminEmail(u.email) ? '<span style="color:#ffaa00;font-weight:700;"> 👑 ADMIN</span>' : '';
-    return `<div style="padding:8px;border-bottom:1px solid rgba(201,168,76,0.08);">
-      <div><strong>${u.name || u.username}</strong> ${adminBadge}</div>
-      <div style="font-size:0.7rem;color:rgba(240,237,232,0.5);">${u.email} · ${tier} · Joined ${u.joined || '?'}</div>
-    </div>`;
-  }).join('');
-  adminRefreshStats();
-}
 async function handlePasswordReset() {
   const email = prompt('Enter your email to receive a password reset link:');
   if(!email || !email.includes('@')) { showToast('Please enter a valid email', 'error'); return; }

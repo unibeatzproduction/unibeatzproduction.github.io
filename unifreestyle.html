@@ -495,9 +495,9 @@
     
     <div class="section-title-sm">Admin</div>
     <div class="settings-list">
-      <div class="settings-item" onclick="goToPage('beatadmin')">
+      <div class="settings-item" onclick="location.href='index.html'">
         <div class="settings-icon">🎛️</div>
-        <div class="settings-info"><div class="settings-label">Beat Admin</div><div class="settings-sub">Upload platform beats for DJs to select</div></div>
+        <div class="settings-info"><div class="settings-label">Beat Admin</div><div class="settings-sub">Beat admin moved to the main page</div></div>
         <div class="settings-arrow">›</div>
       </div>
     </div>
@@ -550,43 +550,6 @@
 
 
 <!-- ══════════ ADMIN BEAT VAULT ══════════ -->
-<div class="page" id="page-beatadmin">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="goToPage('home')">←</button>
-    <h1>🎛️ Beat Admin</h1>
-    <button class="icon-btn" onclick="loadPlatformBeats()">↻</button>
-  </div>
-  <div class="page-body no-nav">
-    <div class="beat-vault-card">
-      <div class="beat-vault-title">Admin Beat Vault</div>
-      <div class="beat-vault-sub">Upload beats to the platform here. DJs can select these beats during live battles, but they cannot upload new beats.</div>
-
-      <div class="beat-admin-lock" id="beatAdminLockBox">
-        <input type="password" id="beatAdminPass" placeholder="Admin passcode"/>
-        <button class="btn btn-gold" style="width:auto;clip-path:none;border-radius:7px;" onclick="unlockBeatAdmin()">Unlock</button>
-      </div>
-
-      <div id="beatAdminContent" style="display:none;">
-        <div id="ubNotificationAdmin"></div>
-        <div class="beat-form-grid">
-          <input id="adminBeatName" placeholder="Beat name"/>
-          <input id="adminBeatBpm" placeholder="BPM"/>
-          <input id="adminBeatKey" placeholder="Key"/>
-          <input id="adminBeatGenre" placeholder="Genre"/>
-          <input id="adminBeatFile" type="file" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/>
-        </div>
-        <button class="btn btn-gold" style="margin-top:12px;" onclick="uploadPlatformBeat()">⬆️ Upload Beat To Platform</button>
-      </div>
-    </div>
-
-    <div class="beat-vault-card">
-      <div class="beat-vault-title">Platform Beats</div>
-      <div class="beat-vault-sub">These are the beats DJs can choose from inside the battle room.</div>
-      <div id="adminBeatList"></div>
-    </div>
-  </div>
-</div>
-
 <!-- ══════════ LIVE BATTLE ROOM ══════════ -->
 <div class="page" id="page-livebattle">
   <div class="top-bar">
@@ -620,7 +583,6 @@
         <audio id="battleBeatAudio" controls style="width:100%;margin-top:10px;display:none;"></audio>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <button class="btn btn-blue" onclick="loadPlatformBeats()">↻ Load Beats</button>
-          <button class="btn btn-gold" onclick="goToPage('beatadmin')">Admin Upload</button>
         </div>
         <div id="djBeatList" style="margin-top:10px;"></div>
       </div>
@@ -2320,8 +2282,6 @@ window.startInstantBattle = openLiveBattleRoom;
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, onSnapshot, serverTimestamp, query, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
 
-const UB_BEAT_ADMIN_PASS = "empire2026";
-const UB_BEAT_ADMIN_EMAIL = "unibeatzproduction@gmail.com";
 let ubBeatDb = null;
 let ubBeatStorage = null;
 let ubSelectedBattleBeat = null;
@@ -2333,78 +2293,6 @@ function initBeatFirebase() {
   if (!ubBeatStorage) ubBeatStorage = getStorage(window.UB_FIREBASE.app);
   return true;
 }
-
-window.unlockBeatAdmin = async function() {
-  const pass = (document.getElementById("beatAdminPass")?.value || "").trim();
-  if (pass !== UB_BEAT_ADMIN_PASS) {
-    if (typeof showToast === "function") showToast("❌ Wrong admin passcode");
-    return;
-  }
-  // Sign into Firebase Auth with admin credentials
-  try {
-    if (typeof showToast === "function") showToast("🔐 Authenticating...");
-    const { signInWithEmailAndPassword: fbSignIn } = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js");
-    await fbSignIn(window.UB_FIREBASE.auth, UB_BEAT_ADMIN_EMAIL, pass);
-    ubAdminAuthed = true;
-  } catch(authErr) {
-    // Auth failed but passcode was correct — still allow UI unlock
-    // Storage rules will use the auth token if available
-    console.warn("Firebase Auth sign-in failed:", authErr.message);
-    ubAdminAuthed = false;
-  }
-  document.getElementById("beatAdminLockBox").style.display = "none";
-  document.getElementById("beatAdminContent").style.display = "block";
-  if (typeof showToast === "function") showToast("🔓 Beat admin unlocked");
-};
-
-window.uploadPlatformBeat = async function() {
-  try {
-    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
-
-    const name = document.getElementById("adminBeatName").value.trim();
-    const bpm = document.getElementById("adminBeatBpm").value.trim();
-    const key = document.getElementById("adminBeatKey").value.trim();
-    const genre = document.getElementById("adminBeatGenre").value.trim();
-    const fileInput = document.getElementById("adminBeatFile");
-    const file = fileInput && fileInput.files && fileInput.files[0];
-
-    if (!name || !file) {
-      if (typeof showToast === "function") showToast("Beat name and audio file required");
-      return;
-    }
-
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const storagePath = `platform-beats/${Date.now()}_${safeName}`;
-    const storageRef = ref(ubBeatStorage, storagePath);
-
-    if (typeof showToast === "function") showToast("⬆️ Uploading beat...");
-    await uploadBytes(storageRef, file);
-    const audioUrl = await getDownloadURL(storageRef);
-
-    await addDoc(collection(ubBeatDb, "platform_beats"), {
-      name,
-      bpm,
-      key,
-      genre,
-      audioUrl,
-      storagePath,
-      active: true,
-      createdAt: serverTimestamp()
-    });
-
-    ["adminBeatName","adminBeatBpm","adminBeatKey","adminBeatGenre"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-    if (fileInput) fileInput.value = "";
-
-    if (typeof showToast === "function") showToast("✅ Beat uploaded to platform");
-    await window.loadPlatformBeats();
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Beat upload failed: " + err.message);
-  }
-};
 
 function beatRowHtml(id, beat, mode) {
   const meta = [beat.genre, beat.bpm ? beat.bpm + " BPM" : "", beat.key].filter(Boolean).join(" · ") || "Platform beat";
@@ -2418,7 +2306,6 @@ function beatRowHtml(id, beat, mode) {
       <div class="beat-row-actions">
         <button class="btn btn-blue" onclick="previewPlatformBeat('${id}')">▶</button>
         ${mode === "dj" ? `<button class="btn btn-gold" onclick="selectBattleBeat('${id}')">Select</button>` : ""}
-        ${mode === "admin" ? `<button class="btn btn-red" onclick="deletePlatformBeat('${id}')">Delete</button>` : ""}
       </div>
     </div>
   `;
@@ -2480,19 +2367,6 @@ window.selectBattleBeat = async function(id) {
   } catch (err) {
     console.error(err);
     if (typeof showToast === "function") showToast("❌ Beat select failed: " + err.message);
-  }
-};
-
-window.deletePlatformBeat = async function(id) {
-  if (!confirm("Delete this platform beat listing?")) return;
-  try {
-    if (!initBeatFirebase()) throw new Error("Firebase is not ready yet.");
-    await deleteDoc(doc(ubBeatDb, "platform_beats", id));
-    if (typeof showToast === "function") showToast("🗑️ Beat deleted");
-    await window.loadPlatformBeats();
-  } catch (err) {
-    console.error(err);
-    if (typeof showToast === "function") showToast("❌ Delete failed");
   }
 };
 

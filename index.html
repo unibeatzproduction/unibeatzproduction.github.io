@@ -668,6 +668,93 @@ loadFirestoreBeats();
         <div class="admin-section-title">📣 Broadcast Notification</div>
         <div id="ubNotificationAdmin"></div>
       </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🔐 Admin Sign-In</div>
+        <div id="ubAdminAuthStatus" style="margin-bottom:10px;">Checking sign-in…</div>
+        <button class="btn-gold btn-full" id="ubAdminSignInBtn" onclick="ubAdminSignIn()">Sign in with Google</button>
+        <button class="btn-blue btn-full" id="ubAdminSignOutBtn" onclick="ubAdminSignOut()" style="display:none;">Sign out</button>
+        <div style="font-size:0.8rem;color:rgba(240,237,232,0.55);margin-top:8px;">The passcode opens this panel, but uploads, user tools, and the broadcast composer need Firebase sign-in as the admin account.</div>
+      </div>
+      <div id="ubAdminSections" style="display:none;">
+      <div class="admin-section">
+        <div class="admin-section-title">🎵 Beat Store Upload (marketplace_beats)</div>
+        <div class="form-group"><label>Beat Name *</label><input type="text" id="bf_name" placeholder="Midnight Gold"/></div>
+        <div class="form-group"><label>Genre/Tag *</label><input type="text" id="bf_tag" placeholder="Trap / R&amp;B / Drill"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>BPM</label><input type="number" id="bf_bpm" placeholder="140"/></div>
+          <div class="form-group"><label>Key</label><input type="text" id="bf_key" placeholder="Am"/></div>
+        </div>
+        <div class="form-group"><label>Beat Audio File (MP3/WAV) *</label><input type="file" id="bf_audioFile" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/></div>
+        <div class="form-group"><label>…or Beat Audio URL</label><input type="text" id="bf_audio" placeholder="Optional fallback URL — leave blank if uploading file"/></div>
+        <div class="form-group"><label>Cover File (optional)</label><input type="file" id="bf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/></div>
+        <div class="form-group"><label>…or Cover URL</label><input type="text" id="bf_cover" placeholder="Optional fallback cover URL"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Basic $</label><input type="number" id="bf_basic" placeholder="25" value="25"/></div>
+          <div class="form-group"><label>Premium $</label><input type="number" id="bf_premium" placeholder="75" value="75"/></div>
+          <div class="form-group"><label>Exclusive $</label><input type="number" id="bf_exclusive" placeholder="300" value="300"/></div>
+        </div>
+        <div class="form-group"><label>Stripe Payment Link (Basic license) — optional</label><input type="text" id="bf_stripeBasic" placeholder="https://buy.stripe.com/..."/></div>
+        <button class="btn-gold btn-full" onclick="ubAdminSaveStoreBeat()">💾 Save Beat to Marketplace</button>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📦 Sample Pack Upload (marketplace_packs)</div>
+        <div class="form-group"><label>Pack Name *</label><input type="text" id="pf_name" placeholder="UniBeatz Percussion Loops Vol. 1"/></div>
+        <div class="form-group"><label>Category/Genre *</label><input type="text" id="pf_cat" placeholder="Hip-Hop / Trap / R&amp;B"/></div>
+        <div class="form-group"><label>Icon (emoji)</label><input type="text" id="pf_icon" placeholder="🔥" maxlength="4"/></div>
+        <div class="form-group"><label>Contents (one per line) *</label><textarea id="pf_includes" rows="5" placeholder="10 Percussion Loops&#10;1 Snare Hit&#10;WAV format&#10;90 BPM" style="width:100%;padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;"></textarea></div>
+        <div class="form-group"><label>Sound Pack ZIP File *</label><input type="file" id="pf_zipFile" accept=".zip,application/zip"/></div>
+        <div class="form-group"><label>…or ZIP URL</label><input type="text" id="pf_zip" placeholder="Optional fallback ZIP URL — leave blank if uploading file"/></div>
+        <div class="form-group"><label>Pack Cover File (optional)</label><input type="file" id="pf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/></div>
+        <div class="form-group"><label>…or Cover URL</label><input type="text" id="pf_cover" placeholder="Optional fallback cover URL"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Price ($)</label><input type="number" id="pf_price" placeholder="0 (free) or 29" value="0"/></div>
+          <div class="form-group"><label>Type</label><select id="pf_type" style="width:100%;padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;"><option value="free">🎁 Free (Email Required)</option><option value="paid">💳 Paid (Stripe)</option></select></div>
+        </div>
+        <div class="form-group"><label>Stripe Payment Link (if paid)</label><input type="text" id="pf_stripe" placeholder="https://buy.stripe.com/..."/></div>
+        <button class="btn-gold btn-full" onclick="ubAdminSaveStorePack()">💾 Save Pack to Marketplace</button>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📋 Manage Store Listings</div>
+        <button class="btn-blue btn-full" onclick="ubAdminRefreshStoreLists()">🔄 Refresh Lists</button>
+        <div style="margin-top:12px;font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:3px;color:var(--gold);">🎵 BEATS</div>
+        <div id="ubAdminStoreBeatsList" style="margin:8px 0 16px;"></div>
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:3px;color:var(--gold);">📦 SAMPLE PACKS</div>
+        <div id="ubAdminStorePacksList" style="margin-top:8px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">📧 Email Subscribers</div>
+        <button class="btn-blue btn-full" onclick="ubAdminExportEmails()">📥 Export to CSV</button>
+        <button class="btn-blue btn-full" onclick="ubAdminRefreshEmails()" style="margin-top:8px;">🔄 Refresh Emails</button>
+        <div id="ubAdminEmailsList" style="max-height:300px;overflow-y:auto;margin-top:12px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🎛️ Battle Beats Upload (platform_beats)</div>
+        <div class="form-group"><label>Beat Name *</label><input type="text" id="adminBeatName" placeholder="Beat name"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>BPM</label><input type="text" id="adminBeatBpm" placeholder="BPM"/></div>
+          <div class="form-group"><label>Key</label><input type="text" id="adminBeatKey" placeholder="Key"/></div>
+        </div>
+        <div class="form-group"><label>Genre</label><input type="text" id="adminBeatGenre" placeholder="Genre"/></div>
+        <div class="form-group"><label>Beat Audio File *</label><input type="file" id="adminBeatFile" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/></div>
+        <button class="btn-gold btn-full" onclick="ubAdminUploadBattleBeat()">⬆️ Upload Beat To Platform</button>
+        <button class="btn-blue btn-full" onclick="ubAdminRefreshBattleBeats()" style="margin-top:8px;">🔄 Refresh Battle Beats</button>
+        <div id="ubAdminBattleBeatsList" style="margin-top:12px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">👥 User Management</div>
+        <div id="ubAdminUserStats" style="margin-bottom:10px;"></div>
+        <button class="btn-gold btn-full" onclick="ubAdminUpgradeUser()">⬆️ Upgrade User to Pro</button>
+        <button class="btn-blue btn-full" onclick="ubAdminDowngradeUser()" style="margin-top:8px;">⬇️ Downgrade User</button>
+        <button class="btn-blue btn-full" onclick="ubAdminRefreshUsers()" style="margin-top:8px;">🔄 Refresh List</button>
+        <div id="ubAdminUserList" style="max-height:300px;overflow-y:auto;margin-top:12px;"></div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">🚨 Danger Zone</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:10px;">These actions cannot be undone. Use only in emergencies.</div>
+        <button class="btn-blue btn-full" onclick="ubAdminResetMyAccount()">🔄 Reset My Admin Account</button>
+        <button class="btn-blue btn-full" onclick="ubAdminMasterReset()" style="margin-top:8px;">💥 MASTER RESET (Nuclear)</button>
+      </div>
+      </div>
       <button class="btn-blue btn-full" onclick="lockAdmin()" style="margin-top:8px;">🔒 Lock Panel</button>
     </div>
   </div>
@@ -853,6 +940,7 @@ renderVideos();
   <div id="ubNotificationsList"></div>
 </div>
 <script type="module" src="/unibeatz-notifications.js"></script>
+<script type="module" src="/unibeatz-admin.js"></script>
 <script src="/unibeatz-search.js"></script>
 </body>
 </html>

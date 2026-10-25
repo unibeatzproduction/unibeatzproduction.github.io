@@ -248,18 +248,6 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
 </head>
 <body>
 
-<div class="admin-lock-overlay" id="adminLockOverlay">
-  <div class="admin-lock-card">
-    <button class="admin-lock-close" onclick="closeAdminLock()" aria-label="Close">×</button>
-    <div class="admin-lock-icon">🔐</div>
-    <div class="admin-lock-title">ADMIN ACCESS</div>
-    <div class="admin-lock-sub">Enter your secure passcode.</div>
-    <input class="admin-lock-input" id="adminLockInput" type="password" autocomplete="off" />
-    <button class="admin-lock-btn" onclick="unlockAdminPanel()">unlock</button>
-    <div class="admin-lock-error" id="adminLockError">Wrong passcode. Try again.</div>
-  </div>
-</div>
-
 <canvas id="lightning-canvas"></canvas>
 
 <nav>
@@ -273,7 +261,6 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
     <li><a href="#packs">Sound Packs</a></li>
     <li><a href="https://unibeatzproduction.myshopify.com" target="_blank" rel="noopener">🛍️ Merch Store</a></li>
     <li><a href="#membership">Membership</a></li>
-    <li><a href="#" onclick="openAdmin();return false;" id="adminNavLink" style="display:none;color:var(--gold-light);">⚙️ Admin</a></li>
     <li><a href="index.html" class="nav-back">← Home</a></li>
   </ul>
   <div class="hamburger" id="hamburger" onclick="toggleNav()">
@@ -607,88 +594,6 @@ footer{padding:44px 32px 20px;background:#030305;border-top:1px solid rgba(201,1
 </div>
 
 <!-- ═══════ ADMIN PANEL — Upload Beats & Packs ═══════ -->
-<div class="modal-overlay" id="adminModal">
-  <div class="modal" style="max-width:680px;max-height:92vh;overflow-y:auto;">
-    <button class="modal-close" onclick="closeAdmin()">✕</button>
-    <h2>⚙️ Admin Panel</h2>
-    <p class="modal-sub">Upload beats and sample packs directly to Firebase Storage. Listings save to Firestore.</p>
-
-    <!-- ADMIN TABS -->
-    <div style="display:flex;gap:6px;margin:18px 0 16px;border-bottom:1px solid rgba(201,168,76,0.18);">
-      <button class="admin-tab active" data-tab="addBeat" onclick="adminTab('addBeat')">➕ Add Beat</button>
-      <button class="admin-tab" data-tab="addPack" onclick="adminTab('addPack')">➕ Add Pack</button>
-      <button class="admin-tab" data-tab="manage" onclick="adminTab('manage')">📋 Manage</button>
-      <button class="admin-tab" data-tab="emails" onclick="adminTab('emails')">📧 Emails</button>
-    </div>
-
-    <!-- ADD BEAT FORM -->
-    <div class="admin-section" id="adminSec-addBeat">
-      <div class="form-group"><label>Beat Name *</label><input type="text" id="bf_name" placeholder="Midnight Gold"/></div>
-      <div class="form-group"><label>Genre/Tag *</label><input type="text" id="bf_tag" placeholder="Trap / R&B / Drill"/></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label>BPM</label><input type="number" id="bf_bpm" placeholder="140"/></div>
-        <div class="form-group"><label>Key</label><input type="text" id="bf_key" placeholder="Am"/></div>
-      </div>
-      <div class="form-group">
-  <label>Upload Beat Audio (MP3/WAV) *</label>
-  <input type="file" id="bf_audioFile" accept="audio/mpeg,audio/wav,audio/mp3,audio/*"/>
-  <input type="text" id="bf_audio" placeholder="Optional fallback URL — leave blank if uploading file" style="margin-top:8px;"/>
-</div>
-      <div class="form-group">
-  <label>Upload Beat Cover (optional)</label>
-  <input type="file" id="bf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/>
-  <input type="text" id="bf_cover" placeholder="Optional fallback cover URL" style="margin-top:8px;"/>
-</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-        <div class="form-group"><label>Basic License $</label><input type="number" id="bf_basic" placeholder="25" value="25"/></div>
-        <div class="form-group"><label>Premium License $</label><input type="number" id="bf_premium" placeholder="75" value="75"/></div>
-        <div class="form-group"><label>Exclusive $</label><input type="number" id="bf_exclusive" placeholder="300" value="300"/></div>
-      </div>
-      <div class="form-group"><label>Stripe Payment Link (Basic license) — optional</label><input type="text" id="bf_stripeBasic" placeholder="https://buy.stripe.com/..."/></div>
-      <button class="submit-btn" onclick="saveBeat()">💾 Save Beat to Marketplace</button>
-    </div>
-
-    <!-- ADD PACK FORM -->
-    <div class="admin-section" id="adminSec-addPack" style="display:none;">
-      <div class="form-group"><label>Pack Name *</label><input type="text" id="pf_name" placeholder="UniBeatz Percussion Loops Vol. 1"/></div>
-      <div class="form-group"><label>Category/Genre *</label><input type="text" id="pf_cat" placeholder="Hip-Hop / Trap / R&B"/></div>
-      <div class="form-group"><label>Icon (emoji)</label><input type="text" id="pf_icon" placeholder="🔥" maxlength="4"/></div>
-      <div class="form-group"><label>Contents (one per line) *</label><textarea id="pf_includes" rows="5" placeholder="10 Percussion Loops&#10;1 Snare Hit&#10;WAV format&#10;90 BPM"></textarea></div>
-      <div class="form-group">
-  <label>Upload Sound Pack ZIP *</label>
-  <input type="file" id="pf_zipFile" accept=".zip,application/zip"/>
-  <input type="text" id="pf_zip" placeholder="Optional fallback ZIP URL — leave blank if uploading file" style="margin-top:8px;"/>
-</div>
-      <div class="form-group">
-  <label>Upload Pack Cover (optional)</label>
-  <input type="file" id="pf_coverFile" accept="image/png,image/jpeg,image/webp,image/*"/>
-  <input type="text" id="pf_cover" placeholder="Optional fallback cover URL" style="margin-top:8px;"/>
-</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div class="form-group"><label>Price ($)</label><input type="number" id="pf_price" placeholder="0 (free) or 29" value="0"/></div>
-        <div class="form-group"><label>Type</label><select id="pf_type" style="width:100%;padding:11px;background:#040408;border:1px solid rgba(201,168,76,0.3);color:#fff;font-family:'Rajdhani',sans-serif;font-size:0.94rem;"><option value="free">🎁 Free (Email Required)</option><option value="paid">💳 Paid (Stripe)</option></select></div>
-      </div>
-      <div class="form-group"><label>Stripe Payment Link (if paid)</label><input type="text" id="pf_stripe" placeholder="https://buy.stripe.com/..."/></div>
-      <button class="submit-btn" onclick="savePack()">💾 Save Pack to Marketplace</button>
-    </div>
-
-    <!-- MANAGE LISTINGS -->
-    <div class="admin-section" id="adminSec-manage" style="display:none;">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px;">🎵 BEATS</div>
-      <div id="adminBeatsList" style="margin-bottom:20px;"></div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:2.5px;color:var(--gold);margin-bottom:10px;">📦 SAMPLE PACKS</div>
-      <div id="adminPacksList"></div>
-    </div>
-
-    <!-- EMAILS -->
-    <div class="admin-section" id="adminSec-emails" style="display:none;">
-      <p style="font-size:0.84rem;color:var(--gray);margin-bottom:14px;">Email subscribers from free pack downloads. Export to CSV for your mailing list.</p>
-      <button class="submit-btn" onclick="exportEmails()" style="margin-bottom:14px;">📥 Export to CSV</button>
-      <div id="adminEmailsList" style="max-height:300px;overflow-y:auto;border:1px solid rgba(201,168,76,0.15);padding:10px;background:#040408;"></div>
-    </div>
-  </div>
-</div>
-
 <style>
 .admin-tab{padding:8px 14px;background:transparent;border:none;color:var(--gray);font-family:'Orbitron',sans-serif;font-size:0.55rem;letter-spacing:2px;cursor:pointer;border-bottom:2px solid transparent;font-weight:700;}
 .admin-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
@@ -1034,261 +939,6 @@ async function submitEmailCapture() {
 // ═════════════════════════════════════════
 // ADMIN PANEL — TABS
 // ═════════════════════════════════════════
-function openAdmin() {
-  if (!ubAdminUnlocked) { openAdminLocked(); return; }
-  if(!isAdmin()) {
-    showToast('⛔ Admin access required. Log in at UniPack first.');
-    return;
-  }
-  document.getElementById('adminModal').classList.add('active');
-  adminTab('addBeat');
-  refreshAdminLists();
-}
-function closeAdmin() {
-  document.getElementById('adminModal').classList.remove('active');
-}
-function adminTab(name) {
-  document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
-  const sec = document.getElementById('adminSec-' + name);
-  if(sec) sec.style.display = 'block';
-  if(name === 'manage') refreshAdminLists();
-  if(name === 'emails') refreshAdminEmails();
-}
-
-// ═════════════════════════════════════════
-// SAVE BEAT TO FIRESTORE
-// ═════════════════════════════════════════
-
-async function uploadAdminFile(inputId, folder) {
-  const input = document.getElementById(inputId);
-  if (!input || !input.files || !input.files[0]) return '';
-
-  const file = input.files[0];
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const path = `${folder}/${Date.now()}_${safeName}`;
-
-  const { storage, ref, uploadBytes, getDownloadURL } = window._fb;
-  const storageRef = ref(storage, path);
-
-  showToast('⬆️ Uploading ' + file.name + '...');
-  await uploadBytes(storageRef, file);
-
-  const url = await getDownloadURL(storageRef);
-  showToast('✅ Uploaded ' + file.name);
-  return url;
-}
-
-
-async function saveBeat() {
-  const name = document.getElementById('bf_name').value.trim();
-  const tag = document.getElementById('bf_tag').value.trim();
-
-  let audioUrl = document.getElementById('bf_audio').value.trim();
-  let coverUrl = document.getElementById('bf_cover').value.trim();
-
-  try {
-    const uploadedAudio = await uploadAdminFile('bf_audioFile', 'marketplace/beats/audio');
-    const uploadedCover = await uploadAdminFile('bf_coverFile', 'marketplace/beats/covers');
-
-    if (uploadedAudio) audioUrl = uploadedAudio;
-    if (uploadedCover) coverUrl = uploadedCover;
-  } catch (e) {
-    showToast('❌ Upload failed: ' + e.message);
-    console.error(e);
-    return;
-  }
-
-  if(!name || !tag || !audioUrl) {
-    showToast('Name, Tag, and Beat Audio required');
-    return;
-  }
-
-  const beat = {
-    name,
-    tag,
-    bpm: document.getElementById('bf_bpm').value || '',
-    key: document.getElementById('bf_key').value.trim() || '',
-    audioUrl,
-    coverUrl,
-    basicPrice: parseInt(document.getElementById('bf_basic').value) || 25,
-    premiumPrice: parseInt(document.getElementById('bf_premium').value) || 75,
-    exclusivePrice: parseInt(document.getElementById('bf_exclusive').value) || 300,
-    stripeBasic: document.getElementById('bf_stripeBasic').value.trim() || '',
-    createdAt: window._fb.serverTimestamp(),
-  };
-
-  try {
-    const { db, collection, addDoc } = window._fb;
-    await addDoc(collection(db, 'marketplace_beats'), beat);
-    showToast('✅ Beat uploaded to Firebase and saved!');
-    ['bf_name','bf_tag','bf_bpm','bf_key','bf_audio','bf_cover','bf_stripeBasic'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    ['bf_audioFile','bf_coverFile'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    await loadMarketplace();
-    refreshAdminLists();
-  } catch(e) {
-    showToast('❌ Save failed: ' + e.message);
-    console.error(e);
-  }
-}
-
-
-// ═════════════════════════════════════════
-// SAVE PACK TO FIRESTORE
-// ═════════════════════════════════════════
-
-async function savePack() {
-  const name = document.getElementById('pf_name').value.trim();
-  const category = document.getElementById('pf_cat').value.trim();
-  const includes = document.getElementById('pf_includes').value.trim();
-
-  let zipUrl = document.getElementById('pf_zip').value.trim();
-  let coverUrl = document.getElementById('pf_cover').value.trim();
-
-  try {
-    const uploadedZip = await uploadAdminFile('pf_zipFile', 'marketplace/packs/zips');
-    const uploadedCover = await uploadAdminFile('pf_coverFile', 'marketplace/packs/covers');
-
-    if (uploadedZip) zipUrl = uploadedZip;
-    if (uploadedCover) coverUrl = uploadedCover;
-  } catch (e) {
-    showToast('❌ Upload failed: ' + e.message);
-    console.error(e);
-    return;
-  }
-
-  if(!name || !category || !zipUrl || !includes) {
-    showToast('Name, Category, Contents, and ZIP file required');
-    return;
-  }
-
-  const pack = {
-    name,
-    category,
-    icon: document.getElementById('pf_icon').value.trim() || '🎵',
-    includes,
-    zipUrl,
-    coverUrl,
-    price: parseInt(document.getElementById('pf_price').value) || 0,
-    type: document.getElementById('pf_type').value,
-    stripeLink: document.getElementById('pf_stripe').value.trim() || '',
-    createdAt: window._fb.serverTimestamp(),
-  };
-
-  try {
-    const { db, collection, addDoc } = window._fb;
-    await addDoc(collection(db, 'marketplace_packs'), pack);
-    showToast('✅ Pack uploaded to Firebase and saved!');
-    ['pf_name','pf_cat','pf_icon','pf_includes','pf_zip','pf_cover','pf_stripe'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    ['pf_zipFile','pf_coverFile'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    const price = document.getElementById('pf_price');
-    if (price) price.value = '0';
-    await loadMarketplace();
-    refreshAdminLists();
-  } catch(e) {
-    showToast('❌ Save failed: ' + e.message);
-    console.error(e);
-  }
-}
-
-
-// ═════════════════════════════════════════
-// MANAGE LISTINGS
-// ═════════════════════════════════════════
-function refreshAdminLists() {
-  const beatsDiv = document.getElementById('adminBeatsList');
-  beatsDiv.innerHTML = beats.length ? beats.map(b => `
-    <div class="admin-list-row">
-      <div class="admin-list-row-info"><b>${escapeHtml(b.name)}</b> · ${escapeHtml(b.tag||'')} · ${b.bpm||'?'} BPM<small>$${b.basicPrice || 25} / $${b.premiumPrice || 75} / $${b.exclusivePrice || 300}</small></div>
-      <button class="admin-del-btn" onclick="deleteBeat('${b.id}','${escapeAttr(b.name)}')">🗑️</button>
-    </div>`).join('') : '<div style="padding:14px;color:var(--gray);font-size:0.84rem;">No beats yet.</div>';
-  const packsDiv = document.getElementById('adminPacksList');
-  packsDiv.innerHTML = packs.length ? packs.map(p => `
-    <div class="admin-list-row">
-      <div class="admin-list-row-info"><b>${p.icon||'🎵'} ${escapeHtml(p.name)}</b> · ${escapeHtml(p.category||'')}<small>${p.type === 'free' ? 'FREE' : '$' + p.price}</small></div>
-      <button class="admin-del-btn" onclick="deletePack('${p.id}','${escapeAttr(p.name)}')">🗑️</button>
-    </div>`).join('') : '<div style="padding:14px;color:var(--gray);font-size:0.84rem;">No packs yet.</div>';
-}
-
-async function deleteBeat(id, name) {
-  if(!confirm('Delete "' + name + '"?')) return;
-  try {
-    const { db, doc, deleteDoc } = window._fb;
-    await deleteDoc(doc(db, 'marketplace_beats', id));
-    showToast('🗑️ Beat deleted');
-    await loadMarketplace();
-    refreshAdminLists();
-  } catch(e) { showToast('Delete failed: ' + e.message); }
-}
-async function deletePack(id, name) {
-  if(!confirm('Delete "' + name + '"?')) return;
-  try {
-    const { db, doc, deleteDoc } = window._fb;
-    await deleteDoc(doc(db, 'marketplace_packs', id));
-    showToast('🗑️ Pack deleted');
-    await loadMarketplace();
-    refreshAdminLists();
-  } catch(e) { showToast('Delete failed: ' + e.message); }
-}
-
-// ═════════════════════════════════════════
-// EMAIL EXPORT
-// ═════════════════════════════════════════
-async function refreshAdminEmails() {
-  const list = document.getElementById('adminEmailsList');
-  list.innerHTML = '<div style="color:var(--gray);padding:10px;">Loading...</div>';
-  try {
-    const { db, collection, getDocs, query, orderBy } = window._fb;
-    const snap = await getDocs(query(collection(db, 'email_subscribers'), orderBy('createdAt', 'desc')));
-    const emails = snap.docs.map(d => d.data());
-    if(!emails.length) {
-      list.innerHTML = '<div style="color:var(--gray);padding:10px;font-style:italic;">No email signups yet.</div>';
-      return;
-    }
-    list.innerHTML = emails.map(e => {
-      const d = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toLocaleString() : '';
-      return `<div class="email-row"><span>${escapeHtml(e.email)}<small>${escapeHtml(e.packName || '')}</small></span><small>${d}</small></div>`;
-    }).join('');
-    list._emails = emails; // cache for CSV
-  } catch(e) {
-    list.innerHTML = '<div style="color:var(--red,#ff3c3c);padding:10px;">Load failed: ' + e.message + '</div>';
-  }
-}
-
-async function exportEmails() {
-  try {
-    const { db, collection, getDocs, query, orderBy } = window._fb;
-    const snap = await getDocs(query(collection(db, 'email_subscribers'), orderBy('createdAt', 'desc')));
-    const emails = snap.docs.map(d => d.data());
-    if(!emails.length) { showToast('No emails to export'); return; }
-    const csv = 'Email,Pack,Source,Date\n' + emails.map(e => {
-      const d = e.createdAt && e.createdAt.toDate ? e.createdAt.toDate().toISOString() : '';
-      return [e.email, e.packName, e.source, d].map(v => `"${(v || '').replace(/"/g, '""')}"`).join(',');
-    }).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'unibeatz_subscribers_' + Date.now() + '.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('📥 ' + emails.length + ' emails exported');
-  } catch(e) { showToast('Export failed: ' + e.message); }
-}
-
-// ═════════════════════════════════════════
 // UTILITIES
 // ═════════════════════════════════════════
 function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -1348,11 +998,6 @@ document.head.appendChild(style);
 // BOOT
 // ═════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // Show admin link if logged in as admin
-  if(isAdmin()) {
-    const link = document.getElementById('adminNavLink');
-    if(link) link.style.display = 'inline';
-  }
   loadMarketplace();
 });
 
@@ -1363,14 +1008,6 @@ window.closeModal = closeModal;
 window.getPack = getPack;
 window.closeEmailModal = closeEmailModal;
 window.submitEmailCapture = submitEmailCapture;
-window.openAdmin = openAdmin;
-window.closeAdmin = closeAdmin;
-window.adminTab = adminTab;
-window.saveBeat = saveBeat;
-window.savePack = savePack;
-window.deleteBeat = deleteBeat;
-window.deletePack = deletePack;
-window.exportEmails = exportEmails;
 window.scrollTo = scrollTo;
 window.notifyMe = notifyMe;
 window.processPayment = processPayment;
@@ -1378,69 +1015,6 @@ window.toggleNav = toggleNav;
 </script>
 
 <script>
-let ubAdminUnlocked = false;
-
-function openAdminLocked() {
-  if (ubAdminUnlocked) {
-    const adminPanel = document.getElementById('adminPanel');
-    const adminModal = document.getElementById('adminModal');
-    if (adminPanel) adminPanel.classList.add('active');
-    else if (adminModal) adminModal.classList.add('active');
-    else {
-      const panel = document.querySelector('.admin-panel, .admin-modal, #adminDashboard');
-      if (panel) panel.classList.add('active');
-    }
-    return;
-  }
-  const overlay = document.getElementById('adminLockOverlay');
-  const input = document.getElementById('adminLockInput');
-  const error = document.getElementById('adminLockError');
-  if (error) error.classList.remove('show');
-  if (overlay) overlay.classList.add('active');
-  setTimeout(() => input && input.focus(), 100);
-}
-
-function closeAdminLock() {
-  const overlay = document.getElementById('adminLockOverlay');
-  if (overlay) overlay.classList.remove('active');
-}
-
-function unlockAdminPanel() {
-  const input = document.getElementById('adminLockInput');
-  const error = document.getElementById('adminLockError');
-  const code = (input && input.value ? input.value : '').trim().toLowerCase();
-
-  if (code === 'empire2026') {
-    ubAdminUnlocked = true;
-    closeAdminLock();
-    if (input) input.value = '';
-
-    const adminPanel = document.getElementById('adminPanel');
-    const adminModal = document.getElementById('adminModal');
-    if (adminPanel) adminPanel.classList.add('active');
-    else if (adminModal) adminModal.classList.add('active');
-    else {
-      const panel = document.querySelector('.admin-panel, .admin-modal, #adminDashboard');
-      if (panel) panel.classList.add('active');
-    }
-
-    if (typeof refreshAdminLists === 'function') refreshAdminLists();
-    if (typeof showToast === 'function') showToast('🔓 Admin unlocked');
-  } else {
-    if (error) error.classList.add('show');
-    if (input) {
-      input.value = '';
-      input.focus();
-    }
-  }
-}
-
-document.addEventListener('keydown', function(e) {
-  const overlay = document.getElementById('adminLockOverlay');
-  if (!overlay || !overlay.classList.contains('active')) return;
-  if (e.key === 'Enter') unlockAdminPanel();
-  if (e.key === 'Escape') closeAdminLock();
-});
 </script>
 
 </body>
