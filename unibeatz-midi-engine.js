@@ -10,6 +10,9 @@
   const FIRESTORE_COLLECTION = 'midi_profiles';
   const LOCAL_STORAGE_KEY = 'ub_midi_profiles_cache';
   const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+  // Single-target MIDI Learn store — same key the deck's renderMappings()
+  // reads, so learned controls show in the deck's MIDI panel.
+  const LEARN_STORAGE_KEY = 'ub_radio_dj_midi_mappings';
 
   // ── Action → UniBeatz deck function mapping ──
   const ACTION_MAP = {
@@ -66,6 +69,10 @@
     B: { 0:'loop4B', 1:'loop2B', 2:'loop1B', 3:'loopHB', 4:'fxBassB', 5:'fxFilterB', 6:'fxReverbB', 7:'fxStutterB' }
   };
 
+  function loadLearnOverrides(){
+    try{ return JSON.parse(localStorage.getItem(LEARN_STORAGE_KEY) || '{}') || {}; }catch(e){ return {}; }
+  }
+
   let _state = {
     midiAccess: null,
     activeProfile: null,
@@ -74,7 +81,9 @@
     calibrating: false,
     calibrationStep: null,
     calibrationMappings: {},
-    connected: false
+    connected: false,
+    learning: null, // pending single-target learn action id, or null
+    learnOverrides: loadLearnOverrides() // 'status_note' -> { action, status, note/control }
   };
 
   let _shift = { A: false, B: false };
@@ -203,13 +212,29 @@
       return;
     }
 
-    if (!_state.lookupTable) return;
+    // Single-target Learn mode (deck LEARN ON + LEARN TARGET): capture the
+    // next control movement as the mapping for the pending action.
+    if (_state.learning) {
+      handleLearnSignal(status, note, val);
+      return;
+    }
 
     // Pitch bend
     if ((status & 0xF0) === 0xE0) {
       handlePitchWheel(note, val);
       return;
     }
+
+    // Learned override wins over the profile (avoids double-triggering when
+    // a learned control also exists in the profile).
+    const learnKey = status + '_' + note;
+    if (_state.learnOverrides && _state.learnOverrides[learnKey]) {
+      const act = _state.learnOverrides[learnKey].action;
+      if (window.ubDeckAction) window.ubDeckAction(act, val);
+      return;
+    }
+
+    if (!_state.lookupTable) return;
 
     // Look up action
     const key = status + '_' + note;
@@ -233,6 +258,44 @@
       .replace('deck1_', '').replace('deck2_', '')
       .replace('play', val > 0 ? 'playA' : '')
       .replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+  }
+
+  // ── Single-target MIDI Learn ──
+  // The deck's LEARN ON button sets the pending action (from LEARN TARGET);
+  // the next real control movement binds that signal to the action.
+  function startLearn(actionId){
+    _state.learning = actionId;
+    notify('MIDI Learn ON — move the control for "' + actionId + '"', '#F0C040');
+  }
+  function stopLearn(){
+    _state.learning = null;
+    notify('MIDI Learn OFF');
+  }
+  function handleLearnSignal(status, note, val){
+    const action = _state.learning;
+    if (!action) return;
+    // Ignore button releases / note-offs for button-like targets.
+    const continuous = /crossfader|volume|pitch|jog|eq|filter|gain/i.test(action);
+    if (!continuous && val === 0) return;
+    const isCC = (status & 0xF0) === 0xB0;
+    const entry = {
+      action, status,
+      channel: status & 0x0F,
+      type: guessType(action)
+    };
+    if (isCC) entry.control = note; else entry.note = note;
+    const key = status + '_' + note;
+    _state.learnOverrides[key] = entry;
+    try{
+      const stored = loadLearnOverrides();
+      stored[key] = entry;
+      localStorage.setItem(LEARN_STORAGE_KEY, JSON.stringify(stored));
+    }catch(e){}
+    _state.learning = null;
+    notify('✅ Learned: ' + action + ' ← ' + status + '-' + note, '#00e676');
+    const s = document.getElementById('midiStatus');
+    if (s) s.textContent = 'Learned "' + action + '" ← control ' + status + '-' + note + ' — Learn OFF';
+    if (window.renderMappings) { try{ window.renderMappings(); }catch(e){} }
   }
 
   // ── Connect ──
@@ -505,6 +568,9 @@
   // ── Public API ──
   global.ubMidi = {
     connect,
+    startLearn,
+    stopLearn,
+    isLearning: () => !!_state.learning,
     disconnect: () => {
       if (_state.midiAccess) {
         _state.midiAccess.inputs.forEach(i => { i.onmidimessage = null; });

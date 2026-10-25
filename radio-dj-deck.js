@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, query, where, getDocs, doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -47,6 +47,37 @@ function broadcastStatus(m){
   const badge=document.getElementById('broadcastLiveBadge'); if(badge) badge.style.display=m.includes('LIVE')?'flex':'none';
 }
 async function ensure(){ if(!auth.currentUser) await signInAnonymously(auth); return auth.currentUser; }
+
+// ── Admin sign-in gate ──
+// GO LIVE writes radio_broadcast/main and Save Queue writes radio_dj_queues —
+// both are admin-only in the live Firestore rules, while the deck otherwise
+// signs in anonymously. Gate those two actions on a Google sign-in as the
+// admin email (same check the live rules' isAdmin() uses). Playback, mixing,
+// queue loading, mic, and recording stay anonymous-safe and are NOT gated.
+const ADMIN_EMAIL = 'unibeatzproduction@gmail.com';
+function isAdmin(){
+  const u = auth.currentUser;
+  return !!u && !u.isAnonymous && u.email === ADMIN_EMAIL;
+}
+function refreshAdminUI(){
+  const btn = document.getElementById('adminSignInBtn');
+  const st  = document.getElementById('adminSignInStatus');
+  const u = auth.currentUser;
+  if(btn) btn.textContent = (u && !u.isAnonymous) ? '🔓 Sign Out (' + u.email + ')' : '🔐 Admin Sign-In';
+  if(st){
+    if(isAdmin()){ st.textContent = 'Signed in as admin — GO LIVE and SAVE enabled.'; st.style.color = '#5dff9e'; }
+    else if(u && !u.isAnonymous){ st.textContent = 'Signed in as ' + u.email + ' — not the admin account. Sign in as ' + ADMIN_EMAIL + ' to go live.'; st.style.color = '#F0C040'; }
+    else { st.textContent = 'Not signed in as admin — sign in to go live or save the queue.'; st.style.color = ''; }
+  }
+}
+onAuthStateChanged(auth, refreshAdminUI);
+// Returns true only when signed in as admin; otherwise shows a plain message
+// and returns false WITHOUT attempting the write (no mid-broadcast failure).
+async function ensureAdmin(){
+  if(isAdmin()) return true;
+  note('Sign in as admin to go live / save the queue.','#F0C040');
+  return false;
+}
 function itemName(x){ return x.trackTitle||x.title||'Untitled'; }
 function itemUrl(x){ return x.audioUrl||''; }
 
@@ -236,6 +267,9 @@ let _broadcastSrcB  = null;
 
 async function startBroadcast(){
   if(live){ note('Already live.','#F0C040'); return; }
+  // Admin gate BEFORE any token fetch or room join — the radio_broadcast
+  // write below is admin-only, so a non-admin start would fail mid-broadcast.
+  if(!(await ensureAdmin())) return;
   if(!window.LivekitClient){
     note('Loading LiveKit...','#F0C040');
     // Load LiveKit UMD if not already loaded
@@ -252,8 +286,10 @@ async function startBroadcast(){
     await ensure();
     const djName = 'dj_' + (auth.currentUser?.uid||'guest').slice(0,8);
 
-    // Get LiveKit token
+    // Get LiveKit token (dead on Spark until the Blaze deploy — 404 here is
+    // the backend wall, not a deck bug; surfaced plainly instead of a JSON error)
     const res = await fetch(`${UB_LIVEKIT_TOKEN_FUNCTION}?room=${RADIO_LIVE_ROOM}&username=${djName}`);
+    if(!res.ok) throw new Error('Broadcast token unavailable (server offline — needs the Blaze deploy)');
     const { token, url } = await res.json();
     if(!token || !url) throw new Error('Could not get broadcast token');
 
@@ -330,10 +366,15 @@ async function endBroadcast(){
   broadcastStatus('Offline. Start live mode when ready.');
   note('Broadcast ended.','#ff7474');
 
-  await ensure();
-  await setDoc(doc(db,'radio_broadcast','main'),{
-    live: false, micOn: false, updatedAt: serverTimestamp()
-  },{ merge: true });
+  // Safe teardown: only the admin may write radio_broadcast, and a denied
+  // write here must never reject unhandled (startBroadcast's catch calls here).
+  if(isAdmin()){
+    try{
+      await setDoc(doc(db,'radio_broadcast','main'),{
+        live: false, micOn: false, updatedAt: serverTimestamp()
+      },{ merge: true });
+    }catch(e){ console.warn('[broadcast end] status write failed:', e.message); }
+  }
 
   document.getElementById('startBroadcast').disabled = false;
   document.getElementById('endBroadcast').disabled   = true;
@@ -714,19 +755,42 @@ document.getElementById('endBroadcast').disabled  = true;
 
 document.getElementById('reloadQueue').onclick = loadQueue;
 document.getElementById('saveQueue').onclick = async()=>{
-  await ensure();
-  await setDoc(doc(db,'radio_dj_queues','main'),{
-    items: queue.map((x,i)=>({id:x.id,kind:x.kind||'item',title:itemName(x),audioUrl:itemUrl(x),order:i})),
-    updatedAt: serverTimestamp()
-  },{merge:true});
-  note('Broadcast queue saved.','#5dff9e');
+  if(!(await ensureAdmin())) return;
+  try{
+    await setDoc(doc(db,'radio_dj_queues','main'),{
+      items: queue.map((x,i)=>({id:x.id,kind:x.kind||'item',title:itemName(x),audioUrl:itemUrl(x),order:i})),
+      updatedAt: serverTimestamp()
+    },{merge:true});
+    note('Broadcast queue saved.','#5dff9e');
+  }catch(e){
+    console.error('[queue save]', e);
+    note('Queue save failed: ' + (e.message||e),'#ff7474');
+  }
 };
+
+// Admin sign-in button (Google popup on the deck's own Firebase app instance).
+const _adminBtn = document.getElementById('adminSignInBtn');
+if(_adminBtn) _adminBtn.onclick = async()=>{
+  try{
+    const u = auth.currentUser;
+    if(u && !u.isAnonymous){ await signOut(auth); }
+    else{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+  }catch(e){
+    console.error('[admin sign-in]', e);
+    note('Admin sign-in failed: ' + (e.message||e),'#ff7474');
+  }
+  refreshAdminUI();
+};
+refreshAdminUI();
 
 // ═══════════════════════════════════════════════
 // DJ CONTROLLER INPUT
 // ═══════════════════════════════════════════════
-// All controller detection, MIDI/HID input, Learn Mode, and mappings
-// are handled only by unibeatz-dj-os-v4.js.
+// One controller owner: unibeatz-midi-engine.js (window.ubMidi), already
+// loaded by the deck page. It handles detection, input, the profile lookup
+// (incl. the Hercules Inpulse 200 MK3 mapping), and single-target Learn.
+// dj-midi-controller.js and unibeatz-dj-os-v3.js are NOT loaded here, and
+// unibeatz-dj-os-v4.js does not exist — the old DJ OS wiring is removed.
 
 // ═══════════════════════════════════════════════
 // WEB AUDIO EQ + FX + LOOP ENGINE
@@ -813,6 +877,46 @@ function setEQBand(deck, band, val){
   if(band==='high')  eq.high.gain.value  = db;
   note(`Deck ${deck} ${band} EQ: ${db>0?'+':''}${db.toFixed(1)}dB`);
 }
+
+// ── hercEQ / hercFilter (called by runDeckAction for controller EQ + filter) ──
+// These entry points were missing entirely, so every EQ/filter knob threw
+// ReferenceError. They drive the buildEQ Web Audio graph above: lowshelf,
+// peaking mids, highshelf, and the lowpass filter node. Values are 0-127
+// (MIDI range); EQ maps to -15..+15 dB, filter maps log-scale 100Hz..20kHz
+// (127 = fully open).
+function hercEQ(deck, band, v){
+  buildEQ(deck);
+  const eq = _eq[deck];
+  if(!eq.built) return;
+  const db = ((v / 127) * 30) - 15;
+  if(band==='high')      eq.high.gain.value = db;
+  else if(band==='mid'){ eq.midLo.gain.value = db; eq.midHi.gain.value = db; }
+  else if(band==='low')  eq.low.gain.value = db;
+  else return;
+  note(`Deck ${deck} ${band} EQ: ${db>0?'+':''}${db.toFixed(1)}dB`);
+}
+function hercFilter(deck, v){
+  buildEQ(deck);
+  const eq = _eq[deck];
+  if(!eq.built) return;
+  eq.filter.frequency.value = Math.round(100 * Math.pow(200, v / 127));
+}
+
+// On-screen EQ knobs (drag up/down) — they previously had no handlers at all.
+[['eqHighA','A','high'],['eqMidA','A','mid'],['eqLowA','A','low'],
+ ['eqHighB','B','high'],['eqMidB','B','mid'],['eqLowB','B','low']].forEach(([id, deck, band])=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  let val = 64, startY = 0, startVal = 64;
+  el.style.cursor = 'ns-resize';
+  el.title = (el.title || '') + ' (drag up/down)';
+  el.addEventListener('pointerdown', e=>{ startY = e.clientY; startVal = val; try{ el.setPointerCapture(e.pointerId); }catch(err){} });
+  el.addEventListener('pointermove', e=>{
+    if(e.buttons !== 1) return;
+    val = Math.max(0, Math.min(127, startVal + Math.round((startY - e.clientY) / 2)));
+    hercEQ(deck, band, val);
+  });
+});
 
 // ── Loop engine ──
 const LOOP_LENGTHS = [4, 2, 1, 0.5]; // bars in beats (assuming ~120bpm = 2s/bar)
@@ -1136,31 +1240,57 @@ async function routeAudioToController(){
   } catch(e){ console.warn('[audio] setSinkId failed:', e.message); }
 }
 
-// Re-route audio when MIDI connects (controller may bring its own audio)
-window._origConnectMidi = window._connectMidi;
-const _origMidiConnect = connectMidi;
-// MIDI UI managed by unibeatz-dj-os-v3.js
+// ── Learned MIDI mappings list (rendered from the engine's learn store) ──
+// The boot call to renderMappings() previously threw here: the function did
+// not exist anywhere, so loadQueue() after it never ran. Defined now.
+function renderMappings(){
+  const box = document.getElementById('midiMappings');
+  if(!box) return;
+  let learned = {};
+  try{ learned = JSON.parse(localStorage.getItem('ub_radio_dj_midi_mappings') || '{}') || {}; }catch(e){ learned = {}; }
+  const rows = Object.values(learned);
+  if(!rows.length){
+    box.innerHTML = '<div style="color:var(--gray);font-size:.6rem;">No learned mappings yet — pick a LEARN TARGET, hit MIDI LEARN ON, then move a control.</div>';
+    return;
+  }
+  box.innerHTML = rows.map(m=>{
+    const sig = (m.status !== undefined ? m.status : '?') + '-' + (m.control !== undefined ? m.control : m.note);
+    return '<div style="font-size:.6rem;">' + esc(m.action) + ' &larr; ' + esc(sig) + '</div>';
+  }).join('');
+}
+window.renderMappings = renderMappings;
 
-// Wire MIDI buttons to DJ OS
-setTimeout(function(){
-  const connectBtn = document.getElementById('connectMidi');
-  if(connectBtn) connectBtn.onclick = function(){
-    if(window.UniBeatzDJOS && window.UniBeatzDJOS.midi){
-      window.UniBeatzDJOS.midi.connect().then(function(ok){
-        if(ok) routeAudioToController();
-      });
-    }
-  };
-  const learnOnBtn = document.getElementById('startMidiLearn');
-  if(learnOnBtn) learnOnBtn.onclick = function(){
-    midiLearn = true;
+// CONNECT MIDI is wired by the engine's own DOMContentLoaded handler
+// (unibeatz-midi-engine.js → ubMidi.connect()). We only add audio routing
+// after a connect click; addEventListener coexists with the engine's onclick.
+document.getElementById('connectMidi')?.addEventListener('click', ()=>{
+  setTimeout(routeAudioToController, 1500);
+});
+
+// MIDI LEARN — single-target learn on the engine. LEARN TARGET is read live
+// on LEARN ON; changing it mid-learn retargets the pending learn.
+const learnTargetEl = document.getElementById('midiTarget');
+const _learnOnBtn = document.getElementById('startMidiLearn');
+if(_learnOnBtn) _learnOnBtn.onclick = function(){
+  const target = learnTargetEl ? learnTargetEl.value : 'playA';
+  if(window.ubMidi && window.ubMidi.startLearn){
+    window.ubMidi.startLearn(target);
+  } else {
+    note('MIDI engine not loaded yet — reload the page.','#F0C040');
+  }
+  const s = document.getElementById('midiStatus');
+  if(s) s.textContent = 'MIDI Learn ON — move the control for "' + target + '"';
+};
+const _learnOffBtn = document.getElementById('stopMidiLearn');
+if(_learnOffBtn) _learnOffBtn.onclick = function(){
+  if(window.ubMidi && window.ubMidi.stopLearn) window.ubMidi.stopLearn();
+  const s = document.getElementById('midiStatus');
+  if(s) s.textContent = 'MIDI Learn OFF';
+};
+if(learnTargetEl) learnTargetEl.addEventListener('change', ()=>{
+  if(window.ubMidi && window.ubMidi.isLearning && window.ubMidi.isLearning()){
+    window.ubMidi.startLearn(learnTargetEl.value);
     const s = document.getElementById('midiStatus');
-    if(s) s.textContent = 'MIDI Learn ON — touch a control then pick action';
-  };
-  const learnOffBtn = document.getElementById('stopMidiLearn');
-  if(learnOffBtn) learnOffBtn.onclick = function(){
-    midiLearn = false;
-    const s = document.getElementById('midiStatus');
-    if(s) s.textContent = 'MIDI Learn OFF';
-  };
-}, 800);
+    if(s) s.textContent = 'MIDI Learn ON — move the control for "' + learnTargetEl.value + '"';
+  }
+});

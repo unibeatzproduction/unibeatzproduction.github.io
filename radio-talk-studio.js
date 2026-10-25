@@ -43,7 +43,16 @@ window.tsStartSession = async function(){
   btn.disabled = true;
   btn.textContent = 'STARTING...';
 
-  // Auth enforced by Firestore rules — proceed
+  // Belt-and-braces: talk_sessions create requires a signed-in user. The
+  // studio bootstrap signs in anonymously on load; if that raced, sign in
+  // here before attempting the session write.
+  try{
+    const fb = window.UB_FIREBASE;
+    if(fb && fb.auth && !fb.auth.currentUser){
+      const { signInAnonymously } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js');
+      await signInAnonymously(fb.auth);
+    }
+  }catch(e){ console.warn('[talk studio] sign-in guard failed:', e.message); }
 
   _sessionId = 'talk-' + gen(4) + '-' + gen(4);
   const djName = (window.currentUser && window.currentUser.name) ? window.currentUser.name : 'DJ UniBeatz';

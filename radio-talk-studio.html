@@ -190,7 +190,7 @@
 <script type="module">
 // Bootstrap Firebase from radio.js config
 import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 if (!getApps().length) {
@@ -207,6 +207,11 @@ if (!getApps().length) {
 const app  = getApp();
 const auth = getAuth(app);
 const db   = getFirestore(app);
+// Talk sessions require a signed-in user to create (live rules) — the old
+// bootstrap never signed anyone in, so START SESSION was denied before any
+// token fetch. Anonymous sign-in is sufficient here by design (no admin gate).
+try{ if(!auth.currentUser) await signInAnonymously(auth); }
+catch(e){ console.warn('[talk studio] anonymous sign-in failed:', e.message); }
 window.UB_FIREBASE = { app, auth, db, onAuthStateChanged, ready: true };
 </script>
 <script type="module" src="radio-talk-studio.js"></script>
