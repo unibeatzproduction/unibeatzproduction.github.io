@@ -904,7 +904,7 @@ function slideVideo(dir){const t=document.getElementById('videosTrack');t.scroll
 // MODALS
 // MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
 // Until a link is set, its checkout shows an honest "coming soon" state, never a fake payment.
-const UB_MEMBERSHIP_LINKS = { starter: '', pro: '', elite: '' };
+const UB_MEMBERSHIP_LINKS = { starter: 'https://buy.stripe.com/cNi14g3V00Gy1PS89g93y0A', pro: 'https://buy.stripe.com/bJe4gs9fk2OG1PS2OW93y0B', elite: 'https://buy.stripe.com/9B6eV62QW4WO2TW75c93y0C' };
 let _stripe='';
 function openModal(name,price,stripe=''){
   // If a beat-license modal replaced the shared modal body, restore it first.
@@ -944,7 +944,7 @@ document.getElementById('studioModal').addEventListener('click',e=>{if(e.target=
 // STUDIO DEPOSIT LINKS — paste real Stripe Payment Links here when created (one per session type).
 // Deposits are 50% of the session price: Recording $75/hr → $37.50, Mixing $100/hr → $50, Full Day $500 → $250.
 // Until a link is set, booking shows an honest "coming soon" state instead of a fake Stripe charge.
-const UB_STUDIO_DEPOSIT_LINKS = { recording: '', mixing: '', fullday: '' };
+const UB_STUDIO_DEPOSIT_LINKS = { recording: 'https://buy.stripe.com/14AcMYfDI0Gy8egcpw93y0F', mixing: 'https://buy.stripe.com/28EdR2gHMdtk8eg1KS93y0G', fullday: 'https://buy.stripe.com/28EfZagHMblcamo4X493y0H' };
 function bookSession(){const n=document.getElementById('bName').value,e=document.getElementById('bEmail').value,d=document.getElementById('bDate').value;if(!n||!e||!d){showToast('Fill all required fields');return;}const t=document.getElementById('bType').value||'';const key=t.indexOf('Mixing')===0?'mixing':(t.indexOf('Full Day')===0?'fullday':'recording');const deposit=key==='mixing'?50:(key==='fullday'?250:37.50);const link=UB_STUDIO_DEPOSIT_LINKS[key];if(!link){showToast('50% deposit ($'+deposit.toFixed(2)+') — payment link coming soon. Please check back to complete your booking.');return;}window.location.href=link;}
 
 // ADMIN

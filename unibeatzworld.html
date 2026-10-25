@@ -950,7 +950,7 @@ function notifyMe(inputId,platform){
 // MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
 // Until a link is set, checkout shows an honest "coming soon" state, never a fake payment.
 let _stripe='';
-const UB_MEMBERSHIP_LINKS = { starter: '', pro: '', elite: '' };
+const UB_MEMBERSHIP_LINKS = { starter: 'https://buy.stripe.com/cNi14g3V00Gy1PS89g93y0A', pro: 'https://buy.stripe.com/bJe4gs9fk2OG1PS2OW93y0B', elite: 'https://buy.stripe.com/9B6eV62QW4WO2TW75c93y0C' };
 function openModal(name,price,stripe=''){_stripe=stripe;document.getElementById('modal-title').textContent=name;document.getElementById('modal-sub').textContent='Price: '+price;document.getElementById('modal').classList.add('active');}
 function processPayment(){
   const n=document.getElementById('mName')?.value,e=document.getElementById('mEmail')?.value;

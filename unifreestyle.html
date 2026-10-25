@@ -545,7 +545,7 @@
 <script>
 // BATTLE MEMBERSHIP CHECKOUT LINKS — paste real Stripe Payment Links here when created.
 // Until a link is set, its button stays disabled with an honest "coming soon" state, never a fake checkout.
-const UB_BATTLE_LINKS = { pass: '', elite: '' };
+const UB_BATTLE_LINKS = { pass: 'https://buy.stripe.com/eVq7sE2QW60Samoaho93y0D', elite: 'https://buy.stripe.com/00w5kwdvAcpgcuw1KS93y0E' };
 function ubBuyBattleTier(tier){
   const link = UB_BATTLE_LINKS[tier];
   if(!link){ showToast('Battle ' + (tier === 'elite' ? 'Elite' : 'Pass') + ' payment link coming soon'); return; }
