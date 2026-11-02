@@ -3,7 +3,7 @@
 // #mainStationAudio (Live365 direct stream, mobile)
 // #channelAudio (genre channel player)
 
-const DEFAULT_ARTWORK = '/unibeatz-radio-cover-v2.svg';
+const DEFAULT_ARTWORK = '/radio-now-playing-512.jpg';
 let booted            = false;
 let listenerStarted   = false;
 let shouldResume      = false;
@@ -44,7 +44,7 @@ function updateMediaSession(){
   try{
     navigator.mediaSession.metadata = new MediaMetadata({
       title, artist, album: 'UniBeatz Radio',
-      artwork: [{ src: DEFAULT_ARTWORK, sizes: '512x512', type: 'image/svg+xml' }]
+      artwork: [{ src: DEFAULT_ARTWORK, sizes: '512x341', type: 'image/jpeg' }]
     });
     navigator.mediaSession.playbackState = (audio && !audio.paused) ? 'playing' : 'paused';
     if('setPositionState' in navigator.mediaSession && audio && Number.isFinite(audio.duration) && audio.duration > 0){
